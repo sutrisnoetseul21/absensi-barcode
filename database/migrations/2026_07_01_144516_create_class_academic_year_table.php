@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('class_academic_year', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('class_id')->constrained('classes')->cascadeOnDelete();
+            $table->foreignUuid('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
+            $table->foreignUuid('teacher_id')->nullable()->constrained('teachers')->nullOnDelete();
+            $table->timestamps();
+
+            // Satu kelas hanya 1x per tahun ajaran
+            $table->unique(['class_id', 'academic_year_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('class_academic_year');
+    }
+};
