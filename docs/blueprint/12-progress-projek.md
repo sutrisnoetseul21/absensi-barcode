@@ -282,30 +282,30 @@ Status: `[ ]` = belum | `[/]` = sedang dikerjakan | `[x]` = selesai
 > **Goal**: 3 guard login terpisah berfungsi penuh (`web` untuk admin, `wali_kelas`, `siswa`).
 > Referensi: `02-roles-permissions.md`, `09-third-party.md`.
 
-- `[ ]` Konfigurasi `config/auth.php`:
+- `[x]` Konfigurasi `config/auth.php`:
   - Guard `web` (default) → provider model `User` (tabel `users`, dikelola Filament)
   - Guard `wali_kelas` → provider model `Teacher` (tabel `teachers`)
   - Guard `siswa` → provider model `Student` (tabel `students`)
-- `[ ]` Model `Teacher` dan `Student` implement `Authenticatable`
-- `[ ]` **PENTING**: Model `Teacher` dan `Student` WAJIB menggunakan trait `HasUuids` dan properti `$keyType = 'string'; public $incrementing = false;` karena primary key menggunakan UUID.
-- `[ ]` Buat middleware `EnsureIsWaliKelas` dan `EnsureIsSiswa`
-- `[ ]` Daftarkan route group per guard:
+- `[x]` Model `Teacher` dan `Student` implement `Authenticatable`
+- `[x]` **PENTING**: Model `Teacher` dan `Student` WAJIB menggunakan trait `HasUuids` dan properti `$keyType = 'string'; public $incrementing = false;` karena primary key menggunakan UUID.
+- `[x]` Buat middleware `EnsureIsWaliKelas` dan `EnsureIsSiswa`
+- `[x]` Daftarkan route group per guard:
   - `/wali-kelas/*` → middleware `auth:wali_kelas`
   - `/siswa/*` → middleware `auth:siswa`
-- `[ ]` Buat halaman Login Wali Kelas (Livewire component) di `/wali-kelas/login`
-- `[ ]` Buat halaman Login Siswa (Livewire component) di `/siswa/login`
-- `[ ]` Implementasi flow ganti password wajib (`must_change_password` = true) untuk wali kelas dan siswa setelah login (form ganti password + redirect logic)
-- `[ ]` Buat route logout per guard (`/wali-kelas/logout`, `/siswa/logout`)
-- `[ ]` Setup redirect setelah login sukses ke dashboard masing-masing
-- `[ ]` Setup Filament Panel Admin (menggunakan guard `web`, prefix `/admin`)
+- `[x]` Buat halaman Login Wali Kelas (Livewire component) di `/wali-kelas/login`
+- `[x]` Buat halaman Login Siswa (Livewire component) di `/siswa/login`
+- `[x]` Implementasi flow ganti password wajib (`must_change_password` = true) untuk wali kelas dan siswa setelah login (form ganti password + redirect logic)
+- `[x]` Buat route logout per guard (`/wali-kelas/logout`, `/siswa/logout`)
+- `[x]` Setup redirect setelah login sukses ke dashboard masing-masing
+- `[x]` Setup Filament Panel Admin (menggunakan guard `web`, prefix `/admin`)
 
 **Verifikasi Tahap 2 Selesai:**
-- [ ] Bisa login sebagai Admin melalui `/admin/login` dan masuk ke panel Filament
-- [ ] Bisa login sebagai Wali Kelas di `/wali-kelas/login` dan logout berfungsi
-- [ ] Bisa login sebagai Siswa di `/siswa/login` dan logout berfungsi
-- [ ] Akses `/admin` tanpa login di-redirect ke `/admin/login`
-- [ ] Guard tidak saling campur (login wali kelas tidak bisa akses route siswa)
-- [ ] User dengan `must_change_password = true` dipaksa redirect ke form ganti password sebelum bisa akses halaman lain
+- [x] Bisa login sebagai Admin melalui `/admin/login` dan masuk ke panel Filament
+- [x] Bisa login sebagai Wali Kelas di `/wali-kelas/login` dan logout berfungsi
+- [x] Bisa login sebagai Siswa di `/siswa/login` dan logout berfungsi
+- [x] Akses `/admin` tanpa login di-redirect ke `/admin/login`
+- [x] Guard tidak saling campur (login wali kelas tidak bisa akses route siswa)
+- [x] User dengan `must_change_password = true` dipaksa redirect ke form ganti password sebelum bisa akses halaman lain
 
 ---
 
@@ -550,7 +550,7 @@ Status: `[ ]` = belum | `[/]` = sedang dikerjakan | `[x]` = selesai
 |-------|------|--------|
 | 0 | Inisiasi Proyek & Setup | ✅ Selesai |
 | 1 | Skema Database | ✅ Selesai |
-| 2 | Multi-Guard Authentication | ⬜ Belum dimulai |
+| 2 | Multi-Guard Authentication | ✅ Selesai |
 | 3 | Data Master & Modul Admin | ⬜ Belum dimulai |
 | 4 | Kios Scanner Absensi | ⬜ Belum dimulai |
 | 5 | Dashboard Publik | ⬜ Belum dimulai |

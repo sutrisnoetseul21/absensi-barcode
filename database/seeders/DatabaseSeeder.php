@@ -18,5 +18,37 @@ class DatabaseSeeder extends Seeder
         $this->call([
             KelasSeeder::class,
         ]);
+
+        // Akun Admin Filament
+        User::firstOrCreate(
+            ['email' => 'admin@sekolah.com'],
+            [
+                'name' => 'Admin Utama',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            ]
+        );
+
+        // Akun Wali Kelas
+        \App\Models\Guru::firstOrCreate(
+            ['username' => 'guru123'],
+            [
+                'name' => 'Bapak Budi',
+                'nip' => '198001012005011001',
+                'password' => 'password',
+                'must_change_password' => true,
+            ]
+        );
+
+        // Akun Siswa
+        \App\Models\Siswa::firstOrCreate(
+            ['username' => '1234567890'],
+            [
+                'nisn' => '1234567890',
+                'name' => 'Andi Siswa',
+                'barcode_code' => '1234567890',
+                'password' => 'password',
+                'must_change_password' => true,
+            ]
+        );
     }
 }

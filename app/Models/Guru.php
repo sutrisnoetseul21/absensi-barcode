@@ -12,6 +12,8 @@ class Guru extends Authenticatable
     use HasUuids, SoftDeletes;
 
     protected $table = 'teachers';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'name',
@@ -28,6 +30,7 @@ class Guru extends Authenticatable
 
     protected $casts = [
         'must_change_password' => 'boolean',
+        'password' => 'hashed',
     ];
 
     // Kelas yang diampu (bisa > 1 kelas per tahun ajaran)

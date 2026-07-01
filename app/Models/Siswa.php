@@ -13,6 +13,8 @@ class Siswa extends Authenticatable
     use HasUuids, SoftDeletes;
 
     protected $table = 'students';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'nisn',
@@ -37,6 +39,7 @@ class Siswa extends Authenticatable
         'birth_date'           => 'date',
         'barcode_active'       => 'boolean',
         'must_change_password' => 'boolean',
+        'password'             => 'hashed',
     ];
 
     // Semua riwayat enrollment (kelas per tahun ajaran)
