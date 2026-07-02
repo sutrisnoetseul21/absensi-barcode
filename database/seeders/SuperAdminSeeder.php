@@ -19,7 +19,7 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'superadmin@sekolah.com'],
             [
                 'name'           => 'Super Admin',
