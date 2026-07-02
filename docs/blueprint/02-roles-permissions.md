@@ -10,7 +10,7 @@
 | Siswa | Hanya lihat riwayat absensinya sendiri, read-only | Login Siswa (custom) | `students` / guard `siswa` |
 | Publik (guest) | Lihat dashboard publik agregat, tanpa login | — | — |
 
-> **Catatan:** Admin dan Super Admin sama-sama menggunakan tabel `users` bawaan Filament (guard `web`). Pembedaan hak akses Super Admin vs Admin dilakukan via **Filament Shield** atau pembatasan resource-level di panel, bukan tabel terpisah.
+> **Catatan:** Admin dan Super Admin sama-sama menggunakan tabel `users` bawaan Filament (guard `web`). Pembedaan hak akses Super Admin vs Admin dilakukan via kolom boolean `is_super_admin` dan pembatasan `canAccess()` di level resource/halaman (bukan menggunakan Filament Shield atau tabel terpisah).
 
 ---
 

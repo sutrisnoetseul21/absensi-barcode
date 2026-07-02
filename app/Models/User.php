@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_super_admin',
     ];
 
     /**
@@ -45,8 +46,18 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'is_super_admin'    => 'boolean',
         ];
+    }
+
+    /**
+     * Cek apakah user ini adalah Super Admin.
+     * Super Admin punya akses penuh: setting sekolah, tahun ajaran, kenaikan kelas.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
     }
 
     // Absensi yang discan oleh admin ini

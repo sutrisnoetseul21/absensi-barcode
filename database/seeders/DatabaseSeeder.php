@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             KelasSeeder::class,
+            SuperAdminSeeder::class,
         ]);
 
         // Akun Admin Filament

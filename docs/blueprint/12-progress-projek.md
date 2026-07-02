@@ -312,25 +312,158 @@ Status: `[ ]` = belum | `[/]` = sedang dikerjakan | `[x]` = selesai
 ### TAHAP 3 — Data Master & Modul Admin Dasar (Filament)
 
 > **Goal**: Admin bisa mengelola data master (Tahun Ajaran, Kelas, Guru, Siswa) melalui panel Filament.
-> Referensi: `03-features.md`, `08-pages-routes.md`.
+> Referensi: `03-features.md`, `08-pages-routes.md`, `02-roles-permissions.md`.
 
-- `[ ]` **Filament Resource**: `AcademicYearResource` (CRUD Tahun Ajaran)
-- `[ ]` **Filament Resource**: `ClassResource` (CRUD Kelas, assign wali kelas per tahun ajaran)
-- `[ ]` **Filament Resource**: `TeacherResource` (CRUD Guru, reset password)
-- `[ ]` **Filament Resource**: `StudentResource`
-  - Tabel daftar siswa (filter kelas, tahun ajaran)
-  - Form tambah/edit (NISN, nama, TTL, alamat, foto, barcode_code)
-  - Auto-generate `barcode_code` = NISN saat siswa baru dibuat
-  - Tombol "Reset Password" (reset ke default)
-- `[ ]` **Filament Resource**: `StudentEnrollmentResource`
-  - Assign siswa ke kelas per tahun ajaran
-  - Tampilkan status enrollment
+> [!CAUTION]
+> Baca seluruh catatan desain di bawah sebelum generate resource apapun. Beberapa keputusan di sini berkaitan langsung dengan hasil Tahap 1 & 2.
+
+---
+
+#### 📌 Catatan Desain & Keputusan Sebelum Eksekusi
+
+**[A] Naming Convention Resource — WAJIB mengikuti nama Model Tahap 1**
+Model yang dibuat di Tahap 1 adalah `Guru` (tabel `teachers`) dan `Siswa` (tabel `students`).
+- ✅ `GuruResource` (bukan `TeacherResource`)
+- ✅ `SiswaResource` (bukan `StudentResource`)
+
+**[B] Super Admin vs Admin — Mekanisme Pembatasan Akses**
+Kolom `is_super_admin` (boolean) di tabel `users` — belum ada, harus migration baru dulu.
+Override `canAccess()` di Resource/Page yang restricted. Resource restricted:
+- `TahunAjaranResource` → Super Admin only
+- `SchoolSettingsPage` → Super Admin only
+- Tombol assign wali kelas di `KelasResource` → Super Admin only
+
+**[C] SchoolSettingsPage — Filament Custom Page (bukan Resource biasa)**
+Data `school_settings` singleton (1 baris). Pakai `make:filament-page`, bukan Resource.
+
+**[D] Soft Delete Restore — Scope Tahap 3**
+Aktifkan restore di `Kelas`, `Guru`, `Siswa` (ketiganya sudah punya `deleted_at` dari Tahap 1).
+
+**[E] Username Guru — Aturan Generate (Final)**
+- Jika NIP ada → `username = NIP`
+- Jika NIP kosong → nama lengkap, strip gelar (Dr., Drs., H., Hj., KH., Ustadz, Ustadzah, S.Pd, M.Pd, dll.) via regex → hapus semua non-huruf → lowercase
+  - Contoh: `"Dr. H. Budi Santoso, S.Pd., M.Pd."` → `budisantoso`
+  - Jika username sudah ada di DB → append angka: `budisantoso2`, `budisantoso3`, dst.
+
+**[F] Sinkronisasi Tahun Ajaran Aktif — Sumber Kebenaran Tunggal**
+- Sumber kebenaran = kolom `status` di `academic_years`
+- Hanya 1 baris boleh `aktif` pada satu waktu
+- `afterSave()` di TahunAjaranResource: jika status di-set `aktif` → arsipkan semua lain + sync `PengaturanSekolah.academic_year_id_active`
+
+**[G] KelasAjaran RelationManager — Upsert, bukan Insert**
+UNIQUE `[class_id, academic_year_id]` → gunakan `updateOrCreate` saat assign. Tidak ada error duplikat.
+
+**[H] Enrollment — Validasi Duplikat via Notification**
+UNIQUE `[student_id, academic_year_id]` → cek di `beforeCreate()`. Jika sudah ada → Notification `danger` + `halt()`. Tidak boleh error 500 mentah.
+
+**[I] Validasi Unique di Form Filament**
+`nip` (GuruResource), `nisn`, `barcode_code` (SiswaResource) → `->unique(ignoreRecord: true)`.
+
+---
+
+#### ✅ Checklist Tahap 3
+
+**[3.0] Pre-flight: Kolom `is_super_admin` & Akun Super Admin**
+- `[ ]` Buat migration `add_is_super_admin_to_users_table` → kolom `is_super_admin` (boolean, default false)
+- `[ ]` Jalankan `php artisan migrate`
+- `[ ]` Update `User` model: `is_super_admin` ke `$fillable`, cast boolean, method `isSuperAdmin(): bool`
+- `[ ]` Buat `SuperAdminSeeder`: buat akun Super Admin baru terpisah dengan `is_super_admin = true`
+- `[ ]` Daftarkan `SuperAdminSeeder` ke `DatabaseSeeder`
+
+---
+
+**[3.1] `TahunAjaranResource` — Tahun Ajaran (Super Admin only)**
+- `[ ]` Buat resource: `php artisan make:filament-resource TahunAjaran`
+- `[ ]` Model binding ke `TahunAjaran` (tabel `academic_years`)
+- `[ ]` Fields: `name`, `start_date` (DatePicker), `end_date` (DatePicker, harus setelah start), `status` (Select: aktif/arsip)
+- `[ ]` Batasi akses: override `canAccess()` → hanya `is_super_admin = true`
+- `[ ]` **`afterSave()` di Create & Edit**: jika `status = aktif` → arsipkan semua tahun lain + sync `PengaturanSekolah.academic_year_id_active`
+
+---
+
+**[3.2] `KelasResource` — Kelas Template (Master)**
+- `[ ]` Buat resource: `php artisan make:filament-resource Kelas --soft-deletes`
+- `[ ]` Model binding ke `Kelas` (tabel `classes`)
+- `[ ]` Fields: `name`, `grade_level` (Select: 7–12)
+- `[ ]` Aktifkan soft delete: `TrashedFilter` + tombol restore
+- `[ ]` **RelationManager: `KelasAjaranRelationManager`** (relationship: `kelasAjarans`)
+  - Form: pilih **Tahun Ajaran** (Select, wajib eksplisit) + pilih **Guru/Wali Kelas** (Select, nullable)
+  - Save logic: `updateOrCreate([class_id, academic_year_id], [teacher_id])` — bukan insert biasa
+  - Tombol Create/Edit/Delete: hanya muncul untuk Super Admin; Admin biasa read-only
+
+---
+
+**[3.3] `GuruResource` — Data Guru**
+> ⚠️ Nama WAJIB `GuruResource`, binding ke model `Guru` (tabel `teachers`)
+
+- `[ ]` Buat resource: `php artisan make:filament-resource Guru --soft-deletes`
+- `[ ]` Fields form: `name`, `nip` (nullable, `->unique(ignoreRecord: true)` jika diisi), `username` (disabled saat edit)
+- `[ ]` Password tidak ada di form — dihandle otomatis
+- `[ ]` **Auto-generate di `mutateFormDataBeforeCreate()`**:
+  - `username` = NIP jika ada; jika tidak → strip gelar dari nama → lowercase tanpa spasi → cek unik di DB
+  - `password` = random 8 karakter (simpan plain text sementara untuk notifikasi)
+  - `must_change_password = true`
+- `[ ]` **`afterCreate()`**: Filament Notification success berisi username & password default (1x)
+- `[ ]` Soft delete: `TrashedFilter` + tombol restore
+- `[ ]` **Custom Table Action "Reset Password"**:
+  - Generate password baru random 8 char
+  - Update: `password = bcrypt(...)`, `must_change_password = true`
+  - Tampilkan password baru di modal (1x)
+
+---
+
+**[3.4] `SiswaResource` — Data Siswa**
+> ⚠️ Nama WAJIB `SiswaResource`, binding ke model `Siswa` (tabel `students`)
+
+- `[ ]` Buat resource: `php artisan make:filament-resource Siswa --soft-deletes`
+- `[ ]` Fields form: `nisn` (`->unique(ignoreRecord: true)`), `name`, `birth_place` (nullable), `birth_date` (DatePicker, nullable), `address` (Textarea, nullable), `photo_path` (FileUpload, dir: `siswa-photos`), `barcode_code` (nullable, hint: "Kosongkan = auto-isi dari NISN", `->unique(ignoreRecord: true)`)
+- `[ ]` **Auto-generate di `mutateFormDataBeforeCreate()`**:
+  - `barcode_code` = NISN jika kosong
+  - `username` = NISN
+  - `password` = random 8 karakter (simpan plain text sementara)
+  - `must_change_password = true`
+- `[ ]` **`afterCreate()`**: Filament Notification berisi username (NISN) & password default (1x)
+- `[ ]` Filter tabel:
+  - SelectFilter **Tahun Ajaran** (default: tahun aktif dari `PengaturanSekolah::current()`)
+  - SelectFilter **Kelas** (via `whereHas('enrollments', ...)` ke `student_enrollments`)
+- `[ ]` Soft delete: `TrashedFilter` + tombol restore
+- `[ ]` **Custom Table Action "Reset Password"** (sama seperti GuruResource)
+
+---
+
+**[3.5] `EnrollmentResource` — Enrollment Siswa**
+- `[ ]` Buat resource: `php artisan make:filament-resource EnrollmentSiswa`
+- `[ ]` Model binding eksplisit ke `EnrollmentSiswa` (tabel `student_enrollments`)
+- `[ ]` Fields form: Siswa (Select searchable NISN+nama), Kelas (Select), Tahun Ajaran (Select), status (Select: aktif/naik/tinggal/pindah/lulus)
+- `[ ]` **Validasi duplikat di `beforeCreate()`**: cek `[student_id, academic_year_id]` — jika sudah ada → Notification danger + `halt()` dengan pesan: _"Siswa ini sudah terdaftar di tahun ajaran yang dipilih. Gunakan Edit untuk mengubah kelasnya."_
+- `[ ]` Tampilkan di tabel: nama siswa, NISN, nama kelas, nama tahun ajaran, status (Badge)
+
+---
+
+**[3.6] `SchoolSettingsPage` — Pengaturan Sekolah (Super Admin only)**
+- `[ ]` Buat Filament custom page: `php artisan make:filament-page SchoolSettings`
+- `[ ]` Fields: `school_name`, `school_address` (Textarea), `school_logo_path` (FileUpload), `principal_name`, `checkin_time` (TextInput HH:MM), `late_threshold_minutes` (Numeric), `academic_year_id_active` (Select dari `TahunAjaran`)
+- `[ ]` Logic: load `PengaturanSekolah::current()` → form → simpan dengan `updateOrCreate`
+- `[ ]` Batasi akses: override `canAccess()` → hanya `is_super_admin = true`
+- `[ ]` Daftarkan ke panel Filament di path `/admin/pengaturan`
+
+---
 
 **Verifikasi Tahap 3 Selesai:**
-- [ ] Admin bisa tambah/edit/lihat Tahun Ajaran
-- [ ] Admin bisa tambah/edit/lihat Kelas dan assign Wali Kelas
-- [ ] Admin bisa tambah/edit/lihat Siswa dan Guru
-- [ ] Barcode siswa ter-generate otomatis saat data baru dibuat
+- [ ] Kolom `is_super_admin` ada di DB, akun Super Admin baru bisa login di `/admin`
+- [ ] `TahunAjaranResource` hanya bisa diakses Super Admin
+- [ ] `SchoolSettingsPage` hanya bisa diakses Super Admin
+- [ ] Set tahun ajaran `aktif` → semua lain jadi `arsip` + `PengaturanSekolah` ter-sync otomatis
+- [ ] CRUD + restore untuk Kelas, Guru, Siswa berfungsi
+- [ ] Create Guru: username (dari NIP/nama tanpa gelar), password random, `must_change_password = true` + notifikasi 1x
+- [ ] Create Siswa: username=NISN, barcode=NISN, password random, `must_change_password = true` + notifikasi 1x
+- [ ] Reset Password Guru/Siswa: password baru tampil di modal + `must_change_password` di-reset ke `true`
+- [ ] Assign wali kelas: dropdown tahun ajaran eksplisit + upsert (tidak error duplikat)
+- [ ] Tombol assign hanya muncul untuk Super Admin
+- [ ] Enrollment siswa duplikat (tahun sama): Notification danger, tidak error 500
+- [ ] Field `nip` / `nisn` / `barcode_code` duplikat: pesan validasi jelas (bukan QueryException)
+- [ ] Soft delete + restore aktif untuk Kelas, Guru, Siswa
+- [ ] Pengaturan Sekolah tersimpan dan terbaca dengan benar
 
 ---
 
