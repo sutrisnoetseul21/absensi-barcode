@@ -5,7 +5,6 @@ namespace App\Filament\Resources\TahunAjarans\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -17,18 +16,16 @@ class TahunAjaransTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Nama Tahun Ajaran')
+                    ->label('Tahun Ajaran')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('start_date')
-                    ->label('Mulai')
-                    ->date('d M Y')
+                TextColumn::make('start_year')
+                    ->label('Tahun Mulai')
                     ->sortable(),
 
-                TextColumn::make('end_date')
-                    ->label('Selesai')
-                    ->date('d M Y')
+                TextColumn::make('end_year')
+                    ->label('Tahun Selesai')
                     ->sortable(),
 
                 TextColumn::make('status')
@@ -62,6 +59,6 @@ class TahunAjaransTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('start_year', 'asc');
     }
 }

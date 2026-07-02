@@ -27,7 +27,7 @@ class CreateGuru extends CreateRecord
 
         $data['username']             = UsernameHelper::generateForGuru($data['name'], $data['nip'] ?? null);
         $data['password']             = $this->generatedPassword; // otomatis di-hash via cast 'hashed'
-        $data['must_change_password'] = true;
+        $data['must_change_password'] = false;
 
         return $data;
     }

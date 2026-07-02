@@ -28,7 +28,7 @@ class CreateSiswa extends CreateRecord
         $data['barcode_code']         = $data['barcode_code'] ?? $data['nisn'];
         $data['username']             = $data['nisn'];
         $data['password']             = $this->generatedPassword; // otomatis di-hash via cast 'hashed'
-        $data['must_change_password'] = true;
+        $data['must_change_password'] = false;
 
         return $data;
     }

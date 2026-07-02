@@ -14,15 +14,27 @@ class TahunAjaran extends Model
 
     protected $fillable = [
         'name',
-        'start_date',
-        'end_date',
+        'start_year',
+        'end_year',
         'status',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
+        'start_year' => 'integer',
+        'end_year'   => 'integer',
     ];
+
+    // Auto-generate field 'name' dari start_year/end_year sebelum disimpan
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::saving(function (self $model) {
+            if ($model->start_year && $model->end_year) {
+                $model->name = "{$model->start_year}/{$model->end_year}";
+            }
+        });
+    }
 
     // Kelas yang aktif di tahun ajaran ini
     public function kelasAjarans(): HasMany
@@ -52,6 +64,12 @@ class TahunAjaran extends Model
     public function logKenaikansTo(): HasMany
     {
         return $this->hasMany(LogKenaikan::class, 'academic_year_to_id');
+    }
+
+    // Scope: tampilkan urut dari tahun paling awal
+    public function scopeOrderedByYear($query)
+    {
+        return $query->orderBy('start_year', 'asc');
     }
 
     // Scope untuk tahun ajaran aktif

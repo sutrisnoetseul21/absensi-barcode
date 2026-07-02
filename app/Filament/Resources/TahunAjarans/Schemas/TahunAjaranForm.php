@@ -2,33 +2,45 @@
 
 namespace App\Filament\Resources\TahunAjarans\Schemas;
 
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rule;
 
 class TahunAjaranForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $record = $schema->getLivewire()->getRecord() ?? null;
+
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->label('Nama Tahun Ajaran')
-                    ->placeholder('Contoh: 2025/2026')
+                TextInput::make('start_year')
+                    ->label('Tahun Mulai')
+                    ->placeholder('Contoh: 2024')
+                    ->integer()
+                    ->minValue(2000)
+                    ->maxValue(2100)
                     ->required()
-                    ->maxLength(20),
+                    ->rule(function () use ($record) {
+                        return Rule::unique('academic_years', 'start_year')
+                            ->ignore($record?->id ?? null);
+                    })
+                    ->helperText('Tahun awal semester ganjil, misal 2024 untuk TP 2024/2025.'),
 
-                DatePicker::make('start_date')
-                    ->label('Tanggal Mulai')
+                TextInput::make('end_year')
+                    ->label('Tahun Selesai')
+                    ->placeholder('Contoh: 2025')
+                    ->integer()
+                    ->minValue(2000)
+                    ->maxValue(2100)
                     ->required()
-                    ->native(false),
-
-                DatePicker::make('end_date')
-                    ->label('Tanggal Selesai')
-                    ->required()
-                    ->native(false)
-                    ->after('start_date'),
+                    ->rule(function () use ($record) {
+                        return Rule::unique('academic_years', 'end_year')
+                            ->ignore($record?->id ?? null);
+                    })
+                    ->gt('start_year')
+                    ->helperText('Harus lebih besar dari Tahun Mulai.'),
 
                 Select::make('status')
                     ->label('Status')

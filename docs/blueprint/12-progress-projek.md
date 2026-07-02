@@ -20,6 +20,9 @@ Sebelum memulai sesi coding apapun, AI agent WAJIB membaca dokumen berikut:
 | 5 | [`docs/stack/FILAMENT-V4-INTEGRATION.md`](../stack/FILAMENT-V4-INTEGRATION.md) | Filament v4 — wajib sebelum buat Resource |
 | 6 | [`docs/blueprint/05-database.md`](05-database.md) | Skema database dan relasi |
 | 7 | [`docs/blueprint/06-business-rules.md`](06-business-rules.md) | Aturan bisnis (jam absen, debounce, formula) |
+| 8 | [`docs/progres-aplikasi-absensi/tahap-1.md`](../progres-aplikasi-absensi/tahap-1.md) | Catatan skema DB aktual & revisi Tahap 1 |
+| 9 | [`docs/progres-aplikasi-absensi/tahap-2.md`](../progres-aplikasi-absensi/tahap-2.md) | Catatan implementasi auth Tahap 2 |
+| 10 | [`docs/progres-aplikasi-absensi/tahap-3.md`](../progres-aplikasi-absensi/tahap-3.md) | Catatan fitur & keputusan desain Tahap 3 |
 
 ---
 
@@ -115,13 +118,15 @@ Status: `[ ]` = belum | `[/]` = sedang dikerjakan | `[x]` = selesai
 
 - `[x]` **Migration 1**: `create_academic_years_table`
   ```
-  - id (uuid, primary)
-  - name (string) → contoh: "2025/2026"
-  - start_date (date)
-  - end_date (date)
-  - status (enum: 'aktif', 'arsip') default 'aktif'
+  - id         (uuid, primary)
+  - name       (string) → format "2025/2026", auto-generated dari start_year/end_year
+  - start_year (integer, UNIQUE) → tahun mulai, misal 2025
+  - end_year   (integer, UNIQUE) → tahun selesai, misal 2026
+  - status     (enum: 'aktif', 'arsip') default 'aktif'
   - timestamps()
   ```
+  > **Revisi 2 Juli 2026**: Kolom `start_date` (date) dan `end_date` (date) diganti
+  > dengan `start_year` dan `end_year` (integer, UNIQUE). `name` auto-generate via `boot()`.
 
 - `[x]` **Migration 2**: `create_classes_table` ← TEMPLATE NAMA KELAS PERMANEN
   ```
@@ -373,11 +378,12 @@ UNIQUE `[student_id, academic_year_id]` → cek di `beforeCreate()`. Jika sudah 
 ---
 
 **[3.1] `TahunAjaranResource` — Tahun Ajaran (Super Admin only)**
-- `[ ]` Buat resource: `php artisan make:filament-resource TahunAjaran`
-- `[ ]` Model binding ke `TahunAjaran` (tabel `academic_years`)
-- `[ ]` Fields: `name`, `start_date` (DatePicker), `end_date` (DatePicker, harus setelah start), `status` (Select: aktif/arsip)
-- `[ ]` Batasi akses: override `canAccess()` → hanya `is_super_admin = true`
-- `[ ]` **`afterSave()` di Create & Edit**: jika `status = aktif` → arsipkan semua tahun lain + sync `PengaturanSekolah.academic_year_id_active`
+- `[x]` Buat resource: `php artisan make:filament-resource TahunAjaran`
+- `[x]` Model binding ke `TahunAjaran` (tabel `academic_years`)
+- `[x]` Fields: `start_year` (TextInput integer, UNIQUE), `end_year` (TextInput integer, UNIQUE, > start_year), `status` (Select: aktif/arsip). Field `name` **tidak ada di form** — auto-generate via model `boot()`.
+- `[x]` Tabel urut `start_year ASC` (terlama di atas).
+- `[x]` Batasi akses: override `canAccess()` → hanya `is_super_admin = true`
+- `[x]` **`afterSave()` di Create & Edit**: jika `status = aktif` → arsipkan semua tahun lain + sync `PengaturanSekolah.academic_year_id_active`
 
 ---
 
@@ -684,7 +690,7 @@ UNIQUE `[student_id, academic_year_id]` → cek di `beforeCreate()`. Jika sudah 
 | 0 | Inisiasi Proyek & Setup | ✅ Selesai |
 | 1 | Skema Database | ✅ Selesai |
 | 2 | Multi-Guard Authentication | ✅ Selesai |
-| 3 | Data Master & Modul Admin | ⬜ Belum dimulai |
+| 3 | Data Master & Modul Admin | ✅ Selesai (lihat [tahap-3.md](../progres-aplikasi-absensi/tahap-3.md)) |
 | 4 | Kios Scanner Absensi | ⬜ Belum dimulai |
 | 5 | Dashboard Publik | ⬜ Belum dimulai |
 | 6 | Portal Wali Kelas | ⬜ Belum dimulai |
