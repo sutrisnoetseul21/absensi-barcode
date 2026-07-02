@@ -48,7 +48,7 @@ class SiswaTable
                     ->sortable(),
 
                 TextColumn::make('kelas_aktif')
-                    ->label('Kelas (Aktif)')
+                    ->label('Kelas')
                     ->getStateUsing(function (Siswa $record, $livewire) {
                         $targetYearId = $livewire->tableFilters['academic_year_id']['value'] ?? null;
                         $activeYearId = $targetYearId ?: (PengaturanSekolah::current()?->academic_year_id_active);
@@ -101,6 +101,7 @@ class SiswaTable
             ->headerActions([
                 // 0. Luluskan Kelas 9 Massal
                 Action::make('luluskan_kelas_9')
+                    ->visible(fn () => \App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false)
                     ->label('Luluskan Kelas 9')
                     ->icon('heroicon-o-academic-cap')
                     ->color('danger')
@@ -141,6 +142,7 @@ class SiswaTable
 
                 // 0.1 Batalkan Kelulusan Massal
                 Action::make('batalkan_kelulusan_massal')
+                    ->visible(fn () => \App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false)
                     ->label('Batalkan Kelulusan')
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
@@ -360,6 +362,7 @@ class SiswaTable
 
                 // 3. Download Template Naik Kelas (Siswa Lama)
                 Action::make('download_template_naik_kelas')
+                    ->visible(fn () => \App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false)
                     ->label('Template Naik Kelas')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
@@ -426,6 +429,7 @@ class SiswaTable
 
                 // 4. Upload Naik Kelas
                 Action::make('import_naik_kelas')
+                    ->visible(fn () => \App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false)
                     ->label('Naik Kelas Massal')
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('warning')
@@ -597,7 +601,11 @@ class SiswaTable
 
                                 $rows = array_slice($sheet, 1);
                                 $existingStudents = Siswa::pluck('name', 'nisn')->toArray();
+                                $studentIds = Siswa::pluck('id', 'nisn')->toArray();
                                 $existingClasses = Kelas::pluck('name')->toArray();
+                                $classGradeLevels = Kelas::pluck('grade_level', 'name')->toArray();
+                                $sourceYearId = $data['source_academic_year_id'];
+                                $oldEnrollments = \App\Models\EnrollmentSiswa::where('academic_year_id', $sourceYearId)->with('kelas')->get()->keyBy('student_id');
                                 
                                 $invalidNisns = [];
                                 $invalidClasses = [];
@@ -613,16 +621,35 @@ class SiswaTable
                                     $newClassVal = trim((string) ($row[5] ?? ''));
                                     if (!in_array($newClassVal, $existingClasses)) {
                                         $invalidClasses[] = $newClassVal === '' ? 'Kosong' : $newClassVal;
+                                    } else {
+                                        // Validate jumping grade level > 1
+                                        if (isset($studentIds[$nisnVal])) {
+                                            $sId = $studentIds[$nisnVal];
+                                            if (isset($oldEnrollments[$sId])) {
+                                                $oldClass = $oldEnrollments[$sId]->kelas;
+                                                $oldGrade = $oldClass ? $oldClass->grade_level : null;
+                                                $newGrade = $classGradeLevels[$newClassVal] ?? null;
+
+                                                if ($oldGrade !== null && $newGrade !== null) {
+                                                    if (($newGrade - $oldGrade) > 1) {
+                                                        $invalidJumps[] = $nisnVal . ' (Naik dari kelas ' . $oldGrade . ' ke ' . $newGrade . ')';
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
-                                if (!empty($invalidNisns) || !empty($invalidClasses)) {
+                                if (!empty($invalidNisns) || !empty($invalidClasses) || !empty($invalidJumps)) {
                                     $msg = '';
                                     if (!empty($invalidNisns)) {
                                         $msg .= 'Siswa tidak terdaftar (NISN): **' . implode(', ', array_unique($invalidNisns)) . '**. ';
                                     }
                                     if (!empty($invalidClasses)) {
                                         $msg .= 'Kelas Baru tidak valid: **' . implode(', ', array_unique($invalidClasses)) . '**. ';
+                                    }
+                                    if (!empty($invalidJumps)) {
+                                        $msg .= 'Siswa melompat lebih dari 1 tingkat kelas (tidak valid): **' . implode(', ', array_unique($invalidJumps)) . '**. ';
                                     }
 
                                     Notification::make()

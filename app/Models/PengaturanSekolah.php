@@ -20,11 +20,13 @@ class PengaturanSekolah extends Model
         'checkin_time',
         'late_threshold_minutes',
         'academic_year_id_active',
+        'enable_promotion_features',
     ];
 
     protected $casts = [
-        'checkin_time'           => 'string',
-        'late_threshold_minutes' => 'integer',
+        'checkin_time'              => 'string',
+        'late_threshold_minutes'    => 'integer',
+        'enable_promotion_features' => 'boolean',
     ];
 
     // Tahun ajaran yang sedang aktif

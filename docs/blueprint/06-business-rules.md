@@ -15,8 +15,18 @@
 - Nilai threshold (3x alpa, 100 menit) sebaiknya dapat dikonfigurasi via `school_settings`.
 - Sistem tidak mencetak Surat Peringatan otomatis — hanya memberi notifikasi visual agar Wali Kelas bisa melakukan pembinaan.
 
+## Window Operasional Kios & Sesi
+- **Window Operasional Kios**: Kios absensi digunakan dalam rentang waktu terbatas, sekitar **jam 06.00 – 08.00** (praktiknya biasanya selesai sekitar 07.30). Di luar jam ini, halaman kios tidak digunakan aktif.
+- Asumsi operasional: device kios **dibuka/di-refresh ulang setiap pagi** sebelum jam pemakaian dimulai (bukan tab warisan yang dibiarkan menyala berhari-hari dari sesi sebelumnya). Ini memastikan CSRF token tetap fresh tanpa butuh mekanisme silent-refresh.
+
 ## Penanganan Scan Simultan & Debounce
-- **Per-Barcode Cooldown:** Barcode yang sama jika discan berulang dalam **3 detik** hanya dihitung 1 kali (debounce per `barcode_code`, bukan global).
+- **Kebijakan: 1 Device = 1 Scanner = 1 Browser Tab.** Setiap titik scan/kios menggunakan 1 PC/device dengan 1 scanner barcode dan 1 tab browser aktif. Tidak diperbolehkan multi-scanner dalam satu device/tab yang sama, untuk menghindari ambiguitas fokus input dan risiko interleaving keystroke.
+- Jika sekolah butuh titik scan tambahan (misal 2 gerbang), gunakan device terpisah, bukan menumpuk scanner di 1 device.
+- Konsekuensi: sistem tidak perlu menangani race condition dalam satu device (multi-scanner-in-one-input), tapi **tetap wajib** menangani race condition **antar-device** yang scan bersamaan (banyak device paralel hit server di waktu yang sama).
+- **Server-Side Debounce & Race Condition:**
+  - Debounce 3 detik per `barcode_code` **wajib dicek di server** secara **atomik**. Gunakan `Cache::add('scan_lock:'.$barcode_code, true, 3)` di awal `ProcessScanAction`. Jika return `false`, langsung tolak (sudah diproses di request lain).
+  - Pengecekan normal "sudah absen" dilakukan via query `SELECT` standar (`WHERE student_id = ? AND date = ?`).
+  - Tambahkan **DB unique constraint** pada `attendances` untuk kombinasi `(student_id, date)` sebagai garis pertahanan terakhir. Ini murni untuk menangkap **race condition langka** di mana 2 request lolos `Cache::add` dan `SELECT` bersamaan. Jika terjadi exception constraint violation, tangkap dan kembalikan `already_scanned`.
 - **Concurrent Async Scan:** Front-end dibangun asynchronous — layar langsung siap untuk scan berikutnya tanpa menunggu respons server. Mendukung skenario rush hour (ratusan siswa berurutan).
 - Sistem harus bisa menangani 10 scanner beroperasi bersamaan tanpa blocking/deadlock di database.
 

@@ -12,6 +12,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Kiosk Absensi Routes
+Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
+Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
+    $barcode = $request->input('barcode');
+    if (!$barcode) {
+        return response()->json(['status' => 'not_found']);
+    }
+    return response()->json($action->execute($barcode, $request->ip()));
+})->middleware('throttle:60,1')->name('kiosk.process');
+
 // Wali Kelas Routes
 Route::prefix('wali-kelas')->group(function () {
     Route::get('/login', WaliKelasLogin::class)->middleware('guest:wali_kelas')->name('wali-kelas.login');

@@ -45,13 +45,23 @@ class SiswaNaikKelasImport implements ToCollection
                 continue;
             }
 
-            // Update status enrollment lama (TP asal) menjadi 'naik'
+            // Tentukan status enrollment lama (TP asal) otomatis (Naik atau Tinggal)
             $oldEnrollment = EnrollmentSiswa::where('student_id', $student->id)
                 ->where('academic_year_id', $this->sourceAcademicYearId)
+                ->with('kelas')
                 ->first();
 
             if ($oldEnrollment) {
-                $oldEnrollment->update(['status' => 'naik']);
+                $oldGradeLevel = $oldEnrollment->kelas?->grade_level;
+                $newGradeLevel = $kelas->grade_level;
+                
+                $status = 'naik';
+                // Jika tingkat kelas baru sama atau lebih rendah dari kelas lama, maka dianggap tinggal kelas
+                if ($oldGradeLevel !== null && $newGradeLevel !== null && $newGradeLevel <= $oldGradeLevel) {
+                    $status = 'tinggal';
+                }
+
+                $oldEnrollment->update(['status' => $status]);
             }
 
             // Daftarkan siswa ke target tahun ajaran (naik kelas)

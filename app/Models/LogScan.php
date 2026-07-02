@@ -5,14 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class LogScanInvalid extends Model
+class LogScan extends Model
 {
     use HasUuids;
 
-    protected $table = 'invalid_scan_logs';
+    protected $table = 'scan_logs';
 
     protected $fillable = [
-        'scanned_code',
+        'barcode_code',
+        'student_id',
+        'status',
         'scan_time',
         'ip_address',
     ];
@@ -20,4 +22,9 @@ class LogScanInvalid extends Model
     protected $casts = [
         'scan_time' => 'datetime',
     ];
+    
+    public function student()
+    {
+        return $this->belongsTo(Siswa::class, 'student_id');
+    }
 }

@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Notifications\Notification;
@@ -104,6 +105,11 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->helperText('Otomatis diset ketika Tahun Ajaran diubah menjadi "Aktif" di Data Master. Form ini hanya read-only/display.')
                             ->disabled() // Di-disable karena diset dari TahunAjaranResource
                             ->dehydrated(false), // Jangan disimpan dari form ini
+
+                        Toggle::make('enable_promotion_features')
+                            ->label('Aktifkan Tombol Kenaikan & Kelulusan Kelas')
+                            ->helperText('Jika diaktifkan, tombol Luluskan dan Naik Kelas akan muncul di tabel Siswa.')
+                            ->default(false),
                     ])->columns(2),
             ])
             ->statePath('data');

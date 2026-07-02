@@ -68,6 +68,7 @@
 |------|-----------|
 | [`README-DOCS.md`](README-DOCS.md) ← **kamu di sini** | Peta navigasi, mulai cepat, deployment |
 | [`docs/blueprint/`](docs/blueprint/) | Kumpulan template rancangan proyek (PRD) |
+| [`docs/progres-aplikasi-absensi/`](docs/progres-aplikasi-absensi/) | Panduan eksekusi harian dan checklist setiap tahap progres |
 | [`docs/stack/LIVEWIRE-V3-GUIDE.md`](docs/stack/LIVEWIRE-V3-GUIDE.md) | Panduan Livewire v3 (Komponen, wire:model, lazy) |
 | [`docs/stack/TAILWIND-V3-GUIDE.md`](docs/stack/TAILWIND-V3-GUIDE.md) | Panduan Tailwind CSS v3 (tailwind.config.js, @apply) |
 | [`docs/stack/ALPINE-V3-GUIDE.md`](docs/stack/ALPINE-V3-GUIDE.md) | Panduan Alpine.js v3 (directives, integrasi $wire) |
