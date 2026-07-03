@@ -12,6 +12,13 @@ class Siswa extends Authenticatable
 {
     use HasUuids, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::saving(function ($siswa) {
+            $siswa->barcode_code = $siswa->nisn;
+            $siswa->username = $siswa->nisn;
+        });
+    }
     protected $table = 'students';
     public $incrementing = false;
     protected $keyType = 'string';

@@ -5,13 +5,19 @@ Daftar layar yang perlu di-sketch:
 - **Login Admin** (Filament default)
 
 - **Dashboard Publik**
+  - **Constraint utama**: HANYA menampilkan data agregat per kelas (jumlah siswa, % kehadiran, ranking kelas). TIDAK PERNAH menampilkan nama, foto, atau status individu siswa di halaman ini — itu domain Dashboard Admin/Wali Kelas.
+  - **2 Mode Tampilan** (route terpisah):
+    - **Mode Publik** (`/`) — untuk diakses via HP/browser orang tua/pengunjung. Filter manual aktif (Tahun Ajaran, Kelas, Bulan). Layout compact, responsif, scroll vertikal.
+    - **Mode TV/Kios** (`/display`) — untuk ditampilkan di layar lobi sekolah. Tanpa filter (default: tahun ajaran aktif, bulan berjalan). Full-screen, font besar untuk dilihat dari jarak jauh. Render sekali saat load — TIDAK auto-refresh/polling (karena jendela absensi cuma pagi hari, data tidak berubah signifikan setelah itu).
   - Kartu ringkasan per kelas (% hadir hari ini, jumlah siswa).
-  - **Wall of Fame**: Top 5 Kelas dengan kehadiran terbaik bulan ini (lencana/ranking).
-  - **Grafik Interaktif (Chart.js / ApexCharts)**:
+  - **Wall of Fame**: Top 5 Kelas dengan kehadiran terbaik bulan ini (lencana/ranking) — nama kelas saja.
+  - **Grafik Interaktif (Chart.js)**:
     - Donut Chart (Hadir vs Sakit vs Izin vs Alpa hari ini — total sekolah)
     - Bar Chart (Kehadiran antar kelas, bulan ini)
     - Line Chart (Tren kehadiran harian, 1 bulan)
-  - Filter: Tahun Ajaran, Kelas, Bulan
+  - Filter (hanya di Mode Publik `/`): Tahun Ajaran, Kelas, Bulan
+  - State: loading (skeleton saat fetch data), empty (sebelum jam masuk / hari libur / kelas baru tanpa histori — tampilkan pesan ramah, bukan chart kosong/error), error (gagal load data — tampilkan pesan + tombol retry di mode publik; di mode TV cukup fallback pesan statis)
+  - Responsif: Wajib untuk Mode Publik (`/`). Mode TV (`/display`) didesain untuk layar besar tetap (tidak perlu responsif ke ukuran HP).
 
 - **Dashboard Admin** (lebih detail)
   - Ringkasan total siswa, total hadir hari ini, % per kelas

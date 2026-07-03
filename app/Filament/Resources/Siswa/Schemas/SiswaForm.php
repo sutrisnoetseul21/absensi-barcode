@@ -48,26 +48,17 @@ class SiswaForm
                 FileUpload::make('photo_path')
                     ->label('Foto Siswa')
                     ->image()
+                    ->imageEditor()
+                    ->imageEditorAspectRatios([
+                        '1:1',
+                    ])
+                    ->imageResizeTargetWidth(500)
+                    ->imageResizeTargetHeight(500)
+                    ->disk('public')
                     ->directory('siswa-photos')
                     ->nullable(),
 
-                TextInput::make('barcode_code')
-                    ->label('Kode Barcode')
-                    ->maxLength(50)
-                    ->unique(
-                        table: 'students',
-                        column: 'barcode_code',
-                        ignoreRecord: true
-                    )
-                    ->helperText('Kosongkan untuk otomatis mengisi kode barcode dari NISN.')
-                    ->nullable(),
 
-                TextInput::make('username')
-                    ->label('Username Login')
-                    ->disabled()
-                    ->dehydrated(false)
-                    ->helperText('Username otomatis diset dari NISN saat pembuatan data baru.')
-                    ->visibleOn('edit'),
 
                 \Filament\Forms\Components\Select::make('class_id')
                     ->label('Kelas (Tahun Ajaran Aktif)')

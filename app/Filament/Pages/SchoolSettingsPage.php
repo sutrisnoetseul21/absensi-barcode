@@ -79,6 +79,9 @@ class SchoolSettingsPage extends Page implements HasForms
                         FileUpload::make('school_logo_path')
                             ->label('Logo Sekolah')
                             ->image()
+                            ->imageResizeTargetWidth(500)
+                            ->imageResizeTargetHeight(500)
+                            ->disk('public')
                             ->directory('settings')
                             ->nullable(),
                     ])->columns(1),

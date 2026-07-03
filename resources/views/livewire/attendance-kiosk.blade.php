@@ -208,6 +208,20 @@
                             body: JSON.stringify({ barcode: currentBarcode })
                         });
                         
+                        // Handle CSRF Token Mismatch or other HTTP errors
+                        if (!response.ok) {
+                            if (response.status === 419) {
+                                // CSRF Expired, reload page
+                                window.location.reload();
+                                return;
+                            }
+                            
+                            const errorData = await response.json().catch(() => ({}));
+                            this.showFeedback('error', 'Error Sistem', null, errorData.message || `Terjadi kesalahan (Kode: ${response.status})`);
+                            this.playAudio('error');
+                            return;
+                        }
+
                         const data = await response.json();
                         this.handleResponse(data);
                     } catch (error) {
