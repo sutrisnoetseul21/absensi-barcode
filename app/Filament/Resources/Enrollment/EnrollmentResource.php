@@ -16,7 +16,7 @@ use Filament\Tables\Table;
 
 class EnrollmentResource extends Resource
 {
-    protected static ?string $model = EnrollmentSiswa::class;
+    protected static ?string $model = \App\Models\Kelas::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
@@ -32,7 +32,7 @@ class EnrollmentResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return EnrollmentForm::configure($schema);
+        return $schema;
     }
 
     public static function table(Table $table): Table
@@ -40,17 +40,10 @@ class EnrollmentResource extends Resource
         return EnrollmentTable::configure($table);
     }
 
-    public static function getRelations(): array
-    {
-        return [];
-    }
-
     public static function getPages(): array
     {
         return [
             'index'  => ListEnrollments::route('/'),
-            'create' => CreateEnrollment::route('/create'),
-            'edit'   => EditEnrollment::route('/{record}/edit'),
         ];
     }
 }

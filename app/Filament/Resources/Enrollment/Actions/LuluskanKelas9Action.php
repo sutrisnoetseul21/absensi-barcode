@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\Siswa\Actions;
+namespace App\Filament\Resources\Enrollment\Actions;
 
 use Filament\Actions\Action;
 use App\Models\TahunAjaran;
 use App\Models\PengaturanSekolah;
 
-class BatalkanKelulusanMassalAction extends Action
+class LuluskanKelas9Action extends Action
 {
     public static function getDefaultName(): ?string
     {
-        return 'batalkan_kelulusan_massal';
+        return 'luluskan_kelas_9';
     }
 
     protected function setUp(): void
@@ -18,12 +18,12 @@ class BatalkanKelulusanMassalAction extends Action
         parent::setUp();
 
         $this->visible(fn () => PengaturanSekolah::current()?->enable_promotion_features ?? false)
-            ->label('Batalkan Kelulusan')
-            ->icon('heroicon-o-arrow-path')
-            ->color('gray')
+            ->label('Luluskan Kelas 9')
+            ->icon('heroicon-o-academic-cap')
+            ->color('danger')
             ->requiresConfirmation()
-            ->modalHeading('Batalkan Kelulusan')
-            ->modalDescription('Tindakan ini akan memulihkan status kelulusan seluruh siswa di tahun ajaran yang dipilih kembali menjadi Aktif.')
+            ->modalHeading('Meluluskan Siswa Kelas 9')
+            ->modalDescription('Tindakan ini akan meluluskan seluruh siswa kelas tingkat 9 secara massal pada tahun ajaran yang dipilih.')
             ->form([
                 \Filament\Forms\Components\Select::make('academic_year_id')
                     ->label('Tahun Ajaran')
@@ -34,21 +34,24 @@ class BatalkanKelulusanMassalAction extends Action
             ->action(function (array $data) {
                 $yearId = $data['academic_year_id'];
                 $tahunAjaran = TahunAjaran::find($yearId);
-
+                
                 $enrollments = \App\Models\EnrollmentSiswa::where('academic_year_id', $yearId)
-                    ->where('status', 'lulus')
+                    ->where('status', 'aktif')
+                    ->whereHas('kelas', function ($q) {
+                        $q->where('grade_level', 9);
+                    })
                     ->get();
 
                 $count = 0;
                 foreach ($enrollments as $enrollment) {
-                    $enrollment->update(['status' => 'aktif']);
+                    $enrollment->update(['status' => 'lulus']);
                     $count++;
                 }
 
                 $yearName = $tahunAjaran?->name ?? '';
                 \Filament\Notifications\Notification::make()
-                    ->title('Pembatalan Kelulusan Berhasil')
-                    ->body("Berhasil membatalkan kelulusan **{$count}** siswa untuk Tahun Ajaran **{$yearName}** kembali menjadi Aktif.")
+                    ->title('Kelulusan Massal Berhasil')
+                    ->body("Berhasil meluluskan **{$count}** siswa kelas 9 untuk Tahun Ajaran **{$yearName}**.")
                     ->success()
                     ->send();
             });

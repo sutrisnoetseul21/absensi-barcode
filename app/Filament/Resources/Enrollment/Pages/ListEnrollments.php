@@ -10,10 +10,84 @@ class ListEnrollments extends ListRecords
 {
     protected static string $resource = EnrollmentResource::class;
 
+    public string $searchLeft = '';
+    public string $searchRight = '';
+    public ?string $manageClassId = null;
+    public ?string $manageAcademicYearId = null;
+
+    // Fields for inline student registration
+    public string $newStudentName = '';
+    public string $newStudentNisn = '';
+    public string $newStudentGender = 'L'; // L or P
+
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
+    }
+
+    public function enrollStudent($studentId)
+    {
+        if (!$this->manageClassId || !$this->manageAcademicYearId) return;
+
+        \App\Models\EnrollmentSiswa::updateOrCreate(
+            [
+                'student_id' => $studentId,
+                'academic_year_id' => $this->manageAcademicYearId,
+            ],
+            [
+                'class_id' => $this->manageClassId,
+                'status' => 'aktif',
+            ]
+        );
+
+        \Filament\Notifications\Notification::make()
+            ->title('Siswa Berhasil Dimasukkan')
+            ->success()
+            ->send();
+    }
+
+    public function unenrollStudent($studentId)
+    {
+        if (!$this->manageAcademicYearId) return;
+
+        \App\Models\EnrollmentSiswa::where('student_id', $studentId)
+            ->where('academic_year_id', $this->manageAcademicYearId)
+            ->delete();
+
+        \Filament\Notifications\Notification::make()
+            ->title('Siswa Berhasil Dikeluarkan')
+            ->success()
+            ->send();
+    }
+
+    public function registerNewStudent()
+    {
+        $this->validate([
+            'newStudentName' => 'required|string|max:255',
+            'newStudentNisn' => 'required|string|max:20|unique:students,nisn',
+            'newStudentGender' => 'required|in:L,P',
+        ], [
+            'newStudentName.required' => 'Nama lengkap wajib diisi.',
+            'newStudentNisn.required' => 'NISN wajib diisi.',
+            'newStudentNisn.unique' => 'NISN sudah terdaftar.',
+        ]);
+
+        $siswa = \App\Models\Siswa::create([
+            'name' => $this->newStudentName,
+            'nisn' => $this->newStudentNisn,
+            'password' => '12345678', // default password
+            'must_change_password' => true,
+        ]);
+
+        // Reset fields
+        $this->newStudentName = '';
+        $this->newStudentNisn = '';
+        $this->newStudentGender = 'L';
+
+        \Filament\Notifications\Notification::make()
+            ->title('Siswa Baru Terdaftar')
+            ->body("Siswa **{$siswa->name}** berhasil didaftarkan ke database (tanpa kelas).")
+            ->success()
+            ->send();
     }
 }

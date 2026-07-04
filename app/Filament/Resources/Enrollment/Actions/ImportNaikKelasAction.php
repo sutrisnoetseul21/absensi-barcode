@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Siswa\Actions;
+namespace App\Filament\Resources\Enrollment\Actions;
 
 use Filament\Actions\Action;
 use App\Models\Siswa;
