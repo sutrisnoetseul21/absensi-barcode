@@ -76,7 +76,7 @@ class ListEnrollments extends ListRecords
             'name' => $this->newStudentName,
             'nisn' => $this->newStudentNisn,
             'password' => '12345678', // default password
-            'must_change_password' => true,
+            'must_change_password' => false,
         ]);
 
         // Reset fields

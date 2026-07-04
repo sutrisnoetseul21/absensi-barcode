@@ -58,41 +58,14 @@ class SiswaForm
                     ->directory('siswa-photos')
                     ->nullable(),
 
-
-
-                \Filament\Forms\Components\Select::make('class_id')
-                    ->label('Kelas (Tahun Ajaran Aktif)')
-                    ->options(\App\Models\Kelas::pluck('name', 'id')->toArray())
-                    ->required()
-                    ->dehydrated(false)
-                    ->afterStateHydrated(function (\Filament\Forms\Components\Select $component, ?\App\Models\Siswa $record) {
-                        if (!$record) return;
-                        
-                        $activeYearId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active;
-                        if (!$activeYearId) return;
-
-                        $enrollment = $record->enrollments()->where('academic_year_id', $activeYearId)->first();
-                        if ($enrollment) {
-                            $component->state($enrollment->class_id);
-                        }
-                    })
-                    ->saveRelationshipsUsing(function (?\App\Models\Siswa $record, $state) {
-                        if (!$record || !$state) return;
-                        
-                        $activeYearId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active;
-                        if (!$activeYearId) return;
-
-                        \App\Models\EnrollmentSiswa::updateOrCreate(
-                            [
-                                'student_id' => $record->id,
-                                'academic_year_id' => $activeYearId,
-                            ],
-                            [
-                                'class_id' => $state,
-                                'status' => 'aktif',
-                            ]
-                        );
-                    }),
+                TextInput::make('password')
+                    ->password()
+                    ->label('Password')
+                    ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->maxLength(255)
+                    ->helperText(fn (string $context): string => $context === 'edit' ? 'Biarkan kosong jika tidak ingin mengubah password.' : 'Masukkan password untuk akun siswa ini.'),
             ]);
     }
 }

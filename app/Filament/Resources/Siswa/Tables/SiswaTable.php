@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Siswa\Tables;
 
+use Filament\Forms\Components\TextInput;
 use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
 use App\Models\Siswa;
@@ -126,22 +127,31 @@ class SiswaTable
                     ->label('Reset Password')
                     ->icon('heroicon-o-key')
                     ->color('warning')
-                    ->requiresConfirmation()
+                    ->form([
+                        TextInput::make('password')
+                            ->password()
+                            ->label('Password Baru')
+                            ->required()
+                            ->minLength(6)
+                            ->same('password_confirmation'),
+                        TextInput::make('password_confirmation')
+                            ->password()
+                            ->label('Konfirmasi Password Baru')
+                            ->required()
+                            ->minLength(6),
+                    ])
                     ->modalHeading('Reset Password Siswa')
-                    ->modalDescription(fn (Siswa $record): string => "Password baru akan di-generate untuk {$record->name} ({$record->nisn}). Pastikan catat password sebelum menutup dialog ini.")
-                    ->action(function (Siswa $record): void {
-                        $newPassword = Str::random(8);
-
+                    ->modalSubmitActionLabel('Ganti Password')
+                    ->action(function (Siswa $record, array $data): void {
                         $record->update([
-                            'password'             => $newPassword, // otomatis di-hash via cast 'hashed'
-                            'must_change_password' => true,
+                            'password'             => bcrypt($data['password']),
+                            'must_change_password' => false,
                         ]);
 
                         Notification::make()
-                            ->title('Password berhasil direset')
-                            ->body("Username: **{$record->username}**\nPassword baru: **{$newPassword}**\n\nSiswa wajib ganti password saat login berikutnya.")
+                            ->title('Password berhasil diubah')
+                            ->body("Password untuk siswa **{$record->name}** ({$record->nisn}) telah berhasil diperbarui.")
                             ->success()
-                            ->persistent()
                             ->send();
                     }),
 

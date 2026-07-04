@@ -44,9 +44,10 @@ class WaliKelasDashboard extends Component
             return;
         }
 
-        $actor = Auth::guard('wali_kelas')->check() ? Auth::guard('wali_kelas')->user() : Auth::guard('web')->user();
+        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !Auth::guard('wali_kelas')->check();
 
-        if (Auth::guard('wali_kelas')->check()) {
+        if (!$isAdminMode) {
+            $actor = Auth::guard('wali_kelas')->user();
             $this->classes = Kelas::whereHas('kelasAjarans', function ($query) use ($actor) {
                 $query->where('academic_year_id', $this->selectedAcademicYearId)
                       ->where('teacher_id', $actor->id);
@@ -75,7 +76,8 @@ class WaliKelasDashboard extends Component
 
     public function updatedSelectedClassId()
     {
-        if (Auth::guard('wali_kelas')->check()) {
+        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !Auth::guard('wali_kelas')->check();
+        if (!$isAdminMode) {
             if (!$this->classes->contains('id', $this->selectedClassId)) {
                 abort(403, 'Unauthorized action.');
             }
