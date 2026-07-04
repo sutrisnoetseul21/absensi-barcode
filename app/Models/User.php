@@ -63,12 +63,12 @@ class User extends Authenticatable
     // Absensi yang discan oleh admin ini
     public function absensisScanned(): HasMany
     {
-        return $this->hasMany(Absensi::class, 'scanned_by');
+        return $this->hasMany(Presensi::class, 'scanned_by');
     }
 
     // Absensi manual yang diinput admin ini (polymorphic)
     public function absensisManual()
     {
-        return $this->morphMany(Absensi::class, 'manual_input_by');
+        return $this->morphMany(Presensi::class, 'manual_input_by');
     }
 }

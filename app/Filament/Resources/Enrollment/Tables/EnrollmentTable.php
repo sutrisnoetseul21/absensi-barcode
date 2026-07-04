@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Enrollment\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -64,10 +65,33 @@ class EnrollmentTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make()
+                    ->before(function (DeleteAction $action, \App\Models\EnrollmentSiswa $record) {
+                        if ($record->absensis()->count() > 0) {
+                            \Filament\Notifications\Notification::make()
+                                ->warning()
+                                ->title('Gagal menghapus!')
+                                ->body('Pendaftaran siswa ini tidak dapat dihapus karena sudah memiliki data absensi.')
+                                ->send();
+                            $action->halt();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function (DeleteBulkAction $action, \Illuminate\Database\Eloquent\Collection $records) {
+                            foreach ($records as $record) {
+                                if ($record->absensis()->count() > 0) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->warning()
+                                        ->title('Penghapusan dibatalkan!')
+                                        ->body('Beberapa pendaftaran siswa tidak dapat dihapus karena sudah memiliki data absensi.')
+                                        ->send();
+                                    $action->halt();
+                                }
+                            }
+                        }),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

@@ -7,17 +7,25 @@ Daftar layar yang perlu di-sketch:
 - **Dashboard Publik**
   - **Constraint utama**: HANYA menampilkan data agregat per kelas (jumlah siswa, % kehadiran, ranking kelas). TIDAK PERNAH menampilkan nama, foto, atau status individu siswa di halaman ini — itu domain Dashboard Admin/Wali Kelas.
   - **2 Mode Tampilan** (route terpisah):
-    - **Mode Publik** (`/`) — untuk diakses via HP/browser orang tua/pengunjung. Filter manual aktif (Tahun Ajaran, Kelas, Bulan). Layout compact, responsif, scroll vertikal.
-    - **Mode TV/Kios** (`/display`) — untuk ditampilkan di layar lobi sekolah. Tanpa filter (default: tahun ajaran aktif, bulan berjalan). Full-screen, font besar untuk dilihat dari jarak jauh. Render sekali saat load — TIDAK auto-refresh/polling (karena jendela absensi cuma pagi hari, data tidak berubah signifikan setelah itu).
-  - Kartu ringkasan per kelas (% hadir hari ini, jumlah siswa).
-  - **Wall of Fame**: Top 5 Kelas dengan kehadiran terbaik bulan ini (lencana/ranking) — nama kelas saja.
-  - **Grafik Interaktif (Chart.js)**:
-    - Donut Chart (Hadir vs Sakit vs Izin vs Alpa hari ini — total sekolah)
-    - Bar Chart (Kehadiran antar kelas, bulan ini)
-    - Line Chart (Tren kehadiran harian, 1 bulan)
-  - Filter (hanya di Mode Publik `/`): Tahun Ajaran, Kelas, Bulan
-  - State: loading (skeleton saat fetch data), empty (sebelum jam masuk / hari libur / kelas baru tanpa histori — tampilkan pesan ramah, bukan chart kosong/error), error (gagal load data — tampilkan pesan + tombol retry di mode publik; di mode TV cukup fallback pesan statis)
-  - Responsif: Wajib untuk Mode Publik (`/`). Mode TV (`/display`) didesain untuk layar besar tetap (tidak perlu responsif ke ukuran HP).
+    - **Mode Publik** (`/`) — untuk diakses via HP/browser orang tua/pengunjung. Filter manual aktif (Tahun Ajaran, Kelas, Bulan) dan di bawah slider terdapat panel navigasi manual. Layout compact, responsif, scroll vertikal.
+    - **Mode TV/Kios** (`/display`) — untuk lobi sekolah. Tanpa filter (default: tahun ajaran aktif, bulan berjalan). Full-screen, font besar untuk dibaca jarak jauh. Loop otomatis antar slide angkatan tiap 8 detik via JS/Alpine.js tanpa re-fetch data Livewire.
+  - **Slider/Carousel Per Angkatan**:
+    - Mengelompokkan **Widget Ringkasan Kelas** (% hadir hari ini, jumlah siswa) dan **Bar Chart (Chart.js)** perbandingan bulanan menjadi 3 slide berdasarkan angkatan:
+      - **Slide 1**: Angkatan 7 (Kelas 7A, 7B, dll. - jumlah dinamis)
+      - **Slide 2**: Angkatan 8 (Kelas 8A, 8B, dll. - jumlah dinamis)
+      - **Slide 3**: Angkatan 9 (Kelas 9A, 9B, dll. - jumlah dinamis)
+  - **Widget Statis (Di luar Slider)**:
+    - **Wall of Fame**: Top 5 Kelas dengan kehadiran terbaik bulan ini (ranking/nama kelas saja).
+    - **Donut Chart**: Total sekolah status hari ini (Hadir vs Sakit vs Izin vs Alpa vs Belum Absen).
+    - **Line Chart**: Tren kehadiran harian total sekolah dalam 1 bulan.
+  - **Filter & Interaksi (Hanya Mode Publik `/`)**:
+    - Dropdown: Tahun Ajaran, Angkatan, Kelas, Bulan.
+    - Memilih **Angkatan** otomatis menggeser/navigasi slider ke slide angkatan terpilih.
+    - Memilih **Kelas** otomatis menggeser slider ke angkatan bersangkutan dan memberi highlight visual (border/warna beda) pada kartu ringkasan + bar chart kelas tersebut.
+    - Memilih **Bulan** memicu query ulang Livewire untuk memperbarui data di semua slide.
+  - **State**: loading (skeleton saat fetch data), empty (sebelum jam masuk / hari libur / kelas baru tanpa histori — tampilkan pesan ramah, bukan chart kosong/error), error (gagal load data — tampilkan pesan + tombol retry di mode publik; di mode TV cukup fallback pesan statis).
+  - **Responsif**: Wajib untuk Mode Publik (`/`). Mode TV (`/display`) didesain untuk layar besar tetap (tidak perlu responsif ke ukuran HP).
+
 
 - **Dashboard Admin** (lebih detail)
   - Ringkasan total siswa, total hadir hari ini, % per kelas

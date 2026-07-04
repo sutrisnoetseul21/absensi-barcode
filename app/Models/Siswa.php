@@ -55,10 +55,12 @@ class Siswa extends Authenticatable
         return $this->hasMany(EnrollmentSiswa::class, 'student_id');
     }
 
-    // Enrollment aktif (tahun ajaran berjalan)
     public function enrollmentAktif(): HasOne
     {
         return $this->hasOne(EnrollmentSiswa::class, 'student_id')
+            ->whereHas('tahunAjaran', function ($q) {
+                $q->where('status', 'aktif');
+            })
             ->where('status', 'aktif')
             ->latest();
     }
@@ -66,6 +68,6 @@ class Siswa extends Authenticatable
     // Semua record absensi siswa
     public function absensis(): HasMany
     {
-        return $this->hasMany(Absensi::class, 'student_id');
+        return $this->hasMany(Presensi::class, 'student_id');
     }
 }

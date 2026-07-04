@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Models\Absensi;
+use App\Models\Presensi;
 use App\Models\HariLibur;
 use App\Models\LogScan;
 use App\Models\PengaturanSekolah;
@@ -58,7 +58,7 @@ class ProcessScanAction
         }
 
         // 4. Cek Normal Absensi (Sudah Absen Hari Ini?)
-        $sudahAbsen = Absensi::where('student_id', $siswa->id)
+        $sudahAbsen = Presensi::where('student_id', $siswa->id)
             ->where('date', $date)
             ->exists();
 
@@ -90,7 +90,7 @@ class ProcessScanAction
 
         // 6. Insert ke attendances (Dengan Safety Net DB Unique Constraint)
         try {
-            Absensi::create([
+            Presensi::create([
                 'student_id' => $siswa->id,
                 'enrollment_id' => $enrollment->id,
                 'class_id' => $classId,

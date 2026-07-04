@@ -13,7 +13,17 @@ class EditEnrollment extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            \Filament\Actions\DeleteAction::make()
+                ->before(function (\Filament\Actions\DeleteAction $action, \App\Models\EnrollmentSiswa $record) {
+                    if ($record->absensis()->count() > 0) {
+                        \Filament\Notifications\Notification::make()
+                            ->warning()
+                            ->title('Gagal menghapus!')
+                            ->body('Pendaftaran siswa ini tidak dapat dihapus karena sudah memiliki data absensi.')
+                            ->send();
+                        $action->halt();
+                    }
+                }),
         ];
     }
 }

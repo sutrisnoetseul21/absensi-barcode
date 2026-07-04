@@ -51,7 +51,7 @@ class TahunAjaran extends Model
     // Absensi di tahun ajaran ini (denormalized)
     public function absensis(): HasMany
     {
-        return $this->hasMany(Absensi::class, 'academic_year_id');
+        return $this->hasMany(Presensi::class, 'academic_year_id');
     }
 
     // Log kenaikan kelas dari tahun ajaran ini

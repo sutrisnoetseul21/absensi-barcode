@@ -1,65 +1,455 @@
-<div class="min-h-screen bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white font-bold text-xl">
-                            W
-                        </div>
-                        <span class="font-bold text-xl text-gray-900 tracking-tight">Portal Wali Kelas</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="hidden md:block text-sm text-gray-600 font-medium">
-                        Halo, {{ Auth::guard('wali_kelas')->user()->nama ?? 'Bapak/Ibu Guru' }}
-                    </div>
-                    <form action="{{ route('wali-kelas.logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            Keluar
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+<div class="absensi-container space-y-6">
+    <style>
+        .absensi-container {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .absensi-card {
+            background-color: #18181b; /* dark mode zinc-900 */
+            border: 1px solid #27272a; /* zinc-800 */
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+        .light .absensi-card, [data-theme="light"] .absensi-card {
+            background-color: #ffffff;
+            border-color: #e4e4e7;
+        }
+        .absensi-header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f4f4f5;
+        }
+        .light .absensi-header-title, [data-theme="light"] .absensi-header-title {
+            color: #18181b;
+        }
+        .absensi-header-desc {
+            font-size: 0.875rem;
+            color: #a1a1aa;
+            margin-top: 0.25rem;
+        }
+        .light .absensi-header-desc, [data-theme="light"] .absensi-header-desc {
+            color: #71717a;
+        }
+        .absensi-grid-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        @media (min-width: 768px) {
+            .absensi-grid-filters {
+                margin-top: 0;
+            }
+        }
+        .absensi-filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .absensi-filter-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #a1a1aa;
+        }
+        .light .absensi-filter-label, [data-theme="light"] .absensi-filter-label {
+            color: #71717a;
+        }
+        .absensi-select {
+            background-color: #27272a;
+            color: #f4f4f5;
+            border: 1px solid #3f3f46;
+            border-radius: 0.5rem;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            outline: none;
+            min-width: 140px;
+            cursor: pointer;
+            appearance: auto;
+        }
+        .light .absensi-select, [data-theme="light"] .absensi-select {
+            background-color: #f4f4f5;
+            color: #18181b;
+            border-color: #d4d4d8;
+        }
+        .absensi-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+        .absensi-alert {
+            display: flex;
+            gap: 0.75rem;
+            background-color: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+        .absensi-alert-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .absensi-alert-desc {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            color: rgba(245, 158, 11, 0.9);
+        }
+        .absensi-table-container {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+        }
+        .light .absensi-table-container, [data-theme="light"] .absensi-table-container {
+            background-color: #ffffff;
+            border-color: #e4e4e7;
+        }
+        .absensi-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .absensi-table th {
+            background-color: #27272a;
+            color: #a1a1aa;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #3f3f46;
+        }
+        .light .absensi-table th, [data-theme="light"] .absensi-table th {
+            background-color: #f4f4f5;
+            color: #71717a;
+            border-color: #e4e4e7;
+        }
+        .absensi-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #27272a;
+            font-size: 0.875rem;
+            color: #e4e4e7;
+            vertical-align: middle;
+        }
+        .light .absensi-table td, [data-theme="light"] .absensi-table td {
+            border-color: #e4e4e7;
+            color: #27272a;
+        }
+        .absensi-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .light .absensi-table tr:hover, [data-theme="light"] .absensi-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+        .absensi-table tr.row-warning {
+            background-color: rgba(239, 68, 68, 0.08);
+        }
+        .absensi-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            background-color: transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .absensi-btn:hover {
+            background-color: #f59e0b;
+            color: #18181b;
+        }
+        .badge-warning {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            margin-top: 0.25rem;
+            width: fit-content;
+        }
+        .student-name {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+        .light .student-name, [data-theme="light"] .student-name {
+            color: #18181b;
+        }
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100">
-            <div class="p-8 sm:p-12 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-white">
-                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">
-                    Selamat Datang di Dashboard Wali Kelas
-                </h1>
-                <p class="mt-4 text-lg text-gray-600 max-w-3xl">
-                    Anda berhasil masuk. Melalui portal ini, Anda nantinya dapat memantau data absensi siswa di kelas perwalian Anda secara *real-time*.
-                </p>
+        /* Stats Grid Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        .stat-card {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .light .stat-card, [data-theme="light"] .stat-card {
+            background-color: #ffffff;
+            border-color: #e4e4e7;
+        }
+        .stat-icon {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        .icon-hadir { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .icon-telat { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .icon-absen { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .icon-belum { background-color: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+        
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.25;
+        }
+        .light .stat-value, [data-theme="light"] .stat-value {
+            color: #18181b;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .light .stat-label, [data-theme="light"] .stat-label {
+            color: #71717a;
+        }
+    </style>
+
+    <!-- Header Card -->
+    <div class="absensi-card">
+        <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; align-items: stretch;">
+            <div style="flex: 1;">
+                <h2 class="absensi-header-title">Rekapitulasi Absensi Kelas</h2>
+                <p class="absensi-header-desc">Kelola absensi siswa untuk kelas yang Anda ampu</p>
             </div>
             
-            <div class="bg-gray-50 bg-opacity-50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
-                <!-- Placeholder card 1 -->
-                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                    <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Siswa Kelas Anda</h3>
-                    <p class="mt-2 text-gray-500 flex-grow">Kelola data siswa, pantau status kehadiran harian, dan buat rekap absensi kelas dengan mudah.</p>
-                    <span class="mt-4 inline-flex items-center text-sm font-semibold text-indigo-600">Fitur Segera Hadir &rarr;</span>
+            <div class="absensi-grid-filters" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div class="absensi-filter-group">
+                    <label class="absensi-filter-label">Tahun Ajaran</label>
+                    <select wire:model.change="selectedAcademicYearId" class="absensi-select">
+                        @foreach($academicYears as $year)
+                            <option value="{{ $year->id }}">{{ $year->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
-                <!-- Placeholder card 2 -->
-                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                    <div class="p-3 bg-purple-100 text-purple-600 rounded-lg mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                @if(count($classes) > 0)
+                    <div class="absensi-filter-group">
+                        <label class="absensi-filter-label">Pilih Kelas</label>
+                        <select wire:model.change="selectedClassId" class="absensi-select">
+                            @foreach($classes as $kelas)
+                                <option value="{{ $kelas->id }}">{{ $kelas->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">Input Manual</h3>
-                    <p class="mt-2 text-gray-500 flex-grow">Tandai siswa yang izin atau sakit tanpa perlu pemindaian barcode dari form ini.</p>
-                    <span class="mt-4 inline-flex items-center text-sm font-semibold text-purple-600">Fitur Segera Hadir &rarr;</span>
+                @endif
+                
+                <div class="absensi-filter-group">
+                    <label class="absensi-filter-label">Bulan</label>
+                    <select wire:model.change="selectedMonth" class="absensi-select">
+                        @foreach([
+                            '07' => 'Juli', '08' => 'Agustus', '09' => 'September', 
+                            '10' => 'Oktober', '11' => 'November', '12' => 'Desember', 
+                            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', 
+                            '04' => 'April', '05' => 'Mei', '06' => 'Juni'
+                        ] as $val => $label)
+                            <option value="{{ $val }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </div>
-    </main>
-</div>
+    </div>
+
+    <!-- Today's Stats Row -->
+    @if(count($classes) > 0 && $selectedClassId && !empty($todayStats))
+        <div class="stats-grid">
+            <!-- Hadir -->
+            <div class="stat-card">
+                <div class="stat-icon icon-hadir">
+                    <svg style="width: 1.5rem; height: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Hadir Hari Ini</span>
+                    <span class="stat-value">{{ $todayStats['hadir'] }} / {{ $todayStats['total'] }} <span style="font-size: 0.9rem; font-weight: 500; color: #a1a1aa;">({{ $todayStats['persentase_hadir'] }}%)</span></span>
+                </div>
+            </div>
+
+            <!-- Telat -->
+            <div class="stat-card">
+                <div class="stat-icon icon-telat">
+                    <svg style="width: 1.5rem; height: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Terlambat</span>
+                    <span class="stat-value">{{ $todayStats['telat'] }} Siswa</span>
+                </div>
+            </div>
+
+            <!-- Absen (Sakit/Izin/Alpa) -->
+            <div class="stat-card">
+                <div class="stat-icon icon-absen">
+                    <svg style="width: 1.5rem; height: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Sakit / Izin / Alpa</span>
+                    <span class="stat-value" style="color: #f87171;">{{ $todayStats['sakit'] + $todayStats['izin'] + $todayStats['alpa'] }} Siswa</span>
+                </div>
+            </div>
+
+            <!-- Belum Absen -->
+            <div class="stat-card">
+                <div class="stat-icon icon-belum">
+                    <svg style="width: 1.5rem; height: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Belum Absen</span>
+                    <span class="stat-value">{{ $todayStats['belum'] }} Siswa</span>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Alert / Empty State -->
+    @if(!$selectedAcademicYearId)
+        <div class="absensi-alert">
+            <div style="margin-top: 0.15rem;">
+                <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+            </div>
+            <div>
+                <div class="absensi-alert-title">Tahun Ajaran Belum Aktif</div>
+                <p class="absensi-alert-desc">Sistem mendeteksi belum ada Tahun Ajaran yang diatur menjadi <strong>Aktif</strong>. Silakan buat atau aktifkan Tahun Ajaran terlebih dahulu di menu Data Master.</p>
+            </div>
+        </div>
+    @elseif(!$selectedClassId)
+        <div class="absensi-alert">
+            <div style="margin-top: 0.15rem;">
+                <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.854l-.018.04 -2.7 4.675a.75.75 0 01-1.082.268l-.042-.027a.75.75 0 01-.268-1.082l2.7-4.675zm0-2.625a.75.75 0 111.5 0 .75.75 0 01-1.5 0z" />
+                </svg>
+            </div>
+            <div>
+                <div class="absensi-alert-title">Tidak Ada Kelas yang Diampu</div>
+                <p class="absensi-alert-desc">Anda tidak terdaftar mengampu kelas manapun pada tahun ajaran aktif ini.</p>
+            </div>
+        </div>
+    @else
+        <!-- Table Container -->
+        <div class="absensi-table-container">
+            <div style="overflow-x: auto;">
+                <table class="absensi-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Nama Siswa</th>
+                            <th style="text-align: left;">NISN</th>
+                            <th style="text-align: center; color: #10b981;">Hadir</th>
+                            <th style="text-align: center; color: #f59e0b;">Telat</th>
+                            <th style="text-align: center; color: #3b82f6;">Izin</th>
+                            <th style="text-align: center; color: #6366f1;">Sakit</th>
+                            <th style="text-align: center; color: #ef4444;">Alpa</th>
+                            <th style="text-align: center;">Total Telat (Menit)</th>
+                            <th style="text-align: center; width: 120px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($students as $student)
+                            @php
+                                $isAlpaWarning = in_array($student->id, $alerts['alpa'] ?? []);
+                                $isTelatWarning = in_array($student->id, $alerts['telat'] ?? []);
+                                $rowClass = ($isAlpaWarning || $isTelatWarning) ? 'row-warning' : '';
+                            @endphp
+                            <tr class="{{ $rowClass }}">
+                                <td>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span class="student-name">{{ $student->name }}</span>
+                                        @if($isAlpaWarning)
+                                            <span class="badge-warning">⚠️ &gt;= 3 Alpa</span>
+                                        @endif
+                                        @if($isTelatWarning)
+                                            <span class="badge-warning">⚠️ &gt;= 100mnt telat</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>{{ $student->nisn ?? '-' }}</td>
+                                <td style="text-align: center; font-weight: 700; color: #10b981;">{{ $monthlyStats[$student->id]['hadir'] ?? 0 }}</td>
+                                <td style="text-align: center; font-weight: 700; color: #f59e0b;">{{ $monthlyStats[$student->id]['telat'] ?? 0 }}</td>
+                                <td style="text-align: center; font-weight: 700; color: #3b82f6;">{{ $monthlyStats[$student->id]['izin'] ?? 0 }}</td>
+                                <td style="text-align: center; font-weight: 700; color: #6366f1;">{{ $monthlyStats[$student->id]['sakit'] ?? 0 }}</td>
+                                <td style="text-align: center; font-weight: 700; color: #ef4444;">{{ $monthlyStats[$student->id]['alpa'] ?? 0 }}</td>
+                                <td style="text-align: center;">{{ $monthlyStats[$student->id]['total_late_minutes'] ?? 0 }}</td>
+                                <td style="text-align: center;">
+                                    <button 
+                                        type="button"
+                                        onclick="Livewire.dispatch('openManualInput', { studentId: '{{ $student->id }}', studentName: '{{ addslashes($student->name) }}', classId: '{{ $selectedClassId }}' })" 
+                                        class="absensi-btn"
+                                    >
+                                        Input
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" style="text-align: center; color: #a1a1aa; padding: 2rem 0;">
+                                    Tidak ada data siswa terdaftar di kelas ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif

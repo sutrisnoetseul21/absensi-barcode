@@ -15,7 +15,17 @@ class EditTahunAjaran extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            \Filament\Actions\DeleteAction::make()
+                ->before(function (\Filament\Actions\DeleteAction $action, TahunAjaran $record) {
+                    if ($record->kelasAjarans()->count() > 0 || $record->enrollments()->count() > 0 || $record->absensis()->count() > 0) {
+                        \Filament\Notifications\Notification::make()
+                            ->warning()
+                            ->title('Gagal menghapus!')
+                            ->body('Tahun ajaran tidak dapat dihapus karena memiliki data kelas, siswa, atau absensi terkait.')
+                            ->send();
+                        $action->halt();
+                    }
+                }),
         ];
     }
 

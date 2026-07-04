@@ -42,6 +42,6 @@ class EnrollmentSiswa extends Model
     // Absensi yang terkait enrollment ini
     public function absensis(): HasMany
     {
-        return $this->hasMany(Absensi::class, 'enrollment_id');
+        return $this->hasMany(Presensi::class, 'enrollment_id');
     }
 }

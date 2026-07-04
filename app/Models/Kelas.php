@@ -39,7 +39,7 @@ class Kelas extends Model
     // Absensi di kelas ini (denormalized)
     public function absensis(): HasMany
     {
-        return $this->hasMany(Absensi::class, 'class_id');
+        return $this->hasMany(Presensi::class, 'class_id');
     }
 
     // Hari libur khusus kelas ini

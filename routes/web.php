@@ -8,10 +8,11 @@ use App\Livewire\SiswaLogin;
 use App\Livewire\SiswaDashboard;
 use App\Livewire\ForceChangePassword;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Livewire\PublicDashboard;
 
+// Dashboard Publik Routes
+Route::get('/', PublicDashboard::class)->name('public.dashboard');
+Route::get('/display', PublicDashboard::class)->name('public.display');
 // Kiosk Absensi Routes
 Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
 Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {

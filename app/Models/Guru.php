@@ -42,6 +42,6 @@ class Guru extends Authenticatable
     // Absensi manual yang diinput wali kelas ini (polymorphic)
     public function absensisManual()
     {
-        return $this->morphMany(Absensi::class, 'manual_input_by');
+        return $this->morphMany(Presensi::class, 'manual_input_by');
     }
 }
