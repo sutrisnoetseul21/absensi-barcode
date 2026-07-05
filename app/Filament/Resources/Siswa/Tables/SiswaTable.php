@@ -113,6 +113,33 @@ class SiswaTable
                     ->action(fn () => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\SiswaBaruTemplateExport, 'template_siswa_baru.xlsx')),
 
                 \App\Filament\Resources\Siswa\Actions\ImportSiswaBaruAction::make(),
+
+                // Custom Action: Cetak Kartu OSIS Massal (Semua Siswa Terfilter)
+                Action::make('cetak_kartu_massal_header')
+                    ->label('Cetak Kartu Massal')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->action(function (\Filament\Tables\Contracts\HasTable $livewire) {
+                        $records = $livewire->getFilteredTableQuery()->get();
+                        
+                        if ($records->isEmpty()) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Tidak ada data siswa')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
+                        $settings = PengaturanSekolah::current();
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-osis-massal', [
+                            'students' => $records, 
+                            'settings' => $settings
+                        ]);
+                        $pdf->setPaper('a4', 'portrait');
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->stream();
+                        }, "Kartu_OSIS_Massal.pdf");
+                    }),
             ])
             ->filters([
                 TrashedFilter::make(),
@@ -121,6 +148,22 @@ class SiswaTable
                 ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
+
+                // Custom Action: Cetak Kartu OSIS
+                Action::make('cetak_kartu')
+                    ->label('Cetak Kartu')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->action(function (Siswa $record) {
+                        $settings = PengaturanSekolah::current();
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-osis', [
+                            'student' => $record, 
+                            'settings' => $settings
+                        ]);
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->stream();
+                        }, "Kartu_OSIS_{$record->nisn}.pdf");
+                    }),
 
                 // Custom Action: Reset Password
                 Action::make('resetPassword')
@@ -190,6 +233,21 @@ class SiswaTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    \Filament\Actions\BulkAction::make('cetak_kartu_massal')
+                        ->label('Cetak Kartu Massal')
+                        ->icon('heroicon-o-printer')
+                        ->color('info')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $settings = PengaturanSekolah::current();
+                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-osis-massal', [
+                                'students' => $records, 
+                                'settings' => $settings
+                            ]);
+                            $pdf->setPaper('a4', 'portrait');
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->stream();
+                            }, "Kartu_OSIS_Massal.pdf");
+                        }),
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),

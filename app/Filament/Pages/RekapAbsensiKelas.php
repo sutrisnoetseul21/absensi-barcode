@@ -115,6 +115,35 @@ class RekapAbsensiKelas extends Page
         $this->todayDate    = $result['todayDate'];
     }
 
+    public function exportExcel()
+    {
+        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->selectedMonth) {
+            Notification::make()->title('Gagal Export')->body('Pilih Tahun Ajaran, Kelas, dan Bulan terlebih dahulu.')->danger()->send();
+            return;
+        }
+
+        $className = Kelas::find($this->selectedClassId)?->name ?? 'Kelas';
+        $year = date('Y');
+        
+        // Coba deduksi tahun dari bulan (jika bulan > 6 biasanya tahun awal ajaran, jika <= 6 tahun akhir ajaran)
+        $tahunAjaran = TahunAjaran::find($this->selectedAcademicYearId);
+        if ($tahunAjaran) {
+            $year = (int)$this->selectedMonth >= 7 ? $tahunAjaran->start_year : $tahunAjaran->end_year;
+        }
+
+        $fileName = "Rekap_Presensi_{$className}_{$year}_{$this->selectedMonth}.xlsx";
+        
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PresensiMatrixExport(
+                $this->selectedClassId, 
+                $this->selectedAcademicYearId, 
+                $this->selectedMonth, 
+                (string)$year
+            ), 
+            $fileName
+        );
+    }
+
     // === Modal Input Manual ===
 
     public function openInputModal(): void

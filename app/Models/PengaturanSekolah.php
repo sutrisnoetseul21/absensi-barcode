@@ -17,6 +17,7 @@ class PengaturanSekolah extends Model
         'school_address',
         'school_logo_path',
         'principal_name',
+        'principal_signature_path',
         'checkin_time',
         'late_threshold_minutes',
         'academic_year_id_active',

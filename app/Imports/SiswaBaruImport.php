@@ -22,20 +22,38 @@ class SiswaBaruImport implements ToCollection
 
             $nisn = trim((string) ($row[0] ?? ''));
             $name = trim((string) ($row[1] ?? ''));
-            $passwordVal = trim((string) ($row[2] ?? ''));
-            $className = trim((string) ($row[3] ?? ''));
+            $birth_place = trim((string) ($row[2] ?? ''));
+            
+            // Tanggal lahir Excel bisa berupa serial number, tapi mari asumsikan string YYYY-MM-DD
+            $birth_date_val = trim((string) ($row[3] ?? ''));
+            $birth_date = null;
+            if ($birth_date_val !== '') {
+                try {
+                    $birth_date = \Carbon\Carbon::parse($birth_date_val)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    // Abaikan jika format tidak valid
+                }
+            }
+            
+            $address = trim((string) ($row[4] ?? ''));
+            $passwordVal = trim((string) ($row[5] ?? ''));
+            $className = trim((string) ($row[6] ?? ''));
 
             if ($nisn === '' || $name === '' || $className === '') {
                 continue; // skip incomplete rows
             }
 
-            $password = $passwordVal === '' ? 'password' : $passwordVal;
+            // Password default adalah NISN
+            $password = $passwordVal === '' ? $nisn : $passwordVal;
 
             // Find or create student
             $existingStudent = Siswa::where('nisn', $nisn)->first();
 
             $dataToSave = [
                 'name' => $name,
+                'birth_place' => $birth_place ?: null,
+                'birth_date' => $birth_date,
+                'address' => $address ?: null,
                 'barcode_code' => $nisn,
                 'username' => $nisn,
                 'must_change_password' => false,

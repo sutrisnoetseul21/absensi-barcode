@@ -66,7 +66,7 @@ class ImportSiswaBaruAction extends Action
                             if (empty($headers)) return '';
 
                             // Validasi kecocokan header
-                            if (empty($headers) || strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' || strtolower(trim((string)($headers[1] ?? ''))) !== 'nama siswa' || strtolower(trim((string)($headers[3] ?? ''))) !== 'kelas') {
+                            if (empty($headers) || strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' || strtolower(trim((string)($headers[1] ?? ''))) !== 'nama siswa' || strtolower(trim((string)($headers[6] ?? ''))) !== 'kelas') {
                                 return new \Illuminate\Support\HtmlString('<p style="color: #b91c1c; font-weight: 600; padding: 10px; background-color: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px;">⚠️ Berkas yang diunggah bukan template Siswa Baru yang valid. Silakan gunakan template yang sesuai.</p>');
                             }
 
@@ -104,8 +104,11 @@ class ImportSiswaBaruAction extends Action
                                 
                                 $nisnVal = trim((string) ($row[0] ?? ''));
                                 $nameVal = trim((string) ($row[1] ?? ''));
-                                $passVal = trim((string) ($row[2] ?? ''));
-                                $classVal = trim((string) ($row[3] ?? ''));
+                                $tempatLahirVal = trim((string) ($row[2] ?? ''));
+                                $tglLahirVal = trim((string) ($row[3] ?? ''));
+                                $alamatVal = trim((string) ($row[4] ?? ''));
+                                $passVal = trim((string) ($row[5] ?? ''));
+                                $classVal = trim((string) ($row[6] ?? ''));
 
                                 // NISN
                                 $nisnHtml = htmlspecialchars($nisnVal);
@@ -118,8 +121,13 @@ class ImportSiswaBaruAction extends Action
                                 // Nama
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($nameVal) . '</td>';
 
+                                // Tempat Lahir, Tgl Lahir, Alamat
+                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($tempatLahirVal) . '</td>';
+                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($tglLahirVal) . '</td>';
+                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($alamatVal) . '</td>';
+
                                 // Password
-                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #6b7280; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($passVal === '' ? 'password (default)' : $passVal) . '</td>';
+                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #6b7280; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($passVal === '' ? 'NISN (default)' : $passVal) . '</td>';
 
                                 // Kelas
                                 $classHtml = '';
@@ -153,7 +161,7 @@ class ImportSiswaBaruAction extends Action
                         $sheet = $parsedData[0];
                         $headers = $sheet[0] ?? [];
 
-                        if (empty($headers) || strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' || strtolower(trim((string)($headers[1] ?? ''))) !== 'nama siswa' || strtolower(trim((string)($headers[3] ?? ''))) !== 'kelas') {
+                        if (empty($headers) || strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' || strtolower(trim((string)($headers[1] ?? ''))) !== 'nama siswa' || strtolower(trim((string)($headers[6] ?? ''))) !== 'kelas') {
                             Notification::make()->title('Import Gagal')->body('Format berkas salah. Gunakan template Siswa Baru.')->danger()->send();
                             return;
                         }
@@ -166,7 +174,7 @@ class ImportSiswaBaruAction extends Action
                             $nisn = trim((string) ($row[0] ?? ''));
                             if ($nisn === '') continue;
 
-                            $classVal = trim((string) ($row[3] ?? ''));
+                            $classVal = trim((string) ($row[6] ?? ''));
                             if (!in_array($classVal, $existingClasses)) {
                                 $invalidClasses[] = $classVal === '' ? 'Kosong' : $classVal;
                             }

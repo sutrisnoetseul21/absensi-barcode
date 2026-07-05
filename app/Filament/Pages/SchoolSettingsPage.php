@@ -76,6 +76,17 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->required()
                             ->maxLength(255),
 
+                        FileUpload::make('principal_signature_path')
+                            ->label('Tanda Tangan Kepala Sekolah (PNG)')
+                            ->image()
+                            ->acceptedFileTypes(['image/png'])
+                            ->imageResizeTargetWidth(500)
+                            ->imageResizeTargetHeight(300)
+                            ->disk('public')
+                            ->directory('settings')
+                            ->nullable()
+                            ->helperText('Gunakan format PNG dengan background transparan untuk hasil terbaik di Kartu OSIS.'),
+
                         FileUpload::make('school_logo_path')
                             ->label('Logo Sekolah')
                             ->image()

@@ -23,7 +23,10 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
         return [
             'NISN',
             'Nama Siswa',
-            'Password (Opsional - Default: password)',
+            'Tempat Lahir',
+            'Tanggal Lahir (YYYY-MM-DD)',
+            'Alamat',
+            'Password (Kosongkan untuk default: NISN)',
             'Kelas',
         ];
     }
@@ -40,27 +43,30 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
                 $sheet = $event->sheet->getDelegate();
                 $rowCount = 500; // Apply validation to 500 rows
 
-                // Column D: Kelas Validation
+                // Column G: Kelas Validation
                 for ($i = 2; $i <= $rowCount; $i++) {
-                    $validationD = $sheet->getCell('D' . $i)->getDataValidation();
-                    $validationD->setType(DataValidation::TYPE_LIST);
-                    $validationD->setErrorStyle(DataValidation::STYLE_STOP);
-                    $validationD->setAllowBlank(true);
-                    $validationD->setShowInputMessage(true);
-                    $validationD->setShowErrorMessage(true);
-                    $validationD->setShowDropDown(true);
-                    $validationD->setErrorTitle('Input Error');
-                    $validationD->setError('Kelas tidak ditemukan di daftar.');
-                    $validationD->setPromptTitle('Pilih Kelas');
-                    $validationD->setPrompt('Silakan pilih kelas dari daftar.');
-                    $validationD->setFormula1('\'ClassesList\'!$A$1:$A$' . $this->classesCount);
+                    $validationG = $sheet->getCell('G' . $i)->getDataValidation();
+                    $validationG->setType(DataValidation::TYPE_LIST);
+                    $validationG->setErrorStyle(DataValidation::STYLE_STOP);
+                    $validationG->setAllowBlank(true);
+                    $validationG->setShowInputMessage(true);
+                    $validationG->setShowErrorMessage(true);
+                    $validationG->setShowDropDown(true);
+                    $validationG->setErrorTitle('Input Error');
+                    $validationG->setError('Kelas tidak ditemukan di daftar.');
+                    $validationG->setPromptTitle('Pilih Kelas');
+                    $validationG->setPrompt('Silakan pilih kelas dari daftar.');
+                    $validationG->setFormula1('\'ClassesList\'!$A$1:$A$' . $this->classesCount);
                 }
 
                 // Set Column Widths
                 $sheet->getColumnDimension('A')->setWidth(20);
                 $sheet->getColumnDimension('B')->setWidth(30);
-                $sheet->getColumnDimension('C')->setWidth(35);
+                $sheet->getColumnDimension('C')->setWidth(20);
                 $sheet->getColumnDimension('D')->setWidth(20);
+                $sheet->getColumnDimension('E')->setWidth(40);
+                $sheet->getColumnDimension('F')->setWidth(40);
+                $sheet->getColumnDimension('G')->setWidth(20);
             },
         ];
     }

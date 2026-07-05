@@ -45,8 +45,15 @@
                         </select>
                     </div>
 
-                    {{-- Tombol Input Manual --}}
+                    {{-- Tombol Input Manual & Export --}}
                     @if($classes->isNotEmpty() && $selectedClassId)
+                    <x-filament::button
+                        wire:click="exportExcel"
+                        icon="heroicon-o-arrow-down-tray"
+                        color="success">
+                        Export Excel
+                    </x-filament::button>
+                    
                     <x-filament::button
                         wire:click="openInputModal"
                         icon="heroicon-o-plus-circle"
