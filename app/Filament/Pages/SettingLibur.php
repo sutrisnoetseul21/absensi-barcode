@@ -17,7 +17,7 @@ class SettingLibur extends Page implements HasForms
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
-    protected static string|\BackedEnum|null $navigationGroup = 'Pengaturan Sistem';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
     protected static ?string $navigationLabel = 'Setting Libur';
     protected static ?string $title = 'Kalender Libur & Hari Kerja';
 
