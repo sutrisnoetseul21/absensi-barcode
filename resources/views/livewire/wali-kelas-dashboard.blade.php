@@ -188,6 +188,107 @@
             color: #18181b;
         }
 
+        /* Calendar View Styles */
+        .absensi-table th.date-col {
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            min-width: 35px;
+        }
+        .absensi-table td.date-col {
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-weight: 700;
+        }
+        .text-hadir { color: #10b981; }
+        .text-telat { color: #f59e0b; }
+        .text-izin { color: #3b82f6; }
+        .text-sakit { color: #6366f1; }
+        .text-alpa { color: #ef4444; }
+        .text-belum { color: #71717a; font-weight: normal !important; }
+        
+        /* Modal Styles */
+        .absensi-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            backdrop-filter: blur(4px);
+        }
+        .absensi-modal {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 48rem;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        .light .absensi-modal, [data-theme="light"] .absensi-modal {
+            background-color: #ffffff;
+            border-color: #e4e4e7;
+        }
+        .absensi-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #27272a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .light .absensi-modal-header, [data-theme="light"] .absensi-modal-header {
+            border-color: #e4e4e7;
+        }
+        .absensi-modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .absensi-modal-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid #27272a;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        .light .absensi-modal-footer, [data-theme="light"] .absensi-modal-footer {
+            border-color: #e4e4e7;
+        }
+        .btn-primary {
+            background-color: #f59e0b;
+            color: #18181b;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary {
+            background-color: transparent;
+            color: #f4f4f5;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: 1px solid #3f3f46;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .light .btn-secondary, [data-theme="light"] .btn-secondary {
+            color: #18181b;
+            border-color: #d4d4d8;
+        }
+        .light .btn-secondary:hover, [data-theme="light"] .btn-secondary:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
         /* Stats Grid Styles */
         .stats-grid {
             display: grid;
@@ -262,9 +363,36 @@
     <!-- Header Card -->
     <div class="absensi-card">
         <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; align-items: stretch;">
-            <div style="flex: 1;">
-                <h2 class="absensi-header-title">Rekapitulasi Absensi Kelas</h2>
-                <p class="absensi-header-desc">Kelola absensi siswa untuk kelas yang Anda ampu</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex: 1;">
+                    <h2 class="absensi-header-title">Rekapitulasi Absensi Kelas</h2>
+                    <p class="absensi-header-desc">Kelola absensi siswa untuk kelas yang Anda ampu</p>
+                </div>
+                
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                    @if(count($classes) > 0 && $selectedClassId)
+                        <button wire:click="openInputModal" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <svg style="width: 1.25rem; height: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Input Absen Manual
+                        </button>
+                    @endif
+
+                    @if(request()->routeIs('wali-kelas.*'))
+                        <form action="{{ route('wali-kelas.logout') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background-color: #ef4444; color: #fff; font-size: 0.875rem; font-weight: 600; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='#dc2626'"
+                                onmouseout="this.style.backgroundColor='#ef4444'">
+                                <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Keluar
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
             
             <div class="absensi-grid-filters" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
@@ -394,15 +522,15 @@
                 <table class="absensi-table">
                     <thead>
                         <tr>
-                            <th style="text-align: left;">Nama Siswa</th>
-                            <th style="text-align: left;">NISN</th>
-                            <th style="text-align: center; color: #10b981;">Hadir</th>
-                            <th style="text-align: center; color: #f59e0b;">Telat</th>
-                            <th style="text-align: center; color: #3b82f6;">Izin</th>
-                            <th style="text-align: center; color: #6366f1;">Sakit</th>
-                            <th style="text-align: center; color: #ef4444;">Alpa</th>
-                            <th style="text-align: center;">Total Telat (Menit)</th>
-                            <th style="text-align: center; width: 120px;">Aksi</th>
+                            <th style="text-align: left; min-width: 150px; position: sticky; left: 0; background-color: inherit; z-index: 10;">Nama Siswa</th>
+                            @for($i = 1; $i <= $daysInMonth; $i++)
+                                <th class="date-col">{{ $i }}</th>
+                            @endfor
+                            <th style="text-align: center; color: #10b981;">H</th>
+                            <th style="text-align: center; color: #f59e0b;">T</th>
+                            <th style="text-align: center; color: #3b82f6;">I</th>
+                            <th style="text-align: center; color: #6366f1;">S</th>
+                            <th style="text-align: center; color: #ef4444;">A</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -413,7 +541,7 @@
                                 $rowClass = ($isAlpaWarning || $isTelatWarning) ? 'row-warning' : '';
                             @endphp
                             <tr class="{{ $rowClass }}">
-                                <td>
+                                <td style="position: sticky; left: 0; background-color: inherit; z-index: 10;">
                                     <div style="display: flex; flex-direction: column;">
                                         <span class="student-name">{{ $student->name }}</span>
                                         @if($isAlpaWarning)
@@ -424,26 +552,29 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td>{{ $student->nisn ?? '-' }}</td>
+                                @for($i = 1; $i <= $daysInMonth; $i++)
+                                    @php
+                                        $code = $monthlyStats[$student->id]['daily'][$i] ?? '-';
+                                        $colorClass = match($code) {
+                                            'H' => 'text-hadir',
+                                            'T' => 'text-telat',
+                                            'I' => 'text-izin',
+                                            'S' => 'text-sakit',
+                                            'A' => 'text-alpa',
+                                            default => 'text-belum',
+                                        };
+                                    @endphp
+                                    <td class="date-col {{ $colorClass }}">{{ $code }}</td>
+                                @endfor
                                 <td style="text-align: center; font-weight: 700; color: #10b981;">{{ $monthlyStats[$student->id]['hadir'] ?? 0 }}</td>
                                 <td style="text-align: center; font-weight: 700; color: #f59e0b;">{{ $monthlyStats[$student->id]['telat'] ?? 0 }}</td>
                                 <td style="text-align: center; font-weight: 700; color: #3b82f6;">{{ $monthlyStats[$student->id]['izin'] ?? 0 }}</td>
                                 <td style="text-align: center; font-weight: 700; color: #6366f1;">{{ $monthlyStats[$student->id]['sakit'] ?? 0 }}</td>
                                 <td style="text-align: center; font-weight: 700; color: #ef4444;">{{ $monthlyStats[$student->id]['alpa'] ?? 0 }}</td>
-                                <td style="text-align: center;">{{ $monthlyStats[$student->id]['total_late_minutes'] ?? 0 }}</td>
-                                <td style="text-align: center;">
-                                    <button 
-                                        type="button"
-                                        onclick="Livewire.dispatch('openManualInput', { studentId: '{{ $student->id }}', studentName: '{{ addslashes($student->name) }}', classId: '{{ $selectedClassId }}' })" 
-                                        class="absensi-btn"
-                                    >
-                                        Input
-                                    </button>
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" style="text-align: center; color: #a1a1aa; padding: 2rem 0;">
+                                <td colspan="{{ $daysInMonth + 6 }}" style="text-align: center; color: #a1a1aa; padding: 2rem 0;">
                                     Tidak ada data siswa terdaftar di kelas ini.
                                 </td>
                             </tr>

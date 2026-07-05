@@ -29,7 +29,6 @@ Route::prefix('wali-kelas')->group(function () {
     
     Route::middleware('auth.wali')->group(function () {
         Route::get('/', WaliKelasDashboard::class)->name('wali-kelas.dashboard');
-        Route::get('/ganti-password', ForceChangePassword::class)->name('wali-kelas.ganti-password');
         
         Route::post('/logout', function () {
             Auth::guard('wali_kelas')->logout();
@@ -46,7 +45,6 @@ Route::prefix('siswa')->group(function () {
     
     Route::middleware('auth.siswa')->group(function () {
         Route::get('/', SiswaDashboard::class)->name('siswa.dashboard');
-        Route::get('/ganti-password', ForceChangePassword::class)->name('siswa.ganti-password');
         
         Route::post('/logout', function () {
             Auth::guard('siswa')->logout();

@@ -15,14 +15,14 @@
 
         <form wire:submit.prevent="login" class="space-y-6">
             <div>
-                <label for="username" class="block text-sm font-medium text-emerald-100 mb-1">Username / NISN</label>
+                <label for="nisn" class="block text-sm font-medium text-emerald-100 mb-1">NISN Siswa</label>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-emerald-300 group-focus-within:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </div>
-                    <input wire:model="username" id="username" type="text" required class="block w-full pl-10 pr-3 py-3 border border-emerald-300/30 rounded-xl leading-5 bg-emerald-900/40 text-white placeholder-emerald-300/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 focus:bg-emerald-900/60 transition-all duration-200 sm:text-sm shadow-inner" placeholder="Masukkan NISN Anda">
+                    <input wire:model="nisn" id="nisn" type="text" required class="block w-full pl-10 pr-3 py-3 border border-emerald-300/30 rounded-xl leading-5 bg-emerald-900/40 text-white placeholder-emerald-300/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 focus:bg-emerald-900/60 transition-all duration-200 sm:text-sm shadow-inner" placeholder="Masukkan NISN Anda">
                 </div>
-                @error('username') <p class="mt-2 text-xs text-red-400">{{ $message }}</p> @enderror
+                @error('nisn') <p class="mt-2 text-xs text-red-400">{{ $message }}</p> @enderror
             </div>
 
             <div>

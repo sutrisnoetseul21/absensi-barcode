@@ -6,9 +6,9 @@ use Livewire\Component;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\Presensi;
+use App\Services\AbsensiRekapService;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class WaliKelasDashboard extends Component
 {
@@ -23,10 +23,18 @@ class WaliKelasDashboard extends Component
     public $alerts = [];
     public $todayStats = [];
 
+    public $daysInMonth = 0;
+    public $todayDate;
+
+    // Manual Input Modals
+    public $showInputModal = false;
+    public $inputDate;
+    public $inputStudents = [];
+
     public function mount()
     {
-        $this->selectedMonth = date('m');
-        $this->academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
+        $this->selectedMonth  = date('m');
+        $this->academicYears  = TahunAjaran::orderBy('start_year', 'desc')->get();
 
         $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();
         if ($activeYear) {
@@ -39,7 +47,7 @@ class WaliKelasDashboard extends Component
     public function loadClasses()
     {
         if (!$this->selectedAcademicYearId) {
-            $this->classes = [];
+            $this->classes        = [];
             $this->selectedClassId = null;
             return;
         }
@@ -47,23 +55,22 @@ class WaliKelasDashboard extends Component
         $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !Auth::guard('wali_kelas')->check();
 
         if (!$isAdminMode) {
-            $actor = Auth::guard('wali_kelas')->user();
+            $actor        = Auth::guard('wali_kelas')->user();
             $this->classes = Kelas::whereHas('kelasAjarans', function ($query) use ($actor) {
                 $query->where('academic_year_id', $this->selectedAcademicYearId)
                       ->where('teacher_id', $actor->id);
             })->get();
         } else {
-            // Mode Admin: tampilkan semua kelas tanpa batasan assignment
             $this->classes = Kelas::orderBy('name', 'asc')->get();
         }
 
         if ($this->classes->isNotEmpty()) {
-            if (!$this->classes->contains('id', $this->selectedClassId)) {
-                $this->selectedClassId = $this->classes->first()->id;
+            if (!collect($this->classes)->contains('id', $this->selectedClassId)) {
+                $this->selectedClassId = collect($this->classes)->first()->id;
             }
         } else {
             $this->selectedClassId = null;
-            $this->todayStats = [];
+            $this->todayStats      = [];
         }
 
         $this->loadDashboardData();
@@ -78,7 +85,7 @@ class WaliKelasDashboard extends Component
     {
         $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !Auth::guard('wali_kelas')->check();
         if (!$isAdminMode) {
-            if (!$this->classes->contains('id', $this->selectedClassId)) {
+            if (!collect($this->classes)->contains('id', $this->selectedClassId)) {
                 abort(403, 'Unauthorized action.');
             }
         }
@@ -93,103 +100,100 @@ class WaliKelasDashboard extends Component
     public function loadDashboardData()
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId) {
-            $this->students = collect();
+            $this->students     = collect();
             $this->monthlyStats = [];
-            $this->alerts = [];
-            $this->todayStats = [];
+            $this->alerts       = [];
+            $this->todayStats   = [];
             return;
         }
 
-        $ay = TahunAjaran::find($this->selectedAcademicYearId);
-        if (!$ay) return;
+        $service = app(AbsensiRekapService::class);
+        $result  = $service->getMonthlyCalendarData(
+            $this->selectedAcademicYearId,
+            $this->selectedClassId,
+            $this->selectedMonth
+        );
 
-        $startYear = $ay->start_year ?? ((int)date('Y') - 1);
-        $endYear = $ay->end_year ?? (int)date('Y');
+        $this->students     = $result['students'];
+        $this->monthlyStats = $result['monthlyStats'];
+        $this->todayStats   = $result['todayStats'];
+        $this->alerts       = $result['alerts'];
+        $this->daysInMonth  = $result['daysInMonth'];
+        $this->todayDate    = $result['todayDate'];
+    }
 
-        $monthInt = (int)$this->selectedMonth;
-        $calendarYear = ($monthInt >= 7) ? $startYear : $endYear;
+    public function openInputModal()
+    {
+        $this->inputDate = $this->todayDate ?? Carbon::now('Asia/Jakarta')->toDateString();
+        $this->loadStudentsForInput();
+        $this->showInputModal = true;
+    }
 
-        $kelas = Kelas::with(['enrollments' => function($q) {
-            $q->where('academic_year_id', $this->selectedAcademicYearId)
-              ->where('status', 'aktif')
-              ->with('siswa');
-        }])->find($this->selectedClassId);
+    public function updatedInputDate()
+    {
+        $this->loadStudentsForInput();
+    }
 
-        $this->students = $kelas ? $kelas->enrollments->pluck('siswa')->filter() : collect();
+    public function loadStudentsForInput()
+    {
+        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) return;
 
-        // Calculate Today's Stats
-        $todayDate = Carbon::now('Asia/Jakarta')->toDateString();
-        $todayAtts = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
-            ->where('class_id', $this->selectedClassId)
-            ->where('date', $todayDate)
-            ->get();
-
-        $totalStudentsCount = $this->students->count();
-        $todayHadir = $todayAtts->where('status', 'hadir')->count();
-        $todayTelat = $todayAtts->where('status', 'telat')->count();
-        $todayIzin = $todayAtts->where('status', 'izin')->count();
-        $todaySakit = $todayAtts->where('status', 'sakit')->count();
-        $todayAlpa = $todayAtts->where('status', 'alpa')->count();
-        $todayBelum = max(0, $totalStudentsCount - ($todayHadir + $todayTelat + $todayIzin + $todaySakit + $todayAlpa));
-
-        $this->todayStats = [
-            'hadir' => $todayHadir,
-            'telat' => $todayTelat,
-            'izin' => $todayIzin,
-            'sakit' => $todaySakit,
-            'alpa' => $todayAlpa,
-            'belum' => $todayBelum,
-            'total' => $totalStudentsCount,
-            'persentase_hadir' => $totalStudentsCount > 0 
-                ? round((($todayHadir + $todayTelat) / $totalStudentsCount) * 100) 
-                : 0
-        ];
-
-        $startDate = Carbon::create($calendarYear, $this->selectedMonth, 1)->startOfMonth()->toDateString();
-        $endDate = Carbon::create($calendarYear, $this->selectedMonth, 1)->endOfMonth()->toDateString();
-        
         $attendances = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
             ->where('class_id', $this->selectedClassId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->get();
+            ->where('date', $this->inputDate)
+            ->get()->keyBy('student_id');
 
-        $stats = [];
+        $list = [];
         foreach ($this->students as $student) {
-            $studentAtts = $attendances->where('student_id', $student->id);
-            $stats[$student->id] = [
-                'hadir' => $studentAtts->where('status', 'hadir')->count(),
-                'telat' => $studentAtts->where('status', 'telat')->count(),
-                'izin' => $studentAtts->where('status', 'izin')->count(),
-                'sakit' => $studentAtts->where('status', 'sakit')->count(),
-                'alpa' => $studentAtts->where('status', 'alpa')->count(),
-                'total_late_minutes' => $studentAtts->sum('late_minutes'),
+            $att            = $attendances->get($student->id);
+            $list[$student->id] = [
+                'id'          => $student->id,
+                'name'        => $student->name,
+                'status'      => $att ? $att->status : '',
+                'late_minutes' => $att ? $att->late_minutes : null,
             ];
         }
-        $this->monthlyStats = $stats;
+        $this->inputStudents = $list;
+    }
 
-        // Alerts (>=3 Alpa atau >=100 menit telat)
-        $alpaTerlaluBanyak = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
-            ->where('class_id', $this->selectedClassId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'alpa')
-            ->selectRaw('student_id, count(*) as total')
-            ->groupBy('student_id')
-            ->havingRaw('count(*) >= 3')
-            ->pluck('student_id')->toArray();
+    public function saveManualInput()
+    {
+        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) return;
 
-        $telatTerlaluBanyak = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
-            ->where('class_id', $this->selectedClassId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'telat')
-            ->selectRaw('student_id, sum(late_minutes) as total')
-            ->groupBy('student_id')
-            ->havingRaw('sum(late_minutes) >= 100')
-            ->pluck('student_id')->toArray();
+        foreach ($this->inputStudents as $studentId => $data) {
+            if (empty($data['status'])) continue;
 
-        $this->alerts = [
-            'alpa' => $alpaTerlaluBanyak,
-            'telat' => $telatTerlaluBanyak,
-        ];
+            // Cari enrollment_id
+            $enrollment = \App\Models\EnrollmentSiswa::where('student_id', $studentId)
+                ->where('academic_year_id', $this->selectedAcademicYearId)
+                ->where('status', 'aktif')
+                ->first();
+
+            Presensi::updateOrCreate(
+                [
+                    'student_id'       => $studentId,
+                    'class_id'         => $this->selectedClassId,
+                    'academic_year_id' => $this->selectedAcademicYearId,
+                    'date'             => $this->inputDate,
+                ],
+                [
+                    'enrollment_id'   => $enrollment?->id,
+                    'status'          => $data['status'],
+                    'late_minutes'    => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : null,
+                    'is_manual_input' => true,
+                    'manual_input_by_id'   => Auth::guard('wali_kelas')->id() ?? Auth::guard('web')->id(),
+                    'manual_input_by_type' => Auth::guard('wali_kelas')->check() ? \App\Models\Guru::class : \App\Models\User::class,
+                ]
+            );
+        }
+
+        $this->showInputModal = false;
+        $this->loadDashboardData();
+
+        $this->dispatch('notify', [
+            'type'    => 'success',
+            'message' => 'Absensi tanggal ' . $this->inputDate . ' berhasil disimpan!',
+        ]);
     }
 
     public function render()
