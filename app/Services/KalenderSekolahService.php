@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 use App\Models\PengaturanSekolah;
 use App\Models\HariLibur;
 use Illuminate\Support\Facades\Cache;
