@@ -69,8 +69,9 @@
                             <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">Kelas</th>
                             <th rowspan="2" class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r-2 border-gray-300 dark:border-gray-600">Jml Siswa</th>
                             @foreach($monthsList as $m)
-                                <th colspan="4" class="px-2 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-r-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/60">
-                                    {{ $m['label'] }}
+                                <th colspan="4" class="px-2 py-2 text-center text-gray-700 dark:text-gray-200 tracking-wider border-r-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/60">
+                                    <div class="font-bold text-xs uppercase">{{ $m['label'] }}</div>
+                                    <div class="text-[10px] text-gray-500 dark:text-gray-400 font-normal mt-0.5">Hari Efektif: {{ $m['effective_days'] }} Hari</div>
                                 </th>
                             @endforeach
                         </tr>

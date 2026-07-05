@@ -186,14 +186,22 @@ class AbsensiRekapService
             }
         }
 
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
         $monthsStructure = [];
         $cursor = $academicStart->copy();
         while ($cursor->lte($academicEnd)) {
             $mKey = $cursor->format('m');
+            $year = (int)$cursor->format('Y');
+            
+            $monthStart = $cursor->copy()->startOfMonth();
+            $monthEnd = $cursor->copy()->endOfMonth();
+            $effectiveDays = $kalenderService->getEffectiveDays($monthStart, $monthEnd);
+
             $monthsStructure[] = [
                 'month' => $mKey,
-                'year'  => (int)$cursor->format('Y'),
-                'label' => $monthNames[$mKey] . ' ' . $cursor->format('Y'),
+                'year'  => $year,
+                'label' => $monthNames[$mKey] . ' ' . $year,
+                'effective_days' => $effectiveDays,
             ];
             $cursor->addMonth();
         }
