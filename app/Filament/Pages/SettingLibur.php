@@ -33,10 +33,10 @@ class SettingLibur extends Page implements HasForms
         ]);
     }
 
-    public function form(Form $form): Form
+    public function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Radio::make('work_days_type')
                     ->label('Tipe Hari Kerja')
                     ->options([
