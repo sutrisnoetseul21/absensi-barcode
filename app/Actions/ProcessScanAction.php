@@ -47,13 +47,14 @@ class ProcessScanAction
         $academicYearId = $enrollment->academic_year_id;
 
         // 3. Pengecekan Hari Libur
-        $isHoliday = HariLibur::hariIni($date, $classId)->exists();
-        if ($isHoliday) {
+        $isHariSekolah = app(\App\Services\KalenderSekolahService::class)->isHariSekolah($now, $classId);
+        if (!$isHariSekolah) {
             $this->logAttempt($barcode, $siswa->id, 'holiday', $now, $ipAddress);
             return [
                 'status' => 'holiday',
                 'name' => $siswa->name,
-                'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null
+                'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null,
+                'message' => 'Hari ini libur, tidak ada absensi'
             ];
         }
 

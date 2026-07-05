@@ -40,23 +40,17 @@ class GetPublicDashboardDataAction
                 ->groupBy('class_id')
                 ->pluck('total', 'class_id');
 
-            // Effective days this month
-            // TODO: formula hari efektif belum memperhitungkan libur khusus per kelas
-            $daysInMonth = Carbon::create($year, $month)->daysInMonth;
-            $workDays = 0;
-            for ($day = 1; $day <= $daysInMonth; $day++) {
-                $date = Carbon::create($year, $month, $day);
-                if (!$date->isWeekend()) {
-                    $workDays++;
-                }
-            }
+            // Effective days calculation will be per class using KalenderSekolahService
+            $startOfMonth = Carbon::create($year, $month, 1);
+            $endOfMonth = $startOfMonth->copy()->endOfMonth();
+            $todayCarbon = Carbon::today('Asia/Jakarta');
             
-            $globalHolidays = HariLibur::whereMonth('start_date', $month)
-                ->whereYear('start_date', $year)
-                ->whereNull('class_id')
-                ->count(); // Simplified logic
-                
-            $effectiveDays = max(1, $workDays - $globalHolidays);
+            // If the month is the current month, effective days should only count up to today,
+            // otherwise the percentage will be artificially low early in the month.
+            // But wait, the previous logic used daysInMonth. Let's keep it using daysInMonth or today.
+            // Actually, for "monthly attendance", it's usually up to today if it's current month.
+            // Let's use the full month to match previous logic, or just $endOfMonth.
+            $endCalcDate = $endOfMonth;
 
             // Monthly attendance per class
             $monthlyPresent = Presensi::where('academic_year_id', $academicYearId)
@@ -75,7 +69,13 @@ class GetPublicDashboardDataAction
             
             $wallOfFameRaw = [];
 
+            $kalenderService = app(\App\Services\KalenderSekolahService::class);
+
             foreach ($classes as $kelas) {
+                $effectiveDays = $kalenderService->getEffectiveDays($startOfMonth, $endCalcDate, $kelas->id);
+                // Ensure effectiveDays is at least 1 to avoid division by zero
+                $effectiveDays = max(1, $effectiveDays);
+
                 $students = $totalStudents->get($kelas->id, 0);
                 $todayP = $presentToday->get($kelas->id, 0);
                 $monthP = $monthlyPresent->get($kelas->id, 0);
@@ -171,7 +171,8 @@ class GetPublicDashboardDataAction
                 $d = $startDate->copy()->addDays($i);
                 $dateStr = $d->toDateString();
                 
-                if (!$d->isWeekend()) {
+                // For the line chart, we check global school days (no classId)
+                if ($kalenderService->isHariSekolah($d)) {
                     $lineData['labels'][] = $d->format('d/m');
                     $present = $trendData->get($dateStr, 0);
                     $perc = $totalActiveStudents > 0 ? round(($present / $totalActiveStudents) * 100, 1) : 0;

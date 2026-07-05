@@ -77,15 +77,30 @@ class AbsensiRekapService
             ->whereBetween('date', [$startDate, $endDate])
             ->get();
 
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $holidaysCache = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dateObj = Carbon::create($calendarYear, $month, $day);
+            $holidaysCache[$day] = !$kalenderService->isHariSekolah($dateObj, $classId);
+        }
+
         // Build stats per siswa
         $monthlyStats = [];
         foreach ($students as $student) {
             $studentAtts = $attendances->where('student_id', $student->id);
 
             $daily = [];
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                if ($holidaysCache[$day]) {
+                    $daily[$day] = 'L';
+                } else {
+                    $daily[$day] = '-'; // Default
+                }
+            }
+
             foreach ($studentAtts as $att) {
-                $day        = (int)Carbon::parse($att->date)->format('d');
-                $daily[$day] = match ($att->status) {
+                $day = (int)Carbon::parse($att->date)->format('d');
+                $status = match ($att->status) {
                     'hadir' => 'H',
                     'telat' => 'T',
                     'izin'  => 'I',
@@ -93,6 +108,10 @@ class AbsensiRekapService
                     'alpa'  => 'A',
                     default => '-',
                 };
+                
+                // Jika hari tersebut terlanjur ditandai L (libur tapi ada yang absen), kita timpa saja dengan aslinya (H, dll)
+                // Atau biarkan. Sebaiknya timpa karena fakta siswa hadir itu penting.
+                $daily[$day] = $status;
             }
 
             $monthlyStats[$student->id] = [

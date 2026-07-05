@@ -19,6 +19,7 @@ class PengaturanSekolah extends Model
         'principal_name',
         'principal_signature_path',
         'checkin_time',
+        'work_days_type',
         'late_threshold_minutes',
         'academic_year_id_active',
         'enable_promotion_features',

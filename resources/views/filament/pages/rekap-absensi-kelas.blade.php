@@ -178,6 +178,7 @@
                                             'I' => 'text-blue-600 dark:text-blue-400 font-bold',
                                             'S' => 'text-indigo-600 dark:text-indigo-400 font-bold',
                                             'A' => 'text-danger-600 dark:text-danger-400 font-bold',
+                                            'L' => 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 font-bold',
                                             default => 'text-gray-300 dark:text-gray-600',
                                         };
                                     @endphp

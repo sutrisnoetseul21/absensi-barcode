@@ -30,13 +30,6 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles
         
         $daysInMonthCount = Carbon::create($year, $month, 1)->daysInMonth;
         $this->daysInMonth = range(1, $daysInMonthCount);
-        
-        // Ambil hari libur di bulan ini
-        $this->holidays = HariLibur::whereYear('holiday_date', $year)
-            ->whereMonth('holiday_date', $month)
-            ->pluck('holiday_date')
-            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
-            ->toArray();
     }
 
     public function headings(): array
@@ -64,6 +57,8 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles
 
         $matrix = [];
         $no = 1;
+
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
 
         foreach ($enrollments as $enrollment) {
             $siswa = $enrollment->siswa;
@@ -96,9 +91,9 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles
                 $dateStr = sprintf('%04d-%02d-%02d', $this->year, $this->month, $day);
                 $carbonDate = Carbon::createFromFormat('Y-m-d', $dateStr);
                 
-                // Cek hari libur / weekend
-                if ($carbonDate->isWeekend() || in_array($dateStr, $this->holidays)) {
-                    $row[] = '-';
+                // Cek hari libur / weekend via service terpusat
+                if (!$kalenderService->isHariSekolah($carbonDate, $this->classId)) {
+                    $row[] = 'L'; // Menggunakan tanda L sesuai instruksi terbaru
                     continue;
                 }
 
