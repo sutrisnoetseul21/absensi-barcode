@@ -41,8 +41,8 @@ class HariLiburForm
                     ->relationship('kelas', 'name')
                     ->searchable()
                     ->preload()
-                    ->visible(fn (\Filament\Forms\Get $get) => $get('type') === 'khusus')
-                    ->required(fn (\Filament\Forms\Get $get) => $get('type') === 'khusus'),
+                    ->visible(fn ($get) => $get('type') === 'khusus')
+                    ->required(fn ($get) => $get('type') === 'khusus'),
             ]);
     }
 }
