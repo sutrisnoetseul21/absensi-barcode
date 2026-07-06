@@ -11,8 +11,12 @@ class AttendanceKiosk extends Component
     public function render()
     {
         $settings = PengaturanSekolah::current();
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isGlobalHoliday = !$kalenderService->isHariSekolah(now());
+
         return view('livewire.attendance-kiosk', [
-            'settings' => $settings
+            'settings' => $settings,
+            'isGlobalHoliday' => $isGlobalHoliday
         ])->title('Kios Absensi');
     }
 }

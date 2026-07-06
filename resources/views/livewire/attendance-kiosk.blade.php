@@ -10,6 +10,7 @@
     <audio id="audio-network" src="/audio/siren.mp3" preload="auto"></audio>
 
     <!-- Overlay "Sentuh Layar" -->
+    @if(!$isGlobalHoliday)
     <div x-show="!isActive" 
          class="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center cursor-pointer transition-opacity duration-300"
          @click="activateKiosk()">
@@ -17,8 +18,10 @@
         <h1 class="text-4xl font-bold text-white tracking-wider">Sentuh Layar Untuk Mengaktifkan Kios</h1>
         <p class="text-slate-300 mt-4 text-xl">Sistem Absensi {{ $settings->school_name ?? 'Sekolah' }}</p>
     </div>
+    @endif
 
     <!-- Hidden Input Container -->
+    @if(!$isGlobalHoliday)
     <input type="text" 
            x-ref="barcodeInput" 
            x-model="barcode"
@@ -28,6 +31,7 @@
            class="absolute opacity-0 w-0 h-0"
            autofocus
            autocomplete="off">
+    @endif
 
     <!-- Main Card -->
     <div class="relative w-full max-w-3xl mx-4">
@@ -114,11 +118,15 @@
             
             <!-- Footer Input Debug -->
             <div class="bg-slate-50 border-t border-slate-100 p-4 flex justify-between items-center text-sm text-slate-500">
+                @if(!$isGlobalHoliday)
                 <div>Input Buffer: <span class="font-mono text-slate-800" x-text="barcode"></span></div>
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 rounded-full" :class="isActive ? 'bg-green-500' : 'bg-red-500'"></span>
                     <span x-text="isActive ? 'Kios Aktif' : 'Menunggu Aktivasi'"></span>
                 </div>
+                @else
+                <div class="w-full text-center">Kios Dinonaktifkan (Hari Libur)</div>
+                @endif
             </div>
         </div>
     </div>
@@ -134,10 +142,10 @@
                 isLoading: false,
                 
                 // Feedback state
-                statusState: 'idle', // idle, success, warning, error, holiday, network_error
-                studentName: '',
+                statusState: @json($isGlobalHoliday ? 'holiday' : 'idle'),
+                studentName: @json($isGlobalHoliday ? 'Hari Ini Libur' : ''),
                 photoUrl: null,
-                statusMessage: '',
+                statusMessage: @json($isGlobalHoliday ? 'Sistem Absensi Kios Dinonaktifkan.' : ''),
                 lateMinutes: 0,
                 
                 // Timers
@@ -282,6 +290,7 @@
                     this.statusMessage = message;
                     
                     // Set auto-reset ke idle setelah 3 detik
+                    @if(!$isGlobalHoliday)
                     this.resetTimer = setTimeout(() => {
                         this.statusState = 'idle';
                         this.studentName = '';
@@ -289,6 +298,7 @@
                         this.statusMessage = '';
                         this.lateMinutes = 0;
                     }, 3000);
+                    @endif
                 },
                 
                 playAudio(type) {
