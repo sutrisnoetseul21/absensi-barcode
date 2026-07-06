@@ -31,6 +31,12 @@
         </form>
     </x-filament::card>
 
+    {{-- Tabel Data Hari Libur --}}
+    <div class="mt-8">
+        <h2 class="text-xl font-bold mb-4">Data Hari Libur</h2>
+        {{ $this->table }}
+    </div>
+
     {{-- Kalender Hari Libur --}}
     <div class="mt-8">
         <h2 class="text-xl font-bold mb-4">Kalender Hari Libur</h2>
@@ -45,12 +51,6 @@
                 <div id="filament-calendar"></div>
             </div>
         </x-filament::card>
-    </div>
-
-    {{-- Tabel Data Hari Libur --}}
-    <div class="mt-8">
-        <h2 class="text-xl font-bold mb-4">Data Hari Libur</h2>
-        {{ $this->table }}
     </div>
 
     {{-- FullCalendar: load script secara inline, tidak menggunakan @push --}}
