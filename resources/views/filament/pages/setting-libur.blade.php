@@ -19,6 +19,7 @@
         
         <!-- We will put fullcalendar here in the next step -->
         <x-filament::card>
+            <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
             <div 
                 x-data="{
                     events: {{ \Illuminate\Support\Js::from($events) }},
