@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    {{-- Pengaturan Hari Kerja menggunakan Filament card + Livewire binding --}}
+    {{-- Pengaturan Hari Kerja --}}
     <x-filament::card>
         <h3 class="text-base font-semibold mb-4">Pengaturan Hari Kerja</h3>
         <form wire:submit.prevent="saveSettings">
@@ -35,15 +35,14 @@
     <div class="mt-8">
         <h2 class="text-xl font-bold mb-4">Kalender Hari Libur</h2>
         <div class="text-sm text-gray-500 mb-3">
-            Klik tanggal pada kalender untuk menambah hari libur baru. 
+            Klik tanggal pada kalender untuk menambah hari libur baru.
             <span class="inline-flex items-center gap-1 ml-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Nasional</span>
             <span class="inline-flex items-center gap-1 ml-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Cuti Bersama</span>
             <span class="inline-flex items-center gap-1 ml-2"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Khusus Kelas</span>
         </div>
         <x-filament::card>
-            {{-- Script dimuat terlebih dahulu, lalu kalender diinisialisasi setelah script selesai --}}
-            <div id="calendar-wrapper" wire:ignore>
-                <div id="calendar" style="min-height: 400px;"></div>
+            <div id="filament-calendar-wrapper" wire:ignore style="min-height: 420px;">
+                <div id="filament-calendar"></div>
             </div>
         </x-filament::card>
     </div>
@@ -53,34 +52,48 @@
         <h2 class="text-xl font-bold mb-4">Data Hari Libur</h2>
         {{ $this->table }}
     </div>
+
+    {{-- FullCalendar: load script secara inline, tidak menggunakan @push --}}
+    <div id="fullcalendar-init" wire:ignore>
+        <script>
+            (function() {
+                var EVENTS = @json($this->getEvents());
+                var CREATE_URL = '{{ \App\Filament\Resources\HariLiburs\HariLiburResource::getUrl('create') }}';
+
+                function initCalendar() {
+                    if (typeof FullCalendar === 'undefined') return;
+                    var el = document.getElementById('filament-calendar');
+                    if (!el || el.dataset.initialized) return;
+                    el.dataset.initialized = '1';
+
+                    var calendar = new FullCalendar.Calendar(el, {
+                        initialView: 'dayGridMonth',
+                        locale: 'id',
+                        events: EVENTS,
+                        height: 'auto',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,dayGridWeek'
+                        },
+                        dateClick: function(info) {
+                            window.location.href = CREATE_URL + '?date=' + info.dateStr;
+                        }
+                    });
+                    calendar.render();
+                }
+
+                // Jika FullCalendar sudah ada, langsung init
+                if (typeof FullCalendar !== 'undefined') {
+                    initCalendar();
+                } else {
+                    // Muat script FullCalendar secara dinamis
+                    var script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js';
+                    script.onload = initCalendar;
+                    document.head.appendChild(script);
+                }
+            })();
+        </script>
+    </div>
 </x-filament-panels::page>
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var events = @json($this->getEvents());
-        var createUrl = '{{ \App\Filament\Resources\HariLiburs\HariLiburResource::getUrl('create') }}';
-
-        var calendarEl = document.getElementById('calendar');
-        if (!calendarEl) return;
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            plugins: [ FullCalendar.dayGridPlugin, FullCalendar.interactionPlugin ],
-            initialView: 'dayGridMonth',
-            locale: 'id',
-            events: events,
-            height: 'auto',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,dayGridWeek'
-            },
-            dateClick: function(info) {
-                window.location.href = createUrl + '?date=' + info.dateStr;
-            }
-        });
-        calendar.render();
-    });
-</script>
-@endpush
