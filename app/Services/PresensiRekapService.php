@@ -182,25 +182,27 @@ class PresensiRekapService
         $alerts = collect();
 
         foreach ($alpaAlerts as $a) {
-            $alerts->put($a->student_id, (object)[
+            $alerts->put($a->student_id, [
                 'student_id' => $a->student_id,
-                'siswa' => $a->siswa,
-                'kelas' => $a->kelas,
-                'total_alpa' => $a->total_alpa,
+                'siswa' => $a->siswa ? $a->siswa->toArray() : null,
+                'kelas' => $a->kelas ? $a->kelas->toArray() : null,
+                'total_alpa' => (int) $a->total_alpa,
                 'total_late_minutes' => 0
             ]);
         }
 
         foreach ($telatAlerts as $t) {
             if ($alerts->has($t->student_id)) {
-                $alerts[$t->student_id]->total_late_minutes = $t->total_late_minutes;
+                $item = $alerts->get($t->student_id);
+                $item['total_late_minutes'] = (int) $t->total_late_minutes;
+                $alerts->put($t->student_id, $item);
             } else {
-                $alerts->put($t->student_id, (object)[
+                $alerts->put($t->student_id, [
                     'student_id' => $t->student_id,
-                    'siswa' => $t->siswa,
-                    'kelas' => $t->kelas,
+                    'siswa' => $t->siswa ? $t->siswa->toArray() : null,
+                    'kelas' => $t->kelas ? $t->kelas->toArray() : null,
                     'total_alpa' => 0,
-                    'total_late_minutes' => $t->total_late_minutes
+                    'total_late_minutes' => (int) $t->total_late_minutes
                 ]);
             }
         }
