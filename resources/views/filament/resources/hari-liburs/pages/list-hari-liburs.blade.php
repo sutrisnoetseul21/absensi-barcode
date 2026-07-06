@@ -1,11 +1,11 @@
 <x-filament-panels::page>
     <x-filament::card>
         <form wire:submit="saveSettings">
-            {{ $this->form }}
+            {{ $this->getForm('settingsForm') }}
 
             <div class="mt-4">
                 <x-filament::button type="submit">
-                    Simpan Pengaturan
+                    Simpan Pengaturan Hari Kerja
                 </x-filament::button>
             </div>
         </form>
@@ -13,16 +13,11 @@
 
     <div class="mt-8">
         <h2 class="text-xl font-bold mb-4">Kalender Hari Libur</h2>
-        <div class="text-sm text-gray-500 mb-4">
-            Untuk menambah, mengubah, atau menghapus data hari libur secara detail, silakan gunakan menu <strong>Hari Libur</strong> di sidebar.
-        </div>
-        
-        <!-- We will put fullcalendar here in the next step -->
         <x-filament::card>
             <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
             <div 
                 x-data="{
-                    events: {{ \Illuminate\Support\Js::from($events) }},
+                    events: {{ \Illuminate\Support\Js::from($this->getEvents()) }},
                     init() {
                         if (!window.FullCalendar) {
                             console.error('FullCalendar not loaded in window!');
@@ -39,7 +34,6 @@
                                 right: 'dayGridMonth,dayGridWeek'
                             },
                             dateClick: function(info) {
-                                // Arahkan ke form tambah libur di HariLiburResource
                                 window.location.href = '{{ \App\Filament\Resources\HariLiburs\HariLiburResource::getUrl('create') }}?date=' + info.dateStr;
                             }
                         });
@@ -52,5 +46,11 @@
                 <div id="calendar"></div>
             </div>
         </x-filament::card>
+    </div>
+
+    <!-- Tampilkan Tabel Data Hari Libur (Filament Default) -->
+    <div class="mt-8">
+        <h2 class="text-xl font-bold mb-4">Data Hari Libur</h2>
+        {{ $this->table }}
     </div>
 </x-filament-panels::page>
