@@ -8,7 +8,7 @@ use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\Presensi;
 use App\Models\EnrollmentSiswa;
-use App\Services\AbsensiRekapService;
+use App\Services\PresensiRekapService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -100,7 +100,7 @@ class RekapAbsensiKelas extends Page
             return;
         }
 
-        $service = app(AbsensiRekapService::class);
+        $service = app(PresensiRekapService::class);
         $result  = $service->getMonthlyCalendarData(
             $this->selectedAcademicYearId,
             $this->selectedClassId,

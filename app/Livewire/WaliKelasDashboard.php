@@ -6,7 +6,7 @@ use Livewire\Component;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\Presensi;
-use App\Services\AbsensiRekapService;
+use App\Services\PresensiRekapService;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -107,7 +107,7 @@ class WaliKelasDashboard extends Component
             return;
         }
 
-        $service = app(AbsensiRekapService::class);
+        $service = app(PresensiRekapService::class);
         $result  = $service->getMonthlyCalendarData(
             $this->selectedAcademicYearId,
             $this->selectedClassId,

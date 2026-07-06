@@ -4,7 +4,7 @@ namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
 use App\Models\TahunAjaran;
-use App\Services\AbsensiRekapService;
+use App\Services\PresensiRekapService;
 
 class RekapAbsensiSekolah extends Page
 {
@@ -43,7 +43,7 @@ class RekapAbsensiSekolah extends Page
 
         if (!$this->selectedAcademicYearId) return;
 
-        $result = app(AbsensiRekapService::class)
+        $result = app(PresensiRekapService::class)
             ->getYearlySchoolData($this->selectedAcademicYearId);
 
         $this->classesData = $result['classesData'];

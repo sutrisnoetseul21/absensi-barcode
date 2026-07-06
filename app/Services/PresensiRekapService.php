@@ -9,7 +9,7 @@ use App\Models\EnrollmentSiswa;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class AbsensiRekapService
+class PresensiRekapService
 {
     /**
      * Data kalender bulanan per kelas (untuk Rekap Kelas).
@@ -152,6 +152,60 @@ class AbsensiRekapService
             'daysInMonth'  => $daysInMonth,
             'todayDate'    => $todayDate,
         ];
+    }
+
+    /**
+     * Data alert global (seluruh kelas) untuk Admin Dashboard.
+     * Mengembalikan collection siswa lengkap dengan relasi kelas yang melampaui batas alpa (>=3) atau telat (>=100 menit).
+     */
+    public function getGlobalAlerts(string $academicYearId, string $startDate, string $endDate)
+    {
+        $alpaAlerts = \App\Models\Presensi::where('academic_year_id', $academicYearId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('status', 'alpa')
+            ->selectRaw('student_id, class_id, count(*) as total_alpa')
+            ->groupBy('student_id', 'class_id')
+            ->havingRaw('count(*) >= 3')
+            ->with(['siswa', 'kelas'])
+            ->get();
+
+        $telatAlerts = \App\Models\Presensi::where('academic_year_id', $academicYearId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('status', 'telat')
+            ->selectRaw('student_id, class_id, sum(late_minutes) as total_late_minutes')
+            ->groupBy('student_id', 'class_id')
+            ->havingRaw('sum(late_minutes) >= 100')
+            ->with(['siswa', 'kelas'])
+            ->get();
+
+        // Gabungkan berdasarkan student_id
+        $alerts = collect();
+
+        foreach ($alpaAlerts as $a) {
+            $alerts->put($a->student_id, (object)[
+                'student_id' => $a->student_id,
+                'siswa' => $a->siswa,
+                'kelas' => $a->kelas,
+                'total_alpa' => $a->total_alpa,
+                'total_late_minutes' => 0
+            ]);
+        }
+
+        foreach ($telatAlerts as $t) {
+            if ($alerts->has($t->student_id)) {
+                $alerts[$t->student_id]->total_late_minutes = $t->total_late_minutes;
+            } else {
+                $alerts->put($t->student_id, (object)[
+                    'student_id' => $t->student_id,
+                    'siswa' => $t->siswa,
+                    'kelas' => $t->kelas,
+                    'total_alpa' => 0,
+                    'total_late_minutes' => $t->total_late_minutes
+                ]);
+            }
+        }
+
+        return $alerts->values();
     }
 
     /**
