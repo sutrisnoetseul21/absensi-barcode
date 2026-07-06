@@ -12,7 +12,7 @@ class AttendanceKiosk extends Component
     {
         $settings = PengaturanSekolah::current();
         $kalenderService = app(\App\Services\KalenderSekolahService::class);
-        $isGlobalHoliday = !$kalenderService->isHariSekolah(now());
+        $isGlobalHoliday = !$kalenderService->isHariSekolah(now('Asia/Jakarta'));
 
         return view('livewire.attendance-kiosk', [
             'settings' => $settings,
