@@ -148,6 +148,9 @@ class ListHariLiburs extends ListRecords
                 ->info()
                 ->send();
         }
+
+        // Redirect untuk memuat ulang kalender dengan data baru
+        $this->redirect(request()->header('Referer') ?: static::getUrl());
     }
 
     public function getEvents(): array
