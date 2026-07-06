@@ -5,8 +5,6 @@ namespace App\Filament\Resources\HariLiburs\Pages;
 use App\Filament\Resources\HariLiburs\HariLiburResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Forms\Form;
-use Filament\Forms\Components\Radio;
 use App\Models\PengaturanSekolah;
 use App\Models\HariLibur;
 use Filament\Notifications\Notification;
@@ -17,50 +15,26 @@ class ListHariLiburs extends ListRecords
     protected static string $resource = HariLiburResource::class;
     protected string $view = 'filament.resources.hari-liburs.pages.list-hari-liburs';
 
-    public ?array $settingData = [];
+    // Public property untuk Livewire binding langsung
+    public string $work_days_type = '5_hari';
 
     public function mount(): void
     {
         parent::mount();
         $settings = PengaturanSekolah::current();
-        $this->getForm('settingsForm')->fill([
-            'work_days_type' => $settings->work_days_type ?? '5_hari',
-        ]);
-    }
-
-    protected function getForms(): array
-    {
-        return array_merge(parent::getForms(), [
-            'settingsForm' => $this->settingsForm($this->makeForm()),
-        ]);
-    }
-
-    public function settingsForm(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Radio::make('work_days_type')
-                    ->label('Tipe Hari Kerja')
-                    ->options([
-                        '5_hari' => '5 Hari Sekolah (Senin - Jumat)',
-                        '6_hari' => '6 Hari Sekolah (Senin - Sabtu)',
-                    ])
-                    ->descriptions([
-                        '5_hari' => 'Sabtu & Minggu otomatis dihitung sebagai hari libur.',
-                        '6_hari' => 'Hanya Minggu yang dihitung sebagai hari libur rutin.',
-                    ])
-                    ->inline()
-                    ->required()
-            ])
-            ->statePath('settingData');
+        $this->work_days_type = $settings->work_days_type ?? '5_hari';
     }
 
     public function saveSettings(): void
     {
+        $this->validate([
+            'work_days_type' => 'required|in:5_hari,6_hari',
+        ]);
+
         $settings = PengaturanSekolah::current();
         if ($settings) {
             $settings->update([
-                'work_days_type' => $this->settingData['work_days_type'],
+                'work_days_type' => $this->work_days_type,
             ]);
 
             Notification::make()
@@ -74,9 +48,9 @@ class ListHariLiburs extends ListRecords
     {
         return HariLibur::with('kelas')->get()->map(function ($holiday) {
             $color = match ($holiday->type) {
-                'nasional' => '#3b82f6', // blue
-                'cuti_bersama' => '#10b981', // green
-                'khusus' => '#f59e0b', // yellow
+                'nasional' => '#3b82f6',
+                'cuti_bersama' => '#10b981',
+                'khusus' => '#f59e0b',
                 default => '#6b7280',
             };
 
@@ -88,7 +62,9 @@ class ListHariLiburs extends ListRecords
             return [
                 'title' => $title,
                 'start' => $holiday->start_date->toDateString(),
-                'end' => $holiday->end_date ? Carbon::parse($holiday->end_date)->addDay()->toDateString() : Carbon::parse($holiday->start_date)->addDay()->toDateString(),
+                'end' => $holiday->end_date
+                    ? Carbon::parse($holiday->end_date)->addDay()->toDateString()
+                    : Carbon::parse($holiday->start_date)->addDay()->toDateString(),
                 'color' => $color,
             ];
         })->toArray();
