@@ -51,13 +51,15 @@
             </div>
 
             <div class="mt-8 lg:mt-10">
-                <x-filament-panels::form wire:submit="authenticate">
+                <form wire:submit="authenticate">
                     {{ $this->form }}
 
-                    <div class="mt-4">
-                        {{ $this->getAuthenticateFormAction() }}
+                    <div class="mt-6">
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200">
+                            Masuk ke Dashboard Admin
+                        </button>
                     </div>
-                </x-filament-panels::form>
+                </form>
             </div>
             
             <div class="mt-10 text-center text-xs text-slate-500 font-medium">
