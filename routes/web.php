@@ -9,9 +9,11 @@ use App\Livewire\SiswaDashboard;
 use App\Livewire\ForceChangePassword;
 
 use App\Livewire\PublicDashboard;
+use App\Livewire\PublicDashboardV1;
 
 // Dashboard Publik Routes
 Route::get('/', PublicDashboard::class)->name('public.dashboard');
+Route::get('/dashboardv1', PublicDashboardV1::class)->name('public.dashboard.v1');
 Route::get('/display', PublicDashboard::class)->name('public.display');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
 Route::get('/login', fn() => redirect('/admin/login'))->name('login');
