@@ -54,10 +54,9 @@
                 <x-filament-panels::form wire:submit="authenticate">
                     {{ $this->form }}
 
-                    <x-filament-panels::form.actions
-                        :actions="$this->getCachedFormActions()"
-                        :full-width="$this->hasFullWidthFormActions()"
-                    />
+                    <div class="mt-4">
+                        {{ $this->getAuthenticateFormAction() }}
+                    </div>
                 </x-filament-panels::form>
             </div>
             
