@@ -11,43 +11,97 @@ class SiswaDashboard extends Component
 {
     public $student;
     public $enrollment;
-    public $selectedMonth;
+    public $selectedMonthYear;
+    public $availableMonths = [];
     
     public $daysInMonth = 0;
+    public $startOfMonthOffset = 0;
     public $todayDate;
     
     public $monthlyStats = [];
     public $attendanceData = [];
+    public $attendancePercentage = 0;
+    public $recentActivity = [];
+    public $holidays = [];
 
     public function mount()
     {
         $this->student = Auth::guard('siswa')->user();
         $this->enrollment = $this->student->enrollmentAktif()->with(['kelas', 'tahunAjaran'])->first();
-        $this->selectedMonth = date('m');
+        
+        $this->generateAvailableMonths();
+        
+        $currentMonthYear = date('m-Y');
+        if (array_key_exists($currentMonthYear, $this->availableMonths)) {
+            $this->selectedMonthYear = $currentMonthYear;
+        } else {
+            // Default to the first available month if current is not in academic year
+            $this->selectedMonthYear = array_key_first($this->availableMonths) ?? date('m-Y');
+        }
+        
         $this->loadData();
     }
+    
+    private function generateAvailableMonths()
+    {
+        $this->availableMonths = [];
+        if ($this->enrollment && $this->enrollment->tahunAjaran) {
+            $sy = $this->enrollment->tahunAjaran->start_year;
+            $ey = $this->enrollment->tahunAjaran->end_year;
+            
+            $monthNames = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+            
+            // Juli - Desember (Start Year)
+            for ($m = 7; $m <= 12; $m++) {
+                $key = sprintf('%02d-%d', $m, $sy);
+                $this->availableMonths[$key] = $monthNames[$m] . ' ' . $sy;
+            }
+            // Januari - Juni (End Year)
+            for ($m = 1; $m <= 6; $m++) {
+                $key = sprintf('%02d-%d', $m, $ey);
+                $this->availableMonths[$key] = $monthNames[$m] . ' ' . $ey;
+            }
+        }
+    }
 
-    public function updatedSelectedMonth()
+    public function updatedSelectedMonthYear()
     {
         $this->loadData();
     }
 
     public function loadData()
     {
-        if (!$this->enrollment) return;
+        if (!$this->enrollment || !$this->selectedMonthYear) return;
 
-        $year = date('Y');
-        $this->daysInMonth = Carbon::createFromDate($year, $this->selectedMonth, 1)->daysInMonth;
+        $parts = explode('-', $this->selectedMonthYear);
+        if (count($parts) !== 2) return;
+        
+        $month = (int)$parts[0];
+        $year = (int)$parts[1];
+
+        $startOfMonth = Carbon::createFromDate($year, $month, 1);
+        $this->daysInMonth = $startOfMonth->daysInMonth;
+        
+        // Offset (1 = Monday -> offset 0)
+        $this->startOfMonthOffset = $startOfMonth->dayOfWeekIso - 1; 
+        
         $this->todayDate = date('Y-m-d');
 
         $presensiQuery = Presensi::where('student_id', $this->student->id)
             ->where('enrollment_id', $this->enrollment->id)
-            ->whereMonth('date', $this->selectedMonth)
-            ->whereYear('date', $year);
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('date', 'desc');
 
         $records = $presensiQuery->get();
 
         $this->attendanceData = [];
+        $this->recentActivity = [];
+        
         $totalH = 0;
         $totalT = 0;
         $totalS = 0;
@@ -60,7 +114,15 @@ class SiswaDashboard extends Component
             $this->attendanceData[$day] = [
                 'status' => strtolower($p->status),
                 'late_minutes' => $p->late_minutes,
+                'scan_time' => $p->scan_time ? substr($p->scan_time, 0, 5) : null,
+                'date' => $p->date->format('Y-m-d'),
+                'is_manual_input' => $p->is_manual_input,
             ];
+
+            // For recent activity list (show max 5 recent records)
+            if (count($this->recentActivity) < 5) {
+                $this->recentActivity[] = $p;
+            }
 
             if (strtolower($p->status) === 'hadir') $totalH++;
             if (strtolower($p->status) === 'telat') {
@@ -80,10 +142,37 @@ class SiswaDashboard extends Component
             'A' => $totalA,
             'late_minutes' => $totalLateMinutes,
         ];
+        
+        // Calculate percentage
+        $endCalcDate = $startOfMonth->copy()->endOfMonth();
+        if ($year == date('Y') && $month == date('m')) {
+            $endCalcDate = Carbon::today('Asia/Jakarta');
+        }
+        
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        
+        $this->holidays = [];
+        for ($day = 1; $day <= $this->daysInMonth; $day++) {
+            $dateObj = Carbon::create($year, $month, $day);
+            $this->holidays[$day] = !$kalenderService->isHariSekolah($dateObj, $this->enrollment->class_id);
+        }
+
+        $effectiveDays = $kalenderService->getEffectiveDays($startOfMonth, $endCalcDate, $this->enrollment->class_id);
+        $effectiveDays = max(1, $effectiveDays);
+        
+        $presentCount = $totalH + $totalT;
+        $this->attendancePercentage = min(100, round(($presentCount / $effectiveDays) * 100, 1));
     }
 
     public function render()
     {
-        return view('livewire.siswa-dashboard');
+        $pengumuman = \App\Models\Pengumuman::aktifSekarang()
+                ->orderBy('urutan')
+                ->orderBy('updated_at', 'desc')
+                ->get();
+                
+        return view('livewire.siswa-dashboard', [
+            'pengumuman' => $pengumuman
+        ]);
     }
 }

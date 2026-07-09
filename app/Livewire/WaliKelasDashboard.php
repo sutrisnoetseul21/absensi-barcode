@@ -14,7 +14,8 @@ class WaliKelasDashboard extends Component
 {
     public $classes = [];
     public $selectedClassId;
-    public $selectedMonth;
+    public $selectedMonthYear;
+    public $availableMonths = [];
     public $academicYears = [];
     public $selectedAcademicYearId;
 
@@ -33,7 +34,6 @@ class WaliKelasDashboard extends Component
 
     public function mount()
     {
-        $this->selectedMonth  = date('m');
         $this->academicYears  = TahunAjaran::orderBy('start_year', 'desc')->get();
 
         $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();
@@ -43,9 +43,47 @@ class WaliKelasDashboard extends Component
 
         $this->loadClasses();
     }
+    
+    private function generateAvailableMonths()
+    {
+        $this->availableMonths = [];
+        if (!$this->selectedAcademicYearId) return;
+        
+        $ay = TahunAjaran::find($this->selectedAcademicYearId);
+        if ($ay) {
+            $sy = $ay->start_year;
+            $ey = $ay->end_year;
+            
+            $monthNames = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+            
+            // Juli - Desember (Start Year)
+            for ($m = 7; $m <= 12; $m++) {
+                $key = sprintf('%02d-%d', $m, $sy);
+                $this->availableMonths[$key] = $monthNames[$m] . ' ' . $sy;
+            }
+            // Januari - Juni (End Year)
+            for ($m = 1; $m <= 6; $m++) {
+                $key = sprintf('%02d-%d', $m, $ey);
+                $this->availableMonths[$key] = $monthNames[$m] . ' ' . $ey;
+            }
+        }
+        
+        $currentMonthYear = date('m-Y');
+        if (array_key_exists($currentMonthYear, $this->availableMonths)) {
+            $this->selectedMonthYear = $currentMonthYear;
+        } else {
+            $this->selectedMonthYear = array_key_first($this->availableMonths);
+        }
+    }
 
     public function loadClasses()
     {
+        $this->generateAvailableMonths();
+        
         if (!$this->selectedAcademicYearId) {
             $this->classes        = [];
             $this->selectedClassId = null;
@@ -92,26 +130,33 @@ class WaliKelasDashboard extends Component
         $this->loadDashboardData();
     }
 
-    public function updatedSelectedMonth()
+    public function updatedSelectedMonthYear()
     {
         $this->loadDashboardData();
     }
 
     public function loadDashboardData()
     {
-        if (!$this->selectedClassId || !$this->selectedAcademicYearId) {
+        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->selectedMonthYear) {
             $this->students     = collect();
             $this->monthlyStats = [];
             $this->alerts       = [];
             $this->todayStats   = [];
             return;
         }
+        
+        $parts = explode('-', $this->selectedMonthYear);
+        if (count($parts) !== 2) return;
+        
+        $month = $parts[0];
+        $year = (int)$parts[1];
 
         $service = app(PresensiRekapService::class);
         $result  = $service->getMonthlyCalendarData(
             $this->selectedAcademicYearId,
             $this->selectedClassId,
-            $this->selectedMonth
+            $month,
+            $year
         );
 
         $this->students     = $result['students'];
@@ -121,6 +166,8 @@ class WaliKelasDashboard extends Component
         $this->daysInMonth  = $result['daysInMonth'];
         $this->todayDate    = $result['todayDate'];
     }
+
+    public $isInputDateHoliday = false;
 
     public function openInputModal()
     {
@@ -137,6 +184,9 @@ class WaliKelasDashboard extends Component
     public function loadStudentsForInput()
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) return;
+
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $this->isInputDateHoliday = !$kalenderService->isHariSekolah(Carbon::parse($this->inputDate), $this->selectedClassId);
 
         $attendances = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
             ->where('class_id', $this->selectedClassId)
@@ -160,8 +210,17 @@ class WaliKelasDashboard extends Component
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) return;
 
+        if ($this->isInputDateHoliday) {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Tidak dapat menyimpan absensi pada hari libur!',
+            ]);
+            return;
+        }
+
         foreach ($this->inputStudents as $studentId => $data) {
             if (empty($data['status'])) continue;
+
 
             // Cari enrollment_id
             $enrollment = \App\Models\EnrollmentSiswa::where('student_id', $studentId)
@@ -179,7 +238,7 @@ class WaliKelasDashboard extends Component
                 [
                     'enrollment_id'   => $enrollment?->id,
                     'status'          => $data['status'],
-                    'late_minutes'    => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : null,
+                    'late_minutes'    => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0,
                     'is_manual_input' => true,
                     'manual_input_by_id'   => Auth::guard('wali_kelas')->id() ?? Auth::guard('web')->id(),
                     'manual_input_by_type' => Auth::guard('wali_kelas')->check() ? \App\Models\Guru::class : \App\Models\User::class,

@@ -10,14 +10,43 @@ use Illuminate\Support\Facades\Cache;
 class KalenderSekolahService
 {
     /**
+     * Mendapatkan tipe hari kerja (5_hari atau 6_hari) yang aktif pada tanggal tertentu.
+     */
+    public function getWorkDaysTypeForDate(Carbon $date): string
+    {
+        $settings = PengaturanSekolah::current();
+        if (!$settings) {
+            return '5_hari';
+        }
+
+        $history = $settings->work_days_history;
+        if (is_array($history) && count($history) > 0) {
+            $dateStr = $date->toDateString();
+            foreach ($history as $entry) {
+                $start = $entry['start_date'] ?? null;
+                $end = $entry['end_date'] ?? null;
+                
+                if ($start && $dateStr < $start) {
+                    continue;
+                }
+                if ($end && $dateStr > $end) {
+                    continue;
+                }
+                return $entry['work_days_type'] ?? '5_hari';
+            }
+        }
+
+        return $settings->work_days_type ?? '5_hari';
+    }
+
+    /**
      * Mengecek apakah sebuah tanggal merupakan hari efektif belajar.
      */
     public function isHariSekolah(Carbon $date, ?string $classId = null): bool
     {
-        $settings = PengaturanSekolah::current();
-        $workDaysType = $settings->work_days_type ?? '5_hari';
+        // 1. Cek Hari Libur Rutin (Weekend) berdasarkan tanggal spesifik
+        $workDaysType = $this->getWorkDaysTypeForDate($date);
 
-        // 1. Cek Hari Libur Rutin (Weekend)
         if ($workDaysType === '5_hari' && $date->isWeekend()) {
             return false;
         }
@@ -43,9 +72,6 @@ class KalenderSekolahService
         $effectiveDays = 0;
         $current = $start->copy();
 
-        $settings = PengaturanSekolah::current();
-        $workDaysType = $settings->work_days_type ?? '5_hari';
-
         // Ambil semua hari libur dalam range ini untuk efisiensi query
         $holidays = HariLibur::where('start_date', '<=', $end->toDateString())
             ->where(function ($q) use ($start) {
@@ -60,7 +86,8 @@ class KalenderSekolahService
             ->get();
 
         while ($current->lessThanOrEqualTo($end)) {
-            $isWeekend = ($workDaysType === '5_hari') ? $current->isWeekend() : $current->isSunday();
+            $dayWorkType = $this->getWorkDaysTypeForDate($current);
+            $isWeekend = ($dayWorkType === '5_hari') ? $current->isWeekend() : $current->isSunday();
             
             if (!$isWeekend) {
                 $isHoliday = false;

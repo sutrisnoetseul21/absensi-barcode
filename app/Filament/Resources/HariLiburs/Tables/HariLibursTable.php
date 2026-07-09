@@ -5,6 +5,7 @@ namespace App\Filament\Resources\HariLiburs\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Filament\Tables\Table;
 
 class HariLibursTable
@@ -54,12 +55,76 @@ class HariLibursTable
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                EditAction::make()
+                    ->button()
+                    ->size('xs'),
+                DeleteAction::make()
+                    ->button()
+                    ->color('danger')
+                    ->size('xs')
+                    ->modalHeading('Hapus Hari Libur')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus data hari libur ini? Tanggal ini akan kembali dihitung sebagai hari sekolah efektif.')
+                    ->before(function ($record) {
+                        activity()
+                            ->performedOn($record)
+                            ->causedBy(auth()->user())
+                            ->withProperties([
+                                'description' => $record->description,
+                                'start_date' => $record->start_date ? $record->start_date->toDateString() : null,
+                                'end_date' => $record->end_date ? $record->end_date->toDateString() : null,
+                                'type' => $record->type,
+                            ])
+                            ->log('Menghapus hari libur');
+                    }),
+                \Filament\Actions\Action::make('force_libur')
+                    ->label('Force Libur')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->color('warning')
+                    ->button()
+                    ->size('xs')
+                    ->requiresConfirmation()
+                    ->modalHeading('Paksa Libur (Hapus Absensi)')
+                    ->modalDescription('Tindakan ini akan MENGHAPUS secara permanen semua data absensi (Hadir, Izin, Sakit, Alpa) yang sudah tercatat pada rentang tanggal libur ini. Lanjutkan?')
+                    ->action(function ($record) {
+                        $query = \App\Models\Presensi::where('date', '>=', $record->start_date);
+                        
+                        if ($record->end_date) {
+                            $query->where('date', '<=', $record->end_date);
+                        } else {
+                            $query->where('date', '<=', $record->start_date);
+                        }
+                        
+                        if ($record->class_id) {
+                            $query->where('class_id', $record->class_id);
+                        }
+                        
+                        $deleted = $query->delete();
+                        
+                        \Filament\Notifications\Notification::make()
+                            ->title('Force Libur Berhasil')
+                            ->body("$deleted data absensi berhasil dihapus.")
+                            ->success()
+                            ->send();
+                    }),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            foreach ($records as $record) {
+                                activity()
+                                    ->performedOn($record)
+                                    ->causedBy(auth()->user())
+                                    ->withProperties([
+                                        'description' => $record->description,
+                                        'start_date' => $record->start_date ? $record->start_date->toDateString() : null,
+                                        'end_date' => $record->end_date ? $record->end_date->toDateString() : null,
+                                        'type' => $record->type,
+                                    ])
+                                    ->log('Menghapus hari libur (Bulk)');
+                            }
+                        }),
                 ]),
             ]);
     }

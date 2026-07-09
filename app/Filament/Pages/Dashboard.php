@@ -70,6 +70,7 @@ class Dashboard extends BaseDashboard
                         if (!$sudahAbsen) {
                             Presensi::create([
                                 'student_id' => $enrollment->student_id,
+                                'enrollment_id' => $enrollment->id,
                                 'class_id' => $enrollment->class_id,
                                 'academic_year_id' => $activeYearId,
                                 'date' => $dateString,

@@ -13,15 +13,20 @@ use App\Livewire\PublicDashboard;
 // Dashboard Publik Routes
 Route::get('/', PublicDashboard::class)->name('public.dashboard');
 Route::get('/display', PublicDashboard::class)->name('public.display');
-// Kiosk Absensi Routes
-Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
-Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
-    $barcode = $request->input('barcode');
-    if (!$barcode) {
-        return response()->json(['status' => 'not_found']);
-    }
-    return response()->json($action->execute($barcode, $request->ip()));
-})->middleware('throttle:60,1')->name('kiosk.process');
+// Route fallback untuk redirect unauthenticated users ke Filament admin login
+Route::get('/login', fn() => redirect('/admin/login'))->name('login');
+
+// Kiosk Absensi Routes - Protected by 'auth' middleware so only Admin can access
+Route::middleware('auth')->group(function () {
+    Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
+    Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
+        $barcode = $request->input('barcode');
+        if (!$barcode) {
+            return response()->json(['status' => 'not_found']);
+        }
+        return response()->json($action->execute($barcode, $request->ip()));
+    })->middleware('throttle:60,1')->name('kiosk.process');
+});
 
 // Wali Kelas Routes
 Route::prefix('wali-kelas')->group(function () {
@@ -29,12 +34,13 @@ Route::prefix('wali-kelas')->group(function () {
     
     Route::middleware('auth.wali')->group(function () {
         Route::get('/', WaliKelasDashboard::class)->name('wali-kelas.dashboard');
+        Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('wali-kelas.student-detail');
         
         Route::post('/logout', function () {
             Auth::guard('wali_kelas')->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
-            return redirect('/wali-kelas/login');
+            return redirect('/');
         })->name('wali-kelas.logout');
     });
 });
@@ -50,7 +56,7 @@ Route::prefix('siswa')->group(function () {
             Auth::guard('siswa')->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
-            return redirect('/siswa/login');
+            return redirect('/');
         })->name('siswa.logout');
     });
 });

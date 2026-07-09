@@ -20,6 +20,7 @@ class PengaturanSekolah extends Model
         'principal_signature_path',
         'checkin_time',
         'work_days_type',
+        'work_days_history',
         'late_threshold_minutes',
         'academic_year_id_active',
         'enable_promotion_features',
@@ -29,6 +30,7 @@ class PengaturanSekolah extends Model
         'checkin_time'              => 'string',
         'late_threshold_minutes'    => 'integer',
         'enable_promotion_features' => 'boolean',
+        'work_days_history'         => 'array',
     ];
 
     // Tahun ajaran yang sedang aktif

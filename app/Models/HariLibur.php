@@ -37,10 +37,15 @@ class HariLibur extends Model
      */
     public function meliputiTanggal(string $tanggal): bool
     {
-        $tgl = \Carbon\Carbon::parse($tanggal);
+        $tgl = \Carbon\Carbon::parse($tanggal)->startOfDay();
+        $start = $this->start_date->copy()->startOfDay();
 
-        return $tgl->greaterThanOrEqualTo($this->start_date)
-            && ($this->end_date === null || $tgl->lessThanOrEqualTo($this->end_date));
+        if ($this->end_date === null) {
+            return $tgl->equalTo($start);
+        }
+
+        $end = $this->end_date->copy()->startOfDay();
+        return $tgl->betweenIncluded($start, $end);
     }
 
     /**
@@ -48,9 +53,14 @@ class HariLibur extends Model
      */
     public static function scopeHariIni($query, string $tanggal, ?string $classId = null)
     {
-        return $query->where('start_date', '<=', $tanggal)
-            ->where(function ($q) use ($tanggal) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $tanggal);
+        return $query->where(function ($q) use ($tanggal) {
+                $q->where(function ($q2) use ($tanggal) {
+                    $q2->whereNull('end_date')->whereDate('start_date', $tanggal);
+                })->orWhere(function ($q3) use ($tanggal) {
+                    $q3->whereNotNull('end_date')
+                       ->whereDate('start_date', '<=', $tanggal)
+                       ->whereDate('end_date', '>=', $tanggal);
+                });
             })
             ->where(function ($q) use ($classId) {
                 $q->whereNull('class_id');

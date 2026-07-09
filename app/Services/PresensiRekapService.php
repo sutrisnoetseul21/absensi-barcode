@@ -18,17 +18,16 @@ class PresensiRekapService
     public function getMonthlyCalendarData(
         string $academicYearId,
         string $classId,
-        string $month // '07', '08', dst.
+        string $month, // '07', '08', dst.
+        int $year = null
     ): array {
         $ay = TahunAjaran::find($academicYearId);
         if (!$ay) {
             return $this->emptyCalendarResult();
         }
 
-        $startYear = $ay->start_year ?? ((int)date('Y') - 1);
-        $endYear   = $ay->end_year ?? (int)date('Y');
-
-        $calendarYear = $this->resolveCalendarYear($ay, (int)$month);
+        // Jika $year tidak diberikan (fallback lama), resolve dari function
+        $calendarYear = $year ?: $this->resolveCalendarYear($ay, (int)$month);
 
         // Load siswa aktif di kelas
         $kelas = Kelas::with(['enrollments' => function ($q) use ($academicYearId) {

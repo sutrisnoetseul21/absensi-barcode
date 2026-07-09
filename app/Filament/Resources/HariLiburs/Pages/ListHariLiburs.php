@@ -17,28 +17,100 @@ class ListHariLiburs extends ListRecords
     protected string $view = 'filament.resources.hari-liburs.pages.list-hari-liburs';
 
     public string $work_days_type = '5_hari';
+    public string $effective_date = '';
+    public array $work_days_history = [];
 
     public function mount(): void
     {
         parent::mount();
         $settings = PengaturanSekolah::current();
         $this->work_days_type = $settings->work_days_type ?? '5_hari';
+        $this->effective_date = now('Asia/Jakarta')->toDateString();
+        $this->work_days_history = $settings->work_days_history ?? [];
     }
 
     public function saveSettings(): void
     {
         $this->validate([
             'work_days_type' => 'required|in:5_hari,6_hari',
+            'effective_date' => 'required|date',
         ]);
 
         $settings = PengaturanSekolah::current();
         if ($settings) {
-            $settings->update([
-                'work_days_type' => $this->work_days_type,
-            ]);
+            $oldType = $settings->work_days_type ?? '5_hari';
+            $history = $settings->work_days_history ?? [];
+            
+            // Urutkan riwayat berdasarkan start_date ascending
+            usort($history, function ($a, $b) {
+                return strcmp($a['start_date'], $b['start_date']);
+            });
+
+            $newEffectiveDate = Carbon::parse($this->effective_date)->toDateString();
+            $currentTypeOnDate = app(\App\Services\KalenderSekolahService::class)->getWorkDaysTypeForDate(Carbon::parse($this->effective_date));
+
+            // Jika riwayat kosong, buat inisialisasi default dari masa lampau
+            if (empty($history)) {
+                $oldType = $settings->work_days_type ?? '5_hari';
+                $history = [
+                    [
+                        'start_date' => '2000-01-01',
+                        'end_date'   => null,
+                        'work_days_type' => $oldType,
+                    ]
+                ];
+            }
+
+            if ($currentTypeOnDate !== $this->work_days_type) {
+                // Filter entri yang memiliki tanggal mulai < tanggal efektif baru
+                $filteredHistory = array_filter($history, function ($entry) use ($newEffectiveDate) {
+                    return $entry['start_date'] < $newEffectiveDate;
+                });
+
+                // Tutup entri terakhir sebelum tanggal efektif baru
+                if (count($filteredHistory) > 0) {
+                    $lastEntryKey = array_key_last($filteredHistory);
+                    $filteredHistory[$lastEntryKey]['end_date'] = Carbon::parse($newEffectiveDate)->subDay()->toDateString();
+                }
+
+                // Tambahkan entri baru
+                $filteredHistory[] = [
+                    'start_date' => $newEffectiveDate,
+                    'end_date'   => null,
+                    'work_days_type' => $this->work_days_type,
+                ];
+
+                // Urutkan ulang riwayat
+                usort($filteredHistory, function ($a, $b) {
+                    return strcmp($a['start_date'], $b['start_date']);
+                });
+
+                $settings->update([
+                    'work_days_type' => $this->work_days_type,
+                    'work_days_history' => array_values($filteredHistory),
+                ]);
+            } else {
+                $settings->update([
+                    'work_days_type' => $this->work_days_type,
+                ]);
+            }
+
+            activity()
+                ->performedOn($settings)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'old_work_days_type' => $oldType,
+                    'new_work_days_type' => $this->work_days_type,
+                    'effective_date' => $this->effective_date,
+                    'history' => $settings->work_days_history,
+                ])
+                ->log('Mengubah pengaturan hari kerja sekolah');
+
+            $this->work_days_history = $settings->fresh()->work_days_history ?? [];
 
             Notification::make()
                 ->title('Pengaturan hari kerja berhasil disimpan')
+                ->body("Berlaku mulai: " . Carbon::parse($this->effective_date)->translatedFormat('d M Y'))
                 ->success()
                 ->send();
         }
@@ -195,5 +267,17 @@ class ListHariLiburs extends ListRecords
             CreateAction::make()
                 ->label('Tambah Hari Libur'),
         ];
+    }
+
+    public function getHolidayLogs()
+    {
+        return \Spatie\Activitylog\Models\Activity::where(function ($query) {
+                $query->where('subject_type', \App\Models\HariLibur::class)
+                    ->orWhere('subject_type', \App\Models\PengaturanSekolah::class);
+            })
+            ->with('causer')
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get();
     }
 }

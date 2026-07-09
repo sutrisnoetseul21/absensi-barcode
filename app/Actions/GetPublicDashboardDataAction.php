@@ -86,6 +86,9 @@ class GetPublicDashboardDataAction
 
                 $monthPercentage = min(100, $monthPercentage); // cap at 100%
 
+                // Rata-rata siswa yang hadir per hari berdasarkan persentase yang sudah di-cap
+                $monthAvg = round(($monthPercentage / 100) * $students, 1);
+
                 $processedClasses[] = [
                     'id' => $kelas->id,
                     'name' => $kelas->name,
@@ -93,6 +96,7 @@ class GetPublicDashboardDataAction
                     'total_students' => $students,
                     'present_today' => $todayP,
                     'today_percentage' => $todayPercentage,
+                    'month_present_avg' => $monthAvg,
                     'month_percentage' => $monthPercentage,
                 ];
 
@@ -126,35 +130,23 @@ class GetPublicDashboardDataAction
                 ->groupBy('status')
                 ->pluck('total', 'status');
 
-            $settings = PengaturanSekolah::first();
-            $now = now();
-            $checkinTime = $settings ? $settings->checkin_time : '07:00:00';
+            $dbHadir = $statusCounts->get('hadir', 0);
+            $dbTelat = $statusCounts->get('telat', 0);
+            $dbSakit = $statusCounts->get('sakit', 0);
+            $dbIzin = $statusCounts->get('izin', 0);
+            $dbAlpa = $statusCounts->get('alpa', 0);
             
-            $closingTimeString = Carbon::parse($checkinTime)->addMinutes(60)->toTimeString();
-            $closingTime = Carbon::parse($today . ' ' . $closingTimeString);
+            $sudahRecord = $statusCounts->sum();
+            $belumAbsen = max(0, $totalActiveStudents - $sudahRecord);
 
-            if ($now->lessThanOrEqualTo($closingTime)) {
-                $belumAbsen = $totalActiveStudents - $statusCounts->sum();
-                $donutData = [
-                    'hadir' => $statusCounts->get('hadir', 0),
-                    'telat' => $statusCounts->get('telat', 0),
-                    'sakit' => $statusCounts->get('sakit', 0),
-                    'izin' => $statusCounts->get('izin', 0),
-                    'alpa' => $statusCounts->get('alpa', 0),
-                    'belum_absen' => max(0, $belumAbsen)
-                ];
-            } else {
-                $sudahAbsen = $statusCounts->whereIn('status', ['hadir', 'telat', 'sakit', 'izin'])->sum();
-                $alpaDinamis = $totalActiveStudents - $sudahAbsen;
-                $donutData = [
-                    'hadir' => $statusCounts->get('hadir', 0),
-                    'telat' => $statusCounts->get('telat', 0),
-                    'sakit' => $statusCounts->get('sakit', 0),
-                    'izin' => $statusCounts->get('izin', 0),
-                    'alpa' => max(0, $alpaDinamis),
-                    'belum_absen' => 0
-                ];
-            }
+            $donutData = [
+                'hadir' => $dbHadir,
+                'telat' => $dbTelat,
+                'sakit' => $dbSakit,
+                'izin' => $dbIzin,
+                'alpa' => $dbAlpa,
+                'belum_absen' => $belumAbsen
+            ];
 
             // Line Chart (30 days trend)
             $lineData = ['labels' => [], 'data' => []];

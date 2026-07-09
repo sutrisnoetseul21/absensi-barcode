@@ -208,7 +208,7 @@ class RekapAbsensiKelas extends Page
                 [
                     'enrollment_id'        => $enrollment?->id,
                     'status'               => $data['status'],
-                    'late_minutes'         => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : null,
+                    'late_minutes'         => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0,
                     'is_manual_input'      => true,
                     'manual_input_by_id'   => Auth::id(),
                     'manual_input_by_type' => \App\Models\User::class,

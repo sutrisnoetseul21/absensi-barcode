@@ -84,9 +84,62 @@ class PublicDashboard extends Component
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
+        // Fetch data for the new redesign
+        $pengaturanSekolah = Cache::remember('public_pengaturan_sekolah', 300, function () {
+            return PengaturanSekolah::current();
+        });
+
+        $hariLiburs = Cache::remember('public_hari_liburs', 300, function () {
+            return HariLibur::whereNull('class_id')
+                ->where('start_date', '>=', today())
+                ->orderBy('start_date')
+                ->take(5)
+                ->get();
+        });
+
+        $pengumuman = Cache::remember('public_pengumuman', 300, function () {
+            return \App\Models\Pengumuman::aktifSekarang()
+                ->orderBy('urutan')
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        });
+
+        $today = now('Asia/Jakarta');
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isTodayHoliday = !$kalenderService->isHariSekolah($today);
+        
+        $holiday = HariLibur::hariIni($today->toDateString())->first();
+        $todayHolidayName = $holiday ? $holiday->description : ($today->isWeekend() ? 'Akhir Pekan' : 'Hari Libur');
+
+        $todayStr = $today->toDateString();
+        $statusCounts = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
+            ->where('date', $todayStr)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $totalStudentsCount = EnrollmentSiswa::where('academic_year_id', $this->selectedAcademicYearId)
+            ->where('status', 'aktif')
+            ->count();
+
+        $realStats = [
+            'total_siswa' => $totalStudentsCount,
+            'hadir_telat' => $statusCounts->get('hadir', 0) + $statusCounts->get('telat', 0),
+            'sakit' => $statusCounts->get('sakit', 0),
+            'izin' => $statusCounts->get('izin', 0),
+            'alpa_db' => $statusCounts->get('alpa', 0),
+            'belum_absen' => max(0, $totalStudentsCount - $statusCounts->sum()),
+        ];
+
         return view('livewire.public-dashboard', array_merge($data, [
             'academicYears' => $academicYears,
-            'months' => $months
+            'months' => $months,
+            'pengaturanSekolah' => $pengaturanSekolah,
+            'hariLiburs' => $hariLiburs,
+            'pengumuman' => $pengumuman,
+            'isTodayHoliday' => $isTodayHoliday,
+            'todayHolidayName' => $todayHolidayName,
+            'realStats' => $realStats,
         ]));
     }
 }

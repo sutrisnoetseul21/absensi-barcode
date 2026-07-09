@@ -86,7 +86,7 @@ class ManualAttendanceInput extends Component
                 'class_id' => $this->classId,
                 'academic_year_id' => $activeYear->id,
                 'status' => $this->status,
-                'late_minutes' => $this->status === 'telat' ? ($this->lateMinutes ?? 0) : null,
+                'late_minutes' => $this->status === 'telat' ? ($this->lateMinutes ?? 0) : 0,
                 'is_manual_input' => true,
                 'manual_input_by_id' => $actor->id,
                 'manual_input_by_type' => get_class($actor),

@@ -15,8 +15,8 @@
          class="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center cursor-pointer transition-opacity duration-300"
          @click="activateKiosk()">
         <svg class="w-24 h-24 text-white mb-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
-        <h1 class="text-4xl font-bold text-white tracking-wider">Sentuh Layar Untuk Mengaktifkan Kios</h1>
-        <p class="text-slate-300 mt-4 text-xl">Sistem Absensi {{ $settings->school_name ?? 'Sekolah' }}</p>
+        <h1 class="text-4xl font-bold text-white tracking-wider">Sentuh Layar Untuk Mengaktifkan Presensi Digital</h1>
+        <p class="text-slate-300 mt-4 text-xl">Sistem Presensi Digital {{ $settings->school_name ?? 'Sekolah' }}</p>
     </div>
     @endif
 
@@ -42,7 +42,7 @@
                 @if($settings && $settings->school_logo_path)
                     <img src="{{ asset('storage/'.$settings->school_logo_path) }}" alt="Logo" class="w-16 h-16 mx-auto mb-2 object-contain">
                 @endif
-                <h2 class="text-3xl font-bold">{{ $settings->school_name ?? 'Kios Absensi' }}</h2>
+                <h2 class="text-3xl font-bold">{{ $settings->school_name ?? 'Presensi Digital' }}</h2>
                 <p class="text-blue-100 mt-1">Silakan scan kartu Anda pada alat scanner</p>
                 
                 <!-- Loading Indicator -->
@@ -122,10 +122,10 @@
                 <div>Input Buffer: <span class="font-mono text-slate-800" x-text="barcode"></span></div>
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 rounded-full" :class="isActive ? 'bg-green-500' : 'bg-red-500'"></span>
-                    <span x-text="isActive ? 'Kios Aktif' : 'Menunggu Aktivasi'"></span>
+                    <span x-text="isActive ? 'Presensi Digital Aktif' : 'Menunggu Aktivasi'"></span>
                 </div>
                 @else
-                <div class="w-full text-center">Kios Dinonaktifkan (Hari Libur)</div>
+                <div class="w-full text-center">Presensi Digital Dinonaktifkan (Hari Libur)</div>
                 @endif
             </div>
         </div>
@@ -145,7 +145,7 @@
                 statusState: @json($isGlobalHoliday ? 'holiday' : 'idle'),
                 studentName: @json($isGlobalHoliday ? 'Hari Ini Libur' : ''),
                 photoUrl: null,
-                statusMessage: @json($isGlobalHoliday ? 'Sistem Absensi Kios Dinonaktifkan.' : ''),
+                statusMessage: @json($isGlobalHoliday ? 'Sistem Presensi Digital Dinonaktifkan.' : ''),
                 lateMinutes: 0,
                 
                 // Timers
