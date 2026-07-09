@@ -1,21 +1,21 @@
 <!-- Data Table Grid -->
-<div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-    <div class="overflow-x-auto">
+<div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/40 overflow-hidden relative z-20">
+    <div class="overflow-x-auto custom-scrollbar">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    <th class="py-4 px-6 sticky left-0 bg-slate-50 z-10 shadow-[1px_0_0_0_#e2e8f0]">Nama Siswa</th>
+                <tr class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200/60 text-xs font-black text-slate-500 uppercase tracking-wider">
+                    <th class="py-5 px-6 sticky left-0 bg-slate-50/90 backdrop-blur-md z-10 shadow-[1px_0_0_0_#e2e8f0]">Nama Siswa</th>
                     @for($i = 1; $i <= $daysInMonth; $i++)
-                        <th class="py-4 px-2 text-center min-w-[35px]">{{ $i }}</th>
+                        <th class="py-5 px-2 text-center min-w-[35px]">{{ $i }}</th>
                     @endfor
-                    <th class="py-4 px-3 text-center text-emerald-600 bg-emerald-50">H</th>
-                    <th class="py-4 px-3 text-center text-amber-600 bg-amber-50">T</th>
-                    <th class="py-4 px-3 text-center text-blue-600 bg-blue-50">I</th>
-                    <th class="py-4 px-3 text-center text-indigo-600 bg-indigo-50">S</th>
-                    <th class="py-4 px-3 text-center text-red-600 bg-red-50">A</th>
+                    <th class="py-5 px-3 text-center text-emerald-600 bg-emerald-50/80 backdrop-blur-sm">H</th>
+                    <th class="py-5 px-3 text-center text-amber-600 bg-amber-50/80 backdrop-blur-sm">T</th>
+                    <th class="py-5 px-3 text-center text-blue-600 bg-blue-50/80 backdrop-blur-sm">I</th>
+                    <th class="py-5 px-3 text-center text-indigo-600 bg-indigo-50/80 backdrop-blur-sm">S</th>
+                    <th class="py-5 px-3 text-center text-rose-600 bg-rose-50/80 backdrop-blur-sm">A</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-slate-100/60">
                 @forelse($students as $student)
                     @php
                         $isAlpaWarning = in_array($student->id, $alerts['alpa'] ?? []);
