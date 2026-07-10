@@ -1,18 +1,20 @@
 <!-- SEKSI 4: Kalender Grid (2 Kolom) -->
-<div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 p-6 overflow-hidden">
+<div class="lg:col-span-2 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/40 p-6 overflow-hidden relative z-20">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-slate-800 flex items-center">
-            <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            Kalender <span x-text="monthName" class="ml-1"></span>
+        <h2 class="text-xl font-black text-slate-800 flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-inner">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+            Kalender <span x-text="monthName" class="ml-1 text-indigo-600"></span>
         </h2>
         
         <!-- Keterangan Kalender Desktop -->
-        <div class="hidden sm:flex items-center gap-3 text-xs font-medium text-slate-500">
-            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-1.5"></span> Hadir</div>
-            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-500 mr-1.5"></span> Telat</div>
-            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-1.5"></span> Izin</div>
-            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-purple-500 mr-1.5"></span> Sakit</div>
-            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-1.5"></span> Alpa</div>
+        <div class="hidden sm:flex items-center gap-4 text-xs font-bold text-slate-500 bg-slate-50/50 px-4 py-2 rounded-xl border border-slate-100">
+            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-2 shadow-sm"></span> Hadir</div>
+            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-500 mr-2 shadow-sm"></span> Telat</div>
+            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-2 shadow-sm"></span> Izin</div>
+            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-purple-500 mr-2 shadow-sm"></span> Sakit</div>
+            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2 shadow-sm"></span> Alpa</div>
         </div>
     </div>
 
