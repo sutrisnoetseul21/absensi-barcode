@@ -112,6 +112,14 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->directory('settings')
                             ->nullable()
                             ->helperText('Gambar ini akan digunakan sebagai background halaman depan portal absensi.'),
+                            
+                        FileUpload::make('login_background_path')
+                            ->label('Gambar Background Login (Portal)')
+                            ->image()
+                            ->disk('public')
+                            ->directory('settings')
+                            ->nullable()
+                            ->helperText('Gambar ini akan digunakan sebagai background halaman Login Siswa dan Wali Kelas.'),
                     ])->columns(1),
 
                 Section::make('Pengaturan Sistem')

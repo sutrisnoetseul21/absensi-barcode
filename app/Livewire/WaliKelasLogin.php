@@ -46,6 +46,12 @@ class WaliKelasLogin extends Component
 
     public function render()
     {
-        return view('livewire.wali-kelas-login');
+        $settings = \Illuminate\Support\Facades\Cache::remember('public_pengaturan_sekolah', 3600, function () {
+            return \App\Models\PengaturanSekolah::current();
+        });
+
+        return view('livewire.wali-kelas-login', [
+            'pengaturanSekolah' => $settings
+        ]);
     }
 }
