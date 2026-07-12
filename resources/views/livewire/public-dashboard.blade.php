@@ -416,30 +416,7 @@
 
 
     <!-- SEKSI 2: Banner Pengumuman -->
-    @if($pengumuman->count() > 0)
-    <div class="bg-amber-50 border-b border-amber-200 shadow-sm relative overflow-hidden z-20">
-        <div class="max-w-7xl mx-auto flex items-center">
-            <div class="bg-amber-500 text-white px-4 py-3 font-bold flex items-center z-10 shadow-[4px_0_10px_rgba(0,0,0,0.1)] whitespace-nowrap">
-                <svg class="w-5 h-5 mr-2 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
-                PENGUMUMAN
-            </div>
-            <div class="overflow-hidden flex-1 py-3 px-4">
-                <div class="whitespace-nowrap inline-block animate-[shimmer_25s_linear_infinite]">
-                    @foreach($pengumuman as $p)
-                        <span class="text-amber-800 font-medium mx-4">
-                            @if($p->tipe === 'peringatan') 🔴
-                            @elseif($p->tipe === 'penting') 🟡
-                            @else 🔵
-                            @endif
-                            {{ $p->judul }} &mdash; {{ $p->isi }}
-                        </span>
-                        @if(!$loop->last) <span class="text-amber-300 mx-2">|</span> @endif
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
+    <x-public-dashboard.announcement :pengumuman="$pengumuman" />
 
     <!-- Main Content Container -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
@@ -819,53 +796,7 @@
     </div><!-- End Main Content Container -->
 
     <!-- SEKSI 7: Footer (Modern) -->
-    <footer class="relative bg-[#0f0f1a] text-slate-400 border-t border-white/5 mt-auto overflow-hidden">
-        <!-- Subtle gradient accent -->
-        <div class="absolute inset-0 bg-gradient-to-r from-indigo-950/30 via-transparent to-violet-950/20 pointer-events-none"></div>
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="flex flex-col sm:flex-row justify-between items-start gap-8">
-                <!-- Left: School Info -->
-                <div class="flex items-start gap-4">
-                    @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
-                        <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo"
-                            class="h-12 w-auto object-contain opacity-80 flex-shrink-0">
-                    @endif
-                    <div>
-                        <h4 class="text-white font-extrabold text-lg leading-tight mb-1">
-                            {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Sistem Presensi' }}
-                        </h4>
-                        <p class="text-sm text-slate-500 max-w-sm">
-                            {{ $pengaturanSekolah ? $pengaturanSekolah->school_address : '' }}
-                        </p>
-                        <div class="flex items-center gap-2 mt-3">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span class="text-xs text-emerald-500 font-semibold">Sistem aktif & berjalan normal</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Right: Links -->
-                <div class="flex flex-col items-start sm:items-end gap-3">
-                    <div class="flex flex-wrap gap-3">
-                        <a href="{{ route('siswa.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
-                        <span class="text-slate-700">·</span>
-                        <a href="{{ route('wali-kelas.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Wali Kelas</a>
-                        <span class="text-slate-700">·</span>
-                        <a href="/admin" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
-                        <span class="text-slate-700">·</span>
-                        <a href="{{ route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
-                    </div>
-                    <p class="text-xs text-slate-600">
-                        &copy; {{ date('Y') }} {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Sistem Presensi' }}. Hak Cipta Dilindungi.
-                    </p>
-                    <p class="text-xs text-slate-700">Sistem Presensi Berbasis Barcode</p>
-                </div>
-            </div>
-            <!-- Divider -->
-            <div class="border-t border-white/5 mt-8 pt-5 text-center">
-                <p class="text-xs text-slate-700">Dibangun dengan ❤️ untuk transparansi dan kedisiplinan pendidikan.</p>
-            </div>
-        </div>
-    </footer>
+    <x-public-dashboard.footer :pengaturanSekolah="$pengaturanSekolah" />
 
     <style>
         .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
