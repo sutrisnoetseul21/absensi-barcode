@@ -17,56 +17,13 @@
             padding: 0;
         }
 
-        /* KOP SURAT */
-        .kop-surat {
-            width: 100%;
-            border-bottom: 3px solid #1e3a5f;
-            padding-bottom: 6px;
-            margin-bottom: 10px;
-            display: table;
-        }
-        .kop-logo {
-            display: table-cell;
-            width: 50px;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .kop-logo img {
-            width: 45px;
-            height: 45px;
-            object-fit: contain;
-        }
-        .kop-text {
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .kop-text .school-name {
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            color: #1e3a5f;
-        }
-        .kop-text .school-address {
-            font-size: 8px;
-            color: #555;
-        }
-
         /* JUDUL LAPORAN */
-        .laporan-title {
+        .simple-header {
             text-align: center;
-            margin-bottom: 8px;
-        }
-        .laporan-title h2 {
+            margin-bottom: 20px;
             font-size: 11px;
             font-weight: bold;
-            text-transform: uppercase;
-            margin: 0 0 3px 0;
-            letter-spacing: 0.5px;
-        }
-        .laporan-title .subtitle {
-            font-size: 9px;
-            color: #444;
+            line-height: 1.5;
         }
 
         /* TABEL DATA */
@@ -140,23 +97,12 @@
         Sistem Presensi Digital &bull; Dicetak pada: {{ $generatedAt }}
     </div>
 
-    {{-- KOP SURAT --}}
-    <div class="kop-surat">
-        <div class="kop-logo">
-            @if($sekolah?->school_logo_path && file_exists(public_path('storage/' . $sekolah->school_logo_path)))
-                <img src="{{ public_path('storage/' . $sekolah->school_logo_path) }}" alt="Logo">
-            @endif
-        </div>
-        <div class="kop-text">
-            <div class="school-name">{{ strtoupper($sekolah?->school_name ?? 'NAMA SEKOLAH') }}</div>
-            <div class="school-address">{{ $sekolah?->school_address ?? '' }}</div>
-        </div>
-    </div>
-
-    {{-- JUDUL --}}
-    <div class="laporan-title">
-        <h2>Laporan Presensi Siswa</h2>
-        <div class="subtitle">Bulan {{ $periodeLabel }} &mdash; Kelas {{ $kelas?->name ?? '-' }}</div>
+    {{-- SIMPLE HEADER --}}
+    <div class="simple-header">
+        LAPORAN PRESENSI {{ strtoupper($periodeLabel) }}<br>
+        {{ strtoupper($sekolah?->school_name ?? 'NAMA SEKOLAH') }}<br>
+        KELAS {{ strtoupper($kelas?->name ?? '') }}<br>
+        TAHUN AJARAN {{ $kelas?->enrollments?->first()?->tahunAjaran?->name ?? '2026/2027' }}
     </div>
 
     {{-- TABEL DATA --}}

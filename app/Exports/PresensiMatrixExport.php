@@ -112,7 +112,7 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                     $status = $presensiData[$dateStr]->status;
                     $initial = match ($status) {
                         'hadir' => 'H',
-                        'terlambat' => 'T',
+                        'telat' => 'T',
                         'sakit' => 'S',
                         'izin' => 'I',
                         'alpa' => 'A',
@@ -121,13 +121,12 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                     $row[] = $initial;
                     
                     if ($status === 'hadir') $totals['Hadir']++;
-                    elseif ($status === 'terlambat') $totals['Terlambat']++;
+                    elseif ($status === 'telat') $totals['Terlambat']++;
                     elseif ($status === 'sakit') $totals['Sakit']++;
                     elseif ($status === 'izin') $totals['Izin']++;
                     elseif ($status === 'alpa') $totals['Alpa']++;
                 } else {
-                    $row[] = 'A'; // Jika tidak ada record dan bukan libur, default Alpa
-                    $totals['Alpa']++;
+                    $row[] = '-'; // Jika tidak ada record dan bukan libur, default '-'
                 }
             }
 
@@ -167,35 +166,35 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                 // ===== INSERT 4 ROWS AT TOP for kop surat =====
                 $sheet->insertNewRowBefore(1, 4);
 
-                // Row 1: Nama sekolah
+                // Row 1: LAPORAN PRESENSI
                 $sheet->mergeCells("A1:{$lastColLetter}1");
-                $sheet->setCellValue('A1', strtoupper($sekolah?->school_name ?? 'SEKOLAH'));
+                $sheet->setCellValue('A1', 'LAPORAN PRESENSI ' . strtoupper($this->periodeLabel));
                 $sheet->getStyle('A1')->applyFromArray([
-                    'font' => ['bold' => true, 'size' => 14],
+                    'font' => ['bold' => true, 'size' => 11],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-                // Row 2: Alamat
+                // Row 2: NAMA SEKOLAH
                 $sheet->mergeCells("A2:{$lastColLetter}2");
-                $sheet->setCellValue('A2', $sekolah?->school_address ?? '');
+                $sheet->setCellValue('A2', strtoupper($sekolah?->school_name ?? 'NAMA SEKOLAH'));
                 $sheet->getStyle('A2')->applyFromArray([
-                    'font' => ['size' => 10],
+                    'font' => ['bold' => true, 'size' => 11],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-                // Row 3: Judul Laporan
+                // Row 3: KELAS
                 $sheet->mergeCells("A3:{$lastColLetter}3");
-                $sheet->setCellValue('A3', 'LAPORAN PRESENSI SISWA - ' . strtoupper($this->periodeLabel));
+                $sheet->setCellValue('A3', 'KELAS ' . strtoupper($kelas?->name ?? ''));
                 $sheet->getStyle('A3')->applyFromArray([
-                    'font' => ['bold' => true, 'size' => 12, 'underline' => true],
+                    'font' => ['bold' => true, 'size' => 11],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-                // Row 4: Info kelas
+                // Row 4: TAHUN AJARAN
                 $sheet->mergeCells("A4:{$lastColLetter}4");
-                $sheet->setCellValue('A4', 'Kelas: ' . ($kelas?->name ?? '-') . '   |   TA: ' . ($tahunAjaran?->name ?? '-') . '   |   Dicetak: ' . $now);
+                $sheet->setCellValue('A4', 'TAHUN AJARAN ' . strtoupper($tahunAjaran?->name ?? ''));
                 $sheet->getStyle('A4')->applyFromArray([
-                    'font' => ['size' => 10, 'italic' => true],
+                    'font' => ['bold' => true, 'size' => 11],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
