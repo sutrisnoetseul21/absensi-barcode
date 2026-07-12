@@ -311,6 +311,112 @@ class PresensiRekapService
     }
 
     /**
+     * Data agregat semester/tahunan per siswa (untuk Laporan Presensi).
+     * Mengembalikan: studentsData, monthsList.
+     */
+    public function getStudentSemesterYearlyData(string $academicYearId, string $classId, string $startDate, string $endDate): array
+    {
+        $ay = TahunAjaran::find($academicYearId);
+        if (!$ay) return ['studentsData' => [], 'monthsList' => []];
+
+        $monthNames = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
+            '04' => 'April',   '05' => 'Mei',       '06' => 'Juni',
+            '07' => 'Juli',    '08' => 'Agustus',   '09' => 'September',
+            '10' => 'Oktober', '11' => 'November',  '12' => 'Desember',
+        ];
+
+        $academicStart = Carbon::parse($startDate)->startOfMonth();
+        $academicEnd   = Carbon::parse($endDate)->endOfMonth();
+
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $monthsStructure = [];
+        $cursor = $academicStart->copy();
+        while ($cursor->lte($academicEnd)) {
+            $mKey = $cursor->format('m');
+            $year = (int)$cursor->format('Y');
+            
+            $monthStart = $cursor->copy()->startOfMonth();
+            $monthEnd = $cursor->copy()->endOfMonth();
+            $effectiveDays = $kalenderService->getEffectiveDays($monthStart, $monthEnd);
+
+            $monthsStructure[] = [
+                'month' => $mKey,
+                'year'  => $year,
+                'label' => $monthNames[$mKey] . ' ' . $year,
+                'effective_days' => $effectiveDays,
+            ];
+            $cursor->addMonth();
+        }
+
+        // Hitung siswa aktif di kelas
+        $enrollments = EnrollmentSiswa::with('siswa')
+            ->where('class_id', $classId)
+            ->where('academic_year_id', $academicYearId)
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy(fn($e) => $e->siswa->name ?? '');
+
+        // Ambil rekap agregat bulanan per siswa
+        $attendances = Presensi::where('academic_year_id', $academicYearId)
+            ->where('class_id', $classId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->selectRaw('student_id, YEAR(date) as year, MONTH(date) as month, status, count(*) as count, sum(late_minutes) as late_minutes')
+            ->groupBy('student_id', 'year', 'month', 'status')
+            ->get();
+
+        $studentsData = [];
+        $no = 1;
+        foreach ($enrollments as $enrollment) {
+            $siswa = $enrollment->siswa;
+            if (!$siswa) continue;
+
+            $studentReport = [
+                'no'            => $no++,
+                'id'            => $siswa->id,
+                'nisn'          => $siswa->nisn,
+                'name'          => $siswa->name,
+                'months'        => [],
+                'total'         => ['hadir' => 0, 'telat' => 0, 'sakit' => 0, 'izin' => 0, 'alpa' => 0, 'late_minutes' => 0]
+            ];
+
+            foreach ($monthsStructure as $m) {
+                $monthNum = (int)$m['month'];
+                $yearNum  = (int)$m['year'];
+
+                $monthAtts = $attendances
+                    ->where('student_id', $siswa->id)
+                    ->where('year', $yearNum)
+                    ->where('month', $monthNum);
+
+                $key = "{$yearNum}-{$m['month']}";
+                $studentReport['months'][$key] = [
+                    'hadir' => $monthAtts->whereIn('status', ['hadir', 'telat'])->sum('count'),
+                    'sakit' => $monthAtts->where('status', 'sakit')->sum('count'),
+                    'izin'  => $monthAtts->where('status', 'izin')->sum('count'),
+                    'alpa'  => $monthAtts->where('status', 'alpa')->sum('count'),
+                ];
+                
+                $studentReport['total']['hadir'] += $monthAtts->where('status', 'hadir')->sum('count');
+                $studentReport['total']['telat'] += $monthAtts->where('status', 'telat')->sum('count');
+                $studentReport['total']['sakit'] += $studentReport['months'][$key]['sakit'];
+                $studentReport['total']['izin']  += $studentReport['months'][$key]['izin'];
+                $studentReport['total']['alpa']  += $studentReport['months'][$key]['alpa'];
+                $studentReport['total']['late_minutes'] += $monthAtts->where('status', 'telat')->sum('late_minutes');
+            }
+            
+            // Hadir combined logic for total (hadir+telat) is usually separated in display, but 'hadir' in rekap includes telat. 
+            // In studentReport['months'], 'hadir' includes telat.
+            // Let's make total['hadir_combined'] to match
+            $studentReport['total']['hadir_combined'] = $studentReport['total']['hadir'] + $studentReport['total']['telat'];
+
+            $studentsData[] = $studentReport;
+        }
+
+        return ['studentsData' => $studentsData, 'monthsList' => $monthsStructure];
+    }
+
+    /**
      * Tentukan tahun kalender yang tepat untuk bulan tertentu dalam satu tahun ajaran.
      */
     public function resolveCalendarYear(TahunAjaran $ay, int $month): int

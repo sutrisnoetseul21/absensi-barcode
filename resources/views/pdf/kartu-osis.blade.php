@@ -1,259 +1,437 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Kartu OSIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartu OSIS - {{ $student->name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @page {
-            size: 90mm 60mm;
-            margin: 0;
+        :root {
+            --primary: #1e3a8a; /* Deep Blue */
+            --secondary: #3b82f6; /* Bright Blue */
+            --accent: #f59e0b; /* Amber/Yellow */
+            --bg-light: #f8fafc;
         }
-        * { box-sizing: border-box; }
+
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            width: 90mm;
-            height: 60mm;
-            background-color: #ffffff;
-            color: #000;
+            background-color: #cbd5e1; /* Gray background for screen */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* ===== PRINT CONTROLS (SCREEN ONLY) ===== */
+        .print-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .btn-print {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+        }
+        .print-hint {
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* ===== CARD CONTAINER (54x86mm) ===== */
+        .card {
+            width: 54mm;
+            height: 86mm;
+            background: white;
+            border-radius: 10px; /* Modern rounded corners */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15); /* Sleek shadow */
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+            box-sizing: border-box;
+        }
+
+        /* ===== BACKGROUND GRAPHICS ===== */
+        .card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background: linear-gradient(160deg, #f0f7ff 0%, #ffffff 60%, #fff8ed 100%);
+            overflow: hidden;
+        }
+        /* Decorative top blue strip */
+        .bg-top-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+        /* Decorative bottom amber strip */
+        .bg-bottom-strip {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary), var(--primary));
+        }
+        /* Diagonal lines watermark */
+        .bg-lines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 12px,
+                rgba(59, 130, 246, 0.03) 12px,
+                rgba(59, 130, 246, 0.03) 14px
+            );
+        }
+        /* Top-right arc */
+        .bg-arc {
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(30,58,138,0.05) 100%);
+        }
+        /* Bottom-left arc */
+        .bg-arc-2 {
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(245,158,11,0.07) 0%, rgba(217,119,6,0.05) 100%);
+        }
+
+        /* ===== CONTENT WRAPPER ===== */
+        .card-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
 
         /* ===== HEADER ===== */
         .header {
-            width: 100%;
+            padding: 12px 12px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            padding-top: 2.2mm; /* Pushed down a bit as requested */
-            height: 17.5mm;
             position: relative;
-            background-color: #3182ce;
-            border-bottom: 0.4mm solid #2b6cb0;
+            z-index: 10;
         }
-        .logo-left {
-            position: absolute;
-            left: 3mm;
-            top: 2.5mm;
-            width: 12mm;
-            height: 12mm;
+        .logo {
+            width: 38px;
+            height: 38px;
             object-fit: contain;
+            margin-bottom: 6px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
-        .logo-right {
-            position: absolute;
-            right: 3mm;
-            top: 2.5mm;
-            width: 12mm;
-            height: 12mm;
-            object-fit: contain;
-        }
-        .header-text-container {
-            padding: 0 16mm;
-            color: #ffffff;
-        }
-        .header-line {
-            font-size: 10px;
-            font-weight: bold;
+        .school-name {
+            font-size: 8px;
+            font-weight: 800;
             line-height: 1.2;
-            margin: 0.2px 0;
-            color: #ffffff;
-            letter-spacing: 0.1px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-title {
+            font-size: 6px;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 2px 8px;
+            border-radius: 10px;
         }
 
-        /* ===== FOTO SISWA ===== */
-        .photo-container {
-            position: absolute;
-            left: 4mm;
-            top: 19mm;
-            width: 20mm;
-            height: 26mm;
-            border: 0.3mm solid #333;
-            background: #fcfcfc;
-            overflow: hidden;
+        /* ===== PHOTO AREA ===== */
+        .photo-area {
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+            position: relative;
+            z-index: 10;
         }
-        .photo-container img {
+        .photo-frame {
+            width: 17mm;
+            height: 22mm;
+            border-radius: 6px; /* Soft rounding */
+            background: #cbd5e1;
+            border: 2.5px solid white;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2), 0 0 0 1px rgba(59,130,246,0.15);
+            overflow: hidden;
+            position: relative;
+        }
+        .photo-frame img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
         }
-        .photo-no-photo {
+        .photo-placeholder {
             width: 100%;
             height: 100%;
-            text-align: center;
-            padding-top: 10px;
-            font-size: 6px;
-            color: #aaa;
-            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #64748b;
+            font-weight: bold;
+            background: #f1f5f9;
         }
 
-        /* ===== BIODATA ===== */
-        .biodata {
-            position: absolute;
-            left: 27mm;
-            top: 19mm;
-            width: 59mm;
-            font-size: 6.2px;
-            line-height: 1.2;
-        }
-        .biodata table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .biodata td {
-            vertical-align: top;
-            padding-bottom: 1mm;
-        }
-        .biodata td.label {
-            width: 15mm;
-            font-weight: bold;
-            color: #333;
-        }
-        .biodata td.colon {
-            width: 2mm;
+        /* ===== STUDENT INFO ===== */
+        .student-info {
             text-align: center;
-            color: #333;
-        }
-        .biodata td.value {
-            color: #000;
+            margin-top: 7px;
+            padding: 0 10px;
         }
         .student-name {
-            font-weight: bold;
-            font-size: 7.2px;
-        }
-
-        /* ===== BARCODE (Bawah Kiri) ===== */
-        .barcode-container {
-            position: absolute;
-            left: 4mm;
-            bottom: 2mm;
-            width: 32mm;
-            text-align: center;
-        }
-        .barcode-container img {
-            width: 32mm;
-            height: 7.5mm;
-            display: block;
-        }
-        .barcode-text {
-            font-size: 5px;
-            letter-spacing: 0.8px;
-            margin-top: 0.5px;
-            color: #333;
-        }
-
-        /* ===== TTD KEPALA SEKOLAH (Bawah Kanan) ===== */
-        .signature-container {
-            position: absolute;
-            right: 4mm;
-            bottom: 2mm;
-            width: 32mm;
-            text-align: center;
-            font-size: 5.2px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary);
             line-height: 1.2;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .signature-title {
-            font-weight: bold;
+        .student-class {
+            font-size: 7px;
+            color: #64748b;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 2px;
         }
-        .signature-img {
+
+        /* ===== LOGIN CREDENTIALS (GLASSMORPHISM) ===== */
+        .login-box {
+            margin: 6px 12px 0;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(191, 219, 254, 0.9);
+            border-radius: 8px;
+            padding: 5px 4px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.08);
+            backdrop-filter: blur(8px);
+        }
+        .login-label {
+            font-size: 6.5px;
+            color: var(--secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+        .login-value {
+            font-size: 15px;
+            color: var(--primary);
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        /* ===== BARCODE AREA ===== */
+        .barcode-area {
+            margin-top: 8px;
+            text-align: center;
+            padding: 0 10px 0;
+        }
+        .barcode-area img {
+            width: 100%;
             height: 9mm;
-            margin: 0.5px auto;
-            display: block;
-            object-fit: contain;
+            mix-blend-mode: multiply;
         }
-        .signature-name {
-            font-weight: bold;
-            text-decoration: underline;
+
+        /* ===== FOOTER ===== */
+        .footer {
+            margin-top: auto;
+            padding: 5px 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .footer-url {
+            color: var(--secondary);
+        }
+        
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            @page {
+                size: 54mm 86mm; /* Exact card size */
+                margin: 0;
+            }
+            body {
+                background: none;
+                display: block;
+                min-height: auto;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .print-controls {
+                display: none !important; /* Hide print button */
+            }
+            .card {
+                box-shadow: none; /* No shadow when printing */
+                border: none;
+                border-radius: 0; /* Sharp corners for printing/cutting */
+                width: 54mm;
+                height: 86mm;
+                page-break-after: always;
+            }
+            /* Override background for printing to ensure exact colors */
+            .card-bg {
+                background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <div class="header">
-        @if($settings?->district_logo_path && file_exists(public_path('storage/' . $settings->district_logo_path)))
-            <img class="logo-left" src="{{ public_path('storage/' . $settings->district_logo_path) }}" alt="Logo Kabupaten">
-        @elseif($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path)))
-            <img class="logo-left" src="{{ public_path('storage/' . $settings->school_logo_path) }}" alt="Logo">
-        @endif
+    @php
+        $enrollment = $student->enrollmentAktif;
+        $className = $enrollment?->kelas?->name ?? '-';
+        $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+        $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 50));
 
-        @if($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path)))
-            <img class="logo-right" src="{{ public_path('storage/' . $settings->school_logo_path) }}" alt="Logo Sekolah">
-        @endif
+        $logoPath = null;
+        if ($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path))) {
+            $logoPath = asset('storage/' . $settings->school_logo_path);
+        } elseif ($settings?->district_logo_path && file_exists(public_path('storage/' . $settings->district_logo_path))) {
+            $logoPath = asset('storage/' . $settings->district_logo_path);
+        }
 
-        <div class="header-text-container">
-            <div class="header-line">PEMERINTAH KABUPATEN CILACAP</div>
-            <div class="header-line">DINAS PENDIDIKAN DAN KEBUDAYAAN</div>
-            <div class="header-line">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
-            <div class="header-line" style="font-weight: normal; font-size: 7.5px; margin-top: 0.5px;">{{ \Illuminate\Support\Str::limit($settings->school_address ?? 'Alamat Sekolah', 85) }}</div>
+        $photoPath = null;
+        if ($student->photo_path && file_exists(public_path('storage/' . $student->photo_path))) {
+            $photoPath = asset('storage/' . $student->photo_path);
+        }
+    @endphp
+
+    <!-- Print Controls UI (Hidden in Print) -->
+    <div class="print-controls">
+        <button onclick="window.print()" class="btn-print">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Cetak Kartu
+        </button>
+        <span class="print-hint">Kertas diset ke ukuran 54x86mm otomatis</span>
+    </div>
+
+    <!-- The Card -->
+    <div class="card">
+        
+        <!-- Beautiful Background -->
+        <div class="card-bg">
+            <div class="bg-top-strip"></div>
+            <div class="bg-bottom-strip"></div>
+            <div class="bg-lines"></div>
+            <div class="bg-arc"></div>
+            <div class="bg-arc-2"></div>
+        </div>
+
+        <div class="card-content">
+            
+            <!-- Modern Header Centered -->
+            <div class="header">
+                @if($logoPath)
+                    <img class="logo" src="{{ $logoPath }}" alt="Logo">
+                @endif
+                <div class="school-name">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
+                <div class="card-title">KARTU PRESENSI</div>
+            </div>
+
+            <!-- Soft Rounded Photo -->
+            <div class="photo-area">
+                <div class="photo-frame">
+                    @if($photoPath)
+                        <img src="{{ $photoPath }}" alt="Foto">
+                    @else
+                        <div class="photo-placeholder">FOTO</div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Student Info -->
+            <div class="student-info">
+                <div class="student-name">{{ $student->name }}</div>
+                <div class="student-class">Kelas: {{ $className }}</div>
+            </div>
+
+            <!-- Glassmorphism Login Box -->
+            <div class="login-box">
+                <div class="login-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Username (NISN)
+                </div>
+                <div class="login-value">{{ $student->nisn }}</div>
+            </div>
+
+            <!-- Barcode -->
+            <div class="barcode-area">
+                <img src="data:image/png;base64,{{ $barcodeImage }}" alt="Barcode">
+            </div>
+
+            <!-- Modern Footer Centered -->
+            <div class="footer">
+                <span class="footer-url">presensi.smpn1majenang.sch.id</span>
+            </div>
+
         </div>
     </div>
 
-    <!-- Foto Siswa (Kiri Tengah) -->
-    <div class="photo-container">
-        @if($student->photo_path && file_exists(public_path('storage/' . $student->photo_path)))
-            <img src="{{ public_path('storage/' . $student->photo_path) }}" alt="Foto Siswa">
-        @else
-            <div class="photo-no-photo">FOTO</div>
-        @endif
-    </div>
-
-    <!-- Biodata (Kanan Tengah) -->
-    <div class="biodata">
-        <table>
-            <tr>
-                <td class="label">Nama</td>
-                <td class="colon">:</td>
-                <td class="value student-name">{{ $student->name }}</td>
-            </tr>
-            <tr>
-                <td class="label">NISN</td>
-                <td class="colon">:</td>
-                <td class="value">{{ $student->nisn }}</td>
-            </tr>
-            <tr>
-                <td class="label">TTL</td>
-                <td class="colon">:</td>
-                <td class="value">{{ $student->birth_place ?? '-' }}, {{ $student->birth_date ? \Carbon\Carbon::parse($student->birth_date)->format('d/m/Y') : '-' }}</td>
-            </tr>
-            <tr>
-                <td class="label">Kelas</td>
-                <td class="colon">:</td>
-                @php
-                    $enrollment = $student->enrollmentAktif;
-                    $className = $enrollment?->kelas?->name ?? '-';
-                @endphp
-                <td class="value">{{ $className }}</td>
-            </tr>
-            <tr>
-                <td class="label">Alamat</td>
-                <td class="colon">:</td>
-                <td class="value">{{ \Illuminate\Support\Str::limit($student->address ?? '-', 45) }}</td>
-            </tr>
-        </table>
-    </div>
-
-    <!-- Barcode (Bawah Kiri) -->
-    <div class="barcode-container">
-        @php
-            $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
-            $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 45));
-        @endphp
-        <img src="data:image/png;base64,{{ $barcodeImage }}" alt="Barcode">
-        <div class="barcode-text">{{ $student->barcode_code }}</div>
-    </div>
-
-    <!-- TTD Kepala Sekolah (Bawah Kanan) -->
-    <div class="signature-container">
-        <div>{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
-        <div class="signature-title">Kepala Sekolah,</div>
-        @if($settings?->principal_signature_path && file_exists(public_path('storage/' . $settings->principal_signature_path)))
-            <img class="signature-img" src="{{ public_path('storage/' . $settings->principal_signature_path) }}" alt="TTD">
-        @else
-            <div style="height:9mm;"></div>
-        @endif
-        <div class="signature-name">{{ $settings?->principal_name ?? '____________________' }}</div>
-    </div>
-
+    <script>
+        // Otomatis muncul dialog print setelah gambar selesai di load (jika diinginkan)
+        window.onload = function() {
+            setTimeout(function() {
+                // Uncomment baris di bawah ini jika ingin langsung print otomatis
+                window.print();
+            }, 500);
+        };
+    </script>
 </body>
 </html>

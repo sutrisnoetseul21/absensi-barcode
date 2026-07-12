@@ -18,6 +18,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use App\Services\PresensiRekapService;
 
 class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles, WithTitle, WithColumnWidths, WithEvents
 {
@@ -28,7 +30,8 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
     protected string $periodeLabel;
 
     protected array $rows = [];
-    protected int $dataStartRow = 5; // Mulai baris data setelah header kop surat (baris 1-3 = kop, baris 4 = heading)
+    protected array $monthsList = [];
+    protected int $dataStartRow = 6; // Mulai baris data setelah header kop surat (baris 1-3 = kop, 4 = info, 5-6 = heading)
 
     public function __construct(
         string $classId,
@@ -51,44 +54,51 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
 
     public function headings(): array
     {
-        return ['No', 'NISN', 'Nama Siswa', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa', 'Total Telat (Mnt)'];
+        // Heading handled fully in registerEvents to allow for 2-row merged headers
+        return [];
     }
 
     public function array(): array
     {
-        $enrollments = EnrollmentSiswa::with('siswa')
-            ->where('class_id', $this->classId)
-            ->where('academic_year_id', $this->yearId)
-            ->where('status', 'aktif')
-            ->get()
-            ->sortBy(fn($e) => $e->siswa->name ?? '');
+        $service = app(PresensiRekapService::class);
+        $result = $service->getStudentSemesterYearlyData(
+            $this->yearId,
+            $this->classId,
+            $this->startDate,
+            $this->endDate
+        );
 
-        $presensiData = Presensi::where('class_id', $this->classId)
-            ->where('academic_year_id', $this->yearId)
-            ->whereBetween('date', [$this->startDate, $this->endDate])
-            ->get()
-            ->groupBy('student_id');
+        $this->monthsList = $result['monthsList'];
+        $studentsData = $result['studentsData'];
 
         $matrix = [];
-        $no = 1;
 
-        foreach ($enrollments as $enrollment) {
-            $siswa = $enrollment->siswa;
-            if (!$siswa) continue;
-
-            $atts = $presensiData->get($siswa->id, collect());
-
-            $matrix[] = [
-                $no++,
-                $siswa->nisn,
-                $siswa->name,
-                $atts->where('status', 'hadir')->count(),
-                $atts->where('status', 'telat')->count(),
-                $atts->where('status', 'izin')->count(),
-                $atts->where('status', 'sakit')->count(),
-                $atts->where('status', 'alpa')->count(),
-                $atts->sum('late_minutes'),
+        foreach ($studentsData as $row) {
+            $rowData = [
+                $row['no'],
+                $row['nisn'],
+                $row['name'],
             ];
+
+            foreach ($this->monthsList as $m) {
+                $key = "{$m['year']}-{$m['month']}";
+                $stats = $row['months'][$key] ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpa' => 0];
+                
+                $rowData[] = $stats['hadir'];
+                $rowData[] = $stats['sakit'];
+                $rowData[] = $stats['izin'];
+                $rowData[] = $stats['alpa'];
+            }
+
+            // Total
+            $rowData[] = $row['total']['hadir'];
+            $rowData[] = $row['total']['telat'];
+            $rowData[] = $row['total']['sakit'];
+            $rowData[] = $row['total']['izin'];
+            $rowData[] = $row['total']['alpa'];
+            $rowData[] = $row['total']['late_minutes'];
+
+            $matrix[] = $rowData;
         }
 
         $this->rows = $matrix;
@@ -96,6 +106,33 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
     }
 
     public function columnWidths(): array
+    {
+        $widths = [
+            'A' => 5,   // No
+            'B' => 15,  // NISN
+            'C' => 35,  // Nama
+        ];
+        
+        $colIdx = 4;
+        
+        // Month columns
+        if (count($this->monthsList) > 0) {
+            foreach ($this->monthsList as $m) {
+                for ($i = 0; $i < 4; $i++) {
+                    $colLetter = Coordinate::stringFromColumnIndex($colIdx++);
+                    $widths[$colLetter] = 6;
+                }
+            }
+        }
+        
+        // Total columns
+        for ($i = 0; $i < 6; $i++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIdx++);
+            $widths[$colLetter] = 8;
+        }
+
+        return $widths;
+    }
     {
         return [
             'A' => 5,   // No
@@ -112,14 +149,7 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
 
     public function styles(Worksheet $sheet): array
     {
-        // Heading row styles
-        return [
-            1 => [
-                'font'      => ['bold' => true, 'size' => 11, 'color' => ['argb' => 'FFFFFFFF']],
-                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E3A5F']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-            ],
-        ];
+        return [];
     }
 
     public function registerEvents(): array
@@ -132,11 +162,17 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
                 $sekolah    = \App\Models\PengaturanSekolah::current();
                 $now        = now()->format('d/m/Y H:i');
 
-                // ===== INSERT 4 ROWS AT TOP for kop surat =====
-                $sheet->insertNewRowBefore(1, 4);
+                $totalMonthCols = count($this->monthsList) * 4;
+                $totalCols = 3 + $totalMonthCols + 6;
+                $lastColLetter = Coordinate::stringFromColumnIndex($totalCols);
+
+                // ===== INSERT ROWS AT TOP for kop surat =====
+                // Karena kita menggunakan array data yang langsung dicetak di baris pertama,
+                // Kita perlu insert 6 row di atas (1-4 = kop, 5-6 = heading matrix)
+                $sheet->insertNewRowBefore(1, 6);
 
                 // Row 1: Nama sekolah
-                $sheet->mergeCells('A1:I1');
+                $sheet->mergeCells("A1:{$lastColLetter}1");
                 $sheet->setCellValue('A1', strtoupper($sekolah?->school_name ?? 'SEKOLAH'));
                 $sheet->getStyle('A1')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 14],
@@ -144,7 +180,7 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
                 ]);
 
                 // Row 2: Alamat
-                $sheet->mergeCells('A2:I2');
+                $sheet->mergeCells("A2:{$lastColLetter}2");
                 $sheet->setCellValue('A2', $sekolah?->school_address ?? '');
                 $sheet->getStyle('A2')->applyFromArray([
                     'font'      => ['size' => 10],
@@ -152,7 +188,7 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
                 ]);
 
                 // Row 3: Judul Laporan
-                $sheet->mergeCells('A3:I3');
+                $sheet->mergeCells("A3:{$lastColLetter}3");
                 $sheet->setCellValue('A3', 'LAPORAN PRESENSI SISWA - ' . strtoupper($this->periodeLabel));
                 $sheet->getStyle('A3')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 12, 'underline' => true],
@@ -160,57 +196,88 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
                 ]);
 
                 // Row 4: Info kelas
-                $sheet->mergeCells('A4:I4');
+                $sheet->mergeCells("A4:{$lastColLetter}4");
                 $sheet->setCellValue('A4', 'Kelas: ' . ($kelas?->name ?? '-') . '   |   TA: ' . ($tahunAjaran?->name ?? '-') . '   |   Dicetak: ' . $now);
                 $sheet->getStyle('A4')->applyFromArray([
                     'font'      => ['size' => 10, 'italic' => true],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-                // Row 5: heading
+                // Row 5 & 6: heading matrix
+                $sheet->mergeCells("A5:A6");
+                $sheet->setCellValue('A5', 'No');
+                
+                $sheet->mergeCells("B5:B6");
+                $sheet->setCellValue('B5', 'NISN');
+                
+                $sheet->mergeCells("C5:C6");
+                $sheet->setCellValue('C5', 'Nama Siswa');
+
+                $colIdx = 4;
+                foreach ($this->monthsList as $m) {
+                    $startLetter = Coordinate::stringFromColumnIndex($colIdx);
+                    $endLetter = Coordinate::stringFromColumnIndex($colIdx + 3);
+                    $sheet->mergeCells("{$startLetter}5:{$endLetter}5");
+                    $sheet->setCellValue("{$startLetter}5", $m['label']);
+                    
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx) . "6", 'H');
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 1) . "6", 'S');
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 2) . "6", 'I');
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 3) . "6", 'A');
+                    
+                    $colIdx += 4;
+                }
+
+                $startTotal = Coordinate::stringFromColumnIndex($colIdx);
+                $endTotal = Coordinate::stringFromColumnIndex($colIdx + 5);
+                $sheet->mergeCells("{$startTotal}5:{$endTotal}5");
+                $sheet->setCellValue("{$startTotal}5", 'TOTAL');
+                
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx) . "6", 'H');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 1) . "6", 'T');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 2) . "6", 'S');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 3) . "6", 'I');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 4) . "6", 'A');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 5) . "6", 'Telat (m)');
+
                 $headingRowStyle = [
-                    'font'      => ['bold' => true, 'size' => 11, 'color' => ['argb' => 'FFFFFFFF']],
+                    'font'      => ['bold' => true, 'size' => 10, 'color' => ['argb' => 'FFFFFFFF']],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E3A5F']],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                     'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFDDDDDD']]],
                 ];
-                $sheet->getStyle('A5:I5')->applyFromArray($headingRowStyle);
-                $sheet->getRowDimension(5)->setRowHeight(22);
+                $sheet->getStyle("A5:{$lastColLetter}6")->applyFromArray($headingRowStyle);
 
                 // Data rows styling
                 $totalDataRows = count($this->rows);
                 if ($totalDataRows > 0) {
-                    $lastRow = 5 + $totalDataRows;
-                    for ($rowIdx = 6; $rowIdx <= $lastRow; $rowIdx++) {
+                    $lastRow = 6 + $totalDataRows;
+                    for ($rowIdx = 7; $rowIdx <= $lastRow; $rowIdx++) {
                         $isEven = ($rowIdx % 2 === 0);
                         $bgColor = $isEven ? 'FFF0F4FF' : 'FFFFFFFF';
-                        $sheet->getStyle("A{$rowIdx}:I{$rowIdx}")->applyFromArray([
+                        $sheet->getStyle("A{$rowIdx}:{$lastColLetter}{$rowIdx}")->applyFromArray([
                             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => $bgColor]],
                             'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
                             'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFDDDDDD']]],
                         ]);
 
                         // Center numeric columns
-                        $sheet->getStyle("D{$rowIdx}:I{$rowIdx}")->applyFromArray([
+                        $sheet->getStyle("D{$rowIdx}:{$lastColLetter}{$rowIdx}")->applyFromArray([
                             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                         ]);
                     }
 
                     // Outer border for all data
-                    $sheet->getStyle("A5:I{$lastRow}")->applyFromArray([
+                    $sheet->getStyle("A5:{$lastColLetter}{$lastRow}")->applyFromArray([
                         'borders' => [
                             'outline' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['argb' => 'FF1E3A5F']],
                         ],
                     ]);
                 }
 
-                // Row tinggi untuk data
-                for ($r = 6; $r <= 5 + $totalDataRows; $r++) {
-                    $sheet->getRowDimension($r)->setRowHeight(18);
-                }
-
-                // Freeze pane at row 6 (after header)
-                $sheet->freezePane('A6');
+                // Freeze pane at row 7 (after header)
+                $sheet->freezePane('A7');
+                $sheet->freezePane('D7');
             },
         ];
     }

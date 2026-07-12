@@ -28,6 +28,12 @@ Route::middleware('auth')->group(function () {
         }
         return response()->json($action->execute($barcode, $request->ip()));
     })->middleware('throttle:60,1')->name('kiosk.process');
+
+    // Cetak Kartu Routes
+    Route::get('/admin/siswa/{siswa}/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartu'])->name('siswa.cetak-kartu');
+    Route::get('/admin/siswa/{siswa}/cetak-kartu-login', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLogin'])->name('siswa.cetak-kartu-login');
+    Route::get('/admin/siswa/cetak-kartu-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMassal'])->name('siswa.cetak-kartu-massal');
+    Route::get('/admin/siswa/cetak-kartu-login-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLoginMassal'])->name('siswa.cetak-kartu-login-massal');
 });
 
 // Wali Kelas Routes

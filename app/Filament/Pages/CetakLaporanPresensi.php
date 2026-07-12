@@ -10,6 +10,7 @@ use App\Models\Presensi;
 use App\Models\EnrollmentSiswa;
 use App\Models\PengaturanSekolah;
 use Carbon\Carbon;
+use App\Services\PresensiRekapService;
 
 class CetakLaporanPresensi extends Page
 {
@@ -38,6 +39,17 @@ class CetakLaporanPresensi extends Page
 
     // Parameter tahunan (menggunakan selectedAcademicYearId)
 
+    // Data Matrix Bulanan
+    public $students = [];
+    public $monthlyStats = [];
+    public $daysInMonth = 0;
+    public $todayDate;
+    public $alerts = [];
+
+    // Data Matrix Semester/Tahunan
+    public $semesterStudentsData = [];
+    public $semesterMonthsList = [];
+
     public function mount(): void
     {
         $this->academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
@@ -57,6 +69,24 @@ class CetakLaporanPresensi extends Page
 
         // Default semester berdasarkan bulan sekarang
         $this->semester = (int)date('m') >= 7 ? 'ganjil' : 'genap';
+
+        $this->refreshData();
+    }
+
+    public function updatedSelectedAcademicYearId(): void { $this->refreshData(); }
+    public function updatedSelectedClassId(): void { $this->refreshData(); }
+    public function updatedJenisLaporan(): void { $this->refreshData(); }
+    public function updatedBulan(): void { $this->refreshData(); }
+    public function updatedTahunBulanan(): void { $this->refreshData(); }
+    public function updatedSemester(): void { $this->refreshData(); }
+
+    public function refreshData(): void
+    {
+        if ($this->jenisLaporan === 'bulanan') {
+            $this->getMatrixData();
+        } else {
+            $this->getSemesterYearlyData();
+        }
     }
 
     /**
@@ -156,6 +186,57 @@ class CetakLaporanPresensi extends Page
         return $data;
     }
 
+    public function getMatrixData(): void
+    {
+        if ($this->jenisLaporan !== 'bulanan' || !$this->selectedClassId || !$this->selectedAcademicYearId) {
+            $this->students = collect();
+            $this->monthlyStats = [];
+            $this->daysInMonth = 0;
+            return;
+        }
+
+        $service = app(PresensiRekapService::class);
+        $result = $service->getMonthlyCalendarData(
+            $this->selectedAcademicYearId,
+            $this->selectedClassId,
+            $this->bulan,
+            (int)$this->tahunBulanan
+        );
+
+        $this->students = $result['students'];
+        $this->monthlyStats = $result['monthlyStats'];
+        $this->daysInMonth = $result['daysInMonth'];
+        $this->todayDate = $result['todayDate'];
+        $this->alerts = $result['alerts'] ?? [];
+    }
+
+    public function getSemesterYearlyData(): void
+    {
+        if ($this->jenisLaporan === 'bulanan' || !$this->selectedClassId || !$this->selectedAcademicYearId) {
+            $this->semesterStudentsData = [];
+            $this->semesterMonthsList = [];
+            return;
+        }
+
+        $range = $this->getDateRange();
+        if (!$range['start'] || !$range['end']) {
+            $this->semesterStudentsData = [];
+            $this->semesterMonthsList = [];
+            return;
+        }
+
+        $service = app(PresensiRekapService::class);
+        $result = $service->getStudentSemesterYearlyData(
+            $this->selectedAcademicYearId,
+            $this->selectedClassId,
+            $range['start'],
+            $range['end']
+        );
+
+        $this->semesterStudentsData = $result['studentsData'];
+        $this->semesterMonthsList = $result['monthsList'];
+    }
+
     public function downloadExcel()
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId) {
@@ -165,7 +246,22 @@ class CetakLaporanPresensi extends Page
 
         $range = $this->getDateRange();
         $className = Kelas::find($this->selectedClassId)?->name ?? 'Kelas';
-        $fileName = 'Laporan_Presensi_' . $className . '_' . str_replace(' ', '_', $range['label']) . '.xlsx';
+        $safeClassName = str_replace(['/', '\\'], '-', $className);
+        $safeLabel = str_replace([' ', '/', '\\'], ['_', '-', '-'], $range['label']);
+        $fileName = 'Laporan_Presensi_' . $safeClassName . '_' . $safeLabel . '.xlsx';
+
+        if ($this->jenisLaporan === 'bulanan') {
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\PresensiMatrixExport(
+                    $this->selectedClassId,
+                    $this->selectedAcademicYearId,
+                    $this->bulan,
+                    $this->tahunBulanan,
+                    $range['label']
+                ),
+                $fileName
+            );
+        }
 
         return \Maatwebsite\Excel\Facades\Excel::download(
             new \App\Exports\LaporanPresensiRangeExport(
@@ -187,12 +283,15 @@ class CetakLaporanPresensi extends Page
         }
 
         $range      = $this->getDateRange();
-        $laporanData = $this->getLaporanData();
         $kelas      = Kelas::find($this->selectedClassId);
         $sekolah    = PengaturanSekolah::current();
+        
+        $this->getSemesterYearlyData();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-presensi-range', [
-            'laporanData'   => $laporanData,
+            'studentsData'  => $this->semesterStudentsData,
+            'monthsList'    => $this->semesterMonthsList,
+            'jenisLaporan'  => $this->jenisLaporan,
             'periodeLabel'  => $range['label'],
             'kelas'         => $kelas,
             'sekolah'       => $sekolah,
@@ -200,7 +299,28 @@ class CetakLaporanPresensi extends Page
         ])->setPaper('a4', 'landscape');
 
         $className = $kelas?->name ?? 'Kelas';
-        $fileName  = 'Laporan_Presensi_' . $className . '_' . str_replace(' ', '_', $range['label']) . '.pdf';
+        $safeClassName = str_replace(['/', '\\'], '-', $className);
+        $safeLabel = str_replace([' ', '/', '\\'], ['_', '-', '-'], $range['label']);
+        $fileName  = 'Laporan_Presensi_' . $safeClassName . '_' . $safeLabel . '.pdf';
+
+        if ($this->jenisLaporan === 'bulanan') {
+            $this->getMatrixData();
+            
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-presensi-matrix', [
+                'students'      => $this->students,
+                'monthlyStats'  => $this->monthlyStats,
+                'daysInMonth'   => $this->daysInMonth,
+                'periodeLabel'  => $range['label'],
+                'kelas'         => $kelas,
+                'sekolah'       => $sekolah,
+                'generatedAt'   => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+            ])->setPaper('a4', 'landscape');
+
+            return response()->streamDownload(
+                fn() => print($pdf->output()),
+                $fileName
+            );
+        }
 
         return response()->streamDownload(
             fn() => print($pdf->output()),

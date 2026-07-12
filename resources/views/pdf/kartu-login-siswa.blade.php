@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Massal Kartu OSIS</title>
+    <title>Kartu Login Siswa - {{ $student->name }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -15,9 +15,13 @@
 
         body {
             margin: 0;
-            padding: 20px;
-            background-color: #cbd5e1;
+            padding: 0;
+            background-color: #cbd5e1; /* Gray background for screen */
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         /* ===== PRINT CONTROLS (SCREEN ONLY) ===== */
@@ -58,34 +62,18 @@
             color: #64748b;
         }
 
-        /* ===== A4 PAGE CONTAINER ===== */
-        .a4-page {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            margin: 0 auto 20px;
-            padding: 12mm 15mm;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            box-sizing: border-box;
-            display: grid;
-            grid-template-columns: repeat(3, 54mm);
-            grid-auto-rows: 86mm;
-            grid-gap: 5mm;
-            justify-content: center;
-            align-content: start;
-        }
-
         /* ===== CARD CONTAINER (54x86mm) ===== */
         .card {
             width: 54mm;
             height: 86mm;
             background: white;
-            border-radius: 10px; 
+            border-radius: 10px; /* Modern rounded corners */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15); /* Sleek shadow */
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: 1px dashed #cbd5e1; /* Dashed line to help with cutting */
+            border: 1px solid #e2e8f0;
             box-sizing: border-box;
         }
 
@@ -100,18 +88,25 @@
             background: linear-gradient(160deg, #f0f7ff 0%, #ffffff 60%, #fff8ed 100%);
             overflow: hidden;
         }
+        /* Decorative top blue strip */
         .bg-top-strip {
             position: absolute;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 3px;
             background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
         }
+        /* Decorative bottom amber strip */
         .bg-bottom-strip {
             position: absolute;
-            bottom: 0; left: 0; right: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             height: 3px;
             background: linear-gradient(90deg, var(--accent), var(--secondary), var(--primary));
         }
+        /* Diagonal lines watermark */
         .bg-lines {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -123,17 +118,23 @@
                 rgba(59, 130, 246, 0.03) 14px
             );
         }
+        /* Top-right arc */
         .bg-arc {
             position: absolute;
-            top: -60px; right: -60px;
-            width: 130px; height: 130px;
+            top: -60px;
+            right: -60px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             background: linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(30,58,138,0.05) 100%);
         }
+        /* Bottom-left arc */
         .bg-arc-2 {
             position: absolute;
-            bottom: -50px; left: -50px;
-            width: 110px; height: 110px;
+            bottom: -50px;
+            left: -50px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
             background: linear-gradient(135deg, rgba(245,158,11,0.07) 0%, rgba(217,119,6,0.05) 100%);
         }
@@ -195,7 +196,7 @@
         .photo-frame {
             width: 17mm;
             height: 22mm;
-            border-radius: 6px;
+            border-radius: 6px; /* Soft rounding */
             background: #cbd5e1;
             border: 2.5px solid white;
             box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2), 0 0 0 1px rgba(59,130,246,0.15);
@@ -219,29 +220,33 @@
             background: #f1f5f9;
         }
 
-        /* ===== NAME ===== */
-        .name-section {
+        /* ===== STUDENT INFO ===== */
+        .student-info {
             text-align: center;
-            padding: 5px 10px 0;
+            margin-top: 7px;
+            padding: 0 10px;
         }
         .student-name {
-            font-size: 9.5px;
+            font-size: 10px;
             font-weight: 800;
             color: var(--primary);
+            line-height: 1.2;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
         .student-class {
-            font-size: 6.5px;
-            color: #6b7280;
+            font-size: 7px;
+            color: #64748b;
+            font-weight: 600;
             text-align: center;
             margin-top: 2px;
         }
 
-        /* ===== LOGIN BOX ===== */
+        /* ===== LOGIN CREDENTIALS (GLASSMORPHISM) ===== */
         .login-box {
-            margin: 5px 10px 0;
+            margin: 6px 12px 0;
             background: rgba(255, 255, 255, 0.75);
             border: 1px solid rgba(191, 219, 254, 0.9);
             border-radius: 8px;
@@ -270,12 +275,12 @@
         }
 
         /* ===== BARCODE AREA ===== */
-        .barcode-section {
+        .barcode-area {
             margin-top: 8px;
             text-align: center;
-            padding: 0 10px;
+            padding: 0 10px 0;
         }
-        .barcode-section img {
+        .barcode-area img {
             width: 100%;
             height: 9mm;
             mix-blend-mode: multiply;
@@ -299,51 +304,41 @@
         /* ===== PRINT STYLES ===== */
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 10mm;
+                size: 54mm 86mm; /* Exact card size */
+                margin: 0;
             }
             body {
                 background: none;
-                padding: 0;
+                display: block;
+                min-height: auto;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .print-controls {
-                display: none !important;
+                display: none !important; /* Hide print button */
             }
-            .a4-page {
-                box-shadow: none;
-                margin: 0;
-                padding: 0;
+            .card {
+                box-shadow: none; /* No shadow when printing */
+                border: none;
+                border-radius: 0; /* Sharp corners for printing/cutting */
+                width: 54mm;
+                height: 86mm;
                 page-break-after: always;
             }
             /* Override background for printing to ensure exact colors */
             .card-bg {
                 background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important;
             }
-            .card {
-                border: 0.5px dashed #94a3b8; /* Keep border to guide scissors */
-                border-radius: 0; /* No radius for easier cutting */
-            }
-            
-            /* Hide the last empty page break if present */
-            .a4-page:last-child {
-                page-break-after: auto;
-            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Print Controls UI (Hidden in Print) -->
-    <div class="print-controls">
-        <button onclick="window.print()" class="btn-print">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Cetak Massal
-        </button>
-        <span class="print-hint">Gunakan Kertas A4 (Portrait)</span>
-    </div>
-
     @php
+        $enrollment = $student->enrollmentAktif;
+        $className = $enrollment?->kelas?->name ?? '-';
         $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+        $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 50));
 
         $logoPath = null;
         if ($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path))) {
@@ -351,92 +346,89 @@
         } elseif ($settings?->district_logo_path && file_exists(public_path('storage/' . $settings->district_logo_path))) {
             $logoPath = asset('storage/' . $settings->district_logo_path);
         }
-        
-        // Chunk into 9 cards per page (3x3 grid)
-        $pages = $students->chunk(9);
+
+        $photoPath = null;
+        if ($student->photo_path && file_exists(public_path('storage/' . $student->photo_path))) {
+            $photoPath = asset('storage/' . $student->photo_path);
+        }
     @endphp
 
-    @foreach($pages as $pageStudents)
-    <div class="a4-page">
-        @foreach($pageStudents as $student)
-            @php
-                $enrollment = $student->enrollmentAktif;
-                $className = $enrollment?->kelas?->name ?? '-';
-                $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 50));
+    <!-- Print Controls UI (Hidden in Print) -->
+    <div class="print-controls">
+        <button onclick="window.print()" class="btn-print">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Cetak Kartu
+        </button>
+        <span class="print-hint">Kertas diset ke ukuran 54x86mm otomatis</span>
+    </div>
 
-                $photoPath = null;
-                if ($student->photo_path && file_exists(public_path('storage/' . $student->photo_path))) {
-                    $photoPath = asset('storage/' . $student->photo_path);
-                }
-            @endphp
-            <!-- The Card -->
-            <div class="card">
-                
-                <!-- Beautiful Background -->
-                <div class="card-bg">
-                    <div class="bg-top-strip"></div>
-                    <div class="bg-bottom-strip"></div>
-                    <div class="bg-lines"></div>
-                    <div class="bg-arc"></div>
-                    <div class="bg-arc-2"></div>
-                </div>
+    <!-- The Card -->
+    <div class="card">
+        
+        <!-- Beautiful Background -->
+        <div class="card-bg">
+            <div class="bg-top-strip"></div>
+            <div class="bg-bottom-strip"></div>
+            <div class="bg-lines"></div>
+            <div class="bg-arc"></div>
+            <div class="bg-arc-2"></div>
+        </div>
 
-                <div class="card-content">
-                    
-                    <!-- Modern Header Centered -->
-                    <div class="header">
-                        @if($logoPath)
-                            <img class="logo" src="{{ $logoPath }}" alt="Logo">
-                        @endif
-                        <div class="school-name">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
-                        <div class="card-title">KARTU PRESENSI</div>
-                    </div>
+        <div class="card-content">
+            
+            <!-- Modern Header Centered -->
+            <div class="header">
+                @if($logoPath)
+                    <img class="logo" src="{{ $logoPath }}" alt="Logo">
+                @endif
+                <div class="school-name">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
+                <div class="card-title">KARTU PRESENSI</div>
+            </div>
 
-                    <!-- Soft Rounded Photo -->
-                    <div class="photo-area">
-                        <div class="photo-frame">
-                            @if($photoPath)
-                                <img src="{{ $photoPath }}" alt="Foto">
-                            @else
-                                <div class="photo-placeholder">FOTO</div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Student Info -->
-                    <div class="name-section">
-                        <div class="student-name">{{ $student->name }}</div>
-                        <div class="student-class">Kelas: {{ $className }}</div>
-                    </div>
-
-                    <!-- Glassmorphism Login Box -->
-                    <div class="login-box">
-                        <div class="login-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            Username (NISN)
-                        </div>
-                        <div class="login-value">{{ $student->nisn }}</div>
-                    </div>
-
-                    <!-- Barcode -->
-                    <div class="barcode-section">
-                        <img src="data:image/png;base64,{{ $barcodeImage }}" alt="Barcode">
-                    </div>
-
-                    <!-- Modern Footer Centered -->
-                    <div class="footer">
-                        <span class="footer-url">presensi.smpn1majenang.sch.id</span>
-                    </div>
-
+            <!-- Soft Rounded Photo -->
+            <div class="photo-area">
+                <div class="photo-frame">
+                    @if($photoPath)
+                        <img src="{{ $photoPath }}" alt="Foto">
+                    @else
+                        <div class="photo-placeholder">FOTO</div>
+                    @endif
                 </div>
             </div>
-        @endforeach
+
+            <!-- Student Info -->
+            <div class="student-info">
+                <div class="student-name">{{ $student->name }}</div>
+                <div class="student-class">Kelas: {{ $className }}</div>
+            </div>
+
+            <!-- Glassmorphism Login Box -->
+            <div class="login-box">
+                <div class="login-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Username (NISN)
+                </div>
+                <div class="login-value">{{ $student->nisn }}</div>
+            </div>
+
+            <!-- Barcode -->
+            <div class="barcode-area">
+                <img src="data:image/png;base64,{{ $barcodeImage }}" alt="Barcode">
+            </div>
+
+            <!-- Modern Footer Centered -->
+            <div class="footer">
+                <span class="footer-url">presensi.smpn1majenang.sch.id</span>
+            </div>
+
+        </div>
     </div>
-    @endforeach
 
     <script>
+        // Otomatis muncul dialog print setelah gambar selesai di load (jika diinginkan)
         window.onload = function() {
             setTimeout(function() {
+                // Uncomment baris di bawah ini jika ingin langsung print otomatis
                 window.print();
             }, 500);
         };

@@ -114,9 +114,8 @@ class SiswaTable
 
                 \App\Filament\Resources\Siswa\Actions\ImportSiswaBaruAction::make(),
 
-                // Custom Action: Cetak Kartu OSIS Massal (Semua Siswa Terfilter)
-                Action::make('cetak_kartu_massal_header')
-                    ->label('Cetak Kartu Massal')
+                Action::make('cetak_kartu_login_massal_header')
+                    ->label('Cetak Kartu Presensi Massal')
                     ->icon('heroicon-o-printer')
                     ->color('info')
                     ->action(function (\Filament\Tables\Contracts\HasTable $livewire) {
@@ -130,15 +129,9 @@ class SiswaTable
                             return;
                         }
 
-                        $settings = PengaturanSekolah::current();
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-osis-massal', [
-                            'students' => $records, 
-                            'settings' => $settings
-                        ]);
-                        $pdf->setPaper('a4', 'portrait');
-                        return response()->streamDownload(function () use ($pdf) {
-                            echo $pdf->stream();
-                        }, "Kartu_OSIS_Massal.pdf");
+                        $ids = $records->pluck('id')->implode(',');
+                        $url = route('siswa.cetak-kartu-login-massal', ['ids' => $ids]);
+                        $livewire->js("window.open('{$url}', '_blank')");
                     }),
             ])
             ->filters([
@@ -149,20 +142,13 @@ class SiswaTable
                 EditAction::make(),
                 DeleteAction::make(),
 
-                // Custom Action: Cetak Kartu OSIS
-                Action::make('cetak_kartu')
-                    ->label('Cetak Kartu')
+                Action::make('cetak_kartu_login')
+                    ->label('Cetak Kartu Presensi')
                     ->icon('heroicon-o-printer')
                     ->color('info')
-                    ->action(function (Siswa $record) {
-                        $settings = PengaturanSekolah::current();
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-osis', [
-                            'student' => $record, 
-                            'settings' => $settings
-                        ]);
-                        return response()->streamDownload(function () use ($pdf) {
-                            echo $pdf->stream();
-                        }, "Kartu_OSIS_{$record->nisn}.pdf");
+                    ->action(function (Siswa $record, \Filament\Tables\Contracts\HasTable $livewire) {
+                        $url = route('siswa.cetak-kartu-login', $record);
+                        $livewire->js("window.open('{$url}', '_blank')");
                     }),
 
                 // Custom Action: Reset Password
@@ -233,21 +219,16 @@ class SiswaTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    \Filament\Actions\BulkAction::make('cetak_kartu_massal')
-                        ->label('Cetak Kartu Massal')
+                    \Filament\Actions\BulkAction::make('cetak_kartu_login_massal')
+                        ->label('Cetak Kartu Presensi Massal')
                         ->icon('heroicon-o-printer')
                         ->color('info')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
-                            $settings = PengaturanSekolah::current();
-                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.kartu-osis-massal', [
-                                'students' => $records, 
-                                'settings' => $settings
-                            ]);
-                            $pdf->setPaper('a4', 'portrait');
-                            return response()->streamDownload(function () use ($pdf) {
-                                echo $pdf->stream();
-                            }, "Kartu_OSIS_Massal.pdf");
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records, \Filament\Tables\Contracts\HasTable $livewire) {
+                            $ids = $records->pluck('id')->implode(',');
+                            $url = route('siswa.cetak-kartu-login-massal', ['ids' => $ids]);
+                            $livewire->js("window.open('{$url}', '_blank')");
                         }),
+
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),

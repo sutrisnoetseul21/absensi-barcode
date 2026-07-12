@@ -9,24 +9,35 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use App\Models\Kelas;
+use App\Models\TahunAjaran;
 
-class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles
+class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithEvents
 {
     protected string $classId;
     protected string $yearId;
     protected string $month;
     protected string $year;
+    protected string $periodeLabel;
     
     protected array $daysInMonth;
     protected array $holidays;
+    protected array $rows = [];
 
-    public function __construct(string $classId, string $yearId, string $month, string $year)
+    public function __construct(string $classId, string $yearId, string $month, string $year, string $periodeLabel = '')
     {
         $this->classId = $classId;
         $this->yearId = $yearId;
         $this->month = $month;
         $this->year = $year;
+        $this->periodeLabel = $periodeLabel ?: "BULAN $month-$year";
         
         $daysInMonthCount = Carbon::create($year, $month, 1)->daysInMonth;
         $this->daysInMonth = range(1, $daysInMonthCount);
@@ -130,13 +141,121 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles
             $matrix[] = $row;
         }
 
+        $this->rows = $matrix;
         return $matrix;
     }
 
     public function styles(Worksheet $sheet)
     {
+        return [];
+    }
+
+    public function registerEvents(): array
+    {
         return [
-            1 => ['font' => ['bold' => true]],
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $kelas = Kelas::find($this->classId);
+                $tahunAjaran = TahunAjaran::find($this->yearId);
+                $sekolah = \App\Models\PengaturanSekolah::current();
+                $now = now()->format('d/m/Y H:i');
+
+                // Determine last column (3 base cols + days count + 5 total cols)
+                $totalCols = 3 + count($this->daysInMonth) + 5;
+                $lastColLetter = Coordinate::stringFromColumnIndex($totalCols);
+
+                // ===== INSERT 4 ROWS AT TOP for kop surat =====
+                $sheet->insertNewRowBefore(1, 4);
+
+                // Row 1: Nama sekolah
+                $sheet->mergeCells("A1:{$lastColLetter}1");
+                $sheet->setCellValue('A1', strtoupper($sekolah?->school_name ?? 'SEKOLAH'));
+                $sheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 14],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Row 2: Alamat
+                $sheet->mergeCells("A2:{$lastColLetter}2");
+                $sheet->setCellValue('A2', $sekolah?->school_address ?? '');
+                $sheet->getStyle('A2')->applyFromArray([
+                    'font' => ['size' => 10],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Row 3: Judul Laporan
+                $sheet->mergeCells("A3:{$lastColLetter}3");
+                $sheet->setCellValue('A3', 'LAPORAN PRESENSI SISWA - ' . strtoupper($this->periodeLabel));
+                $sheet->getStyle('A3')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 12, 'underline' => true],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Row 4: Info kelas
+                $sheet->mergeCells("A4:{$lastColLetter}4");
+                $sheet->setCellValue('A4', 'Kelas: ' . ($kelas?->name ?? '-') . '   |   TA: ' . ($tahunAjaran?->name ?? '-') . '   |   Dicetak: ' . $now);
+                $sheet->getStyle('A4')->applyFromArray([
+                    'font' => ['size' => 10, 'italic' => true],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Row 5: heading styling
+                $headingRowStyle = [
+                    'font' => ['bold' => true, 'size' => 10, 'color' => ['argb' => 'FFFFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E3A5F']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFDDDDDD']]],
+                ];
+                $sheet->getStyle("A5:{$lastColLetter}5")->applyFromArray($headingRowStyle);
+                $sheet->getRowDimension(5)->setRowHeight(22);
+
+                // Set default column widths
+                $sheet->getColumnDimension('A')->setWidth(5);
+                $sheet->getColumnDimension('B')->setWidth(15);
+                $sheet->getColumnDimension('C')->setWidth(30);
+                
+                // Days columns
+                for ($col = 4; $col <= 3 + count($this->daysInMonth); $col++) {
+                    $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth(4);
+                }
+
+                // Total columns
+                $startTotal = 4 + count($this->daysInMonth);
+                for ($col = $startTotal; $col <= $totalCols; $col++) {
+                    $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth(8);
+                }
+
+                // Data rows styling
+                $totalDataRows = count($this->rows);
+                if ($totalDataRows > 0) {
+                    $lastRow = 5 + $totalDataRows;
+                    for ($rowIdx = 6; $rowIdx <= $lastRow; $rowIdx++) {
+                        $isEven = ($rowIdx % 2 === 0);
+                        $bgColor = $isEven ? 'FFF0F4FF' : 'FFFFFFFF';
+                        $sheet->getStyle("A{$rowIdx}:{$lastColLetter}{$rowIdx}")->applyFromArray([
+                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => $bgColor]],
+                            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFDDDDDD']]],
+                        ]);
+
+                        // Center days and totals columns
+                        $sheet->getStyle("D{$rowIdx}:{$lastColLetter}{$rowIdx}")->applyFromArray([
+                            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                        ]);
+                    }
+
+                    // Outer border
+                    $sheet->getStyle("A5:{$lastColLetter}{$lastRow}")->applyFromArray([
+                        'borders' => [
+                            'outline' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['argb' => 'FF1E3A5F']],
+                        ],
+                    ]);
+                }
+
+                // Freeze pane at row 6
+                $sheet->freezePane('A6');
+                $sheet->freezePane('D6'); // Also freeze name column if supported by Excel
+            },
         ];
     }
 }
