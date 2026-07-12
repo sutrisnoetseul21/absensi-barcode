@@ -217,9 +217,9 @@
 
     <!-- ====================== HEADER / NAVBAR MODERN ====================== -->
     <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
-        x-data="{ scrolled: false }"
+        x-data="{ scrolled: false, mobileMenuOpen: false }"
         @scroll.window="scrolled = window.scrollY > 30"
-        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-indigo-100/50 border-b border-white/60' : 'bg-transparent'">
+        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-indigo-100/50 border-b border-white/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-transparent')">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <!-- Header Kiri: Logo & Nama Sekolah -->
@@ -277,10 +277,42 @@
                 </nav>
 
                 <!-- Mobile Menu Button -->
-                <button class="lg:hidden p-2 rounded-xl transition-all duration-200"
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl transition-all duration-200"
                     :class="scrolled ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-show="!mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-show="mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="lg:hidden absolute top-full left-0 w-full backdrop-blur-xl border-b shadow-xl transition-colors duration-300"
+             :class="scrolled ? 'bg-white/95 border-slate-200' : 'bg-slate-950/80 border-white/10'"
+             style="display: none;">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="{{ route('siswa.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                   :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                    Portal Siswa
+                </a>
+                <a href="{{ route('wali-kelas.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                   :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                    Wali Kelas
+                </a>
+                <a href="/admin" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                   :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                    Admin
+                </a>
+                <a href="{{ route('kiosk.scan') }}" class="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-3 rounded-xl font-bold shadow-md shadow-indigo-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    Presensi Digital
+                </a>
             </div>
         </div>
     </header>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class Pengumuman extends Model
@@ -46,5 +47,16 @@ class Pengumuman extends Model
                 $q->whereNull('tanggal_selesai')
                   ->orWhere('tanggal_selesai', '>=', $today);
             });
+    }
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            Cache::forget('public_pengumuman');
+        });
+
+        static::deleted(function () {
+            Cache::forget('public_pengumuman');
+        });
     }
 }
