@@ -59,7 +59,7 @@
             </div>
         </div>
         <div class="relative z-10">
-            <p class="text-slate-300 text-sm font-medium mb-1">Belum Ada Data</p>
+            <p class="text-slate-300 text-sm font-medium mb-1">Belum Presensi</p>
             <h3 class="text-3xl font-black text-white flex items-baseline gap-2">
                 {{ $todayStats['belum'] }} <span class="text-lg font-medium text-slate-300">Siswa</span>
             </h3>

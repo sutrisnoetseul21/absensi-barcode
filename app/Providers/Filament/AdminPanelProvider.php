@@ -28,6 +28,14 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
+            ->favicon(function () {
+                try {
+                    $logo = \App\Models\PengaturanSekolah::current()?->school_logo_path;
+                    return $logo ? asset('storage/' . $logo) : asset('favicon.ico');
+                } catch (\Exception $e) {
+                    return asset('favicon.ico');
+                }
+            })
             ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->profile()
             ->colors([

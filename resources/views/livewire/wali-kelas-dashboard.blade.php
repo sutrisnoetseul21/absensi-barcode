@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 font-jakarta pb-12" x-data="{ showInputModal: @entangle('showInputModal').live }">
+<div class="min-h-screen bg-slate-50 font-jakarta pb-12" x-data="{ showInputModal: @entangle('showInputModal').live, showCetakModal: @entangle('showCetakModal').live }">
     @include('livewire.wali-kelas.header')
 
     <!-- Main Content -->
@@ -14,6 +14,7 @@
     </div>
 
     @include('livewire.wali-kelas.modal-input')
+    @include('livewire.wali-kelas.modal-cetak')
     
     <!-- Toast Notification (SweetAlert integration) -->
     <script>

@@ -18,11 +18,18 @@
                     Dashboard Wali Kelas
                 </h2>
                 <p class="mt-4 text-base text-indigo-200 max-w-2xl">
-                    Kelola data absensi, pantau keterlambatan harian, dan lakukan presensi manual untuk siswa di kelas binaan Anda.
+                    Kelola data presensi, pantau keterlambatan harian, dan lakukan presensi manual untuk siswa di kelas binaan Anda.
                 </p>
             </div>
             <div class="mt-6 flex xl:mt-0 xl:ml-4 gap-4 items-center">
                 @if(count($classes) > 0 && $selectedClassId)
+                    <button wire:click="openCetakModal" class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-xl shadow-lg shadow-emerald-500/30 text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 transform hover:-translate-y-0.5 group">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-emerald-100 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Cetak Laporan
+                    </button>
+                    
                     <button wire:click="openInputModal" class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-xl shadow-lg shadow-blue-500/30 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:-translate-y-0.5 group">
                         <svg class="-ml-1 mr-2 h-5 w-5 text-blue-100 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

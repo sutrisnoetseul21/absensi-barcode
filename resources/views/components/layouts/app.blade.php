@@ -7,6 +7,13 @@
         <title>{{ $title ?? ('Presensi Digital ' . (\App\Models\PengaturanSekolah::current()?->school_name ?? 'Sekolah')) }}</title>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         
+        <!-- Favicon -->
+        @php
+            $sekolah = \App\Models\PengaturanSekolah::current();
+            $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+        @endphp
+        <link rel="icon" type="image/png" href="{{ $favicon }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
