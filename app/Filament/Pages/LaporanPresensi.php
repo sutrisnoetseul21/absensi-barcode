@@ -34,7 +34,7 @@ class LaporanPresensi extends Page implements HasTable
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Absensi';
+        return 'Presensi';
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable

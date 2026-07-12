@@ -6,7 +6,7 @@ use Livewire\Component;
 
 use App\Models\PengaturanSekolah;
 
-class AttendanceKiosk extends Component
+class AttendanceKioskNis extends Component
 {
     public function render()
     {
@@ -14,7 +14,7 @@ class AttendanceKiosk extends Component
         $kalenderService = app(\App\Services\KalenderSekolahService::class);
         $isGlobalHoliday = !$kalenderService->isHariSekolah(now('Asia/Jakarta'));
 
-        return view('livewire.attendance-kiosk', [
+        return view('livewire.attendance-kiosk-nis', [
             'settings' => $settings,
             'isGlobalHoliday' => $isGlobalHoliday
         ])->title('Presensi Digital');

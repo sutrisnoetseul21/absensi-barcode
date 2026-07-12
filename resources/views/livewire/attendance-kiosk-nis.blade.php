@@ -42,7 +42,7 @@
                 @if($settings && $settings->school_logo_path)
                     <img src="{{ asset('storage/'.$settings->school_logo_path) }}" alt="Logo" class="w-16 h-16 mx-auto mb-2 object-contain">
                 @endif
-                <h2 class="text-3xl font-bold">{{ $settings->school_name ?? 'Presensi Digital' }}</h2>
+                <h2 class="text-3xl font-bold">{{ $settings->school_name ?? 'Presensi Digital' }} (Mode NIS)</h2>
                 <p class="text-blue-100 mt-1">Silakan scan kartu Anda pada alat scanner</p>
                 
                 <!-- Loading Indicator -->
@@ -206,7 +206,7 @@
                     try {
                         const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
                         
-                        const response = await fetch('/scan', {
+                        const response = await fetch('/scan-nis', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

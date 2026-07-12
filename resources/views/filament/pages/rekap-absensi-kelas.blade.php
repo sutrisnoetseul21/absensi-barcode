@@ -5,8 +5,8 @@
         <x-filament::section>
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between flex-wrap">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-950 dark:text-white">Rekapitulasi Absensi Kelas</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Kelola absensi siswa per kelas dan per bulan</p>
+                    <h2 class="text-lg font-bold text-gray-950 dark:text-white">Rekapitulasi Presensi Kelas</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Kelola presensi siswa per kelas dan per bulan</p>
                 </div>
 
                 <div class="flex flex-wrap gap-3 items-end">
@@ -219,8 +219,8 @@
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-950 dark:text-white">Input Absensi Manual</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Masukkan atau perbarui absensi siswa untuk tanggal tertentu</p>
+                        <h3 class="text-lg font-bold text-gray-950 dark:text-white">Input Presensi Manual</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Masukkan atau perbarui presensi siswa untuk tanggal tertentu</p>
                     </div>
                     <button wire:click="closeInputModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <x-heroicon-o-x-mark class="w-6 h-6"/>
@@ -229,7 +229,7 @@
 
                 {{-- Date Picker --}}
                 <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Tanggal Absensi</label>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Tanggal Presensi</label>
                     <input type="date" wire:model.live="inputDate"
                         class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
                 </div>
@@ -280,7 +280,7 @@
                         Batal
                     </x-filament::button>
                     <x-filament::button wire:click="saveManualInput" wire:loading.attr="disabled" icon="heroicon-o-check">
-                        Simpan Absensi
+                        Simpan Presensi
                     </x-filament::button>
                 </div>
             </div>

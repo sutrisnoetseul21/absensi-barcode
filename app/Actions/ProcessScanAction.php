@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 
 class ProcessScanAction
 {
-    public function execute(string $barcode, ?string $ipAddress = null): array
+    public function execute(string $barcode, ?string $ipAddress = null, string $type = 'nisn'): array
     {
         $now = Carbon::now('Asia/Jakarta');
         $date = $now->toDateString();
@@ -25,7 +25,12 @@ class ProcessScanAction
         }
 
         // 2. Pencarian Siswa
-        $siswa = Siswa::with('enrollmentAktif')->where('barcode_code', $barcode)->first();
+        if ($type === 'nis') {
+            $siswa = Siswa::with('enrollmentAktif')->where('nis', $barcode)->first();
+        } else {
+            // Default: NISN (barcode_code = nisn)
+            $siswa = Siswa::with('enrollmentAktif')->where('barcode_code', $barcode)->first();
+        }
 
         if (!$siswa) {
             $this->logAttempt($barcode, null, 'not_found', $now, $ipAddress);
@@ -54,7 +59,7 @@ class ProcessScanAction
                 'status' => 'holiday',
                 'name' => $siswa->name,
                 'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null,
-                'message' => 'Hari ini libur, tidak ada absensi'
+                'message' => 'Hari ini libur, tidak ada presensi'
             ];
         }
 

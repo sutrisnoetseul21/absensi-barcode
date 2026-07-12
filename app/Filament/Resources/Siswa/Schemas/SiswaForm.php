@@ -24,6 +24,16 @@ class SiswaForm
                         ignoreRecord: true
                     ),
 
+                TextInput::make('nis')
+                    ->label('NIS')
+                    ->nullable()
+                    ->maxLength(20)
+                    ->unique(
+                        table: 'students',
+                        column: 'nis',
+                        ignoreRecord: true
+                    ),
+
                 TextInput::make('name')
                     ->label('Nama Lengkap')
                     ->required()

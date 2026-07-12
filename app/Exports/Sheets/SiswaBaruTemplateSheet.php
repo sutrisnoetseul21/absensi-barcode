@@ -22,6 +22,7 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
     {
         return [
             'NISN',
+            'NIS',
             'Nama Siswa',
             'Tempat Lahir',
             'Tanggal Lahir (YYYY-MM-DD)',
@@ -43,9 +44,9 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
                 $sheet = $event->sheet->getDelegate();
                 $rowCount = 500; // Apply validation to 500 rows
 
-                // Column G: Kelas Validation
+                // Column H: Kelas Validation
                 for ($i = 2; $i <= $rowCount; $i++) {
-                    $validationG = $sheet->getCell('G' . $i)->getDataValidation();
+                    $validationG = $sheet->getCell('H' . $i)->getDataValidation();
                     $validationG->setType(DataValidation::TYPE_LIST);
                     $validationG->setErrorStyle(DataValidation::STYLE_STOP);
                     $validationG->setAllowBlank(true);
@@ -61,12 +62,13 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
 
                 // Set Column Widths
                 $sheet->getColumnDimension('A')->setWidth(20);
-                $sheet->getColumnDimension('B')->setWidth(30);
-                $sheet->getColumnDimension('C')->setWidth(20);
+                $sheet->getColumnDimension('B')->setWidth(20);
+                $sheet->getColumnDimension('C')->setWidth(30);
                 $sheet->getColumnDimension('D')->setWidth(20);
-                $sheet->getColumnDimension('E')->setWidth(40);
+                $sheet->getColumnDimension('E')->setWidth(20);
                 $sheet->getColumnDimension('F')->setWidth(40);
-                $sheet->getColumnDimension('G')->setWidth(20);
+                $sheet->getColumnDimension('G')->setWidth(40);
+                $sheet->getColumnDimension('H')->setWidth(20);
             },
         ];
     }

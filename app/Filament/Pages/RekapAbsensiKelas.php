@@ -17,8 +17,8 @@ class RekapAbsensiKelas extends Page
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
     protected string $view = 'filament.pages.rekap-absensi-kelas';
     protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
-    protected static ?string $title = 'Rekap Absensi Kelas';
-    protected static ?string $navigationLabel = 'Rekap Absensi Kelas';
+    protected static ?string $title = 'Rekap Presensi Kelas';
+    protected static ?string $navigationLabel = 'Rekap Presensi Kelas';
 
     // Filters
     public $academicYears   = [];
@@ -221,7 +221,7 @@ class RekapAbsensiKelas extends Page
         $this->loadData();
 
         Notification::make()
-            ->title('Absensi berhasil disimpan')
+            ->title('Presensi berhasil disimpan')
             ->body("{$savedCount} siswa diperbarui untuk tanggal {$this->inputDate}.")
             ->success()
             ->send();

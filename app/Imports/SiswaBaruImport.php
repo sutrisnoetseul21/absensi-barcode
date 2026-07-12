@@ -21,11 +21,12 @@ class SiswaBaruImport implements ToCollection
             }
 
             $nisn = trim((string) ($row[0] ?? ''));
-            $name = trim((string) ($row[1] ?? ''));
-            $birth_place = trim((string) ($row[2] ?? ''));
+            $nis = trim((string) ($row[1] ?? ''));
+            $name = trim((string) ($row[2] ?? ''));
+            $birth_place = trim((string) ($row[3] ?? ''));
             
             // Tanggal lahir Excel bisa berupa serial number, tapi mari asumsikan string YYYY-MM-DD
-            $birth_date_val = trim((string) ($row[3] ?? ''));
+            $birth_date_val = trim((string) ($row[4] ?? ''));
             $birth_date = null;
             if ($birth_date_val !== '') {
                 try {
@@ -35,9 +36,9 @@ class SiswaBaruImport implements ToCollection
                 }
             }
             
-            $address = trim((string) ($row[4] ?? ''));
-            $passwordVal = trim((string) ($row[5] ?? ''));
-            $className = trim((string) ($row[6] ?? ''));
+            $address = trim((string) ($row[5] ?? ''));
+            $passwordVal = trim((string) ($row[6] ?? ''));
+            $className = trim((string) ($row[7] ?? ''));
 
             if ($nisn === '' || $name === '' || $className === '') {
                 continue; // skip incomplete rows
@@ -50,6 +51,7 @@ class SiswaBaruImport implements ToCollection
             $existingStudent = Siswa::where('nisn', $nisn)->first();
 
             $dataToSave = [
+                'nis' => $nis ?: null,
                 'name' => $name,
                 'birth_place' => $birth_place ?: null,
                 'birth_date' => $birth_date,

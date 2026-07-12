@@ -25,6 +25,7 @@ class Siswa extends Authenticatable
 
     protected $fillable = [
         'nisn',
+        'nis',
         'name',
         'birth_place',
         'birth_date',

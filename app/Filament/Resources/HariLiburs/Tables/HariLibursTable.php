@@ -84,8 +84,8 @@ class HariLibursTable
                     ->button()
                     ->size('xs')
                     ->requiresConfirmation()
-                    ->modalHeading('Paksa Libur (Hapus Absensi)')
-                    ->modalDescription('Tindakan ini akan MENGHAPUS secara permanen semua data absensi (Hadir, Izin, Sakit, Alpa) yang sudah tercatat pada rentang tanggal libur ini. Lanjutkan?')
+                    ->modalHeading('Paksa Libur (Hapus Presensi)')
+                    ->modalDescription('Tindakan ini akan MENGHAPUS secara permanen semua data presensi (Hadir, Izin, Sakit, Alpa) yang sudah tercatat pada rentang tanggal libur ini. Lanjutkan?')
                     ->action(function ($record) {
                         $query = \App\Models\Presensi::where('date', '>=', $record->start_date);
                         
@@ -103,7 +103,7 @@ class HariLibursTable
                         
                         \Filament\Notifications\Notification::make()
                             ->title('Force Libur Berhasil')
-                            ->body("$deleted data absensi berhasil dihapus.")
+                            ->body("$deleted data presensi berhasil dihapus.")
                             ->success()
                             ->send();
                     }),

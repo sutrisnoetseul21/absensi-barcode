@@ -21,7 +21,7 @@ class EditTahunAjaran extends EditRecord
                         \Filament\Notifications\Notification::make()
                             ->warning()
                             ->title('Gagal menghapus!')
-                            ->body('Tahun ajaran tidak dapat dihapus karena memiliki data kelas, siswa, atau absensi terkait.')
+                            ->body('Tahun ajaran tidak dapat dihapus karena memiliki data kelas, siswa, atau presensi terkait.')
                             ->send();
                         $action->halt();
                     }

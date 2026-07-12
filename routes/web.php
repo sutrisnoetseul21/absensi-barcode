@@ -26,8 +26,17 @@ Route::middleware('auth')->group(function () {
         if (!$barcode) {
             return response()->json(['status' => 'not_found']);
         }
-        return response()->json($action->execute($barcode, $request->ip()));
+        return response()->json($action->execute($barcode, $request->ip(), 'nisn'));
     })->middleware('throttle:60,1')->name('kiosk.process');
+
+    Route::get('/scan-nis', \App\Livewire\AttendanceKioskNis::class)->name('kiosk.scan-nis');
+    Route::post('/scan-nis', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
+        $barcode = $request->input('barcode');
+        if (!$barcode) {
+            return response()->json(['status' => 'not_found']);
+        }
+        return response()->json($action->execute($barcode, $request->ip(), 'nis'));
+    })->middleware('throttle:60,1')->name('kiosk.process-nis');
 
     // Cetak Kartu Routes
     Route::get('/admin/siswa/{siswa}/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartu'])->name('siswa.cetak-kartu');

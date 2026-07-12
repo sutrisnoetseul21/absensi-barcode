@@ -11,8 +11,8 @@ class RekapAbsensiSekolah extends Page
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-bar';
     protected string $view = 'filament.pages.rekap-absensi-sekolah';
     protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
-    protected static ?string $title = 'Rekap Absensi Sekolah';
-    protected static ?string $navigationLabel = 'Rekap Absensi Sekolah';
+    protected static ?string $title = 'Rekap Presensi Sekolah';
+    protected static ?string $navigationLabel = 'Rekap Presensi Sekolah';
 
     public $academicYears = [];
     public $selectedAcademicYearId;

@@ -19,7 +19,7 @@ class EditEnrollment extends EditRecord
                         \Filament\Notifications\Notification::make()
                             ->warning()
                             ->title('Gagal menghapus!')
-                            ->body('Pendaftaran siswa ini tidak dapat dihapus karena sudah memiliki data absensi.')
+                            ->body('Pendaftaran siswa ini tidak dapat dihapus karena sudah memiliki data presensi.')
                             ->send();
                         $action->halt();
                     }

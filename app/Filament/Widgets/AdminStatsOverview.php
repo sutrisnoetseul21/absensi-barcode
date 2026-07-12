@@ -30,7 +30,7 @@ class AdminStatsOverview extends BaseWidget
 
             return [
                 Stat::make('Hari Ini Sekolah Libur', $holidayName)
-                    ->description('Kios absensi dinonaktifkan sementara dan tidak ada pencatatan statistik kehadiran.')
+                    ->description('Kios presensi dinonaktifkan sementara dan tidak ada pencatatan statistik kehadiran.')
                     ->color('warning')
                     ->icon('heroicon-o-calendar-days'),
             ];
