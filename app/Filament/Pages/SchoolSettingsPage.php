@@ -87,14 +87,31 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->nullable()
                             ->helperText('Gunakan format PNG dengan background transparan untuk hasil terbaik di Kartu OSIS.'),
 
-                        FileUpload::make('school_logo_path')
-                            ->label('Logo Sekolah')
+                        FileUpload::make('district_logo_path')
+                            ->label('Logo Kabupaten (Kiri Kartu OSIS)')
                             ->image()
                             ->imageResizeTargetWidth(500)
                             ->imageResizeTargetHeight(500)
                             ->disk('public')
                             ->directory('settings')
                             ->nullable(),
+                            
+                        FileUpload::make('school_logo_path')
+                            ->label('Logo Sekolah (Kanan Kartu OSIS)')
+                            ->image()
+                            ->imageResizeTargetWidth(500)
+                            ->imageResizeTargetHeight(500)
+                            ->disk('public')
+                            ->directory('settings')
+                            ->nullable(),
+                            
+                        FileUpload::make('hero_image_path')
+                            ->label('Gambar Background Frontend (Hero Image)')
+                            ->image()
+                            ->disk('public')
+                            ->directory('settings')
+                            ->nullable()
+                            ->helperText('Gambar ini akan digunakan sebagai background halaman depan portal absensi.'),
                     ])->columns(1),
 
                 Section::make('Pengaturan Sistem')
@@ -142,6 +159,8 @@ class SchoolSettingsPage extends Page implements HasForms
             } else {
                 PengaturanSekolah::create($data);
             }
+
+            \Illuminate\Support\Facades\Cache::forget('public_pengaturan_sekolah');
 
             Notification::make()
                 ->title('Pengaturan berhasil disimpan')

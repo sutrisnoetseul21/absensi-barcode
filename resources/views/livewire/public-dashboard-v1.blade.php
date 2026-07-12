@@ -289,8 +289,13 @@
     <div class="relative overflow-hidden min-h-[70vh] flex items-center">
         <!-- Background Photo (Full, Prominent) -->
         <div class="absolute inset-0">
-            <img src="{{ asset('hero-bg-school.png') }}"
-                alt="School Background" class="w-full h-full object-cover object-top scale-105">
+            @if($pengaturanSekolah && $pengaturanSekolah->hero_image_path)
+                <img src="{{ asset('storage/' . $pengaturanSekolah->hero_image_path) }}"
+                    alt="School Background" class="w-full h-full object-cover object-top scale-105">
+            @else
+                <img src="{{ asset('hero-bg-school.png') }}"
+                    alt="School Background" class="w-full h-full object-cover object-top scale-105">
+            @endif
             <!-- Dark gradient overlay agar teks tetap terbaca -->
             <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/40"></div>
             <!-- Warna accent indigo di atas overlay -->

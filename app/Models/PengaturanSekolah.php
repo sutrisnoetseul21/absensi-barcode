@@ -16,6 +16,8 @@ class PengaturanSekolah extends Model
         'school_name',
         'school_address',
         'school_logo_path',
+        'district_logo_path',
+        'hero_image_path',
         'principal_name',
         'principal_signature_path',
         'checkin_time',

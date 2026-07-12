@@ -6,8 +6,9 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 8mm;
         }
+        * { box-sizing: border-box; }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -17,103 +18,99 @@
         table.cards-container {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 5mm;
+            border-spacing: 4mm;
         }
         td.card-cell {
-            width: 85.6mm;
-            height: 54mm;
+            width: 90mm;
+            height: 60mm;
             padding: 0;
             vertical-align: top;
         }
+
+        /* ===== KARTU ===== */
         .card {
-            width: 85.6mm;
-            height: 54mm;
+            width: 90mm;
+            height: 60mm;
             position: relative;
-            background-color: #f0f9ff;
-            color: #000;
-            border: 1px dashed #999;
-            box-sizing: border-box;
+            background-color: #ffffff;
+            border: 0.5mm solid #bbb;
             overflow: hidden;
         }
-        
-        /* Gradien biru di bagian header meniru contoh */
-        .bg-top {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 16mm;
-            background-color: #dbeafe;
-            border-bottom: 2px solid #93c5fd;
-            z-index: 0;
-        }
+
+        /* ===== HEADER ===== */
         .header {
             width: 100%;
             text-align: center;
-            padding-top: 1mm;
-            height: 15mm;
+            padding-top: 2.2mm; /* Pushed down a bit as requested */
+            height: 17.5mm;
             position: relative;
-            z-index: 1;
-        }
-        .header-text {
-            font-size: 6px;
-            font-weight: bold;
-            line-height: 1.1;
-        }
-        .school-name {
-            font-size: 11px;
-            font-weight: bold;
-            margin: 1px 0;
-            letter-spacing: 0.5px;
-        }
-        .address-text {
-            font-size: 5px;
-            font-weight: normal;
+            background-color: #3182ce;
+            border-bottom: 0.4mm solid #2b6cb0;
         }
         .logo-left {
             position: absolute;
             left: 3mm;
-            top: 2mm;
-            width: 11mm;
-            height: 11mm;
+            top: 2.5mm;
+            width: 12mm;
+            height: 12mm;
+            object-fit: contain;
         }
         .logo-right {
             position: absolute;
             right: 3mm;
-            top: 2mm;
-            width: 11mm;
-            height: 11mm;
+            top: 2.5mm;
+            width: 12mm;
+            height: 12mm;
+            object-fit: contain;
         }
-        
-        /* Foto Siswa */
+        .header-text-container {
+            padding: 0 16mm;
+            color: #ffffff;
+        }
+        .header-line {
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 1.2;
+            margin: 0.2px 0;
+            color: #ffffff;
+            letter-spacing: 0.1px;
+        }
+
+        /* ===== FOTO ===== */
         .photo-container {
             position: absolute;
-            left: 3mm;
-            top: 18mm;
-            width: 18mm;
-            height: 24mm;
-            border: 1px solid #333;
-            background: #fff;
-            padding: 1px;
-            box-sizing: border-box;
-            border-radius: 2px;
-            z-index: 1;
+            left: 4mm;
+            top: 19mm;
+            width: 20mm;
+            height: 26mm;
+            border: 0.3mm solid #333;
+            background: #fcfcfc;
+            overflow: hidden;
         }
         .photo-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
-        
-        /* Biodata */
+        .photo-no-photo {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            padding-top: 10px;
+            font-size: 6px;
+            color: #aaa;
+            background: #f5f5f5;
+        }
+
+        /* ===== BIODATA ===== */
         .biodata {
             position: absolute;
-            left: 24mm;
-            top: 18mm;
-            width: 58mm;
-            font-size: 6px;
-            line-height: 1.3;
-            z-index: 1;
+            left: 27mm;
+            top: 19mm;
+            width: 59mm;
+            font-size: 6.2px;
+            line-height: 1.2;
         }
         .biodata table {
             width: 100%;
@@ -121,61 +118,70 @@
         }
         .biodata td {
             vertical-align: top;
-            padding-bottom: 0.8mm;
+            padding-bottom: 1mm;
         }
         .biodata td.label {
-            width: 18mm;
+            width: 15mm;
             font-weight: bold;
+            color: #333;
         }
         .biodata td.colon {
             width: 2mm;
             text-align: center;
+            color: #333;
         }
-        
-        /* Barcode di posisi bawah kiri */
+        .biodata td.value {
+            color: #000;
+        }
+        .student-name {
+            font-weight: bold;
+            font-size: 7.2px;
+        }
+
+        /* ===== BARCODE (Bawah Kiri) ===== */
         .barcode-container {
             position: absolute;
-            left: 24mm;
-            bottom: 3mm;
-            width: 25mm;
+            left: 4mm;
+            bottom: 2mm;
+            width: 32mm;
             text-align: center;
-            z-index: 1;
         }
         .barcode-container img {
-            width: 25mm;
-            height: 6mm;
+            width: 32mm;
+            height: 7.5mm;
+            display: block;
         }
         .barcode-text {
             font-size: 5px;
-            letter-spacing: 1px;
-            margin-top: 1px;
+            letter-spacing: 0.8px;
+            margin-top: 0.5px;
+            color: #333;
         }
-        
-        /* TTD Kepala Sekolah */
+
+        /* ===== TTD KEPALA SEKOLAH (Bawah Kanan) ===== */
         .signature-container {
             position: absolute;
-            right: 3mm;
+            right: 4mm;
             bottom: 2mm;
-            width: 25mm;
+            width: 32mm;
             text-align: center;
-            font-size: 5px;
-            z-index: 1;
-        }
-        .signature-date {
-            margin-bottom: 1px;
+            font-size: 5.2px;
+            line-height: 1.2;
         }
         .signature-title {
             font-weight: bold;
         }
         .signature-img {
             height: 9mm;
-            margin: 1px 0;
+            margin: 0.5px auto;
+            display: block;
+            object-fit: contain;
         }
         .signature-name {
             font-weight: bold;
             text-decoration: underline;
         }
-        
+
         .page-break {
             page-break-after: always;
         }
@@ -183,7 +189,7 @@
 </head>
 <body>
     @php
-        $columns = 2; // Karena A4 lebarnya 210mm, 2 kartu (85.6 * 2 = 171.2mm) muat
+        $columns = 2;
         $count = count($students);
         $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
     @endphp
@@ -193,91 +199,99 @@
         @foreach($students as $index => $student)
             <td class="card-cell">
                 <div class="card">
-                    <div class="bg-top"></div>
+
+                    <!-- Header -->
                     <div class="header">
-                        @if($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path)))
+                        @if($settings?->district_logo_path && file_exists(public_path('storage/' . $settings->district_logo_path)))
+                            <img class="logo-left" src="{{ public_path('storage/' . $settings->district_logo_path) }}" alt="Logo Kabupaten">
+                        @elseif($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path)))
                             <img class="logo-left" src="{{ public_path('storage/' . $settings->school_logo_path) }}" alt="Logo">
-                            <img class="logo-right" src="{{ public_path('storage/' . $settings->school_logo_path) }}" alt="Logo">
-                        @else
-                            <img class="logo-left" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Logo">
-                            <img class="logo-right" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Logo">
                         @endif
 
-                        <div class="header-text">
-                            <div>KEMENTERIAN PENDIDIKAN DAN KEBUDAYAAN</div>
-                            <div>DINAS PENDIDIKAN</div>
+                        @if($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path)))
+                            <img class="logo-right" src="{{ public_path('storage/' . $settings->school_logo_path) }}" alt="Logo Sekolah">
+                        @endif
+
+                        <div class="header-text-container">
+                            <div class="header-line">PEMERINTAH KABUPATEN CILACAP</div>
+                            <div class="header-line">DINAS PENDIDIKAN DAN KEBUDAYAAN</div>
+                            <div class="header-line">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
+                            <div class="header-line" style="font-weight: normal; font-size: 7.5px; margin-top: 0.5px;">{{ \Illuminate\Support\Str::limit($settings->school_address ?? 'Alamat Sekolah', 85) }}</div>
                         </div>
-                        <div class="school-name">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
-                        <div class="address-text">{{ \Illuminate\Support\Str::limit($settings->school_address ?? 'Alamat Sekolah', 90) }}</div>
                     </div>
-                    
+
+                    <!-- Foto -->
                     <div class="photo-container">
                         @if($student->photo_path && file_exists(public_path('storage/' . $student->photo_path)))
                             <img src="{{ public_path('storage/' . $student->photo_path) }}" alt="Foto Siswa">
                         @else
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Avatar">
+                            <div class="photo-no-photo">FOTO</div>
                         @endif
                     </div>
-                    
+
+                    <!-- Biodata -->
                     <div class="biodata">
                         <table>
                             <tr>
                                 <td class="label">Nama</td>
                                 <td class="colon">:</td>
-                                <td style="font-weight: bold;">{{ $student->name }}</td>
+                                <td class="value student-name">{{ $student->name }}</td>
                             </tr>
                             <tr>
                                 <td class="label">NISN</td>
                                 <td class="colon">:</td>
-                                <td>{{ $student->nisn }}</td>
+                                <td class="value">{{ $student->nisn }}</td>
                             </tr>
                             <tr>
-                                <td class="label">Tempat, Tgl Lahir</td>
+                                <td class="label">TTL</td>
                                 <td class="colon">:</td>
-                                <td>{{ $student->birth_place ?? '-' }}, {{ $student->birth_date ? \Carbon\Carbon::parse($student->birth_date)->format('d-m-Y') : '-' }}</td>
+                                <td class="value">{{ $student->birth_place ?? '-' }}, {{ $student->birth_date ? \Carbon\Carbon::parse($student->birth_date)->format('d/m/Y') : '-' }}</td>
                             </tr>
                             <tr>
-                                <td class="label">Kelas / Rombel</td>
+                                <td class="label">Kelas</td>
                                 <td class="colon">:</td>
                                 @php
                                     $enrollment = $student->enrollmentAktif;
                                     $className = $enrollment?->kelas?->name ?? '-';
                                 @endphp
-                                <td>{{ $className }}</td>
+                                <td class="value">{{ $className }}</td>
                             </tr>
                             <tr>
                                 <td class="label">Alamat</td>
                                 <td class="colon">:</td>
-                                <td>{{ \Illuminate\Support\Str::limit($student->address ?? '-', 60) }}</td>
+                                <td class="value">{{ \Illuminate\Support\Str::limit($student->address ?? '-', 45) }}</td>
                             </tr>
                         </table>
                     </div>
-                    
+
+                    <!-- Barcode (Bawah Kiri) -->
                     <div class="barcode-container">
                         @php
-                            $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 40));
+                            $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 45));
                         @endphp
                         <img src="data:image/png;base64,{{ $barcodeImage }}" alt="Barcode">
                         <div class="barcode-text">{{ $student->barcode_code }}</div>
                     </div>
-                    
+
+                    <!-- TTD Kepala Sekolah (Bawah Kanan) -->
                     <div class="signature-container">
-                        <div class="signature-date">Tasikmalaya, {{ date('F Y') }}</div>
-                        <div class="signature-title">Kepala Sekolah</div>
+                        <div>{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                        <div class="signature-title">Kepala Sekolah,</div>
                         @if($settings?->principal_signature_path && file_exists(public_path('storage/' . $settings->principal_signature_path)))
                             <img class="signature-img" src="{{ public_path('storage/' . $settings->principal_signature_path) }}" alt="TTD">
                         @else
-                            <div style="height: 9mm;"></div>
+                            <div style="height:9mm;"></div>
                         @endif
                         <div class="signature-name">{{ $settings?->principal_name ?? '____________________' }}</div>
                     </div>
+
                 </div>
             </td>
-            
+
             @if(($index + 1) % $columns == 0)
                 </tr>
                 @if(($index + 1) < $count)
-                    @if(($index + 1) % ($columns * 4) == 0) {{-- 4 baris (2x4 = 8 kartu) muat 1 hlm A4 --}}
+                    @if(($index + 1) % ($columns * 4) == 0)
                         </table>
                         <div class="page-break"></div>
                         <table class="cards-container">
@@ -286,7 +300,7 @@
                 @endif
             @endif
         @endforeach
-        
+
         {{-- Fill empty cells --}}
         @if($count % $columns != 0)
             @for($i = 0; $i < ($columns - ($count % $columns)); $i++)
