@@ -696,7 +696,7 @@
             <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-indigo-50 to-transparent rounded-3xl pointer-events-none"></div>
 
             <!-- Section Header -->
-            <div class="flex items-center justify-between mb-8 relative z-10">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-8 relative z-10">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -707,10 +707,10 @@
                     </div>
                 </div>
                 <!-- Tab Buttons -->
-                <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                <div class="flex items-center gap-1 sm:gap-2 bg-slate-100 p-1 rounded-xl self-start sm:self-auto w-full sm:w-auto">
                     @foreach([7, 8, 9] as $index => $grade)
                         <button @click="activeSlide = {{ $index }}; selectedAngkatan = '{{ $grade }}'"
-                            class="px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300"
+                            class="flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap"
                             :class="activeSlide === {{ $index }} ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'">
                             Kelas {{ $grade }}
                         </button>
@@ -719,16 +719,13 @@
             </div>
 
             <!-- Slides -->
-            <div class="relative w-full min-h-[520px] relative z-10">
+            <div class="relative w-full z-10">
                 @foreach([7, 8, 9] as $index => $grade)
-                    <div class="absolute inset-0 transition-all duration-500 ease-in-out flex flex-col"
+                    <div class="transition-all duration-500 ease-in-out flex flex-col"
                          x-show="activeSlide === {{ $index }}"
                          x-transition:enter="transition ease-out duration-400"
                          x-transition:enter-start="opacity-0 translate-x-4"
                          x-transition:enter-end="opacity-100 translate-x-0"
-                         x-transition:leave="transition ease-in duration-300"
-                         x-transition:leave-start="opacity-100 translate-x-0"
-                         x-transition:leave-end="opacity-0 -translate-x-4"
                          style="display: none;">
 
                         <!-- Bar Chart -->
