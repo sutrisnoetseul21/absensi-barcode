@@ -45,15 +45,20 @@ class LuluskanKelas9Action extends Action
                 $count = 0;
                 foreach ($enrollments as $enrollment) {
                     $enrollment->update(['status' => 'lulus']);
+                    // Tandai siswa sebagai lulus di tabel students
+                    if ($enrollment->siswa) {
+                        $enrollment->siswa->update(['status' => 'lulus']);
+                    }
                     $count++;
                 }
 
                 $yearName = $tahunAjaran?->name ?? '';
                 \Filament\Notifications\Notification::make()
                     ->title('Kelulusan Massal Berhasil')
-                    ->body("Berhasil meluluskan **{$count}** siswa kelas 9 untuk Tahun Ajaran **{$yearName}**.")
+                    ->body("Berhasil meluluskan **{$count}** siswa kelas 9 untuk Tahun Ajaran **{$yearName}**. Mereka kini muncul di menu **Siswa Lulus**.")
                     ->success()
                     ->send();
+
             });
     }
 }

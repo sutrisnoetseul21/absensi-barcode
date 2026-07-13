@@ -36,6 +36,7 @@ class Siswa extends Authenticatable
         'username',
         'password',
         'must_change_password',
+        'status',
     ];
 
     protected $hidden = [
@@ -48,6 +49,7 @@ class Siswa extends Authenticatable
         'barcode_active'       => 'boolean',
         'must_change_password' => 'boolean',
         'password'             => 'hashed',
+        'status'               => 'string',
     ];
 
     // Semua riwayat enrollment (kelas per tahun ajaran)

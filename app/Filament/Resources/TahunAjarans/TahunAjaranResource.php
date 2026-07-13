@@ -26,6 +26,12 @@ class TahunAjaranResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    protected static ?string $slug = 'tahun-ajaran';
+
+    protected static ?string $modelLabel = 'Tahun Ajaran';
+
+    protected static ?string $pluralModelLabel = 'Tahun Ajaran';
+
     protected static ?string $recordTitleAttribute = 'name';
 
     /**

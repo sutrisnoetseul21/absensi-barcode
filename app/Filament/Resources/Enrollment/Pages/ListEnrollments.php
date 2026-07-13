@@ -50,6 +50,20 @@ class ListEnrollments extends ListRecords
     {
         if (!$this->manageAcademicYearId) return;
 
+        // Cek apakah siswa sudah punya data presensi di kelas + tahun ajaran ini
+        $hasPresensi = \App\Models\Presensi::where('student_id', $studentId)
+            ->where('academic_year_id', $this->manageAcademicYearId)
+            ->exists();
+
+        if ($hasPresensi) {
+            \Filament\Notifications\Notification::make()
+                ->title('Tidak Bisa Dikeluarkan dari Kelas')
+                ->body('Siswa ini sudah memiliki data presensi di kelas ini. Hapus data presensinya terlebih dahulu di menu Laporan Detail sebelum mengeluarkan siswa dari kelas.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         \App\Models\EnrollmentSiswa::where('student_id', $studentId)
             ->where('academic_year_id', $this->manageAcademicYearId)
             ->delete();

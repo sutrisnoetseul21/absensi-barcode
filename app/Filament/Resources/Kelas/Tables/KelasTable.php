@@ -266,7 +266,20 @@ class KelasTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                DeleteAction::make(),
+
+                // Blokir hapus jika masih ada siswa terdaftar di kelas ini
+                DeleteAction::make()
+                    ->before(function (\App\Models\Kelas $record, DeleteAction $action) {
+                        if ($record->enrollments()->exists()) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Tidak Bisa Dihapus')
+                                ->body('Kelas ini masih memiliki siswa terdaftar. Keluarkan semua siswa dari kelas ini terlebih dahulu di menu Pendaftaran Kelas.')
+                                ->danger()
+                                ->send();
+                            $action->cancel();
+                        }
+                    }),
+
                 RestoreAction::make(),
             ])
             ->toolbarActions([

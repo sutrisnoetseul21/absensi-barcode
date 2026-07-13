@@ -11,6 +11,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use App\Models\Presensi;
 use App\Models\TahunAjaran;
 use App\Models\Kelas;
@@ -47,6 +50,11 @@ class LaporanPresensi extends Page implements HasTable
     public static function getNavigationSort(): ?int
     {
         return 4;
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isSuperAdmin() ?? false;
     }
 
     protected string $view = 'filament.pages.laporan-presensi';
@@ -161,7 +169,23 @@ class LaporanPresensi extends Page implements HasTable
                         );
                     })
             ])
-            ->defaultSort('date', 'desc');
+            ->defaultSort('date', 'desc')
+            ->recordActions([
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Data Presensi')
+                    ->modalDescription('Anda yakin ingin menghapus data presensi ini? Tindakan ini tidak dapat dibatalkan.'),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->label('Hapus Presensi Terpilih')
+                        ->requiresConfirmation()
+                        ->modalHeading('Hapus Data Presensi')
+                        ->modalDescription('Hapus semua data presensi yang dipilih? Tindakan ini tidak bisa dibatalkan.'),
+                ]),
+            ]);
     }
 
     protected function getHeaderActions(): array

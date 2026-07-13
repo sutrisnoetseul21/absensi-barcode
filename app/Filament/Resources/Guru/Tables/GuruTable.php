@@ -263,8 +263,19 @@ class GuruTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                DeleteAction::make(),
 
+                // Blokir hapus jika guru masih menjadi wali kelas
+                DeleteAction::make()
+                    ->before(function (Guru $record, DeleteAction $action) {
+                        if ($record->kelasAjarans()->exists()) {
+                            Notification::make()
+                                ->title('Tidak Bisa Dihapus')
+                                ->body('Guru ini masih bertugas sebagai Wali Kelas. Lepaskan penugasannya sebagai wali kelas terlebih dahulu.')
+                                ->danger()
+                                ->send();
+                            $action->cancel();
+                        }
+                    }),
                 // Custom Action: Reset Password
                 Action::make('resetPassword')
                     ->label('Reset Password')

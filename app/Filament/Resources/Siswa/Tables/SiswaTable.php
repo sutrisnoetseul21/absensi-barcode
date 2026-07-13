@@ -139,13 +139,69 @@ class SiswaTable
                         $livewire->js("window.open('{$url}', '_blank')");
                     }),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'aktif'))
             ->filters([
                 TrashedFilter::make(),
             ])
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                DeleteAction::make(),
+
+                // Hapus diblokir jika siswa masih terdaftar di kelas (enrollment)
+                DeleteAction::make()
+                    ->before(function (Siswa $record, DeleteAction $action) {
+                        if ($record->enrollments()->exists()) {
+                            Notification::make()
+                                ->title('Tidak Bisa Dihapus')
+                                ->body('Siswa ini masih terdaftar di kelas. Keluarkan siswa dari menu Pendaftaran Kelas terlebih dahulu.')
+                                ->danger()
+                                ->send();
+                            $action->cancel();
+                        }
+                    }),
+
+                // Action: Tandai Mutasi (pindah/keluar)
+                Action::make('tandai_mutasi')
+                    ->label('Tandai Mutasi')
+                    ->icon('heroicon-o-arrow-right-on-rectangle')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Tandai Siswa Mutasi')
+                    ->modalDescription('Siswa ini akan ditandai sebagai Mutasi (pindah/keluar sekolah). Jika siswa masih terdaftar di sebuah kelas, status pendaftarannya di kelas tersebut akan otomatis diubah menjadi "Pindah".')
+                    ->visible(fn (Siswa $record) => $record->status === 'aktif')
+                    ->action(function (Siswa $record) {
+                        // 1. Ubah status global siswa menjadi mutasi
+                        $record->update(['status' => 'mutasi']);
+                        
+                        // 2. Ubah status pendaftaran di kelas yang sedang aktif menjadi 'pindah'
+                        $record->enrollments()->where('status', 'aktif')->update(['status' => 'pindah']);
+
+                        Notification::make()
+                            ->title('Siswa Ditandai Mutasi')
+                            ->body("Siswa **{$record->name}** telah dipindahkan ke daftar Siswa Mutasi.")
+                            ->success()
+                            ->send();
+                    }),
+
+                // Action: Aktifkan Kembali (dari arsip mutasi)
+                Action::make('aktifkan_kembali')
+                    ->label('Aktifkan Kembali')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (Siswa $record) => $record->status === 'mutasi')
+                    ->action(function (Siswa $record) {
+                        $record->update(['status' => 'aktif']);
+                        // Opsional: Jika mau mengembalikan status enrollments pindah menjadi aktif
+                        $record->enrollments()->where('status', 'pindah')->update(['status' => 'aktif']);
+
+                        Notification::make()
+                            ->title('Siswa Diaktifkan Kembali')
+                            ->body("Siswa **{$record->name}** telah dikembalikan ke daftar Siswa Aktif.")
+                            ->success()
+                            ->send();
+                    }),
+
 
                 Action::make('cetak_kartu_login')
                     ->label('Cetak Kartu Presensi')
@@ -234,7 +290,19 @@ class SiswaTable
                             $livewire->js("window.open('{$url}', '_blank')");
                         }),
 
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function (\Illuminate\Database\Eloquent\Collection $records, DeleteBulkAction $action) {
+                            $blocked = $records->filter(fn ($r) => $r->enrollments()->exists());
+                            if ($blocked->isNotEmpty()) {
+                                $names = $blocked->pluck('name')->join(', ');
+                                Notification::make()
+                                    ->title('Beberapa Siswa Tidak Bisa Dihapus')
+                                    ->body("Siswa berikut masih terdaftar di kelas: {$names}. Hapus pendaftaran kelasnya terlebih dahulu.")
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
                     RestoreBulkAction::make(),
                 ]),
             ])
