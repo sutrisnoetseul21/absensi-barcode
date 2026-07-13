@@ -35,11 +35,6 @@ class RekapAbsensiKelas extends Page
     public $daysInMonth     = 0;
     public $todayDate;
 
-    // Modal Input Manual
-    public $showInputModal  = false;
-    public $inputDate;
-    public $inputStudents   = [];
-
     public function mount(): void
     {
         $this->selectedMonth  = date('m');
@@ -144,86 +139,4 @@ class RekapAbsensiKelas extends Page
         );
     }
 
-    // === Modal Input Manual ===
-
-    public function openInputModal(): void
-    {
-        $this->inputDate = $this->todayDate ?? Carbon::now('Asia/Jakarta')->toDateString();
-        $this->loadStudentsForInput();
-        $this->showInputModal = true;
-    }
-
-    public function closeInputModal(): void
-    {
-        $this->showInputModal = false;
-    }
-
-    public function updatedInputDate(): void
-    {
-        $this->loadStudentsForInput();
-    }
-
-    public function loadStudentsForInput(): void
-    {
-        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) return;
-
-        $attendances = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
-            ->where('class_id', $this->selectedClassId)
-            ->where('date', $this->inputDate)
-            ->get()->keyBy('student_id');
-
-        $list = [];
-        foreach ($this->students as $student) {
-            $att = $attendances->get($student->id);
-            $list[$student->id] = [
-                'id'           => $student->id,
-                'name'         => $student->name,
-                'status'       => $att ? $att->status : '',
-                'late_minutes' => $att ? $att->late_minutes : null,
-            ];
-        }
-        $this->inputStudents = $list;
-    }
-
-    public function saveManualInput(): void
-    {
-        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) return;
-
-        $savedCount = 0;
-        foreach ($this->inputStudents as $studentId => $data) {
-            if (empty($data['status'])) continue;
-
-            $enrollment = EnrollmentSiswa::where('student_id', $studentId)
-                ->where('academic_year_id', $this->selectedAcademicYearId)
-                ->where('status', 'aktif')
-                ->first();
-
-            Presensi::updateOrCreate(
-                [
-                    'student_id'       => $studentId,
-                    'class_id'         => $this->selectedClassId,
-                    'academic_year_id' => $this->selectedAcademicYearId,
-                    'date'             => $this->inputDate,
-                ],
-                [
-                    'enrollment_id'        => $enrollment?->id,
-                    'status'               => $data['status'],
-                    'late_minutes'         => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0,
-                    'is_manual_input'      => true,
-                    'manual_input_by_id'   => Auth::id(),
-                    'manual_input_by_type' => \App\Models\User::class,
-                ]
-            );
-            $savedCount++;
-        }
-
-        $this->showInputModal = false;
-        $this->loadData();
-
-        Notification::make()
-            ->title('Presensi berhasil disimpan')
-            ->body("{$savedCount} siswa diperbarui untuk tanggal {$this->inputDate}.")
-            ->success()
-            ->send();
-    }
 }

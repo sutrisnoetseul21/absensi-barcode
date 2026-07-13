@@ -8,6 +8,8 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
 use Filament\Actions\Action;
 use App\Models\Presensi;
 use App\Models\TahunAjaran;
@@ -53,9 +55,13 @@ class LaporanPresensi extends Page implements HasTable
     {
         return $table
             ->query(
-                Presensi::query()->with(['siswa', 'kelas'])
+                Presensi::query()->with(['siswa', 'kelas', 'inputManualOleh'])
             )
             ->columns([
+                TextColumn::make('updated_at')
+                    ->label('Tgl Edit/Input')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
                 TextColumn::make('date')
                     ->label('Tanggal')
                     ->date('d/m/Y')
@@ -81,12 +87,19 @@ class LaporanPresensi extends Page implements HasTable
                         'alpa' => 'danger',
                         default => 'gray',
                     }),
+                TextColumn::make('input_method')
+                    ->label('Metode Input')
+                    ->getStateUsing(function (Presensi $record) {
+                        return $record->is_manual_input ? 'Manual' : 'Scan Otomatis';
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => $state === 'Manual' ? 'warning' : 'success'),
                 TextColumn::make('note')
                     ->label('Keterangan')
-                    ->limit(20)
+                    ->limit(40)
                     ->tooltip(function (TextColumn $column): ?string {
                         $state = $column->getState();
-                        return $state && strlen($state) > 20 ? $state : null;
+                        return $state && strlen($state) > 40 ? $state : null;
                     }),
             ])
             ->filters([
@@ -126,7 +139,27 @@ class LaporanPresensi extends Page implements HasTable
                         'izin' => 'Izin',
                         'sakit' => 'Sakit',
                         'alpa' => 'Alpa',
+                    ]),
+                Filter::make('filter_date')
+                    ->form([
+                        DatePicker::make('date')->label('Tgl Absensi'),
                     ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('date', $date),
+                        );
+                    }),
+                Filter::make('filter_updated_at')
+                    ->form([
+                        DatePicker::make('updated_at')->label('Tgl Edit/Input'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['updated_at'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('updated_at', $date),
+                        );
+                    })
             ])
             ->defaultSort('date', 'desc');
     }

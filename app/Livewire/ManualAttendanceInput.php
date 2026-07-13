@@ -60,14 +60,15 @@ class ManualAttendanceInput extends Component
             throw ValidationException::withMessages(['date' => 'Tidak ada tahun ajaran aktif.']);
         }
 
-        // Cek apakah sudah ada data dari kios
+        // Cari enrollment_id
         $existing = Presensi::where('student_id', $this->studentId)
             ->where('date', $this->date)
             ->first();
 
-        if ($existing && $existing->is_manual_input === false) {
+        // Blokir Guru jika mengedit data scan otomatis
+        if ($existing && $existing->is_manual_input === false && Auth::guard('wali_kelas')->check()) {
             throw ValidationException::withMessages([
-                'status' => 'Siswa ini sudah tercatat Hadir/Telat hari ini via scan kios, tidak bisa diubah manual.'
+                'status' => 'Siswa ini sudah absen otomatis. Hanya Admin yang bisa mengubah data ini.'
             ]);
         }
 
@@ -75,7 +76,22 @@ class ManualAttendanceInput extends Component
             ? Auth::guard('wali_kelas')->user() 
             : Auth::guard('web')->user();
 
+        $actorType = Auth::guard('wali_kelas')->check() ? 'Guru' : 'Admin';
+
         $oldStatus = $existing ? $existing->status : null;
+        
+        $noteToSave = $this->note;
+        $newLate = $this->status === 'telat' ? ($this->lateMinutes ?? 0) : 0;
+        
+        if ($existing) {
+            if ($existing->status !== $this->status || $existing->late_minutes != $newLate) {
+                $prevSrc = $existing->is_manual_input === false ? 'Scan Otomatis' : 'Manual';
+                $appendNote = "Diedit oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem') . " (Sblm: {$prevSrc}, {$existing->status})";
+                $noteToSave = $noteToSave ? $noteToSave . ' | ' . $appendNote : $appendNote;
+            } elseif (empty($noteToSave)) {
+                $noteToSave = $existing->note;
+            }
+        }
 
         $attendance = Presensi::updateOrCreate(
             [
@@ -86,10 +102,11 @@ class ManualAttendanceInput extends Component
                 'class_id' => $this->classId,
                 'academic_year_id' => $activeYear->id,
                 'status' => $this->status,
-                'late_minutes' => $this->status === 'telat' ? ($this->lateMinutes ?? 0) : 0,
+                'late_minutes' => $newLate,
                 'is_manual_input' => true,
                 'manual_input_by_id' => $actor->id,
                 'manual_input_by_type' => get_class($actor),
+                'note' => $noteToSave,
             ]
         );
 

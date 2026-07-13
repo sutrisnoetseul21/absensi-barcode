@@ -36,6 +36,33 @@ class AdminPanelProvider extends PanelProvider
                     return asset('favicon.ico');
                 }
             })
+            ->brandName(function () {
+                try {
+                    $name = \App\Models\PengaturanSekolah::current()?->school_name;
+                    return $name ? 'Sistem Presensi Digital ' . $name : 'Sistem Presensi Digital';
+                } catch (\Exception $e) {
+                    return 'Sistem Presensi Digital';
+                }
+            })
+            ->brandLogo(function () {
+                try {
+                    $logo = \App\Models\PengaturanSekolah::current()?->school_logo_path;
+                    $name = \App\Models\PengaturanSekolah::current()?->school_name;
+                    $title = $name ? 'Sistem Presensi Digital ' . $name : 'Sistem Presensi Digital';
+                    
+                    if ($logo) {
+                        return new \Illuminate\Support\HtmlString('
+                            <div class="flex items-center gap-2">
+                                <img src="' . asset('storage/' . $logo) . '" alt="Logo" style="height: 2rem; width: auto;" />
+                                <span class="font-bold text-lg leading-tight">' . $title . '</span>
+                            </div>
+                        ');
+                    }
+                    return $title;
+                } catch (\Exception $e) {
+                    return 'Sistem Presensi Digital';
+                }
+            })
             ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->profile()
             ->colors([

@@ -53,13 +53,6 @@
                         color="success">
                         Export Excel
                     </x-filament::button>
-                    
-                    <x-filament::button
-                        wire:click="openInputModal"
-                        icon="heroicon-o-plus-circle"
-                        color="warning">
-                        Input Absen Manual
-                    </x-filament::button>
                     @endif
                 </div>
             </div>
@@ -207,85 +200,5 @@
             </div>
         </x-filament::section>
         @endif
-
-        {{-- ===== MODAL INPUT MANUAL ===== --}}
-        @if($showInputModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" x-data>
-            {{-- Backdrop --}}
-            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="closeInputModal"></div>
-
-            {{-- Modal --}}
-            <div class="relative w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden z-10">
-                {{-- Header --}}
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-950 dark:text-white">Input Presensi Manual</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Masukkan atau perbarui presensi siswa untuk tanggal tertentu</p>
-                    </div>
-                    <button wire:click="closeInputModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-                        <x-heroicon-o-x-mark class="w-6 h-6"/>
-                    </button>
-                </div>
-
-                {{-- Date Picker --}}
-                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Tanggal Presensi</label>
-                    <input type="date" wire:model.live="inputDate"
-                        class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
-                </div>
-
-                {{-- Siswa List --}}
-                <div class="overflow-y-auto max-h-[400px]">
-                    <table class="min-w-full text-sm">
-                        <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800 z-10">
-                            <tr class="border-b border-gray-200 dark:border-gray-700">
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nama Siswa</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Menit Telat</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                            @foreach($inputStudents as $studentId => $sData)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
-                                <td class="px-6 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $sData['name'] }}</td>
-                                <td class="px-4 py-3 text-center">
-                                    <select wire:model.live="inputStudents.{{ $studentId }}.status"
-                                        class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-2 py-1.5 shadow-sm focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer">
-                                        <option value="">-- Pilih --</option>
-                                        <option value="hadir">Hadir</option>
-                                        <option value="telat">Telat</option>
-                                        <option value="sakit">Sakit</option>
-                                        <option value="izin">Izin</option>
-                                        <option value="alpa">Alpa</option>
-                                    </select>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    @if(($inputStudents[$studentId]['status'] ?? '') === 'telat')
-                                    <input type="number" min="1" wire:model.lazy="inputStudents.{{ $studentId }}.late_minutes"
-                                        placeholder="mnt"
-                                        class="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-2 py-1.5 shadow-sm focus:ring-2 focus:ring-primary-500 outline-none text-center">
-                                    @else
-                                    <span class="text-gray-300 dark:text-gray-700">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- Footer --}}
-                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                    <x-filament::button color="gray" wire:click="closeInputModal">
-                        Batal
-                    </x-filament::button>
-                    <x-filament::button wire:click="saveManualInput" wire:loading.attr="disabled" icon="heroicon-o-check">
-                        Simpan Presensi
-                    </x-filament::button>
-                </div>
-            </div>
-        </div>
-        @endif
-
     </div>
 </x-filament-panels::page>

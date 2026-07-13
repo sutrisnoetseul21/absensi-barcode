@@ -43,20 +43,27 @@
                                     <tr class="hover:bg-slate-50 transition-colors">
                                         <td class="py-3 px-4 font-bold text-slate-800">{{ $data['name'] }}</td>
                                         <td class="py-3 px-4">
-                                            <select wire:model.live="inputStudents.{{ $id }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
-                                                {{ $data['status'] === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
-                                                {{ $data['status'] === 'telat' ? 'text-amber-700 bg-amber-50 border-amber-200' : '' }}
-                                                {{ $data['status'] === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
-                                                {{ $data['status'] === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}
-                                                {{ $data['status'] === 'alpa' ? 'text-red-700 bg-red-50 border-red-200' : '' }}
-                                            ">
-                                                <option value="">-- Pilih --</option>
-                                                <option value="hadir">Hadir</option>
-                                                <option value="telat">Terlambat</option>
-                                                <option value="izin">Izin</option>
-                                                <option value="sakit">Sakit</option>
-                                                <option value="alpa">Alpa</option>
-                                            </select>
+                                            @if(isset($data['is_manual_input']) && $data['is_manual_input'] === false)
+                                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                                    <svg class="w-4 h-4 mr-1.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    Sudah Absen Otomatis
+                                                </span>
+                                            @else
+                                                <select wire:model.live="inputStudents.{{ $id }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
+                                                    {{ $data['status'] === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
+                                                    {{ $data['status'] === 'telat' ? 'text-amber-700 bg-amber-50 border-amber-200' : '' }}
+                                                    {{ $data['status'] === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
+                                                    {{ $data['status'] === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}
+                                                    {{ $data['status'] === 'alpa' ? 'text-red-700 bg-red-50 border-red-200' : '' }}
+                                                ">
+                                                    <option value="">-- Pilih --</option>
+                                                    <option value="hadir">Hadir</option>
+                                                    <option value="telat">Terlambat</option>
+                                                    <option value="izin">Izin</option>
+                                                    <option value="sakit">Sakit</option>
+                                                    <option value="alpa">Alpa</option>
+                                                </select>
+                                            @endif
                                         </td>
                                         <td class="py-3 px-4">
                                             @if($data['status'] === 'telat')

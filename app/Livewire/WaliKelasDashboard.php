@@ -212,6 +212,7 @@ class WaliKelasDashboard extends Component
                 'name'        => $student->name,
                 'status'      => $att ? $att->status : '',
                 'late_minutes' => $att ? $att->late_minutes : null,
+                'is_manual_input' => $att ? $att->is_manual_input : null,
             ];
         }
         $this->inputStudents = $list;
@@ -239,6 +240,39 @@ class WaliKelasDashboard extends Component
                 ->where('status', 'aktif')
                 ->first();
 
+            $existing = Presensi::where('student_id', $studentId)
+                ->where('date', $this->inputDate)
+                ->first();
+
+            $newLate = ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0;
+
+            // Jika data sudah ada dan tidak ada perubahan sama sekali, lewati penyimpanan agar tidak merusak data otomatis
+            if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate) {
+                continue;
+            }
+
+            // Blokir Guru jika mengedit data scan otomatis (hanya Admin yang boleh)
+            if ($existing && $existing->is_manual_input === false && Auth::guard('wali_kelas')->check()) {
+                $this->dispatch('notify', [
+                    'type'    => 'error',
+                    'message' => "Gagal mengubah: Sebagian siswa sudah absen otomatis. Hanya Admin yang bisa mengubahnya.",
+                ]);
+                continue;
+            }
+
+            $actor = Auth::guard('wali_kelas')->check() ? Auth::guard('wali_kelas')->user() : Auth::guard('web')->user();
+            $actorType = Auth::guard('wali_kelas')->check() ? 'Guru' : 'Admin';
+            
+            $note = null;
+            if ($existing) {
+                $strLama = $existing->status === 'telat' ? "Telat ({$existing->late_minutes} mnt)" : ucfirst($existing->status);
+                $strBaru = $data['status'] === 'telat' ? "Telat ({$newLate} mnt)" : ucfirst($data['status']);
+                $appendNote = "Diedit oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem') . " (Perubahan {$strLama} ke {$strBaru})";
+                $note = $existing->note ? $existing->note . ' | ' . $appendNote : $appendNote;
+            } else {
+                $note = "Diinput Manual oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem');
+            }
+
             Presensi::updateOrCreate(
                 [
                     'student_id'       => $studentId,
@@ -249,10 +283,11 @@ class WaliKelasDashboard extends Component
                 [
                     'enrollment_id'   => $enrollment?->id,
                     'status'          => $data['status'],
-                    'late_minutes'    => ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0,
+                    'late_minutes'    => $newLate,
                     'is_manual_input' => true,
-                    'manual_input_by_id'   => Auth::guard('wali_kelas')->id() ?? Auth::guard('web')->id(),
+                    'manual_input_by_id'   => $actor->id,
                     'manual_input_by_type' => Auth::guard('wali_kelas')->check() ? \App\Models\Guru::class : \App\Models\User::class,
+                    'note'            => $note,
                 ]
             );
         }
