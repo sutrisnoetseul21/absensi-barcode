@@ -105,12 +105,33 @@ Dengan fondasi yang bersih, modul-modul berikut dapat dibangun di atas Layer 1 t
 
 ---
 
-## Tahap 2: Penerapan Event-Driven Architecture (Status: 🔜 MENDATANG)
-**Fokus:** Memutus (*decouple*) ketergantungan erat antara Modul Siswa dan Modul Enrollment / Presensi menggunakan pola Pub/Sub.
-- [ ] Mengubah Action Classes (dari Tahap 1) agar men-*dispatch* Event (contoh: `StudentStatusChanged`, `StudentGraduated`).
-- [ ] Membuat Listener di Modul Enrollment untuk mengubah status pendaftaran (menjadi *pindah/lulus*) ketika Event dipicu.
-- [ ] Membuat Listener di Modul Presensi untuk menonaktifkan profil barcode siswa jika siswa dinyatakan lulus atau mutasi.
-- *Keuntungan:* Modul Master Siswa sama sekali tidak perlu memanggil tabel/kode Enrollment maupun Presensi secara langsung.
+## Tahap 2: Penerapan Event-Driven Architecture (Status: ✅ SELESAI PENUH)
+**Fokus:** Memutus (*decouple*) ketergantungan erat antara Modul Siswa dan Modul Enrollment / Presensi menggunakan pola Pub/Sub (synchronous).
+
+### Events yang Dibuat (`app/Events/Student/`)
+- [x] `StudentMutated` — dipicu saat siswa ditandai mutasi
+- [x] `StudentGraduated` — dipicu saat siswa dinyatakan lulus (membawa `$activeYearId`)
+- [x] `StudentReactivated` — dipicu saat siswa aktif kembali dari mutasi
+- [x] `StudentGraduationCancelled` — dipicu saat kelulusan dibatalkan (membawa `$activeYearId`)
+
+### Listeners Enrollment yang Dibuat (`app/Listeners/Enrollment/`)
+- [x] `HandleStudentMutated` — ubah enrollment aktif → `pindah`
+- [x] `HandleStudentGraduated` — ubah enrollment aktif/tahun ajaran tertentu → `lulus`
+- [x] `HandleStudentReactivated` — kembalikan enrollment `pindah` → `aktif`
+- [x] `HandleStudentGraduationCancelled` — kembalikan enrollment `lulus` → `aktif`
+
+### Listeners Presensi yang Dibuat (`app/Listeners/Presensi/`)
+- [x] `HandleStudentDeactivatedForPresensi` — nonaktifkan barcode (mendengarkan `StudentMutated` **|** `StudentGraduated` via PHP 8 Union Types)
+- [x] `HandleStudentReactivatedForPresensi` — aktifkan kembali barcode (mendengarkan `StudentReactivated` **|** `StudentGraduationCancelled` via PHP 8 Union Types)
+
+### Action Classes Dimodifikasi
+- [x] `MutateStudentAction` — hapus logika enrollment langsung, tambah `event(new StudentMutated)` dalam `DB::transaction`
+- [x] `GraduateStudentAction` — hapus logika enrollment langsung, tambah `event(new StudentGraduated)` dalam `DB::transaction`
+- [x] `ReactivateStudentAction` — `execute()` + `cancelGraduation()` masing-masing dispatch Event dalam `DB::transaction`
+
+### Registrasi
+- [x] Semua pasangan Event → Listener didaftarkan di `AppServiceProvider::boot()` via `Event::listen()`
+- *Keuntungan:* Modul Master Siswa sama sekali tidak lagi memanggil tabel/kode Enrollment maupun Presensi secara langsung.
 
 ---
 
@@ -143,4 +164,4 @@ Dengan fondasi yang bersih, modul-modul berikut dapat dibangun di atas Layer 1 t
 ---
 
 *Dokumen ini merupakan "living document" yang akan diperbarui seiring dengan berjalannya proses refactoring.*
-*Terakhir diperbarui: 2026-07-17 — Revisi Tahap 3 (pisah total siswa vs enrollment)*
+*Terakhir diperbarui: 2026-07-17 — Tahap 2 SELESAI (Event-Driven Architecture)*

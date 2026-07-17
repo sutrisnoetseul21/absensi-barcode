@@ -2,41 +2,42 @@
 
 namespace App\Actions\Student;
 
+use App\Events\Student\StudentGraduationCancelled;
+use App\Events\Student\StudentReactivated;
 use App\Models\Siswa;
+use Illuminate\Support\Facades\DB;
 
 class ReactivateStudentAction
 {
     /**
-     * Mengaktifkan kembali siswa (dari status mutasi/pindah).
-     * 
-     * @param Siswa $siswa
-     * @return void
+     * Mengaktifkan kembali siswa dari status mutasi.
+     *
+     * Men-dispatch StudentReactivated agar Listener Enrollment
+     * mengembalikan status 'pindah' → 'aktif', dan Listener Presensi
+     * mengaktifkan kembali barcode siswa.
      */
     public function execute(Siswa $siswa): void
     {
-        // 1. Ubah status global siswa menjadi aktif
-        $siswa->update(['status' => 'aktif']);
-        
-        // 2. Kembalikan status enrollment yang pindah menjadi aktif
-        $siswa->enrollments()->where('status', 'pindah')->update(['status' => 'aktif']);
+        DB::transaction(function () use ($siswa) {
+            $siswa->update(['status' => 'aktif']);
+
+            event(new StudentReactivated($siswa));
+        });
     }
-    
+
     /**
      * Membatalkan kelulusan siswa dan mengembalikan statusnya ke aktif.
-     * 
-     * @param Siswa $siswa
-     * @param string|null $activeYearId
-     * @return void
+     *
+     * Men-dispatch StudentGraduationCancelled agar Listener Enrollment
+     * mengembalikan status 'lulus' → 'aktif', dan Listener Presensi
+     * mengaktifkan kembali barcode siswa.
      */
     public function cancelGraduation(Siswa $siswa, ?string $activeYearId = null): void
     {
-        $siswa->update(['status' => 'aktif']);
-        
-        if ($activeYearId) {
-            $siswa->enrollments()->where('academic_year_id', $activeYearId)->update(['status' => 'aktif']);
-        } else {
-            // Fallback jika year ID tidak spesifik
-            $siswa->enrollments()->where('status', 'lulus')->update(['status' => 'aktif']);
-        }
+        DB::transaction(function () use ($siswa, $activeYearId) {
+            $siswa->update(['status' => 'aktif']);
+
+            event(new StudentGraduationCancelled($siswa, $activeYearId));
+        });
     }
 }
