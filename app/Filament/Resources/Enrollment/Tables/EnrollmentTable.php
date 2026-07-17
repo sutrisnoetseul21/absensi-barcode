@@ -57,6 +57,9 @@ class EnrollmentTable
                     ->query(fn ($query) => $query),
             ], layout: \Filament\Tables\Enums\FiltersLayout::AboveContent)
             ->headerActions([
+                // Bulk enrollment: daftarkan banyak siswa ke kelas sekaligus
+                \App\Filament\Resources\Enrollment\Actions\BulkEnrollStudentsAction::make(),
+
                 \App\Filament\Resources\Enrollment\Actions\LuluskanKelas9Action::make(),
                 \App\Filament\Resources\Enrollment\Actions\BatalkanKelulusanMassalAction::make(),
                 

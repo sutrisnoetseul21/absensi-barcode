@@ -2,11 +2,19 @@
 
 namespace App\Filament\Resources\Siswa\Actions;
 
-use Filament\Actions\Action;
 use App\Models\Siswa;
-use App\Models\Kelas;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
+/**
+ * Action untuk import siswa baru dari file Excel.
+ *
+ * Sesuai arsitektur pisah total (Refactoring Tahap 3):
+ * - Action ini HANYA mengisi tabel students (Master Data)
+ * - Tidak ada lagi logika enrollment ke kelas
+ * - Template Excel tidak lagi memiliki kolom Kelas
+ * - Pendaftaran kelas dilakukan terpisah via EnrollmentResource
+ */
 class ImportSiswaBaruAction extends Action
 {
     public static function getDefaultName(): ?string
@@ -59,14 +67,18 @@ class ImportSiswaBaruAction extends Action
                                 return new \Illuminate\Support\HtmlString('<p class="text-sm text-gray-500">File kosong.</p>');
                             }
 
-                            $sheet = $data[0];
+                            $sheet   = $data[0];
                             $headers = $sheet[0] ?? [];
                             $allRows = array_slice($sheet, 1);
 
                             if (empty($headers)) return '';
 
-                            // Validasi kecocokan header
-                            if (empty($headers) || strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' || strtolower(trim((string)($headers[1] ?? ''))) !== 'nis' || strtolower(trim((string)($headers[2] ?? ''))) !== 'nama siswa' || strtolower(trim((string)($headers[7] ?? ''))) !== 'kelas') {
+                            // Validasi kecocokan header (7 kolom, tanpa Kelas)
+                            if (
+                                strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' ||
+                                strtolower(trim((string)($headers[1] ?? ''))) !== 'nis'  ||
+                                strtolower(trim((string)($headers[2] ?? ''))) !== 'nama siswa'
+                            ) {
                                 return new \Illuminate\Support\HtmlString('<p style="color: #b91c1c; font-weight: 600; padding: 10px; background-color: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px;">⚠️ Berkas yang diunggah bukan template Siswa Baru yang valid. Silakan gunakan template yang sesuai.</p>');
                             }
 
@@ -84,11 +96,10 @@ class ImportSiswaBaruAction extends Action
                             }
 
                             $existingStudents = Siswa::pluck('name', 'nisn')->toArray();
-                            $existingClasses = Kelas::pluck('name')->toArray();
 
-                            $html = '<div style="overflow-x: auto; overflow-y: auto; max-height: 250px; width: 100%; margin-top: 10px; margin-bottom: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">';
+                            $html  = '<div style="overflow-x: auto; overflow-y: auto; max-height: 250px; width: 100%; margin-top: 10px; margin-bottom: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">';
                             $html .= '<table style="display: table; width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left;">';
-                            
+
                             // Header
                             $html .= '<thead style="display: table-header-group; background-color: #f3f4f6; position: sticky; top: 0; z-index: 10;">';
                             $html .= '<tr style="display: table-row;">';
@@ -96,51 +107,33 @@ class ImportSiswaBaruAction extends Action
                                 $html .= '<th style="display: table-cell; padding: 10px 12px; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; border-right: 1px solid #e5e7eb; background-color: #f3f4f6;">' . htmlspecialchars((string) $th ?? '') . '</th>';
                             }
                             $html .= '</tr></thead>';
-                            
+
                             // Body
                             $html .= '<tbody style="display: table-row-group; background-color: #ffffff;">';
                             foreach ($rows as $row) {
                                 $html .= '<tr style="display: table-row; border-bottom: 1px solid #e5e7eb;">';
-                                
-                                $nisnVal = trim((string) ($row[0] ?? ''));
-                                $nisVal = trim((string) ($row[1] ?? ''));
-                                $nameVal = trim((string) ($row[2] ?? ''));
-                                $tempatLahirVal = trim((string) ($row[3] ?? ''));
-                                $tglLahirVal = trim((string) ($row[4] ?? ''));
-                                $alamatVal = trim((string) ($row[5] ?? ''));
-                                $passVal = trim((string) ($row[6] ?? ''));
-                                $classVal = trim((string) ($row[7] ?? ''));
 
-                                // NISN
+                                $nisnVal       = trim((string) ($row[0] ?? ''));
+                                $nisVal        = trim((string) ($row[1] ?? ''));
+                                $nameVal       = trim((string) ($row[2] ?? ''));
+                                $tempatLahirVal = trim((string) ($row[3] ?? ''));
+                                $tglLahirVal   = trim((string) ($row[4] ?? ''));
+                                $alamatVal     = trim((string) ($row[5] ?? ''));
+                                $passVal       = trim((string) ($row[6] ?? ''));
+
+                                // NISN — tandai jika sudah ada di DB (update)
                                 $nisnHtml = htmlspecialchars($nisnVal);
                                 if (isset($existingStudents[$nisnVal])) {
-                                    $dbName = $existingStudents[$nisnVal];
+                                    $dbName   = $existingStudents[$nisnVal];
                                     $nisnHtml .= ' <span style="color: #4b5563; font-size: 0.75rem;">(Update: ' . htmlspecialchars($dbName) . ')</span>';
                                 }
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . $nisnHtml . '</td>';
-
-                                // NIS
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($nisVal) . '</td>';
-
-                                // Nama
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($nameVal) . '</td>';
-
-                                // Tempat Lahir, Tgl Lahir, Alamat
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($tempatLahirVal) . '</td>';
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($tglLahirVal) . '</td>';
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($alamatVal) . '</td>';
-
-                                // Password
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; color: #6b7280; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($passVal === '' ? 'NISN (default)' : $passVal) . '</td>';
-
-                                // Kelas
-                                $classHtml = '';
-                                if (in_array($classVal, $existingClasses)) {
-                                    $classHtml = '<span style="color: #10b981; font-weight: 500;">✓ ' . htmlspecialchars($classVal) . '</span>';
-                                } else {
-                                    $classHtml = '<span style="display: inline-block; color: #b91c1c; background-color: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">⚠️ ' . htmlspecialchars($classVal === '' ? 'Kosong' : $classVal) . ' (Tidak terdaftar)</span>';
-                                }
-                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $classHtml . '</td>';
 
                                 $html .= '</tr>';
                             }
@@ -158,39 +151,18 @@ class ImportSiswaBaruAction extends Action
                     $filePath = storage_path('app/' . $data['file']);
                 }
 
-                // Validasi header & kelas sebelum import
+                // Validasi header sebelum import
                 try {
                     $parsedData = \Maatwebsite\Excel\Facades\Excel::toArray(new \stdClass, $filePath);
                     if (!empty($parsedData[0])) {
-                        $sheet = $parsedData[0];
-                        $headers = $sheet[0] ?? [];
+                        $headers = $parsedData[0][0] ?? [];
 
-                        if (empty($headers) || strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' || strtolower(trim((string)($headers[1] ?? ''))) !== 'nis' || strtolower(trim((string)($headers[2] ?? ''))) !== 'nama siswa' || strtolower(trim((string)($headers[7] ?? ''))) !== 'kelas') {
+                        if (
+                            strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' ||
+                            strtolower(trim((string)($headers[1] ?? ''))) !== 'nis'  ||
+                            strtolower(trim((string)($headers[2] ?? ''))) !== 'nama siswa'
+                        ) {
                             Notification::make()->title('Import Gagal')->body('Format berkas salah. Gunakan template Siswa Baru.')->danger()->send();
-                            return;
-                        }
-
-                        $rows = array_slice($sheet, 1);
-                        $existingClasses = Kelas::pluck('name')->toArray();
-                        $invalidClasses = [];
-
-                        foreach ($rows as $row) {
-                            $nisn = trim((string) ($row[0] ?? ''));
-                            if ($nisn === '') continue;
-
-                            $classVal = trim((string) ($row[7] ?? ''));
-                            if (!in_array($classVal, $existingClasses)) {
-                                $invalidClasses[] = $classVal === '' ? 'Kosong' : $classVal;
-                            }
-                        }
-
-                        if (!empty($invalidClasses)) {
-                            Notification::make()
-                                ->title('Import Gagal')
-                                ->body('Terdapat kelas yang tidak terdaftar di sistem: **' . implode(', ', array_unique($invalidClasses)) . '**. Harap perbaiki berkas Anda.')
-                                ->danger()
-                                ->persistent()
-                                ->send();
                             return;
                         }
                     }
@@ -200,7 +172,11 @@ class ImportSiswaBaruAction extends Action
                 }
 
                 \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\SiswaBaruImport, $filePath);
-                Notification::make()->title('Import Siswa Baru Berhasil')->success()->send();
+                Notification::make()
+                    ->title('Import Siswa Baru Berhasil')
+                    ->body('Data siswa berhasil diimpor. Silakan daftarkan siswa ke kelas melalui menu Pendaftaran Kelas.')
+                    ->success()
+                    ->send();
             });
     }
 }

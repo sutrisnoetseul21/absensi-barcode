@@ -26,9 +26,9 @@ class EnrollmentResource extends Resource
 
     protected static ?string $modelLabel = 'Pendaftaran Kelas';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 1;
 
     public static function canViewAny(): bool
     {

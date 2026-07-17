@@ -135,23 +135,23 @@ Dengan fondasi yang bersih, modul-modul berikut dapat dibangun di atas Layer 1 t
 
 ---
 
-## Tahap 3: Perapihan UI / Filament Resources (Status: 🔜 MENDATANG)
+## Tahap 3: Perapihan UI / Filament Resources (Status: ✅ SELESAI PENUH)
 **Fokus:** Membersihkan antarmuka Master Data dari tanggung jawab Modul Enrollment dan Presensi. Menerapkan keputusan **pisah total** pada UI layer.
 
 ### 3A — Pemisahan Import Siswa vs Enrollment
-- [ ] **Pisahkan template Excel** Import Siswa Baru: hapus kolom `Kelas` dari template, sehingga import hanya mengisi tabel `students`.
-- [ ] **Pisahkan logika di `ImportSiswaBaruAction`**: hapus validasi kelas & pendaftaran ke kelas. Action ini hanya membuat data identitas siswa.
-- [ ] **Buat/pindahkan action "Daftarkan Siswa ke Kelas"** ke `EnrollmentResource` → admin dapat memilih siswa yang belum punya enrollment dan assign ke kelas + tahun ajaran aktif.
+- [x] **Pisahkan template Excel** Import Siswa Baru: hapus kolom `Kelas` dari template, sehingga import hanya mengisi tabel `students`.
+- [x] **Pisahkan logika di `ImportSiswaBaruAction`**: hapus validasi kelas & pendaftaran ke kelas. Action ini hanya membuat data identitas siswa.
+- [x] **Buat/pindahkan action "Daftarkan Siswa ke Kelas"** ke `EnrollmentResource` → admin dapat memilih siswa yang belum punya enrollment dan assign ke kelas + tahun ajaran aktif (`BulkEnrollStudentsAction`).
 
 ### 3B — Bersihkan Aksi Presensi dari Modul Siswa
-- [ ] Pindahkan/pisahkan aksi **"Cetak Kartu Presensi"** (per siswa & massal) dari `SiswaTable` ke Resource/menu khusus Presensi (misal `PresensiCardResource` atau sub-halaman di Presensi).
-- [ ] Pastikan `SiswaResource` tidak lagi memuat *concern* tentang barcode/kartu login.
+- [x] Pindahkan/pisahkan aksi **"Cetak Kartu Presensi"** (per siswa & massal) dari `SiswaTable` ke Resource/menu khusus Presensi (`ManajemenKartuPresensi` Page).
+- [x] Pastikan `SiswaResource` tidak lagi memuat *concern* tentang barcode/kartu login.
 
 ### 3C — Struktur Navigasi Filament
-- [ ] Pastikan grup navigasi terstruktur dengan jelas:
+- [x] Pastikan grup navigasi terstruktur dengan jelas:
   - **Master Data** → `SiswaResource`, `KelasResource`, `TahunAjaranResource`
   - **Akademik / Operasional** → `EnrollmentResource`
-  - **Presensi** → `PresensiResource`, (Cetak Kartu)
+  - **Presensi** → `PresensiResource`, `ManajemenKartuPresensi`
 
 ---
 
@@ -164,4 +164,4 @@ Dengan fondasi yang bersih, modul-modul berikut dapat dibangun di atas Layer 1 t
 ---
 
 *Dokumen ini merupakan "living document" yang akan diperbarui seiring dengan berjalannya proses refactoring.*
-*Terakhir diperbarui: 2026-07-17 — Tahap 2 SELESAI (Event-Driven Architecture)*
+*Terakhir diperbarui: 2026-07-17 — Tahap 3 SELESAI (Perapihan UI Filament)*

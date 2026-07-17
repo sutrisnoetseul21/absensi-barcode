@@ -111,7 +111,7 @@ class SiswaTable
             ])
             ->headerActions([
                 \App\Filament\Resources\Siswa\Actions\ImportFotoMassalAction::make(),
-                
+
                 // 1. Download Template Siswa Baru
                 Action::make('download_template_siswa_baru')
                     ->label('Template Siswa Baru')
@@ -120,26 +120,6 @@ class SiswaTable
                     ->action(fn () => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\SiswaBaruTemplateExport, 'template_siswa_baru.xlsx')),
 
                 \App\Filament\Resources\Siswa\Actions\ImportSiswaBaruAction::make(),
-
-                Action::make('cetak_kartu_login_massal_header')
-                    ->label('Cetak Kartu Presensi Massal')
-                    ->icon('heroicon-o-printer')
-                    ->color('info')
-                    ->action(function (\Filament\Tables\Contracts\HasTable $livewire) {
-                        $records = $livewire->getFilteredTableQuery()->get();
-                        
-                        if ($records->isEmpty()) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Tidak ada data siswa')
-                                ->warning()
-                                ->send();
-                            return;
-                        }
-
-                        $ids = $records->pluck('id')->implode(',');
-                        $url = route('siswa.cetak-kartu-login-massal', ['ids' => $ids]);
-                        $livewire->js("window.open('{$url}', '_blank')");
-                    }),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'aktif'))
             ->filters([
@@ -198,15 +178,6 @@ class SiswaTable
                             ->send();
                     }),
 
-
-                Action::make('cetak_kartu_login')
-                    ->label('Cetak Kartu Presensi')
-                    ->icon('heroicon-o-printer')
-                    ->color('info')
-                    ->action(function (Siswa $record, \Filament\Tables\Contracts\HasTable $livewire) {
-                        $url = route('siswa.cetak-kartu-login', $record);
-                        $livewire->js("window.open('{$url}', '_blank')");
-                    }),
 
                 // Custom Action: Reset Password
                 Action::make('resetPassword')
@@ -276,16 +247,6 @@ class SiswaTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    \Filament\Actions\BulkAction::make('cetak_kartu_login_massal')
-                        ->label('Cetak Kartu Presensi Massal')
-                        ->icon('heroicon-o-printer')
-                        ->color('info')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records, \Filament\Tables\Contracts\HasTable $livewire) {
-                            $ids = $records->pluck('id')->implode(',');
-                            $url = route('siswa.cetak-kartu-login-massal', ['ids' => $ids]);
-                            $livewire->js("window.open('{$url}', '_blank')");
-                        }),
-
                     DeleteBulkAction::make()
                         ->before(function (\Illuminate\Database\Eloquent\Collection $records, DeleteBulkAction $action) {
                             $blocked = $records->filter(fn ($r) => $r->enrollments()->exists());
