@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Siswa\Tables;
 
+use App\Actions\Student\MutateStudentAction;
+use App\Actions\Student\ReactivateStudentAction;
 use Filament\Forms\Components\TextInput;
 use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
@@ -170,11 +172,7 @@ class SiswaTable
                     ->modalDescription('Siswa ini akan ditandai sebagai Mutasi (pindah/keluar sekolah). Jika siswa masih terdaftar di sebuah kelas, status pendaftarannya di kelas tersebut akan otomatis diubah menjadi "Pindah".')
                     ->visible(fn (Siswa $record) => $record->status === 'aktif')
                     ->action(function (Siswa $record) {
-                        // 1. Ubah status global siswa menjadi mutasi
-                        $record->update(['status' => 'mutasi']);
-                        
-                        // 2. Ubah status pendaftaran di kelas yang sedang aktif menjadi 'pindah'
-                        $record->enrollments()->where('status', 'aktif')->update(['status' => 'pindah']);
+                        (new MutateStudentAction)->execute($record);
 
                         Notification::make()
                             ->title('Siswa Ditandai Mutasi')
@@ -191,9 +189,7 @@ class SiswaTable
                     ->requiresConfirmation()
                     ->visible(fn (Siswa $record) => $record->status === 'mutasi')
                     ->action(function (Siswa $record) {
-                        $record->update(['status' => 'aktif']);
-                        // Opsional: Jika mau mengembalikan status enrollments pindah menjadi aktif
-                        $record->enrollments()->where('status', 'pindah')->update(['status' => 'aktif']);
+                        (new ReactivateStudentAction)->execute($record);
 
                         Notification::make()
                             ->title('Siswa Diaktifkan Kembali')

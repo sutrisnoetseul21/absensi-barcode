@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\Student\ReactivateStudentAction;
+use App\Models\PengaturanSekolah;
 use App\Models\Siswa;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -96,9 +98,11 @@ class SiswaLulusResource extends Resource
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Batalkan Kelulusan Siswa')
-                    ->modalDescription('Siswa ini akan dikembalikan ke status Aktif. Apakah Anda yakin?')
+                    ->modalDescription('Siswa ini akan dikembalikan ke status Aktif. Status enrollment kelulusan juga akan dibatalkan. Apakah Anda yakin?')
                     ->action(function (Siswa $record) {
-                        $record->update(['status' => 'aktif']);
+                        $activeYearId = PengaturanSekolah::current()?->academic_year_id_active;
+                        (new ReactivateStudentAction)->cancelGraduation($record, $activeYearId);
+
                         Notification::make()
                             ->title('Kelulusan Dibatalkan')
                             ->body("Siswa **{$record->name}** telah dikembalikan ke status Aktif.")

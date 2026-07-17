@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\Student\ReactivateStudentAction;
 use App\Models\Siswa;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -98,10 +99,7 @@ class SiswaMutasiResource extends Resource
                     ->modalHeading('Aktifkan Kembali Siswa')
                     ->modalDescription('Siswa ini akan dikembalikan ke status Aktif. Jika sebelumnya ada kelas aktif yang ditandai "pindah", kelas tersebut juga akan dikembalikan menjadi aktif.')
                     ->action(function (Siswa $record) {
-                        $record->update(['status' => 'aktif']);
-                        
-                        // Kembalikan status enrollment yang pindah menjadi aktif
-                        $record->enrollments()->where('status', 'pindah')->update(['status' => 'aktif']);
+                        (new ReactivateStudentAction)->execute($record);
 
                         Notification::make()
                             ->title('Siswa Diaktifkan Kembali')

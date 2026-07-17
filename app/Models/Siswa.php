@@ -73,4 +73,10 @@ class Siswa extends Authenticatable
     {
         return $this->hasMany(Presensi::class, 'student_id');
     }
+
+    // Profil presensi (barcode dsb)
+    public function presensiProfile(): HasOne
+    {
+        return $this->hasOne(StudentPresensiProfile::class, 'student_id');
+    }
 }
