@@ -155,13 +155,13 @@ Dengan fondasi yang bersih, modul-modul berikut dapat dibangun di atas Layer 1 t
 
 ---
 
-## Tahap 4: Cleanup & Finalisasi Production (Status: 🔜 MENDATANG)
+## Tahap 4: Cleanup & Finalisasi Production (Status: ✅ SELESAI PENUH)
 **Fokus:** Pembersihan sisa-sisa *legacy code* setelah refactoring terbukti aman di production.
-- [ ] Validasi dan *testing* menyeluruh di *local* maupun *staging environment*.
-- [ ] Membuat "Migration B" yang secara spesifik melakukan `dropColumn` untuk `barcode_code` dan `barcode_active` pada tabel `students`.
-- [ ] Eksekusi "Migration B" di *production* ketika tabel `student_presensi_profiles` sudah berjalan mulus tanpa masalah.
+- [x] Validasi dan *testing* menyeluruh di *local* maupun *staging environment*.
+- [x] Membuat "Migration B" (`2026_07_17_030613_drop_barcode_columns_from_students_table.php`) yang secara spesifik melakukan `dropColumn` untuk `barcode_code` dan `barcode_active` pada tabel `students`.
+- [x] Eksekusi "Migration B" di *production* ketika tabel `student_presensi_profiles` sudah berjalan mulus tanpa masalah.
 
 ---
 
 *Dokumen ini merupakan "living document" yang akan diperbarui seiring dengan berjalannya proses refactoring.*
-*Terakhir diperbarui: 2026-07-17 — Tahap 3 SELESAI (Perapihan UI Filament)*
+*Terakhir diperbarui: 2026-07-17 — Tahap 4 SELESAI (Refactoring Selesai Penuh)*
