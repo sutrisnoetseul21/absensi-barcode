@@ -18,6 +18,7 @@ Route::get('/display', PublicDashboard::class)->name('public.display');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
 Route::get('/login', fn() => redirect('/admin/login'))->name('login');
 
+
 // Kiosk Absensi Routes - Protected by 'auth' middleware so only Admin can access
 Route::middleware('auth')->group(function () {
     Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
@@ -43,7 +44,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/siswa/{siswa}/cetak-kartu-login', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLogin'])->name('siswa.cetak-kartu-login');
     Route::get('/admin/siswa/cetak-kartu-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMassal'])->name('siswa.cetak-kartu-massal');
     Route::get('/admin/siswa/cetak-kartu-login-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLoginMassal'])->name('siswa.cetak-kartu-login-massal');
+
+    // Download laporan hasil import siswa (PPDB)
+    Route::get('/admin/import/download-laporan', function () {
+        $reportKey = 'import_laporan_' . auth()->id();
+        $results   = cache()->get($reportKey);
+
+        if (empty($results)) {
+            abort(404, 'Laporan tidak ditemukan atau sudah kedaluwarsa (maks. 30 menit).');
+        }
+
+        // Hapus dari cache setelah didownload
+        cache()->forget($reportKey);
+
+        $filename = 'laporan-import-siswa-' . now()->format('Ymd-His') . '.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SiswaImportLaporanExport($results),
+            $filename
+        );
+    })->name('admin.import.download-laporan');
 });
+
 
 // Wali Kelas Routes
 Route::prefix('wali-kelas')->group(function () {
