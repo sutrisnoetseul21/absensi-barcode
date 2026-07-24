@@ -226,13 +226,25 @@ class EnrollmentTable
                         }
 
                         return view('filament.resources.enrollment.pages.rombel-manager-modal', [
-                            'kelas'            => $record,
-                            'academicYear'     => \App\Models\TahunAjaran::find($academicYearId),
-                            'previousYear'     => $previousYear,
-                            'targetGradeLevel' => $targetGradeLevel,
-                            'leftStudents'     => $leftStudents,
-                            'rightStudents'    => $rightStudents,
-                            'previousClassMap' => $previousClassMap,
+                            'kelas'              => $record,
+                            'academicYear'       => \App\Models\TahunAjaran::find($academicYearId),
+                            'previousYear'       => $previousYear,
+                            'targetGradeLevel'   => $targetGradeLevel,
+                            'leftStudents'       => $leftStudents,
+                            'rightStudents'      => $rightStudents,
+                            'previousClassMap'   => $previousClassMap,
+                            // JSON untuk Alpine.js sort client-side
+                            'leftStudentsJson'   => $leftStudents->map(fn($s) => [
+                                'id'   => $s->id,
+                                'name' => $s->name,
+                                'nisn' => $s->nisn,
+                            ])->values()->toJson(JSON_UNESCAPED_UNICODE),
+                            'rightStudentsJson'  => $rightStudents->map(fn($s) => [
+                                'id'              => $s->id,
+                                'name'            => $s->name,
+                                'nisn'            => $s->nisn,
+                                'kelasSebelumnya' => $previousClassMap[$s->id] ?? null,
+                            ])->values()->toJson(JSON_UNESCAPED_UNICODE),
                         ]);
                     })
             ])
