@@ -83,9 +83,11 @@ class SiswaTable
                         return $className;
                     }),
 
-                TextColumn::make('barcode_code')
+                TextColumn::make('presensiProfile.barcode_code')
                     ->label('Barcode')
-                    ->searchable()
+                    ->searchable(query: function ($query, string $search) {
+                        $query->orWhereHas('presensiProfile', fn ($q) => $q->where('barcode_code', 'like', "%{$search}%"));
+                    })
                     ->copyable()
                     ->copyMessage('Barcode disalin'),
 
