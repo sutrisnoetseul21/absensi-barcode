@@ -263,7 +263,7 @@ class ImportSiswaBaruAction extends Action
                     ->body($body)
                     ->success()
                     ->actions([
-                        \Filament\Notifications\Actions\Action::make('download_laporan')
+                        \Filament\Actions\Action::make('download_laporan')
                             ->label('Download Laporan Excel')
                             ->icon('heroicon-o-arrow-down-tray')
                             ->url(route('admin.import.download-laporan'))
