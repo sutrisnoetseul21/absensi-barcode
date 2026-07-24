@@ -15,7 +15,7 @@ class InputPresensiManual extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-pencil-square';
     protected string $view = 'filament.pages.input-presensi-manual';
-    protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
     protected static ?string $title = 'Input Presensi Manual';
     protected static ?string $navigationLabel = 'Input Presensi Manual';
     protected static ?int $navigationSort = 3;

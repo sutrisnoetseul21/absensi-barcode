@@ -20,14 +20,14 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'superadmin@sekolah.com'],
+            ['email' => 'superadmin@haflaitsolution.id'],
             [
                 'name'           => 'Super Admin',
-                'password'       => Hash::make('superadmin123'),
+                'password'       => Hash::make('SuperAdmin123!'),
                 'is_super_admin' => true,
             ]
         );
 
-        $this->command->info('Super Admin seeded: superadmin@sekolah.com / superadmin123');
+        $this->command->info('Super Admin seeded: superadmin@haflaitsolution.id / SuperAdmin123!');
     }
 }

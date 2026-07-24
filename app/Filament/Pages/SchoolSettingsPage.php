@@ -31,7 +31,7 @@ class SchoolSettingsPage extends Page implements HasForms
 
     protected static ?string $title = 'Pengaturan Sekolah';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
 
     public ?array $data = [];
 

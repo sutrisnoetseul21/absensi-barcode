@@ -362,7 +362,8 @@
             @php
                 $enrollment = $student->enrollmentAktif;
                 $className = $enrollment?->kelas?->name ?? '-';
-                $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 50));
+                $barcodeData = $student->barcode_code ?? $student->nisn ?? 'NO-BARCODE';
+                $barcodeImage = base64_encode($generator->getBarcode($barcodeData, $generator::TYPE_CODE_128, 2, 50));
 
                 $photoPath = null;
                 if ($student->photo_path && file_exists(public_path('storage/' . $student->photo_path))) {

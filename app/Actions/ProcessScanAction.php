@@ -26,10 +26,13 @@ class ProcessScanAction
 
         // 2. Pencarian Siswa
         if ($type === 'nis') {
-            $siswa = Siswa::with('enrollmentAktif')->where('nis', $barcode)->first();
+            $siswa = Siswa::with(['enrollmentAktif', 'presensiProfile'])->where('nis', $barcode)->first();
         } else {
             // Default: NISN (barcode_code = nisn)
-            $siswa = Siswa::with('enrollmentAktif')->where('barcode_code', $barcode)->first();
+            $siswa = Siswa::with(['enrollmentAktif', 'presensiProfile'])
+                ->whereHas('presensiProfile', function($query) use ($barcode) {
+                    $query->where('barcode_code', $barcode);
+                })->first();
         }
 
         if (!$siswa) {

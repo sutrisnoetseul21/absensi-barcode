@@ -71,6 +71,7 @@
 ---
 
 ### `students`
+> **Master Data Murni:** Identitas siswa tanpa data transaksional.
 ```
 - id (uuid, primary)
 - nisn (string, unique)          → INDEX wajib
@@ -79,12 +80,22 @@
 - birth_date (date, nullable)
 - address (text, nullable)
 - photo_path (string, nullable)
-- barcode_code (string, unique)  → INDEX wajib, default = NISN
-- barcode_active (boolean) default true
 - username (string, unique)      → default = NISN
 - password (string)
 - must_change_password (boolean) default true
 - deleted_at (softDeletes)
+- timestamps()
+```
+
+---
+
+### `student_presensi_profiles` ← **NEW (Layer Operasional)**
+> Profil presensi khusus untuk siswa (dipisahkan dari identitas inti).
+```
+- id (uuid, primary)
+- student_id (foreignUuid → students)
+- barcode_code (string, unique)  → INDEX wajib
+- barcode_active (boolean) default true
 - timestamps()
 ```
 
@@ -225,6 +236,8 @@ academic_years ──< class_academic_year >── classes (template permanen)
 students ──< student_enrollments >── classes
                     |
                 academic_years
+
+students ──< student_presensi_profiles > (1-to-1 relasi logis)
 
 student_enrollments <── attendances ──> users (scanned_by)
                                     ──> polymorphic (manual_input_by)

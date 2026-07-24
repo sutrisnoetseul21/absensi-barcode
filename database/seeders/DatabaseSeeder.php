@@ -36,20 +36,24 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Bapak Budi',
                 'nip' => '198001012005011001',
                 'password' => 'password',
-                'must_change_password' => true,
             ]
         );
 
         // Akun Siswa
-        \App\Models\Siswa::firstOrCreate(
+        $siswa = \App\Models\Siswa::firstOrCreate(
             ['username' => '1234567890'],
             [
                 'nisn' => '1234567890',
                 'name' => 'Andi Siswa',
-                'barcode_code' => '1234567890',
                 'password' => 'password',
-                'must_change_password' => true,
             ]
         );
+
+        if ($siswa->wasRecentlyCreated) {
+            $siswa->presensiProfile()->create([
+                'barcode_code' => '1234567890',
+                'barcode_active' => true,
+            ]);
+        }
     }
 }

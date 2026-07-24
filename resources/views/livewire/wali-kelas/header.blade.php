@@ -20,6 +20,19 @@
                 <p class="mt-4 text-base text-indigo-200 max-w-2xl">
                     Kelola data presensi, pantau keterlambatan harian, dan lakukan presensi manual untuk siswa di kelas binaan Anda.
                 </p>
+                
+                @if(count($classes) > 0 && $selectedClassId && !empty($todayStats))
+                <div class="mt-5 flex flex-wrap items-center gap-3">
+                    <div class="bg-emerald-500/20 border border-emerald-400/30 rounded-lg px-3 py-1.5 backdrop-blur-md flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-sm font-medium text-emerald-100">Sudah Absen Hari Ini: <span class="font-bold text-white">{{ $todayStats['total'] - $todayStats['belum'] }}</span></span>
+                    </div>
+                    <div class="bg-rose-500/20 border border-rose-400/30 rounded-lg px-3 py-1.5 backdrop-blur-md flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                        <span class="text-sm font-medium text-rose-100">Belum Absen: <span class="font-bold text-white">{{ $todayStats['belum'] }}</span></span>
+                    </div>
+                </div>
+                @endif
             </div>
             <div class="mt-6 flex xl:mt-0 xl:ml-4 gap-4 items-center">
                 @if(count($classes) > 0 && $selectedClassId)

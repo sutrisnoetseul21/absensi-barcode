@@ -143,13 +143,28 @@ class PresensiRekapService
             ->havingRaw('sum(late_minutes) >= 100')
             ->pluck('student_id')->toArray();
 
+        $effectiveDays = count(array_filter($holidaysCache, fn($isHoliday) => !$isHoliday));
+        $totalStudents = count($students);
+        
+        $classMonthlyStats = [
+            'hadir' => $attendances->where('status', 'hadir')->count(),
+            'telat' => $attendances->where('status', 'telat')->count(),
+            'izin'  => $attendances->where('status', 'izin')->count(),
+            'sakit' => $attendances->where('status', 'sakit')->count(),
+            'alpa'  => $attendances->where('status', 'alpa')->count(),
+            'effective_days' => $effectiveDays,
+            'max_possible' => $effectiveDays * $totalStudents,
+            'total_students' => $totalStudents,
+        ];
+
         return [
-            'students'     => $students,
-            'monthlyStats' => $monthlyStats,
-            'todayStats'   => $todayStats,
-            'alerts'       => ['alpa' => $alpaTerlaluBanyak, 'telat' => $telatTerlaluBanyak],
-            'daysInMonth'  => $daysInMonth,
-            'todayDate'    => $todayDate,
+            'students'          => $students,
+            'monthlyStats'      => $monthlyStats,
+            'classMonthlyStats' => $classMonthlyStats,
+            'todayStats'        => $todayStats,
+            'alerts'            => ['alpa' => $alpaTerlaluBanyak, 'telat' => $telatTerlaluBanyak],
+            'daysInMonth'       => $daysInMonth,
+            'todayDate'         => $todayDate,
         ];
     }
 

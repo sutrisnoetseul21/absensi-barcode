@@ -137,7 +137,7 @@
         <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
-                <p class="text-xs font-semibold text-slate-500 uppercase">Hadir</p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase text-center leading-tight">Hadir Tepat Waktu</p>
                 <p class="text-3xl font-extrabold text-slate-800 mt-1">{{ $monthlyStats['H'] ?? 0 }}</p>
             </div>
             

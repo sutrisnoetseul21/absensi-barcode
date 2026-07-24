@@ -58,15 +58,23 @@ class AdminPanelProvider extends PanelProvider
                             </div>
                         ');
                     }
-                    return $title;
+                    return null;
                 } catch (\Exception $e) {
-                    return 'Sistem Presensi Digital';
+                    return null;
                 }
             })
             ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->profile()
             ->colors([
                 'primary' => Color::Amber,
+            ])
+            ->navigationGroups([
+                'Data Master',
+                'Akademik',
+                'Presensi',
+                'Laporan',
+                'Konten',
+                'Pengaturan Sistem',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

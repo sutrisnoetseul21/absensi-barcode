@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('nip')->unique()->nullable();
             $table->string('username')->unique();
             $table->string('password');
-            $table->boolean('must_change_password')->default(true);
+            $table->boolean('must_change_password')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

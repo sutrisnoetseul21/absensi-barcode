@@ -25,17 +25,27 @@ class ListEnrollments extends ListRecords
         return [];
     }
 
-    public function enrollStudent($studentId)
+    public function enrollStudent($studentId, $classId = null, $academicYearId = null)
     {
-        if (!$this->manageClassId || !$this->manageAcademicYearId) return;
+        $classId = $classId ?: $this->manageClassId;
+        $academicYearId = $academicYearId ?: $this->manageAcademicYearId;
+
+        if (!$classId || !$academicYearId) {
+            \Filament\Notifications\Notification::make()->title('Gagal: Data Kelas atau Tahun Ajaran tidak valid.')->danger()->send();
+            return;
+        }
+
+        // Set state just in case it's needed for UI updates
+        $this->manageClassId = $classId;
+        $this->manageAcademicYearId = $academicYearId;
 
         \App\Models\EnrollmentSiswa::updateOrCreate(
             [
                 'student_id' => $studentId,
-                'academic_year_id' => $this->manageAcademicYearId,
+                'academic_year_id' => $academicYearId,
             ],
             [
-                'class_id' => $this->manageClassId,
+                'class_id' => $classId,
                 'status' => 'aktif',
             ]
         );
@@ -46,13 +56,20 @@ class ListEnrollments extends ListRecords
             ->send();
     }
 
-    public function unenrollStudent($studentId)
+    public function unenrollStudent($studentId, $academicYearId = null)
     {
-        if (!$this->manageAcademicYearId) return;
+        $academicYearId = $academicYearId ?: $this->manageAcademicYearId;
+
+        if (!$academicYearId) {
+            \Filament\Notifications\Notification::make()->title('Gagal: Data Tahun Ajaran tidak valid.')->danger()->send();
+            return;
+        }
+        
+        $this->manageAcademicYearId = $academicYearId;
 
         // Cek apakah siswa sudah punya data presensi di kelas + tahun ajaran ini
         $hasPresensi = \App\Models\Presensi::where('student_id', $studentId)
-            ->where('academic_year_id', $this->manageAcademicYearId)
+            ->where('academic_year_id', $academicYearId)
             ->exists();
 
         if ($hasPresensi) {
@@ -65,7 +82,7 @@ class ListEnrollments extends ListRecords
         }
 
         \App\Models\EnrollmentSiswa::where('student_id', $studentId)
-            ->where('academic_year_id', $this->manageAcademicYearId)
+            ->where('academic_year_id', $academicYearId)
             ->delete();
 
         \Filament\Notifications\Notification::make()

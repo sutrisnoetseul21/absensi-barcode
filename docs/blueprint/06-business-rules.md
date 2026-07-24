@@ -1,5 +1,10 @@
 # 06. Business Rules
 
+## Event-Driven Architecture & Loose Coupling
+Sejak *refactoring* Tahap 2, aplikasi ini menerapkan pola arsitektur **Pub/Sub (Event-Driven)** secara synchronous. Tujuannya adalah memutus ketergantungan langsung antara Modul Master Data (Siswa) dengan Modul Operasional (Pendaftaran/Presensi).
+- Modul Master Data **tidak boleh** memanggil fungsi atau tabel operasional secara langsung.
+- Modul Master Data melempar Event (misal: `StudentMutated`, `StudentReactivated`, `StudentGraduated`).
+- Modul Operasional mendengarkan (Listen) event tersebut dan melakukan tindakan (misal: memindahkan status pendaftaran ke "pindah", menonaktifkan kartu barcode presensi).
 ## Jam Masuk & Kalkulasi Keterlambatan
 - Jam batas "Hadir" vs "Telat" diambil dari **`school_settings.checkin_time`** (setting global, sama untuk seluruh sekolah/kelas).
 - `late_minutes` = menit antara `scan_time` dengan `checkin_time`. Jika scan sebelum atau tepat waktu → `late_minutes = 0`, status `hadir`. Jika scan melewati batas → status `telat`.

@@ -25,9 +25,17 @@ class CreateTahunAjaran extends CreateRecord
             TahunAjaran::where('id', '!=', $this->record->id)
                 ->update(['status' => 'arsip']);
 
-            PengaturanSekolah::updateOrCreate([], [
-                'academic_year_id_active' => $this->record->id,
-            ]);
+            $settings = PengaturanSekolah::first();
+            if ($settings) {
+                $settings->update([
+                    'academic_year_id_active' => $this->record->id,
+                ]);
+            } else {
+                PengaturanSekolah::create([
+                    'school_name' => 'Sistem Presensi',
+                    'academic_year_id_active' => $this->record->id,
+                ]);
+            }
         }
     }
 }

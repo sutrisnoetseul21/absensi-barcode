@@ -15,8 +15,14 @@ class Siswa extends Authenticatable
     protected static function booted()
     {
         static::saving(function ($siswa) {
-            $siswa->barcode_code = $siswa->nisn;
             $siswa->username = $siswa->nisn;
+        });
+
+        static::created(function ($siswa) {
+            $siswa->presensiProfile()->create([
+                'barcode_code' => $siswa->nisn,
+                'barcode_active' => true,
+            ]);
         });
     }
     protected $table = 'students';
@@ -31,8 +37,6 @@ class Siswa extends Authenticatable
         'birth_date',
         'address',
         'photo_path',
-        'barcode_code',
-        'barcode_active',
         'username',
         'password',
         'must_change_password',
@@ -46,11 +50,21 @@ class Siswa extends Authenticatable
 
     protected $casts = [
         'birth_date'           => 'date',
-        'barcode_active'       => 'boolean',
         'must_change_password' => 'boolean',
         'password'             => 'hashed',
         'status'               => 'string',
     ];
+
+    public function getBarcodeCodeAttribute()
+    {
+        return $this->presensiProfile?->barcode_code;
+    }
+
+    public function getBarcodeActiveAttribute()
+    {
+        return $this->presensiProfile?->barcode_active ?? false;
+    }
+
 
     // Semua riwayat enrollment (kelas per tahun ajaran)
     public function enrollments(): HasMany

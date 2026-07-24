@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('barcode_active')->default(true);
             $table->string('username')->unique();      // default = NISN
             $table->string('password');
-            $table->boolean('must_change_password')->default(true);
+            $table->boolean('must_change_password')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

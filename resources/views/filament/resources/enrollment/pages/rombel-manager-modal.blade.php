@@ -25,7 +25,7 @@
         <!-- PANEL KIRI: Anggota Kelas -->
         <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-5 flex flex-col h-[60vh] min-h-[500px] shadow-sm"
              @dragover.prevent
-             @drop="let id = event.dataTransfer.getData('student_id'); if (id) $wire.enrollStudent(id)">
+             @drop="let id = event.dataTransfer.getData('student_id'); if (id) $wire.enrollStudent(id, '{{ $kelas->id }}', '{{ $academicYear->id ?? '' }}')">
             
             <div class="flex justify-between items-center mb-4 gap-4 flex-wrap">
                 <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
@@ -71,7 +71,7 @@
                                     <td class="px-3 py-2.5 text-sm align-middle text-gray-500 dark:text-gray-400 font-mono text-xs">{{ $siswa->nisn }}</td>
                                     <td class="px-3 py-2.5 text-sm align-middle text-right">
                                         <button type="button" 
-                                                x-on:click="if (confirm('Apakah Anda yakin ingin mengeluarkan {{ addslashes($siswa->name) }} dari rombel kelas ini?')) { $wire.unenrollStudent('{{ $siswa->id }}') }" 
+                                                x-on:click="if (confirm('Apakah Anda yakin ingin mengeluarkan {{ addslashes($siswa->name) }} dari rombel kelas ini?')) { $wire.unenrollStudent('{{ $siswa->id }}', '{{ $academicYear->id ?? '' }}') }" 
                                                 title="Keluarkan dari kelas"
                                                 class="p-1 rounded-md transition-colors inline-flex items-center justify-center border border-transparent bg-danger-50 dark:bg-danger-500/10 text-danger-600 dark:text-danger-400 hover:bg-danger-600 hover:text-white dark:hover:bg-danger-500">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -98,7 +98,7 @@
         <!-- PANEL KANAN: Siswa Tanpa Kelas -->
         <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-5 flex flex-col h-[60vh] min-h-[500px] shadow-sm"
              @dragover.prevent
-             @drop="let id = event.dataTransfer.getData('student_id'); if (id && confirm('Apakah Anda yakin ingin mengeluarkan siswa dari rombel kelas ini?')) { $wire.unenrollStudent(id) }">
+             @drop="let id = event.dataTransfer.getData('student_id'); if (id && confirm('Apakah Anda yakin ingin mengeluarkan siswa dari rombel kelas ini?')) { $wire.unenrollStudent(id, '{{ $academicYear->id ?? '' }}') }">
             
             <div class="flex justify-between items-center mb-4 gap-4 flex-wrap">
                 <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
@@ -190,7 +190,7 @@
                                     class="border-b border-gray-200 dark:border-white/10 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 cursor-grab active:cursor-grabbing">
                                     <td class="px-3 py-2.5 text-sm align-middle text-center">
                                         <button type="button" 
-                                                wire:click="enrollStudent('{{ $siswa->id }}')" 
+                                                wire:click="enrollStudent('{{ $siswa->id }}', '{{ $kelas->id }}', '{{ $academicYear->id ?? '' }}')" 
                                                 title="Masukkan ke kelas"
                                                 class="p-1 rounded-md transition-colors inline-flex items-center justify-center border border-transparent bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-600 hover:text-white dark:hover:bg-primary-500">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

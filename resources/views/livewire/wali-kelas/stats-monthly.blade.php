@@ -1,5 +1,11 @@
-<!-- Stats Today -->
-@if(!empty($todayStats))
+@if(!empty($classMonthlyStats))
+<div class="mb-6 mt-8">
+    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Rekapitulasi Bulanan</h2>
+    <p class="text-sm text-slate-500 mt-1.5 font-medium">
+        Potensi Kehadiran Maksimal: <strong class="text-slate-700">{{ $classMonthlyStats['max_possible'] }}</strong> 
+        (Total {{ $classMonthlyStats['total_students'] }} Siswa &times; {{ $classMonthlyStats['effective_days'] }} Hari Efektif)
+    </p>
+</div>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative z-20">
     <!-- Hadir -->
     <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/20 p-6 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
@@ -8,12 +14,14 @@
             <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-            <span class="text-sm font-bold text-emerald-50 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">{{ $todayStats['persentase_hadir'] }}%</span>
+            @if($classMonthlyStats['max_possible'] > 0)
+                <span class="text-sm font-bold text-emerald-50 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">{{ round(($classMonthlyStats['hadir'] / $classMonthlyStats['max_possible']) * 100, 1) }}%</span>
+            @endif
         </div>
         <div class="relative z-10">
-            <p class="text-emerald-100 text-sm font-medium mb-1">Hadir Hari Ini</p>
+            <p class="text-emerald-100 text-sm font-medium mb-1">Total Hadir Tepat Waktu</p>
             <h3 class="text-3xl font-black text-white flex items-baseline gap-2">
-                {{ $todayStats['hadir'] }} <span class="text-lg font-medium text-emerald-100">/ {{ $todayStats['total'] }}</span>
+                {{ $classMonthlyStats['hadir'] }} <span class="text-lg font-medium text-emerald-100">/ {{ $classMonthlyStats['max_possible'] }}</span>
             </h3>
         </div>
     </div>
@@ -27,9 +35,9 @@
             </div>
         </div>
         <div class="relative z-10">
-            <p class="text-amber-100 text-sm font-medium mb-1">Terlambat</p>
+            <p class="text-amber-100 text-sm font-medium mb-1">Total Terlambat</p>
             <h3 class="text-3xl font-black text-white flex items-baseline gap-2">
-                {{ $todayStats['telat'] }} <span class="text-lg font-medium text-amber-100">Siswa</span>
+                {{ $classMonthlyStats['telat'] }} <span class="text-lg font-medium text-amber-100">/ {{ $classMonthlyStats['max_possible'] }}</span>
             </h3>
         </div>
     </div>
@@ -43,9 +51,9 @@
             </div>
         </div>
         <div class="relative z-10">
-            <p class="text-rose-100 text-sm font-medium mb-1">Tidak Hadir (S/I/A)</p>
+            <p class="text-rose-100 text-sm font-medium mb-1">Total Sakit/Izin</p>
             <h3 class="text-3xl font-black text-white flex items-baseline gap-2">
-                {{ $todayStats['sakit'] + $todayStats['izin'] + $todayStats['alpa'] }} <span class="text-lg font-medium text-rose-100">Siswa</span>
+                {{ $classMonthlyStats['sakit'] + $classMonthlyStats['izin'] }} <span class="text-lg font-medium text-rose-100">/ {{ $classMonthlyStats['max_possible'] }}</span>
             </h3>
         </div>
     </div>
@@ -55,13 +63,13 @@
         <div class="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
         <div class="flex items-center justify-between mb-4 relative z-10">
             <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
         </div>
         <div class="relative z-10">
-            <p class="text-slate-300 text-sm font-medium mb-1">Belum Presensi</p>
+            <p class="text-slate-300 text-sm font-medium mb-1">Total Alpa</p>
             <h3 class="text-3xl font-black text-white flex items-baseline gap-2">
-                {{ $todayStats['belum'] }} <span class="text-lg font-medium text-slate-300">Siswa</span>
+                {{ $classMonthlyStats['alpa'] }} <span class="text-lg font-medium text-slate-300">/ {{ $classMonthlyStats['max_possible'] }}</span>
             </h3>
         </div>
     </div>

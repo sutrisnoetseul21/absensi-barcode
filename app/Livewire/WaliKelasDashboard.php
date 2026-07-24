@@ -26,6 +26,7 @@ class WaliKelasDashboard extends Component
 
     public $students = [];
     public $monthlyStats = [];
+    public $classMonthlyStats = [];
     public $alerts = [];
     public $todayStats = [];
 
@@ -149,10 +150,11 @@ class WaliKelasDashboard extends Component
     public function loadDashboardData()
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->selectedMonthYear) {
-            $this->students     = collect();
-            $this->monthlyStats = [];
-            $this->alerts       = [];
-            $this->todayStats   = [];
+            $this->students          = collect();
+            $this->monthlyStats      = [];
+            $this->classMonthlyStats = [];
+            $this->alerts            = [];
+            $this->todayStats        = [];
             return;
         }
         
@@ -170,12 +172,13 @@ class WaliKelasDashboard extends Component
             $year
         );
 
-        $this->students     = $result['students'];
-        $this->monthlyStats = $result['monthlyStats'];
-        $this->todayStats   = $result['todayStats'];
-        $this->alerts       = $result['alerts'];
-        $this->daysInMonth  = $result['daysInMonth'];
-        $this->todayDate    = $result['todayDate'];
+        $this->students          = $result['students'];
+        $this->monthlyStats      = $result['monthlyStats'];
+        $this->classMonthlyStats = $result['classMonthlyStats'];
+        $this->todayStats        = $result['todayStats'];
+        $this->alerts            = $result['alerts'];
+        $this->daysInMonth       = $result['daysInMonth'];
+        $this->todayDate         = $result['todayDate'];
     }
 
     public $isInputDateHoliday = false;

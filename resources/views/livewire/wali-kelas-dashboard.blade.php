@@ -3,12 +3,13 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
+
         @include('livewire.wali-kelas.filters')
 
         @if(!$selectedAcademicYearId || !$selectedClassId)
             @include('livewire.wali-kelas.empty-states')
         @else
-            @include('livewire.wali-kelas.stats')
+            @include('livewire.wali-kelas.stats-monthly')
             @include('livewire.wali-kelas.table')
         @endif
     </div>

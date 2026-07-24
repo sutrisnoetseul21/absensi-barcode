@@ -338,7 +338,8 @@
         $enrollment = $student->enrollmentAktif;
         $className = $enrollment?->kelas?->name ?? '-';
         $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcodeImage = base64_encode($generator->getBarcode($student->barcode_code, $generator::TYPE_CODE_128, 2, 50));
+        $barcodeData = $student->barcode_code ?? $student->nisn ?? 'NO-BARCODE';
+        $barcodeImage = base64_encode($generator->getBarcode($barcodeData, $generator::TYPE_CODE_128, 2, 50));
 
         $logoPath = null;
         if ($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path))) {

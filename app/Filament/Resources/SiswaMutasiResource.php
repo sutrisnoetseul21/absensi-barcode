@@ -31,7 +31,7 @@ class SiswaMutasiResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 5;
 
     /**
      * Hanya Superadmin yang boleh akses menu ini.
