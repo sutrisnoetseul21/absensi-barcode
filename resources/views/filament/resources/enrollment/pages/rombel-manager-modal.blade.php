@@ -14,7 +14,7 @@
                 {{ count($leftStudents) }} Siswa Terdaftar
             </span>
             <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/20">
-                {{ count($rightStudents) }} Siswa Tanpa Kelas
+                {{ count($rightStudents) }} Kandidat Siswa
             </span>
         </div>
     </div>
@@ -100,10 +100,10 @@
              @dragover.prevent
              @drop="let id = event.dataTransfer.getData('student_id'); if (id && confirm('Apakah Anda yakin ingin mengeluarkan siswa dari rombel kelas ini?')) { $wire.unenrollStudent(id, '{{ $academicYear->id ?? '' }}') }">
             
-            <div class="flex justify-between items-center mb-4 gap-4 flex-wrap">
+            <div class="flex justify-between items-center mb-2 gap-4 flex-wrap">
                 <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-primary-500"></span>
-                    Siswa Tanpa Kelas ({{ count($rightStudents) }})
+                    Kandidat Siswa ({{ count($rightStudents) }})
                 </h4>
                 <div class="flex items-center gap-2">
                     <!-- Button Tambah Siswa Baru (Buka sub form) -->
@@ -128,6 +128,21 @@
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {{-- Info konteks filter kandidat --}}
+            <div class="mb-3 px-3 py-2 rounded-lg bg-primary-50 dark:bg-primary-500/10 border border-primary-100 dark:border-primary-500/20 text-[0.68rem] text-primary-700 dark:text-primary-300 leading-relaxed">
+                @if($previousYear)
+                    Menampilkan: <strong>siswa baru (PPDB)</strong> + siswa kelas
+                    @if($targetGradeLevel > 7)
+                        <strong>{{ $targetGradeLevel - 1 }} &amp; {{ $targetGradeLevel }}</strong>
+                    @else
+                        <strong>{{ $targetGradeLevel }}</strong> (tinggal kelas)
+                    @endif
+                    dari TA <strong>{{ $previousYear->name }}</strong>.
+                @else
+                    Tidak ada Tahun Ajaran sebelumnya. Menampilkan hanya <strong>siswa yang belum pernah memiliki kelas</strong>.
+                @endif
             </div>
 
             <!-- Collapsible Form Tambah Siswa Baru -->
@@ -181,6 +196,7 @@
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider w-[50px]">Aksi</th>
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider">Nama Siswa</th>
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider">NISN</th>
+                                <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider" title="Kelas di tahun ajaran sebelumnya">Kelas Sblm</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -206,6 +222,15 @@
                                         {{ $siswa->name }}
                                     </td>
                                     <td class="px-3 py-2.5 text-sm align-middle text-gray-500 dark:text-gray-400 font-mono text-xs">{{ $siswa->nisn }}</td>
+                                    <td class="px-3 py-2.5 text-sm align-middle text-center">
+                                        @if(isset($previousClassMap[$siswa->id]))
+                                            <span class="px-2 py-0.5 rounded-full text-[0.65rem] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20">
+                                                {{ $previousClassMap[$siswa->id] }}
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400 dark:text-gray-600 text-xs">—</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

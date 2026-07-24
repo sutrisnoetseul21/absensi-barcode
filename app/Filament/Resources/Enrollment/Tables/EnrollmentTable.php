@@ -139,42 +139,100 @@ class EnrollmentTable
                     ->modalSubmitAction(false)
                     ->modalCancelAction(false)
                     ->modalContent(function (\App\Models\Kelas $record, Table $table, $livewire) {
-                        $academicYearId = $table->getFilter('academic_year_id')->getState()['value'] 
+                        $academicYearId = $table->getFilter('academic_year_id')->getState()['value']
                             ?? \App\Models\PengaturanSekolah::current()?->academic_year_id_active;
 
                         // Set Livewire component state
-                        $livewire->manageClassId = $record->id;
+                        $livewire->manageClassId       = $record->id;
                         $livewire->manageAcademicYearId = $academicYearId;
 
-                        // Query students enrolled
+                        // Cari TA sebelumnya: end_year = selectedYear.start_year
+                        $selectedYear = \App\Models\TahunAjaran::find($academicYearId);
+                        $previousYear = $selectedYear
+                            ? \App\Models\TahunAjaran::where('end_year', $selectedYear->start_year)->first()
+                            : null;
+
+                        $targetGradeLevel = $record->grade_level;
+
+                        // ── Panel Kiri: siswa yang sudah enrolled di kelas & TA ini ─────────
                         $leftStudents = \App\Models\Siswa::whereHas('enrollments', function ($q) use ($record, $academicYearId) {
                             $q->where('class_id', $record->id)
                               ->where('academic_year_id', $academicYearId)
                               ->where('status', 'aktif');
                         })
                         ->when($livewire->searchLeft, function ($q) use ($livewire) {
-                            $q->where(fn($sub) => $sub->where('name', 'like', '%'.$livewire->searchLeft.'%')->orWhere('nisn', 'like', '%'.$livewire->searchLeft.'%'));
+                            $q->where(fn($sub) => $sub
+                                ->where('name', 'like', '%'.$livewire->searchLeft.'%')
+                                ->orWhere('nisn', 'like', '%'.$livewire->searchLeft.'%')
+                            );
                         })
-                        ->orderBy('name', 'asc')
+                        ->orderBy('name')
                         ->get();
 
-                        // Query students without class in the selected academic year
-                        $rightStudents = \App\Models\Siswa::whereDoesntHave('enrollments', function ($q) use ($academicYearId) {
-                            $q->where('academic_year_id', $academicYearId)
-                              ->where('status', 'aktif');
-                        })
-                        ->when($livewire->searchRight, function ($q) use ($livewire) {
-                            $q->where(fn($sub) => $sub->where('name', 'like', '%'.$livewire->searchRight.'%')->orWhere('nisn', 'like', '%'.$livewire->searchRight.'%'));
-                        })
-                        ->orderBy('name', 'asc')
-                        ->limit(50)
-                        ->get();
+                        // ── Panel Kanan: kandidat siswa (smart filter) ────────────────────
+                        $rightStudents = \App\Models\Siswa::where('status', 'aktif')
+                            // Belum enrolled di TA yang dipilih
+                            ->whereDoesntHave('enrollments', fn($q) =>
+                                $q->where('academic_year_id', $academicYearId)->where('status', 'aktif')
+                            )
+                            ->where(function ($q) use ($previousYear, $targetGradeLevel) {
+                                // Kasus 1: Belum pernah punya enrollment sama sekali (PPDB murni)
+                                $q->orWhereDoesntHave('enrollments');
+
+                                if ($previousYear) {
+                                    // Kasus 2: Di TA sebelumnya punya kelas grade = G (tinggal kelas)
+                                    $q->orWhereHas('enrollments', fn($eq) =>
+                                        $eq->where('academic_year_id', $previousYear->id)
+                                           ->whereHas('kelas', fn($k) =>
+                                               $k->where('grade_level', $targetGradeLevel)
+                                           )
+                                    );
+
+                                    // Kasus 3: Di TA sebelumnya punya kelas grade = G-1 (naik kelas)
+                                    // Grade 7 tidak punya grade di bawahnya di SMP
+                                    if ($targetGradeLevel > 7) {
+                                        $q->orWhereHas('enrollments', fn($eq) =>
+                                            $eq->where('academic_year_id', $previousYear->id)
+                                               ->whereHas('kelas', fn($k) =>
+                                                   $k->where('grade_level', $targetGradeLevel - 1)
+                                               )
+                                        );
+                                    }
+                                }
+                            })
+                            ->when($livewire->searchRight, fn($q) =>
+                                $q->where(fn($sub) => $sub
+                                    ->where('name', 'like', '%'.$livewire->searchRight.'%')
+                                    ->orWhere('nisn', 'like', '%'.$livewire->searchRight.'%')
+                                )
+                            )
+                            ->orderBy('name')
+                            ->limit(100)
+                            ->get();
+
+                        // ── Map: nisn → nama kelas di TA sebelumnya (untuk kolom "Kelas Sebelumnya") ──
+                        $previousClassMap = [];
+                        if ($previousYear && $rightStudents->isNotEmpty()) {
+                            $studentIds = $rightStudents->pluck('id')->toArray();
+                            $prevEnrollments = \App\Models\EnrollmentSiswa::with('kelas')
+                                ->where('academic_year_id', $previousYear->id)
+                                ->whereIn('student_id', $studentIds)
+                                ->get()
+                                ->keyBy('student_id');
+
+                            foreach ($prevEnrollments as $studentId => $enrollment) {
+                                $previousClassMap[$studentId] = $enrollment->kelas?->name ?? '—';
+                            }
+                        }
 
                         return view('filament.resources.enrollment.pages.rombel-manager-modal', [
-                            'kelas' => $record,
-                            'academicYear' => \App\Models\TahunAjaran::find($academicYearId),
-                            'leftStudents' => $leftStudents,
-                            'rightStudents' => $rightStudents,
+                            'kelas'            => $record,
+                            'academicYear'     => \App\Models\TahunAjaran::find($academicYearId),
+                            'previousYear'     => $previousYear,
+                            'targetGradeLevel' => $targetGradeLevel,
+                            'leftStudents'     => $leftStudents,
+                            'rightStudents'    => $rightStudents,
+                            'previousClassMap' => $previousClassMap,
                         ]);
                     })
             ])
