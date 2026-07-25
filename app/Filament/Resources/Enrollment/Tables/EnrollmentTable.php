@@ -90,6 +90,41 @@ class EnrollmentTable
                             })
                             ->required()
                             ->helperText('Hanya Tahun Ajaran yang langsung berurutan yang bisa dipilih.'),
+                            
+                        \Filament\Forms\Components\Placeholder::make('warning_belum_lulus')
+                            ->hiddenLabel()
+                            ->visible(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                                $sourceId = $get('source_academic_year_id');
+                                if (!$sourceId) return false;
+                                
+                                $belumLulus = \App\Models\EnrollmentSiswa::where('academic_year_id', $sourceId)
+                                    ->where('status', 'aktif')
+                                    ->whereHas('kelas', fn($q) => $q->where('grade_level', 9))
+                                    ->count();
+                                    
+                                return $belumLulus > 0;
+                            })
+                            ->content(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                                $sourceId = $get('source_academic_year_id');
+                                $source = TahunAjaran::find($sourceId);
+                                
+                                $belumLulus = \App\Models\EnrollmentSiswa::where('academic_year_id', $sourceId)
+                                    ->where('status', 'aktif')
+                                    ->whereHas('kelas', fn($q) => $q->where('grade_level', 9))
+                                    ->count();
+                                    
+                                return new \Illuminate\Support\HtmlString("
+                                    <div class='p-3.5 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 rounded-lg border border-amber-200 dark:border-amber-500/20 text-sm flex gap-3 items-start mt-2 shadow-sm'>
+                                        <svg class='w-5 h-5 mt-0.5 shrink-0 text-amber-500' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'>
+                                            <path stroke-linecap='round' stroke-linejoin='round' d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'/>
+                                        </svg>
+                                        <div>
+                                            <div class='font-bold mb-1'>Kelas 9 Belum Lulus</div>
+                                            Masih ada <strong>{$belumLulus}</strong> siswa kelas 9 di TA <strong>" . ($source?->name) . "</strong> yang belum diluluskan. Jika dilanjutkan, siswa tersebut akan diabaikan dari template (dianggap tidak naik/lulus).
+                                        </div>
+                                    </div>
+                                ");
+                            }),
                     ])
                     ->action(function (array $data) {
                         $sourceId  = $data['source_academic_year_id'];
@@ -109,15 +144,6 @@ class EnrollmentTable
                             ->where('status', 'aktif')
                             ->whereHas('kelas', fn($q) => $q->where('grade_level', 9))
                             ->count();
-
-                        if ($belumLulus > 0) {
-                            Notification::make()
-                                ->title('Peringatan: Kelas 9 Belum Lulus')
-                                ->body("Masih ada **{$belumLulus}** siswa kelas 9 yang belum diluluskan di Tahun Ajaran **{$source->name}**. Mereka akan diabaikan dari template ini (dianggap tinggal kelas).")
-                                ->warning()
-                                ->persistent()
-                                ->send();
-                        }
 
                         $safeName = str_replace('/', '-', $source->name) . '_ke_' . str_replace('/', '-', $target->name);
                         return \Maatwebsite\Excel\Facades\Excel::download(
