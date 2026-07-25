@@ -47,7 +47,8 @@ class SiswaBaruImport implements ToCollection
         $nisnCountInFile = [];
         foreach ($rows as $index => $row) {
             if ($index === 0) continue; // skip header
-            $nisn = trim((string)($row[0] ?? ''));
+            $rawNisn = trim((string)($row[0] ?? ''), " '\"\t\n\r\0\x0B");
+            $nisn = preg_replace('/\D/', '', $rawNisn);
             if ($nisn === '') continue;
             $nisnCountInFile[$nisn] = ($nisnCountInFile[$nisn] ?? 0) + 1;
         }
@@ -57,7 +58,8 @@ class SiswaBaruImport implements ToCollection
         foreach ($rows as $index => $row) {
             if ($index === 0) continue; // skip header
 
-            $nisn         = trim((string)($row[0] ?? ''));
+            $rawNisn      = trim((string)($row[0] ?? ''), " '\"\t\n\r\0\x0B");
+            $nisn         = preg_replace('/\D/', '', $rawNisn);
             $nis          = trim((string)($row[1] ?? ''));
             $name         = trim((string)($row[2] ?? ''));
             $birth_place  = trim((string)($row[3] ?? ''));
@@ -78,12 +80,12 @@ class SiswaBaruImport implements ToCollection
                 'kelas'   => $kelasName,
             ];
 
-            // Validasi: NISN wajib ada
-            if ($nisn === '') {
+            // Validasi: NISN wajib ada dan format valid
+            if ($nisn === '' || strlen($nisn) < 5) {
                 $this->results[] = array_merge($baseRow, [
                     'status'       => 'skip',
                     'status_label' => '❌ Skip',
-                    'keterangan'   => 'NISN kosong, baris dilewati.',
+                    'keterangan'   => 'NISN kosong atau tidak valid (harus angka), baris dilewati.',
                 ]);
                 continue;
             }
