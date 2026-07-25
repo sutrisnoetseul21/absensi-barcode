@@ -139,4 +139,53 @@ class RekapAbsensiKelas extends Page
         );
     }
 
+    public function exportPdf()
+    {
+        if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->selectedMonth) {
+            Notification::make()->title('Gagal Export')->body('Pilih Tahun Ajaran, Kelas, dan Bulan terlebih dahulu.')->danger()->send();
+            return;
+        }
+
+        $kelas      = Kelas::find($this->selectedClassId);
+        $sekolah    = \App\Models\PengaturanSekolah::current();
+        
+        $tahunAjaran = TahunAjaran::find($this->selectedAcademicYearId);
+        $year = date('Y');
+        if ($tahunAjaran) {
+            $year = (int)$this->selectedMonth >= 7 ? $tahunAjaran->start_year : $tahunAjaran->end_year;
+        }
+        
+        $monthNames = [
+            '01'=>'Januari', '02'=>'Februari', '03'=>'Maret', '04'=>'April',
+            '05'=>'Mei', '06'=>'Juni', '07'=>'Juli', '08'=>'Agustus',
+            '09'=>'September', '10'=>'Oktober', '11'=>'November', '12'=>'Desember',
+        ];
+        $monthLabel = $monthNames[$this->selectedMonth] ?? $this->selectedMonth;
+        $periodeLabel = "Bulan {$monthLabel} {$year}";
+
+        // Ensure we have data loaded
+        if (empty($this->students)) {
+            $this->loadData();
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-presensi-matrix', [
+            'students'      => $this->students,
+            'monthlyStats'  => $this->monthlyStats,
+            'daysInMonth'   => $this->daysInMonth,
+            'periodeLabel'  => $periodeLabel,
+            'kelas'         => $kelas,
+            'sekolah'       => $sekolah,
+            'generatedAt'   => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+        ])->setPaper('a4', 'landscape');
+
+        $className = $kelas?->name ?? 'Kelas';
+        $safeClassName = str_replace(['/', '\\'], '-', $className);
+        $fileName  = "Rekap_Presensi_{$safeClassName}_{$year}_{$this->selectedMonth}.pdf";
+
+        return response()->streamDownload(
+            fn() => print($pdf->output()),
+            $fileName
+        );
+    }
+
 }
