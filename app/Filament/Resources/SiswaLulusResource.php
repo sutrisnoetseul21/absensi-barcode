@@ -30,7 +30,7 @@ class SiswaLulusResource extends Resource
 
     protected static ?string $slug = 'siswa-lulus';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
     protected static ?int $navigationSort = 6;
 

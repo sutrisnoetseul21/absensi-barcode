@@ -29,7 +29,7 @@ class SiswaMutasiResource extends Resource
 
     protected static ?string $slug = 'siswa-mutasi';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
     protected static ?int $navigationSort = 5;
 

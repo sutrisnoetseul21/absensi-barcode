@@ -11,6 +11,9 @@ class ListSiswaLulus extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            \App\Filament\Resources\Enrollment\Actions\LuluskanKelas9Action::make(),
+            \App\Filament\Resources\Enrollment\Actions\BatalkanKelulusanMassalAction::make(),
+        ];
     }
 }

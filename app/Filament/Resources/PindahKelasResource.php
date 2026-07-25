@@ -17,12 +17,12 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PindahKelasResource extends Resource
 {
-    protected static ?string $model = EnrollmentSiswa::class;
+    protected static ?string $model = \App\Models\RiwayatPindahKelas::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
     protected static ?string $navigationLabel = 'Pindah Kelas';
     protected static ?string $pluralLabel = 'Pindah Kelas';
-    protected static ?string $modelLabel = 'Siswa';
+    protected static ?string $modelLabel = 'Riwayat';
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
     protected static ?int $navigationSort = 2;
 
@@ -31,27 +31,16 @@ class PindahKelasResource extends Resource
         return auth()->user()?->isSuperAdmin() ?? false;
     }
 
-    // Hanya tampilkan enrollment aktif pada tahun ajaran aktif
     public static function getEloquentQuery(): Builder
     {
-        $activeYearId = PengaturanSekolah::current()?->academic_year_id_active;
-
-        return parent::getEloquentQuery()
-            ->where('academic_year_id', $activeYearId)
-            ->where('status', 'aktif')
-            ->whereHas('student'); // Pastikan siswanya ada
+        return parent::getEloquentQuery()->latest();
     }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Forms\Components\Select::make('class_id')
-                    ->label('Kelas Tujuan')
-                    ->options(Kelas::pluck('name', 'id'))
-                    ->required()
-                    ->searchable()
-                    ->native(false),
+                // Form ini kosong karena kita akan menggunakan Custom Action di Page
             ]);
     }
 
@@ -59,40 +48,51 @@ class PindahKelasResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('student.nisn')
+                Tables\Columns\TextColumn::make('index')
+                    ->label('No')
+                    ->rowIndex(),
+
+                Tables\Columns\TextColumn::make('siswa.nisn')
                     ->label('NISN')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('student.name')
+                Tables\Columns\TextColumn::make('siswa.name')
                     ->label('Nama Siswa')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('kelas.name')
-                    ->label('Kelas Saat Ini')
+                Tables\Columns\TextColumn::make('tahunAjaran.name')
+                    ->label('Tahun Ajaran')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('kelasSebelumnya.name')
+                    ->label('Kelas Sebelumnya')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('kelasSesudahnya.name')
+                    ->label('Kelas Sesudahnya')
                     ->badge()
                     ->color('success')
-                    ->sortable()
-                    ->searchable(),
+                    ->sortable(),
+                    
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Waktu Pindah')
+                    ->dateTime('d M Y H:i')
+                    ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('class_id')
-                    ->label('Filter Kelas')
-                    ->options(Kelas::pluck('name', 'id'))
-                    ->searchable(),
+                Tables\Filters\SelectFilter::make('academic_year_id')
+                    ->label('Tahun Ajaran')
+                    ->relationship('tahunAjaran', 'name'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label('Pindah Kelas')
-                    ->icon('heroicon-o-arrows-right-left')
-                    ->color('warning')
-                    ->modalHeading(fn(EnrollmentSiswa $record) => 'Pindah Kelas: ' . ($record->student?->name))
-                    ->modalDescription('Pilih kelas baru untuk memindahkan siswa ini di tahun ajaran aktif.')
-                    ->modalWidth('sm'),
+                // Tidak ada aksi edit per baris karena ini log riwayat
             ])
             ->bulkActions([
-                // Kosongkan karena kita fokus perpindahan individual
+                // Kosong
             ])
             ->paginated([10, 25, 50, 100]);
     }
