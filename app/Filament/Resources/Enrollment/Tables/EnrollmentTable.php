@@ -55,11 +55,8 @@ class EnrollmentTable
                     ->default(fn () => \App\Models\PengaturanSekolah::current()?->academic_year_id_active)
                     ->selectablePlaceholder(false)
                     ->query(fn ($query) => $query),
-            ], layout: \Filament\Tables\Enums\FiltersLayout::AboveContent)
+            ])
             ->headerActions([
-                \App\Filament\Resources\Enrollment\Actions\LuluskanKelas9Action::make(),
-                \App\Filament\Resources\Enrollment\Actions\BatalkanKelulusanMassalAction::make(),
-                
                 // Download Template Naik Kelas (Siswa Lama)
                 Action::make('download_template_naik_kelas')
                     ->visible(fn () => \App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false)
