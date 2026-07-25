@@ -34,13 +34,13 @@ class GuruTable
                     ->searchable()
                     ->default('—'),
 
-                TextColumn::make('username')
-                    ->label('Username Login')
+                TextColumn::make('user.email')
+                    ->label('Email Login')
                     ->searchable()
                     ->copyable()
-                    ->copyMessage('Username disalin'),
+                    ->copyMessage('Email disalin'),
 
-                IconColumn::make('must_change_password')
+                IconColumn::make('user.must_change_password')
                     ->label('Ganti Password?')
                     ->boolean()
                     ->trueIcon('heroicon-o-exclamation-triangle')
@@ -287,14 +287,14 @@ class GuruTable
                     ->action(function (Guru $record): void {
                         $newPassword = Str::random(8);
 
-                        $record->update([
-                            'password'             => $newPassword, // otomatis di-hash via cast 'hashed'
+                        $record->user->update([
+                            'password'             => $newPassword,
                             'must_change_password' => true,
                         ]);
 
                         Notification::make()
                             ->title('Password berhasil direset')
-                            ->body("Username: **{$record->username}**\nPassword baru: **{$newPassword}**\n\nGuru wajib ganti password saat login berikutnya.")
+                            ->body("Email: **{$record->user->email}**\nPassword baru: **{$newPassword}**\n\nGuru wajib ganti password saat login berikutnya.")
                             ->success()
                             ->persistent() // tidak auto-dismiss, harus diklik manual
                             ->send();

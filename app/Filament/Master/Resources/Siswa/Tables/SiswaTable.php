@@ -91,13 +91,13 @@ class SiswaTable
                     ->copyable()
                     ->copyMessage('Barcode disalin'),
 
-                TextColumn::make('username')
-                    ->label('Username Login')
+                TextColumn::make('user.email')
+                    ->label('Email Login')
                     ->searchable()
                     ->copyable()
-                    ->copyMessage('Username disalin'),
+                    ->copyMessage('Email disalin'),
 
-                IconColumn::make('must_change_password')
+                IconColumn::make('user.must_change_password')
                     ->label('Ganti Password?')
                     ->boolean()
                     ->trueIcon('heroicon-o-exclamation-triangle')
@@ -202,8 +202,8 @@ class SiswaTable
                     ->modalHeading('Reset Password Siswa')
                     ->modalSubmitActionLabel('Ganti Password')
                     ->action(function (Siswa $record, array $data): void {
-                        $record->update([
-                            'password'             => bcrypt($data['password']),
+                        $record->user->update([
+                            'password'             => $data['password'],
                             'must_change_password' => false,
                         ]);
 

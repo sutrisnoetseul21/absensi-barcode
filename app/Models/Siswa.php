@@ -14,10 +14,6 @@ class Siswa extends Authenticatable
 
     protected static function booted()
     {
-        static::saving(function ($siswa) {
-            $siswa->username = $siswa->nisn;
-        });
-
         static::created(function ($siswa) {
             $siswa->presensiProfile()->create([
                 'barcode_code' => $siswa->nisn,
@@ -30,6 +26,7 @@ class Siswa extends Authenticatable
     protected $keyType = 'string';
 
     protected $fillable = [
+        'user_id',
         'nisn',
         'nis',
         'name',
@@ -37,23 +34,18 @@ class Siswa extends Authenticatable
         'birth_date',
         'address',
         'photo_path',
-        'username',
-        'password',
-        'must_change_password',
         'status',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
+    protected $casts = [
+        'birth_date' => 'date',
+        'status'     => 'string',
     ];
 
-    protected $casts = [
-        'birth_date'           => 'date',
-        'must_change_password' => 'boolean',
-        'password'             => 'hashed',
-        'status'               => 'string',
-    ];
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function getBarcodeCodeAttribute()
     {

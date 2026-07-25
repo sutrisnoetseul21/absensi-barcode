@@ -4,6 +4,7 @@ namespace App\Filament\Master\Resources\Guru\Pages;
 
 use App\Filament\Master\Resources\Guru\GuruResource;
 use App\Helpers\UsernameHelper;
+use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Str;
@@ -23,18 +24,29 @@ class CreateGuru extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $this->generatedPassword = Str::random(8);
+        $this->generatedPassword = empty($data['password']) ? Str::random(8) : $data['password'];
 
-        $data['username']             = UsernameHelper::generateForGuru($data['name'], $data['nip'] ?? null);
-        $data['password']             = $this->generatedPassword; // otomatis di-hash via cast 'hashed'
-        $data['must_change_password'] = false;
+        $email = $data['email'] ?? UsernameHelper::generateForGuru($data['name'], $data['nip'] ?? null) . '@' . config('school.email_domain');
+
+        $user = User::create([
+            'name'                 => $data['name'],
+            'email'                => $email,
+            'password'             => $this->generatedPassword,
+            'must_change_password' => empty($data['password']),
+        ]);
+        $user->assignRole('wali_kelas');
+
+        $data['user_id'] = $user->id;
+
+        // Hapus field yang tidak ada di tabel teachers
+        unset($data['email'], $data['password']);
 
         return $data;
     }
 
     /**
      * Setelah guru berhasil disimpan, tampilkan notifikasi berisi
-     * username dan password default — hanya tampil 1x dan persistent.
+     * email dan password default — hanya tampil 1x dan persistent.
      */
     protected function afterCreate(): void
     {
@@ -42,7 +54,7 @@ class CreateGuru extends CreateRecord
             ->title('Guru berhasil ditambahkan')
             ->body(
                 "**Simpan informasi login ini sekarang:**\n\n" .
-                "Username: `{$this->record->username}`\n" .
+                "Email: `{$this->record->user->email}`\n" .
                 "Password: `{$this->generatedPassword}`\n\n" .
                 "Guru diwajibkan mengganti password saat login pertama kali."
             )

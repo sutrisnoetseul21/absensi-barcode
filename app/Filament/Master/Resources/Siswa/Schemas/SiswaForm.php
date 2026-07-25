@@ -68,14 +68,21 @@ class SiswaForm
                     ->directory('siswa-photos')
                     ->nullable(),
 
+                TextInput::make('email')
+                    ->label('Email Login')
+                    ->email()
+                    ->required(fn (string $operation): bool => $operation === 'edit')
+                    ->maxLength(255)
+                    ->helperText('Otomatis di-generate jika dikosongkan saat create.')
+                    ->formatStateUsing(fn (?\Illuminate\Database\Eloquent\Model $record) => $record?->user?->email),
+
                 TextInput::make('password')
                     ->password()
-                    ->label('Password')
-                    ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create')
+                    ->revealable()
+                    ->label('Password Login')
+                    ->dehydrated(false)
                     ->maxLength(255)
-                    ->helperText(fn (string $context): string => $context === 'edit' ? 'Biarkan kosong jika tidak ingin mengubah password.' : 'Masukkan password untuk akun siswa ini.'),
+                    ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Biarkan kosong jika tidak ingin mengubah password.' : 'Kosongkan untuk menggunakan NISN sebagai password default.'),
             ]);
     }
 }

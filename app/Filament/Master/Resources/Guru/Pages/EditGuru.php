@@ -20,4 +20,24 @@ class EditGuru extends EditRecord
             RestoreAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $userData = [];
+        if (!empty($data['email'])) {
+            $userData['email'] = $data['email'];
+        }
+        if (!empty($data['password'])) {
+            $userData['password'] = $data['password'];
+            $userData['must_change_password'] = false;
+        }
+
+        if (!empty($userData)) {
+            $this->record->user->update($userData);
+        }
+
+        unset($data['email'], $data['password']);
+
+        return $data;
+    }
 }

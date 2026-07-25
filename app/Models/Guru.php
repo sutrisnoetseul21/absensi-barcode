@@ -16,22 +16,15 @@ class Guru extends Authenticatable
     protected $keyType = 'string';
 
     protected $fillable = [
+        'user_id',
         'name',
         'nip',
-        'username',
-        'password',
-        'must_change_password',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    protected $casts = [
-        'must_change_password' => 'boolean',
-        'password' => 'hashed',
-    ];
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     // Kelas yang diampu (bisa > 1 kelas per tahun ajaran)
     public function kelasAjarans(): HasMany
