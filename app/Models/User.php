@@ -8,14 +8,15 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Guru;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 
 class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, HasUuids, Notifiable;
+    use HasFactory, HasUuids, Notifiable, HasRoles, HasPanelShield;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +28,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'is_super_admin',
+        'teacher_id',
     ];
 
     /**
@@ -54,11 +56,50 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Otorisasi akses Filament Admin Panel.
+     * Otorisasi akses per Panel berdasarkan Role.
+     *
+     * Pemetaan Panel ID → Role yang diizinkan:
+     *   admin          → super_admin (dihandle oleh HasPanelShield)
+     *   admin-master   → admin_master atau super_admin
+     *   admin-akademik → admin_akademik atau super_admin
+     *   admin-presensi → admin_presensi atau super_admin
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        // Super Admin (role Spatie) boleh masuk ke semua panel
+        $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
+        if ($this->hasRole($superAdminRole)) {
+            return true;
+        }
+
+        // Fallback: is_super_admin kolom lama
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Pemetaan Panel ID ke prefix Role yang diperlukan
+        $panelRolePrefixes = [
+            'admin-master'   => 'admin_master',
+            'admin-akademik' => 'admin_akademik',
+            'admin-presensi' => 'admin_presensi',
+        ];
+
+        $panelId = $panel->getId();
+        
+        // Panel utama 'admin' (Super Admin)
+        if ($panelId === 'admin') {
+            return false; // Hanya lolos jika super_admin (sudah di-check di atas)
+        }
+
+        if (isset($panelRolePrefixes[$panelId])) {
+            $prefix = $panelRolePrefixes[$panelId];
+            // Cek apakah user punya role yang berawalan dengan prefix tersebut
+            return $this->roles->contains(function ($role) use ($prefix) {
+                return str_starts_with($role->name, $prefix);
+            });
+        }
+
+        return false;
     }
 
     /**
@@ -80,5 +121,11 @@ class User extends Authenticatable implements FilamentUser
     public function absensisManual()
     {
         return $this->morphMany(Presensi::class, 'manual_input_by');
+    }
+
+    // Relasi ke Guru (jika admin ini adalah guru)
+    public function guru()
+    {
+        return $this->belongsTo(Guru::class, 'teacher_id');
     }
 }

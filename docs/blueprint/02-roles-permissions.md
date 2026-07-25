@@ -2,15 +2,17 @@
 
 **Role yang digunakan:**
 
-| Role | Deskripsi | Portal/Login | Tabel/Guard |
-|---|---|---|---|
-| Super Admin | Akses penuh: pengaturan sistem, hak akses. | Portal Super Admin (`/admin`) | `users` / guard `web` |
-| Admin TU (Master Data) | Input data induk: Tahun Ajaran, Kelas, Siswa & Guru. | Portal Master Data (`/admin-master`) | `users` / guard `web` |
-| Admin TU (Akademik) | Pembagian kelas, mutasi, dan kenaikan kelas. | Portal Akademik (`/admin-akademik`) | `users` / guard `web` |
-| Guru Piket / BK | Input manual presensi, kelola libur, rekapitulasi harian. | Portal Presensi (`/admin-presensi`) | `users` / guard `web` |
-| Wali Kelas | Lihat data kelas yang diampu, input manual presensi (Izin/Sakit/Alpa) | Login Wali Kelas (custom) | `teachers` / guard `wali_kelas` |
-| Siswa | Hanya lihat riwayat absensinya sendiri, read-only | Login Siswa (custom) | `students` / guard `siswa` |
-| Publik (guest) | Lihat dashboard publik agregat, tanpa login | — | — |
+| Role Induk | Varian (Sub-Role) | Deskripsi Hak Akses | Portal/Login | Tabel/Guard |
+|---|---|---|---|---|
+| Super Admin | `super_admin` | Akses penuh: pengaturan sistem, hak akses ke semua panel. | `/admin` | `users` / guard `web` |
+| Admin TU (Master Data) | `admin_master_view`<br>`admin_master_editor`<br>`admin_master_admin` | **View**: Lihat data<br>**Editor**: + Tambah/Edit<br>**Admin**: + Hapus (Guru, Siswa, dll) | `/admin-master` | `users` / guard `web` |
+| Admin TU (Akademik) | `admin_akademik_view`<br>`admin_akademik_editor`<br>`admin_akademik_admin` | **View**: Lihat data<br>**Editor**: + Tambah/Edit<br>**Admin**: + Hapus (Kelas, Pindah Kelas) | `/admin-akademik` | `users` / guard `web` |
+| Admin Presensi | `admin_presensi_view`<br>`admin_presensi_editor`<br>`admin_presensi_admin` | **View**: Lihat laporan<br>**Editor**: + Input Manual/Edit<br>**Admin**: + Hapus Data/Libur | `/admin-presensi` | `users` / guard `web` |
+| Wali Kelas | `(Tidak ada, via Guru)` | Lihat kelas ampu, input manual presensi (Izin/Sakit/Alpa) | Login Wali Kelas (custom) | `teachers` / guard `wali_kelas` |
+| Siswa | `(Tidak ada)` | Hanya lihat riwayat absensinya sendiri, read-only | Login Siswa (custom) | `students` / guard `siswa` |
+| Publik (guest) | `(Tidak ada)` | Lihat dashboard publik agregat, tanpa login | — | — |
+
+> **Catatan Seeder:** Seluruh role dan permission standar di-generate otomatis via `php artisan db:seed --class=PanelRolesSeeder`. Jika ada fitur/resource baru, tambahkan di file seeder tersebut dan jalankan ulang untuk menyinkronkan permission secara otomatis.
 
 > **Catatan:** Seluruh role Admin/TU menggunakan tabel `users` bawaan (guard `web`). Hak akses ke masing-masing panel dapat diatur lebih lanjut via pembatasan peran atau kebijakan akses (Policy). Pintu masuk login mereka disatukan melalui Gerbang Utama (`/login`).
 

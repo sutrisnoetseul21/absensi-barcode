@@ -25,9 +25,17 @@ class UserTable
                     ->searchable()
                     ->sortable(),
 
-                IconColumn::make('is_super_admin')
-                    ->label('Super Admin')
-                    ->boolean()
+                TextColumn::make('guru.name')
+                    ->label('Terkait Guru')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
+
+                TextColumn::make('roles.name')
+                    ->label('Hak Akses (Roles)')
+                    ->badge()
+                    ->searchable()
+                    ->separator(',')
                     ->sortable(),
 
                 TextColumn::make('created_at')
