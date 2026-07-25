@@ -60,7 +60,7 @@ class SiswaBaruImport implements ToCollection
 
             $rawNisn      = trim((string)($row[0] ?? ''), " '\"\t\n\r\0\x0B");
             $nisn         = preg_replace('/\D/', '', $rawNisn);
-            $nis          = trim((string)($row[1] ?? ''));
+            $nis          = trim((string)($row[1] ?? ''), " '\"\t\n\r\0\x0B");
             $name         = trim((string)($row[2] ?? ''));
             $birth_place  = trim((string)($row[3] ?? ''));
             $birth_date   = $this->parseBirthDate(trim((string)($row[4] ?? '')));

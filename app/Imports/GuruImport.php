@@ -20,8 +20,10 @@ class GuruImport implements ToCollection
                 continue; // skip header
             }
 
-            $name = trim((string) ($row[0] ?? ''));
-            $nip = trim((string) ($row[1] ?? ''));
+            $name = trim((string) ($row[0] ?? ''), " '\"\t\n\r\0\x0B");
+            
+            $rawNip = trim((string) ($row[1] ?? ''), " '\"\t\n\r\0\x0B");
+            $nip = preg_replace('/\D/', '', $rawNip); // Hanya ambil angka
             $passwordVal = trim((string) ($row[2] ?? ''));
 
             if ($name === '') {
