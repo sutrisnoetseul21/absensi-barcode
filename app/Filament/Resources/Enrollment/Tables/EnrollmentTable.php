@@ -112,12 +112,11 @@ class EnrollmentTable
 
                         if ($belumLulus > 0) {
                             Notification::make()
-                                ->title('Kelas 9 Belum Diluluskan')
-                                ->body("Masih ada **{$belumLulus}** siswa kelas 9 yang belum diluluskan di Tahun Ajaran **{$source->name}**. Harap luluskan mereka terlebih dahulu sebelum menaikkan kelas.")
-                                ->danger()
+                                ->title('Peringatan: Kelas 9 Belum Lulus')
+                                ->body("Masih ada **{$belumLulus}** siswa kelas 9 yang belum diluluskan di Tahun Ajaran **{$source->name}**. Mereka akan diabaikan dari template ini (dianggap tinggal kelas).")
+                                ->warning()
                                 ->persistent()
                                 ->send();
-                            return;
                         }
 
                         $safeName = str_replace('/', '-', $source->name) . '_ke_' . str_replace('/', '-', $target->name);
