@@ -25,14 +25,14 @@ class SiswaNaikKelasExport implements WithMultipleSheets
 
     public function sheets(): array
     {
-        // Query siswa yang aktif di TP asal dan bukan kelas 9
+        // Query siswa yang aktif di TP asal ATAU belum punya riwayat kelas sama sekali (Siswa Baru)
         $query = Siswa::query()
-            ->whereHas('enrollments', function ($q) {
-                $q->where('academic_year_id', $this->sourceAcademicYearId)
-                  ->where('status', 'aktif')
-                  ->whereHas('kelas', function ($qk) {
-                      $qk->where('grade_level', '!=', 9);
-                  });
+            ->where(function ($q) {
+                $q->whereHas('enrollments', function ($q2) {
+                    $q2->where('academic_year_id', $this->sourceAcademicYearId)
+                       ->where('status', 'aktif');
+                })
+                ->orWhereDoesntHave('enrollments');
             });
 
         // Kecualikan siswa yang sudah terdaftar di target tahun ajaran

@@ -110,7 +110,11 @@ class ImportNaikKelasAction extends Action
                             }
 
                             $existingStudents = Siswa::pluck('name', 'nisn')->toArray();
+                            $studentIds = Siswa::pluck('id', 'nisn')->toArray();
                             $existingClasses = Kelas::pluck('name')->toArray();
+                            $classGradeLevels = Kelas::pluck('grade_level', 'name')->toArray();
+                            $sourceYearId = $get('source_academic_year_id');
+                            $oldEnrollments = \App\Models\EnrollmentSiswa::where('academic_year_id', $sourceYearId)->with('kelas')->get()->keyBy('student_id');
 
                             $html = '<div style="overflow-x: auto; overflow-y: auto; max-height: 250px; width: 100%; margin-top: 10px; margin-bottom: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">';
                             $html .= '<table style="display: table; width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left;">';
@@ -154,10 +158,30 @@ class ImportNaikKelasAction extends Action
 
                                 // Kelas Baru
                                 $newClassHtml = '';
-                                if (in_array($newClassVal, $existingClasses)) {
+                                if ($newClassVal === '') {
+                                    $newClassHtml = '<span style="color: #6b7280; font-style: italic;">Kosong (Dilewati)</span>';
+                                } elseif (in_array($newClassVal, $existingClasses)) {
                                     $newClassHtml = '<span style="color: #10b981; font-weight: 500;">✓ ' . htmlspecialchars($newClassVal) . '</span>';
+                                    
+                                    // Pengecekan status (Tinggal atau Naik atau Turun) untuk warning visual
+                                    if (isset($studentIds[$nisnVal])) {
+                                        $sId = $studentIds[$nisnVal];
+                                        if (isset($oldEnrollments[$sId])) {
+                                            $oldClass = $oldEnrollments[$sId]->kelas;
+                                            $oldGrade = $oldClass ? $oldClass->grade_level : null;
+                                            $newGrade = $classGradeLevels[$newClassVal] ?? null;
+
+                                            if ($oldGrade !== null && $newGrade !== null) {
+                                                if ($newGrade === $oldGrade) {
+                                                    $newClassHtml = '<span style="display: inline-block; color: #b45309; background-color: #fef3c7; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">⚠️ ' . htmlspecialchars($newClassVal) . ' (Tinggal Kelas)</span>';
+                                                } elseif ($newGrade < $oldGrade) {
+                                                    $newClassHtml = '<span style="display: inline-block; color: #b91c1c; background-color: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">❌ ' . htmlspecialchars($newClassVal) . ' (Turun Kelas)</span>';
+                                                }
+                                            }
+                                        }
+                                    }
                                 } else {
-                                    $newClassHtml = '<span style="display: inline-block; color: #b91c1c; background-color: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">⚠️ ' . htmlspecialchars($newClassVal === '' ? 'Kosong' : $newClassVal) . ' (Tidak terdaftar)</span>';
+                                    $newClassHtml = '<span style="display: inline-block; color: #b91c1c; background-color: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">⚠️ ' . htmlspecialchars($newClassVal) . ' (Tidak terdaftar)</span>';
                                 }
                                 $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $newClassHtml . '</td>';
 
@@ -200,6 +224,7 @@ class ImportNaikKelasAction extends Action
                         $invalidNisns = [];
                         $invalidClasses = [];
                         $invalidJumps = [];
+                        $invalidDemotions = [];
 
                         foreach ($rows as $row) {
                             $nisnVal = trim((string) ($row[0] ?? ''));
@@ -210,10 +235,14 @@ class ImportNaikKelasAction extends Action
                             }
 
                             $newClassVal = trim((string) ($row[5] ?? ''));
+                            if ($newClassVal === '') {
+                                continue; // Skip baris yang kosong kelas barunya
+                            }
+
                             if (!in_array($newClassVal, $existingClasses)) {
-                                $invalidClasses[] = $newClassVal === '' ? 'Kosong' : $newClassVal;
+                                $invalidClasses[] = $newClassVal;
                             } else {
-                                // Validate jumping grade level > 1
+                                // Validate jumping grade level > 1 or Demotion
                                 if (isset($studentIds[$nisnVal])) {
                                     $sId = $studentIds[$nisnVal];
                                     if (isset($oldEnrollments[$sId])) {
@@ -223,7 +252,9 @@ class ImportNaikKelasAction extends Action
 
                                         if ($oldGrade !== null && $newGrade !== null) {
                                             if (($newGrade - $oldGrade) > 1) {
-                                                $invalidJumps[] = $nisnVal . ' (Naik dari kelas ' . $oldGrade . ' ke ' . $newGrade . ')';
+                                                $invalidJumps[] = $nisnVal . ' (Naik dr kls ' . $oldGrade . ' ke ' . $newGrade . ')';
+                                            } elseif ($newGrade < $oldGrade) {
+                                                $invalidDemotions[] = $nisnVal . ' (Turun dr kls ' . $oldGrade . ' ke ' . $newGrade . ')';
                                             }
                                         }
                                     }
@@ -231,16 +262,19 @@ class ImportNaikKelasAction extends Action
                             }
                         }
 
-                        if (!empty($invalidNisns) || !empty($invalidClasses) || !empty($invalidJumps)) {
+                        if (!empty($invalidNisns) || !empty($invalidClasses) || !empty($invalidJumps) || !empty($invalidDemotions)) {
                             $msg = '';
                             if (!empty($invalidNisns)) {
-                                $msg .= 'Siswa tidak terdaftar (NISN): **' . implode(', ', array_unique($invalidNisns)) . '**. ';
+                                $msg .= 'Siswa tdk terdaftar (NISN): **' . implode(', ', array_unique($invalidNisns)) . '**. ';
                             }
                             if (!empty($invalidClasses)) {
-                                $msg .= 'Kelas Baru tidak valid: **' . implode(', ', array_unique($invalidClasses)) . '**. ';
+                                $msg .= 'Kelas Baru tdk valid: **' . implode(', ', array_unique($invalidClasses)) . '**. ';
                             }
                             if (!empty($invalidJumps)) {
-                                $msg .= 'Siswa melompat lebih dari 1 tingkat kelas (tidak valid): **' . implode(', ', array_unique($invalidJumps)) . '**. ';
+                                $msg .= 'Siswa melompat >1 tingkat kls: **' . implode(', ', array_unique($invalidJumps)) . '**. ';
+                            }
+                            if (!empty($invalidDemotions)) {
+                                $msg .= 'Siswa turun tingkat kls (Tdk diizinkan): **' . implode(', ', array_unique($invalidDemotions)) . '**. ';
                             }
 
                             Notification::make()
