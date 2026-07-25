@@ -26,7 +26,7 @@ class SiswaDashboard extends Component
 
     public function mount()
     {
-        $this->student = Auth::guard('siswa')->user();
+        $this->student = Auth::user()->student;
         $this->enrollment = $this->student->enrollmentAktif()->with(['kelas', 'tahunAjaran'])->first();
         
         $this->generateAvailableMonths();

@@ -51,7 +51,7 @@
                     </button>
                 @endif
                 
-                @if(Auth::guard('wali_kelas')->check())
+                @if(Auth::check() && Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null)
                     <form action="{{ route('wali-kelas.logout') }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="inline-flex items-center px-4 py-2.5 border border-white/20 rounded-xl shadow-sm text-sm font-bold text-white bg-white/10 hover:bg-white/20 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-500 transition-all duration-300">

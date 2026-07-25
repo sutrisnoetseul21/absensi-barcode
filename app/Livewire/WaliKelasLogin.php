@@ -30,7 +30,22 @@ class WaliKelasLogin extends Component
             ]);
         }
 
-        if (Auth::guard('wali_kelas')->attempt(['username' => $this->username, 'password' => $this->password], $this->remember)) {
+        $email = $this->username;
+        if (!str_contains($email, '@')) {
+            $email = trim($email) . '@' . config('school.email_domain');
+        }
+
+        if (Auth::guard('web')->attempt(['email' => $email, 'password' => $this->password], $this->remember)) {
+            $user = Auth::guard('web')->user();
+
+            if (!$user->hasRole('wali_kelas') || $user->teacher === null) {
+                Auth::guard('web')->logout();
+                RateLimiter::hit($key);
+                throw ValidationException::withMessages([
+                    'username' => 'Akun ini bukan akun wali kelas.',
+                ]);
+            }
+
             RateLimiter::clear($key);
             session()->regenerate();
 

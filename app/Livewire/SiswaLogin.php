@@ -30,14 +30,29 @@ class SiswaLogin extends Component
             ]);
         }
 
-        if (Auth::guard('siswa')->attempt(['nisn' => $this->nisn, 'password' => $this->password], $this->remember)) {
-            $student = Auth::guard('siswa')->user();
+        $email = $this->nisn;
+        if (!str_contains($email, '@')) {
+            $email = trim($email) . '@' . config('school.email_domain');
+        }
+
+        if (Auth::guard('web')->attempt(['email' => $email, 'password' => $this->password], $this->remember)) {
+            $user = Auth::guard('web')->user();
+
+            if (!$user->hasRole('siswa') || $user->student === null) {
+                Auth::guard('web')->logout();
+                RateLimiter::hit($key);
+                throw ValidationException::withMessages([
+                    'nisn' => 'Akun ini bukan akun siswa.',
+                ]);
+            }
+
+            $student = $user->student;
             
             // Cek apakah siswa punya enrollment aktif di tahun ajaran aktif
             $hasActiveEnrollment = $student->enrollmentAktif()->exists();
 
             if (!$hasActiveEnrollment) {
-                Auth::guard('siswa')->logout();
+                Auth::guard('web')->logout();
                 RateLimiter::hit($key);
                 throw ValidationException::withMessages([
                     'nisn' => 'Akun Anda tidak berstatus aktif pada tahun ajaran ini (Lulus/Pindah) atau belum didaftarkan di kelas manapun.',

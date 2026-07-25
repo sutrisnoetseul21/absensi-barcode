@@ -30,7 +30,7 @@ class WaliKelasStudentDetail extends Component
     {
         $this->student = Siswa::findOrFail($id);
         
-        $actor = Auth::guard('wali_kelas')->user();
+        $actor = Auth::user()->teacher;
         
         // Find the active enrollment for this student
         $this->enrollment = $this->student->enrollmentAktif()->with(['kelas', 'tahunAjaran'])->first();
