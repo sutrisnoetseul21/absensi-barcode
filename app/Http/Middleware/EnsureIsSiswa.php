@@ -16,11 +16,11 @@ class EnsureIsSiswa
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::guard('siswa')->check()) {
+        if (!Auth::guard('web')->check() || !Auth::user()->hasRole('siswa') || Auth::user()->student === null) {
             return redirect('/siswa/login');
         }
 
-        $user = Auth::guard('siswa')->user();
+        $user = Auth::user();
 
         if ($user && $user->must_change_password) {
             if (!$request->is('siswa/ganti-password') && !$request->is('siswa/logout')) {
