@@ -76,3 +76,13 @@ Untuk keperluan tampilan/log input absen, cukup gunakan `$actorName` (nama Guru 
 - Guard lama (wali_kelas, siswa) di config/auth.php SENGAJA belum dihapus - masih standby sebagai fallback darurat.
 - Kolom username/password lama di teachers/students SENGAJA belum di-drop - jangan dihapus sampai ada konfirmasi eksplisit dari saya setelah periode observasi (rekomendasi minimal beberapa hari pemakaian normal tanpa masalah).
 - Catatan: default password siswa hasil import = NISN siswa itu sendiri (bukan 'password' generik) - dikonfirmasi saat testing Fase 2.
+
+## Status: Fase 3 Selesai (v11.1 & v11.2) - Implementasi Penuh & Perbaikan UI
+- Tanggal penyelesaian: 2026-07-25
+- Guard lama (`wali_kelas`, `siswa`) beserta provider `gurus` dan `siswas` telah **dihapus permanen** dari `config/auth.php`.
+- Kolom legacy (`username`, `password`, `must_change_password`) telah **didrop** dari tabel `teachers` dan `students`.
+- **v11.2 (Perbaikan Filament UI)**: Karena tabel profil Guru & Siswa tidak lagi memiliki kolom kredensial, integrasi Single-Auth pada Filament UI telah disempurnakan:
+  - Model `Guru` & `Siswa` sekarang memiliki relasi `user()` (`belongsTo User`).
+  - *Create Record*: Pembuatan Guru/Siswa via Filament akan secara *behind-the-scenes* membuatkan entitas `User` (akun login), lalu mengikatnya dengan profil tersebut via `user_id`.
+  - *Edit Record*: Field 'Email Login' & 'Password Baru' bersifat *virtual* di form Guru/Siswa; jika diubah, akan langsung memperbarui kredensial di tabel `users`.
+  - Custom Action `Reset Password` kini memperbarui tabel `users`.
