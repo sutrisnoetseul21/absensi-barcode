@@ -9,14 +9,10 @@
             $loginSubtitle = 'Pusat kendali sistem presensi. Kelola data master, konfigurasi aplikasi, dan pantau seluruh aktivitas sekolah.';
             $formTitle = 'Login Admin';
             
-            if ($panelId === 'admin-master') {
-                $loginTitle = 'Portal Master Data';
-                $loginSubtitle = 'Kelola data induk sekolah seperti data Siswa, Guru, Kelas, dan Tahun Ajaran.';
-                $formTitle = 'Login Master Data';
-            } elseif ($panelId === 'admin-akademik') {
-                $loginTitle = 'Portal Akademik';
-                $loginSubtitle = 'Kelola operasional kesiswaan, pembagian kelas (enrollment), dan mutasi.';
-                $formTitle = 'Login Akademik';
+            if ($panelId === 'admin-akademik') {
+                $loginTitle = 'Portal Master & Akademik';
+                $loginSubtitle = 'Kelola data induk sekolah, kesiswaan, pembagian kelas, dan mutasi.';
+                $formTitle = 'Login Master & Akademik';
             } elseif ($panelId === 'admin-presensi') {
                 $loginTitle = 'Portal Presensi';
                 $loginSubtitle = 'Pusat rekapitulasi kehadiran, izin, sakit, dan cetak laporan harian.';

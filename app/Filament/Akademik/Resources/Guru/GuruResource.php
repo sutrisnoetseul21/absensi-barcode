@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Filament\Akademik\Resources\Guru;
+
+use App\Filament\Akademik\Resources\Guru\Pages\CreateGuru;
+use App\Filament\Akademik\Resources\Guru\Pages\EditGuru;
+use App\Filament\Akademik\Resources\Guru\Pages\ListGurus;
+use App\Filament\Akademik\Resources\Guru\Schemas\GuruForm;
+use App\Filament\Akademik\Resources\Guru\Tables\GuruTable;
+use App\Models\Guru;
+use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+
+class GuruResource extends Resource
+{
+    protected static ?string $model = Guru::class;
+
+    protected static ?string $modelLabel = 'Guru';
+
+    protected static ?string $pluralModelLabel = 'Guru';
+
+    protected static ?string $slug = 'guru';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
+
+    protected static ?string $navigationLabel = 'Guru';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->isSuperAdmin() ?? false;
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return GuruForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return GuruTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListGurus::route('/'),
+            'create' => CreateGuru::route('/create'),
+            'edit'   => EditGuru::route('/{record}/edit'),
+        ];
+    }
+}

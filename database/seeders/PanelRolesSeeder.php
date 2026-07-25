@@ -20,8 +20,7 @@ class PanelRolesSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 1. Definisikan Resources per Divisi
-        $masterResources = ['Guru', 'Siswa', 'Kelas', 'TahunAjaran', 'Pengumuman', 'HariLibur'];
-        $akademikResources = ['Kelas', 'Siswa', 'RiwayatPindahKelas'];
+        $akademikResources = ['Guru', 'Siswa', 'Kelas', 'TahunAjaran', 'Pengumuman', 'HariLibur', 'RiwayatPindahKelas', 'User'];
         $presensiResources = ['HariLibur']; // + Custom pages khusus presensi
 
         // 2. Definisikan Action per Level
@@ -31,7 +30,6 @@ class PanelRolesSeeder extends Seeder
 
         // 3. Mapping Divisi dan Level Role
         $divisions = [
-            'admin_master' => $masterResources,
             'admin_akademik' => $akademikResources,
             'admin_presensi' => $presensiResources,
         ];
@@ -44,7 +42,6 @@ class PanelRolesSeeder extends Seeder
 
         // Custom Permissions Khusus Panel (Dashboard, Laporan, dll)
         $customPermissions = [
-            'admin_master' => ['View:Dashboard'],
             'admin_akademik' => ['View:Dashboard'],
             'admin_presensi' => [
                 'View:Dashboard',

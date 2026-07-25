@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pilih Portal Admin - Sistem Presensi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -60,27 +60,15 @@
                 </div>
             </a>
 
-            {{-- Panel Master Data --}}
-            <a href="{{ url('/admin-master/login') }}" class="group block p-8 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-3xl border border-white/20 hover:border-blue-400/50 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-400/0 to-blue-500/0 group-hover:from-blue-400/10 group-hover:to-blue-500/10 transition-colors duration-300"></div>
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 bg-slate-800 text-slate-300 group-hover:bg-blue-500 group-hover:text-white rounded-2xl flex items-center justify-center mb-5 transition-colors duration-300 shadow-lg">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Master Data</h3>
-                    <p class="text-sm text-slate-300">Data Induk TU, Siswa, Guru & Kelas</p>
-                </div>
-            </a>
-
-            {{-- Panel Akademik --}}
+            {{-- Panel Data Master & Akademik --}}
             <a href="{{ url('/admin-akademik/login') }}" class="group block p-8 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-3xl border border-white/20 hover:border-emerald-400/50 hover:shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-br from-emerald-400/0 to-emerald-500/0 group-hover:from-emerald-400/10 group-hover:to-emerald-500/10 transition-colors duration-300"></div>
                 <div class="relative z-10 flex flex-col items-center text-center">
                     <div class="w-16 h-16 bg-slate-800 text-slate-300 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl flex items-center justify-center mb-5 transition-colors duration-300 shadow-lg">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v7"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Akademik</h3>
-                    <p class="text-sm text-slate-300">Pembagian Kelas & Operasional Mutasi</p>
+                    <h3 class="text-xl font-bold text-white mb-2">Data Master & Akademik</h3>
+                    <p class="text-sm text-slate-300">Data Induk, Pembagian Kelas & Mutasi</p>
                 </div>
             </a>
 

@@ -60,7 +60,6 @@ class User extends Authenticatable implements FilamentUser
      *
      * Pemetaan Panel ID → Role yang diizinkan:
      *   admin          → super_admin (dihandle oleh HasPanelShield)
-     *   admin-master   → admin_master atau super_admin
      *   admin-akademik → admin_akademik atau super_admin
      *   admin-presensi → admin_presensi atau super_admin
      */
@@ -77,9 +76,7 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        // Pemetaan Panel ID ke prefix Role yang diperlukan
         $panelRolePrefixes = [
-            'admin-master'   => 'admin_master',
             'admin-akademik' => 'admin_akademik',
             'admin-presensi' => 'admin_presensi',
         ];
