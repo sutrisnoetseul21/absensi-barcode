@@ -12,17 +12,16 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Support\Icons\Heroicon;
 
 class PindahKelasResource extends Resource
 {
     protected static ?string $model = EnrollmentSiswa::class;
 
-    protected static string|\UnitEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
+    protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
     protected static ?string $navigationLabel = 'Pindah Kelas';
     protected static ?string $pluralLabel = 'Pindah Kelas';
     protected static ?string $modelLabel = 'Siswa';
-    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
+    protected static ?string $navigationGroup = 'Akademik';
     protected static ?int $navigationSort = 2;
 
     public static function canViewAny(): bool
