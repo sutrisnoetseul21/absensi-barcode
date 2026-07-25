@@ -83,6 +83,7 @@ class AkademikPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Akademik/Widgets'), for: 'App\Filament\Akademik\Widgets')
             ->widgets([
+                \App\Filament\Widgets\PortalWidget::class,
                 AccountWidget::class,
             ])
             ->middleware([

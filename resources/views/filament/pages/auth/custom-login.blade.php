@@ -3,6 +3,29 @@
     <div class="absolute inset-0 z-0 lg:hidden">
         @php
             $pengaturanSekolah = \App\Models\PengaturanSekolah::current();
+            $panelId = filament()->getCurrentPanel()->getId();
+            
+            $loginTitle = 'Portal Admin';
+            $loginSubtitle = 'Pusat kendali sistem presensi. Kelola data master, konfigurasi aplikasi, dan pantau seluruh aktivitas sekolah.';
+            $formTitle = 'Login Admin';
+            
+            if ($panelId === 'admin-master') {
+                $loginTitle = 'Portal Master Data';
+                $loginSubtitle = 'Kelola data induk sekolah seperti data Siswa, Guru, Kelas, dan Tahun Ajaran.';
+                $formTitle = 'Login Master Data';
+            } elseif ($panelId === 'admin-akademik') {
+                $loginTitle = 'Portal Akademik';
+                $loginSubtitle = 'Kelola operasional kesiswaan, pembagian kelas (enrollment), dan mutasi.';
+                $formTitle = 'Login Akademik';
+            } elseif ($panelId === 'admin-presensi') {
+                $loginTitle = 'Portal Presensi';
+                $loginSubtitle = 'Pusat rekapitulasi kehadiran, izin, sakit, dan cetak laporan harian.';
+                $formTitle = 'Login Presensi';
+            } else {
+                $loginTitle = 'Portal Super Admin';
+                $loginSubtitle = 'Pusat kendali sistem presensi. Kelola konfigurasi sistem dan hak akses.';
+                $formTitle = 'Login Super Admin';
+            }
         @endphp
         @if($pengaturanSekolah && $pengaturanSekolah->login_background_path)
             <img src="{{ asset('storage/' . $pengaturanSekolah->login_background_path) }}" class="w-full h-full object-cover object-center opacity-60">
@@ -40,10 +63,10 @@
                 </div>
             </div>
             <h1 class="text-4xl lg:text-5xl font-extrabold text-white mb-6 leading-tight">
-                Selamat Datang di <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-300 drop-shadow-sm">Portal Admin</span>
+                Selamat Datang di <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-300 drop-shadow-sm">{{ $loginTitle }}</span>
             </h1>
             <p class="text-lg text-slate-300 leading-relaxed mb-8 max-w-md">
-                Pusat kendali sistem presensi. Kelola data master, konfigurasi aplikasi, dan pantau seluruh aktivitas sekolah.
+                {{ $loginSubtitle }}
             </p>
         </div>
     </div>
@@ -63,12 +86,12 @@
                  <div class="mx-auto w-14 h-14 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mb-4 border border-amber-100 dark:border-amber-500/30">
                     <svg class="w-7 h-7 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v7"></path></svg>
                 </div>
-                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Portal Admin</h2>
+                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $loginTitle }}</h2>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Sistem Presensi Berbasis Barcode</p>
             </div>
 
             <div>
-                <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight hidden lg:block">Login Admin</h2>
+                <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight hidden lg:block">{{ $formTitle }}</h2>
                 <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 hidden lg:block">Silakan masuk ke akun administrator Anda.</p>
             </div>
 
@@ -78,10 +101,17 @@
 
                     <div class="mt-6">
                         <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200">
-                            Masuk ke Dashboard Admin
+                            Masuk ke Dashboard
                         </button>
                     </div>
                 </form>
+
+                <div class="mt-8 border-t border-slate-200 dark:border-slate-700 pt-6 text-center">
+                    <a href="{{ url('/login') }}" class="inline-flex items-center justify-center gap-2 text-sm font-medium text-slate-500 hover:text-amber-500 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Kembali ke Pilihan Portal
+                    </a>
+                </div>
             </div>
             
             <div class="mt-10 text-center text-xs text-slate-500 dark:text-slate-400 font-medium">

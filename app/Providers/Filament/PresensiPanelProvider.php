@@ -83,6 +83,7 @@ class PresensiPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Presensi/Widgets'), for: 'App\Filament\Presensi\Widgets')
             ->widgets([
+                \App\Filament\Widgets\PortalWidget::class,
                 AccountWidget::class,
             ])
             ->middleware([

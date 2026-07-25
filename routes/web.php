@@ -16,7 +16,7 @@ Route::get('/', PublicDashboard::class)->name('public.dashboard');
 Route::get('/dashboardv1', PublicDashboardV1::class)->name('public.dashboard.v1');
 Route::get('/display', PublicDashboard::class)->name('public.display');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
-Route::get('/login', fn() => redirect('/admin/login'))->name('login');
+Route::get('/login', fn() => view('auth.portal-selection'))->name('login');
 
 
 // Kiosk Absensi Routes - Protected by 'auth' middleware so only Admin can access

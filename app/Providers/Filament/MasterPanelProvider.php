@@ -83,6 +83,7 @@ class MasterPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Master/Widgets'), for: 'App\Filament\Master\Widgets')
             ->widgets([
+                \App\Filament\Widgets\PortalWidget::class,
                 AccountWidget::class,
             ])
             ->middleware([

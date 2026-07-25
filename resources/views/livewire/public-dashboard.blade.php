@@ -260,7 +260,7 @@
                             Wali Kelas
                         </span>
                     </a>
-                    <a href="/admin"
+                    <a href="{{ route('login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -305,7 +305,7 @@
                    :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Wali Kelas
                 </a>
-                <a href="/admin" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Admin
                 </a>
