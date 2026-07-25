@@ -45,17 +45,7 @@ return [
             'provider' => 'users',
         ],
 
-        // Guard untuk Wali Kelas (tabel: teachers, model: Guru)
-        'wali_kelas' => [
-            'driver'   => 'session',
-            'provider' => 'gurus',
-        ],
 
-        // Guard untuk Siswa (tabel: students, model: Siswa)
-        'siswa' => [
-            'driver'   => 'session',
-            'provider' => 'siswas',
-        ],
     ],
 
     /*
@@ -82,17 +72,7 @@ return [
             'model'  => env('AUTH_MODEL', User::class),
         ],
 
-        // Wali Kelas → tabel teachers
-        'gurus' => [
-            'driver' => 'eloquent',
-            'model'  => Guru::class,
-        ],
 
-        // Siswa → tabel students
-        'siswas' => [
-            'driver' => 'eloquent',
-            'model'  => Siswa::class,
-        ],
     ],
 
     /*
