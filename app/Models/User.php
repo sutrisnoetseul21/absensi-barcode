@@ -128,4 +128,16 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->belongsTo(Guru::class, 'teacher_id');
     }
+
+    // Relasi Single-Auth ke tabel teachers
+    public function teacher(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Guru::class, 'user_id');
+    }
+
+    // Relasi Single-Auth ke tabel students
+    public function student(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Siswa::class, 'user_id');
+    }
 }
