@@ -31,6 +31,12 @@ class SiswaBaruImport implements ToCollection
 
     public function collection(Collection $rows): void
     {
+        // ─── Tweak Performa: Hindari Timeout Hashing Bcrypt ───────────────────
+        // Menurunkan cost bcrypt sementara menjadi 4 (sangat cepat) untuk import.
+        // Saat siswa login nanti, Laravel otomatis me-rehash kembali ke cost default (12).
+        \Illuminate\Support\Facades\Config::set('hashing.bcrypt.rounds', 4);
+        set_time_limit(300); // 5 menit
+
         // ─── Pra-proses: kumpulkan data referensi dari DB ─────────────────────
         $existingNisns  = Siswa::withTrashed()->pluck('nisn')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
         $existingNises  = Siswa::withTrashed()->whereNotNull('nis')->pluck('nis')->filter()->map(fn($v) => (string)$v)->flip()->toArray();

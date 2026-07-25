@@ -11,6 +11,10 @@ class GuruImport implements ToCollection
 {
     public function collection(Collection $rows)
     {
+        // ─── Tweak Performa: Hindari Timeout Hashing Bcrypt ───────────────────
+        \Illuminate\Support\Facades\Config::set('hashing.bcrypt.rounds', 4);
+        set_time_limit(300); // 5 menit
+        
         foreach ($rows as $index => $row) {
             if ($index === 0) {
                 continue; // skip header
