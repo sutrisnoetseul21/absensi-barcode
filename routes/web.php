@@ -75,7 +75,7 @@ Route::prefix('wali-kelas')->group(function () {
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('wali-kelas.student-detail');
         
         Route::post('/logout', function () {
-            Auth::guard('wali_kelas')->logout();
+            Auth::guard('web')->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
             return redirect('/');
@@ -91,7 +91,7 @@ Route::prefix('siswa')->group(function () {
         Route::get('/', SiswaDashboard::class)->name('siswa.dashboard');
         
         Route::post('/logout', function () {
-            Auth::guard('siswa')->logout();
+            Auth::guard('web')->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
             return redirect('/');
