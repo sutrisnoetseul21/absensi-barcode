@@ -6,9 +6,11 @@ use App\Filament\Resources\PindahKelasResource\Pages;
 use App\Models\EnrollmentSiswa;
 use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
+use BackedEnum;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,11 +19,11 @@ class PindahKelasResource extends Resource
 {
     protected static ?string $model = EnrollmentSiswa::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
     protected static ?string $navigationLabel = 'Pindah Kelas';
     protected static ?string $pluralLabel = 'Pindah Kelas';
     protected static ?string $modelLabel = 'Siswa';
-    protected static ?string $navigationGroup = 'Akademik';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
     protected static ?int $navigationSort = 2;
 
     public static function canViewAny(): bool
@@ -40,10 +42,10 @@ class PindahKelasResource extends Resource
             ->whereHas('student'); // Pastikan siswanya ada
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Forms\Components\Select::make('class_id')
                     ->label('Kelas Tujuan')
                     ->options(Kelas::pluck('name', 'id'))
