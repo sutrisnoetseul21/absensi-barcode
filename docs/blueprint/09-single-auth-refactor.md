@@ -70,3 +70,9 @@ Untuk keperluan tampilan/log input absen, cukup gunakan `$actorName` (nama Guru 
 - [ ] `app/Livewire/WaliKelasStudentDetail.php`
 - [ ] `routes/web.php`
 - [ ] `resources/views/livewire/wali-kelas/header.blade.php`
+
+## Status: Fase 2 Selesai (v11.0) - Menunggu Periode Observasi
+- Tanggal merge: 2026-07-25
+- Guard lama (wali_kelas, siswa) di config/auth.php SENGAJA belum dihapus - masih standby sebagai fallback darurat.
+- Kolom username/password lama di teachers/students SENGAJA belum di-drop - jangan dihapus sampai ada konfirmasi eksplisit dari saya setelah periode observasi (rekomendasi minimal beberapa hari pemakaian normal tanpa masalah).
+- Catatan: default password siswa hasil import = NISN siswa itu sendiri (bukan 'password' generik) - dikonfirmasi saat testing Fase 2.
