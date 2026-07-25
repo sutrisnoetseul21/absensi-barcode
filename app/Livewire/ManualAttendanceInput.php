@@ -65,18 +65,17 @@ class ManualAttendanceInput extends Component
             ->where('date', $this->date)
             ->first();
 
+        $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
+        
         // Blokir Guru jika mengedit data scan otomatis
-        if ($existing && $existing->is_manual_input === false && Auth::guard('wali_kelas')->check()) {
+        if ($existing && $existing->is_manual_input === false && $isGuru) {
             throw ValidationException::withMessages([
                 'status' => 'Siswa ini sudah absen otomatis. Hanya Admin yang bisa mengubah data ini.'
             ]);
         }
 
-        $actor = Auth::guard('wali_kelas')->check() 
-            ? Auth::guard('wali_kelas')->user() 
-            : Auth::guard('web')->user();
-
-        $actorType = Auth::guard('wali_kelas')->check() ? 'Guru' : 'Admin';
+        $actor = $isGuru ? Auth::user()->teacher : Auth::user();
+        $actorType = $isGuru ? 'Guru' : 'Admin';
 
         $oldStatus = $existing ? $existing->status : null;
         

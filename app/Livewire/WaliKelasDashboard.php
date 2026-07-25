@@ -102,10 +102,11 @@ class WaliKelasDashboard extends Component
             return;
         }
 
-        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !Auth::guard('wali_kelas')->check();
+        $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
+        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !$isGuru;
 
         if (!$isAdminMode) {
-            $actor        = Auth::guard('wali_kelas')->user();
+            $actor        = Auth::user()->teacher;
             $this->classes = Kelas::whereHas('kelasAjarans', function ($query) use ($actor) {
                 $query->where('academic_year_id', $this->selectedAcademicYearId)
                       ->where('teacher_id', $actor->id);
@@ -133,7 +134,8 @@ class WaliKelasDashboard extends Component
 
     public function updatedSelectedClassId()
     {
-        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !Auth::guard('wali_kelas')->check();
+        $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
+        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !$isGuru;
         if (!$isAdminMode) {
             if (!collect($this->classes)->contains('id', $this->selectedClassId)) {
                 abort(403, 'Unauthorized action.');
@@ -254,8 +256,10 @@ class WaliKelasDashboard extends Component
                 continue;
             }
 
+            $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
+            
             // Blokir Guru jika mengedit data scan otomatis (hanya Admin yang boleh)
-            if ($existing && $existing->is_manual_input === false && Auth::guard('wali_kelas')->check()) {
+            if ($existing && $existing->is_manual_input === false && $isGuru) {
                 $this->dispatch('notify', [
                     'type'    => 'error',
                     'message' => "Gagal mengubah: Sebagian siswa sudah absen otomatis. Hanya Admin yang bisa mengubahnya.",
@@ -263,8 +267,8 @@ class WaliKelasDashboard extends Component
                 continue;
             }
 
-            $actor = Auth::guard('wali_kelas')->check() ? Auth::guard('wali_kelas')->user() : Auth::guard('web')->user();
-            $actorType = Auth::guard('wali_kelas')->check() ? 'Guru' : 'Admin';
+            $actor = $isGuru ? Auth::user()->teacher : Auth::user();
+            $actorType = $isGuru ? 'Guru' : 'Admin';
             
             $note = null;
             if ($existing) {
@@ -289,7 +293,7 @@ class WaliKelasDashboard extends Component
                     'late_minutes'    => $newLate,
                     'is_manual_input' => true,
                     'manual_input_by_id'   => $actor->id,
-                    'manual_input_by_type' => Auth::guard('wali_kelas')->check() ? \App\Models\Guru::class : \App\Models\User::class,
+                    'manual_input_by_type' => $isGuru ? \App\Models\Guru::class : \App\Models\User::class,
                     'note'            => $note,
                 ]
             );
