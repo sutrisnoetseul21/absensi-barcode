@@ -2,7 +2,9 @@
 
 Daftar layar yang perlu di-sketch:
 
-- **Login Admin** (Filament default)
+- **Gerbang Utama & Login Admin**
+  - Layar `/login` menampilkan 4 kotak besar pilihan portal (Super Admin, Master Data, Akademik, Presensi).
+  - Mengklik portal akan mengarah ke form login khusus (Filament custom layout) dengan tombol kembali.
 
 - **Dashboard Publik**
   - **Constraint utama**: HANYA menampilkan data agregat per kelas (jumlah siswa, % kehadiran, ranking kelas). TIDAK PERNAH menampilkan nama, foto, atau status individu siswa di halaman ini — itu domain Dashboard Admin/Wali Kelas.
@@ -27,7 +29,7 @@ Daftar layar yang perlu di-sketch:
   - **Responsif**: Wajib untuk Mode Publik (`/`). Mode TV (`/display`) didesain untuk layar besar tetap (tidak perlu responsif ke ukuran HP).
 
 
-- **Dashboard Admin** (lebih detail)
+- **Dashboard Admin (Multi-Panel)**
   - Ringkasan total siswa, total hadir hari ini, % per kelas
   - Daftar alert siswa bermasalah (sering alpa / telat banyak)
   - Grafik tren dan per-kelas

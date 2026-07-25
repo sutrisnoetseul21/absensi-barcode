@@ -3,8 +3,9 @@
 Kelompokkan per modul:
 
 1. **Autentikasi & Manajemen User Admin**
-   - Login Admin/Super Admin via Filament (tabel `users`)
-   - Login Wali Kelas & Siswa via portal custom (multi-guard)
+   - Halaman **Portal Selection** di `/login` (Gerbang Utama untuk memilih panel).
+   - Login Multi-Panel via Filament (Super Admin, Master Data, Akademik, Presensi).
+   - Login Wali Kelas & Siswa via portal custom (multi-guard).
    - Ganti password default saat login pertama
 
 2. **Pengaturan Sekolah (Global Settings)** ← **NEW**
@@ -44,7 +45,9 @@ Kelompokkan per modul:
     - **Wall of Fame**: Top 5 kelas terajin bulan ini (gamifikasi)
     - **Grafik Interaktif** (Chart.js/ApexCharts): Donut hari ini, Bar antar kelas, Line tren bulanan
 
-11. **Dashboard Admin** (detail per siswa, alert batas pelanggaran, grafik tren, export)
+11. **Dashboard Admin (Multi-Panel)**
+    - Pemisahan tugas (*concern*) berdasarkan role (TU Master, TU Akademik, Guru Presensi).
+    - Detail per siswa, alert batas pelanggaran, grafik tren, export per departemen/panel.
 
 12. **Laporan & Export** (PDF/Excel per kelas/siswa/bulan)
 

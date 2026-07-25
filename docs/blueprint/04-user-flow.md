@@ -9,7 +9,12 @@ Buat diagram/flow untuk:
   - Jika **Barcode valid** → cek status (Hadir/Telat/Sudah Absen). Jika Telat, hitung otomatis `late_minutes`.
   - Layar & Suara langsung merespon (misal: "Terima Kasih Budi" atau "Maaf Budi, Telat 15 Menit").
   - Sistem di *front-end* langsung siap menerima scan siswa berikutnya tanpa menunggu proses simpan DB selesai (non-blocking), menampung scan puluhan siswa yang berurutan.
-- **Flow login admin → buka menu absensi** (wajib login sebelum menu scan aktif — ini kunci anti-kecurangan).
+- **Flow login admin & staf (Multi-Panel)**:
+  - User admin/staf membuka url `/login` atau mengklik "Admin" di Dashboard.
+  - Tampil halaman **Portal Selection** (Gerbang Utama) dengan 4 pilihan: Super Admin, Master Data, Akademik, Presensi.
+  - User mengklik salah satu portal yang sesuai dengan hak aksesnya.
+  - Sistem menampilkan form login khusus untuk portal tersebut (misal `/admin-master/login`).
+  - Setelah login berhasil, user masuk ke *dashboard* spesifik untuk perannya (Pemisahan Concern).
 - **Flow cetak kartu OSIS**: admin pilih satu/beberapa siswa → klik "Cetak Kartu" → sistem meng-generate file PDF layout OSIS.
 - **Flow lihat dashboard publik**: pengguna buka halaman depan → melihat Wall of Fame (5 kelas terajin) → pilih tahun ajaran/kelas/bulan → melihat visualisasi Chart.js/ApexCharts (Donut, Bar, Line).
 - **Flow kenaikan kelas**: Super Admin buka menu tahun ajaran baru → mapping massal siswa → arsip tahun lama.

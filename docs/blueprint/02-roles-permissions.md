@@ -1,21 +1,23 @@
 # 02. Roles & Permissions
 
-**Role yang digunakan (4 jenis akun + 1 publik):**
+**Role yang digunakan:**
 
 | Role | Deskripsi | Portal/Login | Tabel/Guard |
 |---|---|---|---|
-| Super Admin | Akses penuh: setting sekolah, tahun ajaran, kenaikan kelas, arsip, kelola admin lain | Login Admin (Filament) | `users` / guard `web` |
-| Admin/Operator | Input absensi (scan), kelola siswa & kalender libur, import/export data. Tidak bisa setting tahun ajaran & kenaikan kelas | Login Admin (Filament) | `users` / guard `web` |
-| Wali Kelas | Lihat data kelas yang diampu (bisa > 1 kelas), input manual absensi (Izin/Sakit/Alpa) | Login Wali Kelas (custom) | `teachers` / guard `wali_kelas` |
+| Super Admin | Akses penuh: pengaturan sistem, hak akses. | Portal Super Admin (`/admin`) | `users` / guard `web` |
+| Admin TU (Master Data) | Input data induk: Tahun Ajaran, Kelas, Siswa & Guru. | Portal Master Data (`/admin-master`) | `users` / guard `web` |
+| Admin TU (Akademik) | Pembagian kelas, mutasi, dan kenaikan kelas. | Portal Akademik (`/admin-akademik`) | `users` / guard `web` |
+| Guru Piket / BK | Input manual presensi, kelola libur, rekapitulasi harian. | Portal Presensi (`/admin-presensi`) | `users` / guard `web` |
+| Wali Kelas | Lihat data kelas yang diampu, input manual presensi (Izin/Sakit/Alpa) | Login Wali Kelas (custom) | `teachers` / guard `wali_kelas` |
 | Siswa | Hanya lihat riwayat absensinya sendiri, read-only | Login Siswa (custom) | `students` / guard `siswa` |
 | Publik (guest) | Lihat dashboard publik agregat, tanpa login | — | — |
 
-> **Catatan:** Admin dan Super Admin sama-sama menggunakan tabel `users` bawaan Filament (guard `web`). Pembedaan hak akses Super Admin vs Admin dilakukan via kolom boolean `is_super_admin` dan pembatasan `canAccess()` di level resource/halaman (bukan menggunakan Filament Shield atau tabel terpisah).
+> **Catatan:** Seluruh role Admin/TU menggunakan tabel `users` bawaan (guard `web`). Hak akses ke masing-masing panel dapat diatur lebih lanjut via pembatasan peran atau kebijakan akses (Policy). Pintu masuk login mereka disatukan melalui Gerbang Utama (`/login`).
 
 ---
 
-**Kenapa 3 form login terpisah (bukan 1 form untuk semua role)?**
-- Admin butuh panel CRUD lengkap → pakai Filament apa adanya.
+**Kenapa form login dipisahkan?**
+- Staf/TU butuh panel CRUD spesifik sesuai tanggung jawab mereka (Pemisahan Concern via Multi-Panel Filament). Pilihan portal tersedia di halaman `/login`.
 - Wali Kelas & Siswa cukup butuh portal ringan, 1–2 halaman → lebih cepat dibuat custom Livewire daripada dipaksa masuk struktur resource Filament.
 - Secara teknis ini didukung lewat **multi-guard authentication** di Laravel — tiap guard (`web`, `wali_kelas`, `siswa`) punya tabel user & session sendiri.
 

@@ -19,7 +19,12 @@ Arsitektur sistem dibagi menjadi beberapa *layer*:
    - Setiap modul operasional bersifat *loose coupling* terhadap Master Data. Mereka merespon perubahan pada Master Data menggunakan **Event-Driven Architecture** (Pub/Sub).
 
 3. **Layer UI / Presentasi (Filament)**
-   - Antarmuka *resource* yang secara jelas memisahkan *concern* antara admin Master Data (seperti import biodata siswa) dan admin Operasional (seperti pendaftaran ke kelas/presensi).
+   - Antarmuka *resource* yang secara jelas memisahkan *concern* melalui arsitektur **Multi-Panel**:
+     - **Portal Super Admin (`/admin`)**: Manajemen Root & Sistem.
+     - **Portal Master Data (`/admin-master`)**: Manajemen Tahun Ajaran, Kelas, Siswa & Guru.
+     - **Portal Akademik (`/admin-akademik`)**: Manajemen Pembagian Kelas & Mutasi Siswa.
+     - **Portal Presensi (`/admin-presensi`)**: Input Presensi, Rekapitulasi & Libur.
+   - Pintu masuk *Login* disatukan melalui *Portal Selection* (Gerbang Utama) di `/login`.
 
 ---
 

@@ -26,6 +26,14 @@ Saat ini terdapat 4 panel Filament utama:
     *   **Direktori Resource:** `app/Filament/Presensi/Resources`
     *   **Tujuan:** Operasional harian presensi (Input Presensi, Rekapitulasi, Pengaturan Jam Presensi & Hari Libur). Dikhususkan untuk Guru Piket / BK.
 
+## Alur Autentikasi & Gerbang Utama (Portal Selection)
+
+Untuk menghindari kebingungan pengguna saat login, aplikasi mengimplementasikan konsep **Portal Selection**:
+*   URL `/login` **tidak lagi** melempar (*redirect*) langsung ke login Super Admin (`/admin/login`).
+*   URL `/login` akan menampilkan **Gerbang Utama**, yaitu halaman dengan 4 kotak pilihan (Super Admin, Master Data, Akademik, Presensi).
+*   Pengguna harus memilih portal yang relevan, baru kemudian sistem akan mengarahkan ke form login panel masing-masing (contoh: `/admin-master/login`).
+*   Jika salah masuk, pengguna dapat kembali dari form login panel dengan mengklik tautan navigasi *"Kembali ke Pilihan Portal"* di bagian bawah form.
+
 ---
 
 ## Panduan Membuat Panel Baru (Contoh: Panel Keuangan)
