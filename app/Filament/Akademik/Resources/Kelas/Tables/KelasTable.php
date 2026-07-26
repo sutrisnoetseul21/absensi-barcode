@@ -12,6 +12,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 
 class KelasTable
@@ -20,25 +21,23 @@ class KelasTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->label('Nama Kelas')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('grade_level')
-                    ->label('Tingkat')
-                    ->sortable()
-                    ->formatStateUsing(fn (int $state): string => "Kelas {$state}"),
-
-                TextColumn::make('wali_kelas')
-                    ->label('Wali Kelas (Aktif)')
-                    ->getStateUsing(function (\App\Models\Kelas $record) {
-                        $activeTahunAjaranId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active;
-                        if (!$activeTahunAjaranId) return '—';
-
-                        $kelasAjaran = $record->kelasAjarans()->where('academic_year_id', $activeTahunAjaranId)->first();
-                        return $kelasAjaran?->guru?->name ?? '—';
-                    }),
+                \Filament\Tables\Columns\Layout\Split::make([
+                    TextColumn::make('name')
+                        ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                        ->size('lg')
+                        ->icon('heroicon-o-building-office-2')
+                        ->iconColor('primary')
+                        ->iconPosition(\Filament\Support\Enums\IconPosition::After)
+                        ->searchable()
+                        ->sortable()
+                        ->grow(true),
+                ]),
+            ])
+            ->contentGrid([
+                'sm' => 2,
+                'md' => 4,
+                'lg' => 6,
+                'xl' => 8,
             ])
             ->headerActions([
                 Action::make('download_template')
@@ -261,33 +260,74 @@ class KelasTable
                     }),
             ])
             ->filters([
+                \Filament\Tables\Filters\SelectFilter::make('grade_level')
+                    ->label('Filter Tingkat')
+                    ->options([
+                        7 => 'Kelas 7',
+                        8 => 'Kelas 8',
+                        9 => 'Kelas 9',
+                    ])
+                    ->native(false),
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->iconButton()
+                    ->tooltip('Edit Kelas')
+                    ->modalDescription(function (\App\Models\Kelas $record) {
+                        $hasPengajaran = $record->pengajarans()->exists() ?? false;
+                        $hasSiswa = $record->enrollments()->exists() ?? false;
+                        
+                        if ($hasPengajaran || $hasSiswa) {
+                            return new \Illuminate\Support\HtmlString('<span style="color: #ef4444; font-weight: bold;">⚠️ Peringatan: Kelas ini sudah terisi (' . ($hasSiswa ? 'Siswa' : '') . ($hasPengajaran && $hasSiswa ? ' & ' : '') . ($hasPengajaran ? 'Pembelajaran' : '') . '). Mengubah data dapat merusak riwayat akademik!</span>');
+                        }
+                        return null;
+                    })
+                    ->before(function (\App\Models\Kelas $record, \Filament\Actions\EditAction $action) {
+                        $hasPengajaran = $record->pengajarans()->exists() ?? false;
+                        $hasSiswa = $record->enrollments()->exists() ?? false;
 
-                // Blokir hapus jika masih ada siswa terdaftar di kelas ini
-                DeleteAction::make()
-                    ->before(function (\App\Models\Kelas $record, DeleteAction $action) {
-                        if ($record->enrollments()->exists()) {
+                        if ($hasSiswa || $hasPengajaran) {
                             \Filament\Notifications\Notification::make()
-                                ->title('Tidak Bisa Dihapus')
-                                ->body('Kelas ini masih memiliki siswa terdaftar. Keluarkan semua siswa dari kelas ini terlebih dahulu di menu Pendaftaran Kelas.')
+                                ->title('Perubahan Ditolak')
+                                ->body('Kelas tidak dapat diubah karena sudah memiliki data Siswa atau Pembelajaran aktif.')
                                 ->danger()
+                                ->persistent()
                                 ->send();
+                            
                             $action->cancel();
                         }
                     }),
 
-                RestoreAction::make(),
+                DeleteAction::make()
+                    ->iconButton()
+                    ->tooltip('Hapus Kelas')
+                    ->before(function (\App\Models\Kelas $record, DeleteAction $action) {
+                        $hasPengajaran = $record->pengajarans()->exists() ?? false;
+                        $hasSiswa = $record->enrollments()->exists() ?? false;
+
+                        if ($hasSiswa || $hasPengajaran) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Akses Ditolak')
+                                ->body('Kelas tidak dapat dihapus! Anda harus mengosongkan/menghapus data Siswa dan Pembelajaran yang terkait dengan kelas ini terlebih dahulu.')
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                            
+                            $action->cancel();
+                        }
+                    }),
+
+                RestoreAction::make()
+                    ->iconButton(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                ]),
+            ->defaultGroup('grade_level')
+            ->groups([
+                Group::make('grade_level')
+                    ->label('Jenjang')
+                    ->getTitleFromRecordUsing(fn (\App\Models\Kelas $record): string => "Kelas {$record->grade_level}")
+                    ->collapsible(),
             ])
-            ->defaultSort('grade_level');
+            ->defaultSort('name', 'asc');
     }
 }

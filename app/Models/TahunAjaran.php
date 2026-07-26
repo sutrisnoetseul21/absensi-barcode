@@ -34,6 +34,22 @@ class TahunAjaran extends Model
                 $model->name = "{$model->start_year}/{$model->end_year}";
             }
         });
+
+        static::saved(function (self $model) {
+            // Jika tahun ajaran ini diset aktif, otomatis arsipkan yang lain
+            if ($model->status === 'aktif') {
+                self::where('id', '!=', $model->id)
+                    ->where('status', 'aktif')
+                    ->update(['status' => 'arsip']);
+                    
+                // Sinkronisasi otomatis ke Pengaturan Sekolah
+                $pengaturan = \App\Models\PengaturanSekolah::first();
+                if ($pengaturan && $pengaturan->academic_year_id_active !== $model->id) {
+                    $pengaturan->academic_year_id_active = $model->id;
+                    $pengaturan->saveQuietly();
+                }
+            }
+        });
     }
 
     // Kelas yang aktif di tahun ajaran ini

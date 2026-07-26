@@ -79,6 +79,8 @@ Silakan klik tautan pada tabel **Status Progres Keseluruhan** di bawah ini untuk
 |-------|------|--------|
 | 0 | [Inisiasi Proyek & Setup](../progres-aplikasi-absensi/tahap-0.md) | ✅ Selesai |
 | 1 | [Skema Database](../progres-aplikasi-absensi/tahap-1.md) | ✅ Selesai |
+| 13 | [Manajemen Penghapusan vs Pengarsipan](../progres-aplikasi-absensi/tahap-13.md) | ✅ Selesai |
+| 14 | [Perlindungan Data Master Interaktif & Modal Pop-Up Edit](../progres-aplikasi-absensi/tahap-14.md) | ✅ Selesai |
 | 2 | [Multi-Guard Authentication](../progres-aplikasi-absensi/tahap-2.md) | ✅ Selesai |
 | 3 | [Data Master & Modul Admin](../progres-aplikasi-absensi/tahap-3.md) | ✅ Selesai |
 | 4 | [Kios Scanner Absensi](../progres-aplikasi-absensi/tahap-4.md) | ⬜ Belum dimulai |

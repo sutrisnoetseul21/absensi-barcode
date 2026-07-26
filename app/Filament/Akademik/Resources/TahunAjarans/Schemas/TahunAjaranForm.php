@@ -11,8 +11,6 @@ class TahunAjaranForm
 {
     public static function configure(Schema $schema): Schema
     {
-        $record = $schema->getLivewire()->getRecord() ?? null;
-
         return $schema
             ->components([
                 TextInput::make('start_year')
@@ -22,10 +20,7 @@ class TahunAjaranForm
                     ->minValue(2000)
                     ->maxValue(2100)
                     ->required()
-                    ->rule(function () use ($record) {
-                        return Rule::unique('academic_years', 'start_year')
-                            ->ignore($record?->id ?? null);
-                    })
+                    ->unique(table: 'academic_years', column: 'start_year', ignoreRecord: true)
                     ->helperText('Tahun awal semester ganjil, misal 2024 untuk TP 2024/2025.'),
 
                 TextInput::make('end_year')
@@ -35,10 +30,7 @@ class TahunAjaranForm
                     ->minValue(2000)
                     ->maxValue(2100)
                     ->required()
-                    ->rule(function () use ($record) {
-                        return Rule::unique('academic_years', 'end_year')
-                            ->ignore($record?->id ?? null);
-                    })
+                    ->unique(table: 'academic_years', column: 'end_year', ignoreRecord: true)
                     ->gt('start_year')
                     ->helperText('Harus lebih besar dari Tahun Mulai.'),
 

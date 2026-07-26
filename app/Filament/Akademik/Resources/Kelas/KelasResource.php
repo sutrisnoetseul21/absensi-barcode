@@ -47,6 +47,7 @@ class KelasResource extends Resource
     {
         return [
             KelasAjaranRelationManager::class,
+            \App\Filament\Akademik\Resources\Kelas\RelationManagers\PengajaranRelationManager::class,
         ];
     }
 
@@ -55,7 +56,6 @@ class KelasResource extends Resource
         return [
             'index'  => ListKelas::route('/'),
             'create' => CreateKelas::route('/create'),
-            'edit'   => EditKelas::route('/{record}/edit'),
         ];
     }
 }

@@ -47,4 +47,17 @@ class Kelas extends Model
     {
         return $this->hasMany(HariLibur::class, 'class_id');
     }
+
+    // Pengajaran yang terhubung ke kelas ini lewat tahun ajaran
+    public function pengajarans()
+    {
+        return $this->hasManyThrough(
+            Pengajaran::class,
+            KelasAjaran::class,
+            'class_id', 
+            'class_academic_year_id', 
+            'id', 
+            'id' 
+        );
+    }
 }

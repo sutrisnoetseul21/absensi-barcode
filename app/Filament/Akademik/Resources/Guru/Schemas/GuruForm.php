@@ -4,6 +4,9 @@ namespace App\Filament\Akademik\Resources\Guru\Schemas;
 
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 
@@ -45,6 +48,38 @@ class GuruForm
                     ->revealable()
                     ->dehydrated(false)
                     ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password.' : 'Kosongkan untuk meng-generate random password (akan ditampilkan setelah disimpan).'),
+                
+                Placeholder::make('mapel_aktif')
+                    ->label('Mata Pelajaran yang Diampu (Tahun Ajaran Aktif)')
+                    ->content(function (?Model $record) {
+                        if (!$record) return '-';
+                        $mapel = $record->mapel_aktif;
+                        return empty($mapel) ? 'Belum ada mata pelajaran' : implode(', ', $mapel);
+                    }),
+
+                Repeater::make('jabatans')
+                    ->label('Jabatan Tambahan')
+                    ->relationship('jabatans')
+                    ->schema([
+                        Select::make('jabatan_id')
+                            ->label('Jabatan')
+                            ->options(\App\Models\Jabatan::pluck('nama_jabatan', 'id'))
+                            ->required(),
+                        DatePicker::make('tanggal_mulai')
+                            ->required(),
+                        DatePicker::make('tanggal_selesai')
+                            ->nullable(),
+                    ])
+                    ->columns(3),
+
+                Placeholder::make('semua_jabatan')
+                    ->label('Semua Jabatan & Tugas Tambahan (Otomatis)')
+                    ->content(function (?Model $record) {
+                        if (!$record) return '-';
+                        $jabatans = $record->semua_jabatan;
+                        return empty($jabatans) ? 'Belum ada jabatan' : implode(', ', $jabatans);
+                    })
+                    ->helperText('Gabungan dari jabatan fungsional dan penugasan Wali Kelas tahun ajaran aktif.'),
             ]);
     }
 }

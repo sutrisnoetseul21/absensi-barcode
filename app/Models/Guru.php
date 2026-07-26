@@ -37,4 +37,62 @@ class Guru extends Authenticatable
     {
         return $this->morphMany(Presensi::class, 'manual_input_by');
     }
+    public function jabatans()
+    {
+        return $this->belongsToMany(Jabatan::class, 'teacher_jabatan', 'teacher_id', 'jabatan_id')
+            ->withPivot('tanggal_mulai', 'tanggal_selesai')
+            ->withTimestamps();
+    }
+
+    public function pengajarans(): HasMany
+    {
+        return $this->hasMany(Pengajaran::class, 'teacher_id');
+    }
+
+    public function getSemuaJabatanAttribute()
+    {
+        // 1. Ambil jabatan dari tabel teacher_jabatan (yang belum selesai / tanggal_selesai null atau > now)
+        $jabatans = $this->jabatans()
+            ->where(function($q) {
+                $q->whereNull('teacher_jabatan.tanggal_selesai')
+                  ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
+            })
+            ->pluck('nama_jabatan')
+            ->toArray();
+
+        // 2. Ambil status Wali Kelas dari class_academic_year untuk tahun ajaran aktif
+        $activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
+        if ($activeYear) {
+            $kelasWali = $this->kelasAjarans()
+                ->where('academic_year_id', $activeYear->id)
+                ->with('kelas')
+                ->get();
+
+            foreach ($kelasWali as $kw) {
+                $jabatans[] = "Wali Kelas " . ($kw->kelas->name ?? '');
+            }
+        }
+
+        return $jabatans;
+    }
+    public function getMapelAktifAttribute()
+    {
+        $activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
+        if (!$activeYear) {
+            return [];
+        }
+
+        return $this->pengajarans()
+            ->whereHas('kelasAjaran', function ($q) use ($activeYear) {
+                $q->where('academic_year_id', $activeYear->id);
+            })
+            ->with(['mataPelajaran', 'kelasAjaran.kelas'])
+            ->get()
+            ->map(function ($pengajaran) {
+                $mapel = $pengajaran->mataPelajaran->nama_mapel ?? 'Unknown';
+                $kelas = $pengajaran->kelasAjaran->kelas->name ?? 'Unknown';
+                return "{$mapel} ({$kelas})";
+            })
+            ->toArray();
+    }
 }

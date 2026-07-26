@@ -54,51 +54,18 @@ class KelasAjaranRelationManager extends RelationManager
                     ->default('— Belum ditentukan —'),
             ])
             ->headerActions([
-                // Tombol assign hanya untuk Super Admin
-                Action::make('assignWaliKelas')
-                    ->label('Assign Wali Kelas')
-                    ->icon('heroicon-o-user-plus')
-                    ->visible(fn (): bool => auth()->user()?->isSuperAdmin() ?? false)
-                    ->form([
-                        Select::make('academic_year_id')
-                            ->label('Tahun Ajaran')
-                            ->relationship('tahunAjaran', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                        Select::make('teacher_id')
-                            ->label('Wali Kelas (Guru)')
-                            ->relationship('guru', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->nullable(),
-                    ])
-                    ->action(function (array $data): void {
-                        // Upsert: updateOrCreate untuk hindari error duplikat
-                        // UNIQUE [class_id, academic_year_id] sudah ada di DB
-                        KelasAjaran::updateOrCreate(
-                            [
-                                'class_id'          => $this->ownerRecord->id,
-                                'academic_year_id'  => $data['academic_year_id'],
-                            ],
-                            [
-                                'teacher_id' => $data['teacher_id'] ?? null,
-                            ]
-                        );
-
-                        Notification::make()
-                            ->title('Wali kelas berhasil diassign')
-                            ->success()
-                            ->send();
-                    }),
+                // Dihapus sesuai permintaan: assign dilakukan dari List Kelas
             ])
             ->actions([
-                // Edit & Delete hanya untuk Super Admin
+                // Edit & Delete hanya untuk Super Admin dan HANYA untuk tahun ajaran aktif
                 EditAction::make()
-                    ->visible(fn (): bool => auth()->user()?->isSuperAdmin() ?? false)
+                    ->visible(function (KelasAjaran $record): bool {
+                        $isSuperAdmin = auth()->user()?->isSuperAdmin() ?? false;
+                        if (!$isSuperAdmin) return false;
+                        $activeTahunAjaranId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active;
+                        return $record->academic_year_id === $activeTahunAjaranId;
+                    })
                     ->using(function (KelasAjaran $record, array $data): KelasAjaran {
-                        // Upsert: jika edit mengubah tahun ajaran ke yang sudah ada,
-                        // updateOrCreate untuk hindari konflik unique constraint
                         $existing = KelasAjaran::updateOrCreate(
                             [
                                 'class_id'         => $record->class_id,
@@ -109,7 +76,6 @@ class KelasAjaranRelationManager extends RelationManager
                             ]
                         );
 
-                        // Hapus record lama jika berubah ke combinasi berbeda
                         if ($existing->id !== $record->id) {
                             $record->delete();
                         }
@@ -118,7 +84,12 @@ class KelasAjaranRelationManager extends RelationManager
                     }),
 
                 DeleteAction::make()
-                    ->visible(fn (): bool => auth()->user()?->isSuperAdmin() ?? false),
+                    ->visible(function (KelasAjaran $record): bool {
+                        $isSuperAdmin = auth()->user()?->isSuperAdmin() ?? false;
+                        if (!$isSuperAdmin) return false;
+                        $activeTahunAjaranId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active;
+                        return $record->academic_year_id === $activeTahunAjaranId;
+                    }),
             ]);
     }
 }

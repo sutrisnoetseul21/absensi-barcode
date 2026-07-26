@@ -1,6 +1,76 @@
 <div class="space-y-6" x-data="{ 
     showNewStudentForm: false,
-    draggedStudentId: null
+    draggedStudentId: null,
+    
+    // Lists
+    leftStudents: {{ $leftStudentsJson }},
+    rightStudents: {{ $rightStudentsJson }},
+    
+    // Sort logic
+    leftSortBy: 'name',
+    leftSortDir: 'asc',
+    rightSortBy: 'name',
+    rightSortDir: 'asc',
+    
+    get leftSorted() {
+        return [...this.leftStudents].sort((a, b) => {
+            let va = a[this.leftSortBy] ?? '';
+            let vb = b[this.leftSortBy] ?? '';
+            if (va < vb) return this.leftSortDir === 'asc' ? -1 : 1;
+            if (va > vb) return this.leftSortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+    },
+    
+    get rightSorted() {
+        return [...this.rightStudents].sort((a, b) => {
+            let va = this.rightSortBy === 'kelasSebelumnya' ? (a.kelasSebelumnya ?? '') : (a[this.rightSortBy] ?? '');
+            let vb = this.rightSortBy === 'kelasSebelumnya' ? (b.kelasSebelumnya ?? '') : (b[this.rightSortBy] ?? '');
+            if (va < vb) return this.rightSortDir === 'asc' ? -1 : 1;
+            if (va > vb) return this.rightSortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+    },
+    
+    toggleLeft(col) {
+        if (this.leftSortBy === col) {
+            this.leftSortDir = this.leftSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.leftSortBy = col;
+            this.leftSortDir = 'asc';
+        }
+    },
+    
+    toggleRight(col) {
+        if (this.rightSortBy === col) {
+            this.rightSortDir = this.rightSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.rightSortBy = col;
+            this.rightSortDir = 'asc';
+        }
+    },
+
+    async enroll(id) {
+        let res = await $wire.enrollStudent(id, '{{ $kelas->id }}', '{{ $academicYear->id ?? '' }}');
+        if (res) {
+            const idx = this.rightStudents.findIndex(s => s.id === id);
+            if (idx !== -1) {
+                const student = this.rightStudents.splice(idx, 1)[0];
+                this.leftStudents.push(student);
+            }
+        }
+    },
+
+    async unenroll(id) {
+        let res = await $wire.unenrollStudent(id, '{{ $academicYear->id ?? '' }}');
+        if (res) {
+            const idx = this.leftStudents.findIndex(s => s.id === id);
+            if (idx !== -1) {
+                const student = this.leftStudents.splice(idx, 1)[0];
+                this.rightStudents.push(student);
+            }
+        }
+    }
 }">
 
     <!-- Header Summary -->
@@ -11,10 +81,10 @@
         </div>
         <div class="flex items-center gap-3">
             <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-success-50 dark:bg-success-500/10 text-success-600 dark:text-success-400 border border-success-200 dark:border-success-500/20">
-                {{ count($leftStudents) }} Siswa Terdaftar
+                <span x-text="leftStudents.length"></span> Siswa Terdaftar
             </span>
             <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/20">
-                {{ count($rightStudents) }} Kandidat Siswa
+                <span x-text="rightStudents.length"></span> Kandidat Siswa
             </span>
         </div>
     </div>
@@ -25,12 +95,12 @@
         <!-- PANEL KIRI: Anggota Kelas -->
         <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-5 flex flex-col h-[60vh] min-h-[500px] shadow-sm"
              @dragover.prevent
-             @drop="let id = event.dataTransfer.getData('student_id'); if (id) $wire.enrollStudent(id, '{{ $kelas->id }}', '{{ $academicYear->id ?? '' }}')">
+             @drop="let id = event.dataTransfer.getData('student_id'); if (id) enroll(id)">
             
             <div class="flex justify-between items-center mb-4 gap-4 flex-wrap">
                 <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-success-500"></span>
-                    Siswa Kelas Ini ({{ count($leftStudents) }})
+                    Siswa Kelas Ini (<span x-text="leftStudents.length"></span>)
                 </h4>
                 <div class="relative w-48">
                     <input type="text" 
@@ -46,43 +116,21 @@
             </div>
 
             <!-- Scrollable Area -->
-            <div class="flex-1 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-white/5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full pr-[2px]"
-                x-data="{
-                    sortBy: 'name',
-                    sortDir: 'asc',
-                    rows: {{ $leftStudentsJson }},
-                    get sorted() {
-                        return [...this.rows].sort((a, b) => {
-                            let va = a[this.sortBy] ?? '';
-                            let vb = b[this.sortBy] ?? '';
-                            if (va < vb) return this.sortDir === 'asc' ? -1 : 1;
-                            if (va > vb) return this.sortDir === 'asc' ? 1 : -1;
-                            return 0;
-                        });
-                    },
-                    toggle(col) {
-                        if (this.sortBy === col) {
-                            this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
-                        } else {
-                            this.sortBy = col;
-                            this.sortDir = 'asc';
-                        }
-                    }
-                }">
-                <template x-if="rows.length > 0">
+            <div class="flex-1 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-white/5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full pr-[2px]">
+                <template x-if="leftStudents.length > 0">
                     <table class="w-full text-left border-collapse">
                         <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900/90 backdrop-blur z-10 shadow-sm">
                             <tr>
                                 {{-- Header: Nama Siswa (sortable) --}}
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    @click="toggle('name')">
+                                    @click="toggleLeft('name')">
                                     <span class="inline-flex items-center gap-1">
                                         Nama Siswa
-                                        <span x-show="sortBy === 'name'" x-cloak>
-                                            <svg x-show="sortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
-                                            <svg x-show="sortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <span x-show="leftSortBy === 'name'" x-cloak>
+                                            <svg x-show="leftSortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                                            <svg x-show="leftSortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </span>
-                                        <span x-show="sortBy !== 'name'" x-cloak class="opacity-30">
+                                        <span x-show="leftSortBy !== 'name'" x-cloak class="opacity-30">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
                                         </span>
                                     </span>
@@ -90,14 +138,14 @@
 
                                 {{-- Header: NISN (sortable) --}}
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    @click="toggle('nisn')">
+                                    @click="toggleLeft('nisn')">
                                     <span class="inline-flex items-center gap-1">
                                         NISN
-                                        <span x-show="sortBy === 'nisn'" x-cloak>
-                                            <svg x-show="sortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
-                                            <svg x-show="sortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <span x-show="leftSortBy === 'nisn'" x-cloak>
+                                            <svg x-show="leftSortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                                            <svg x-show="leftSortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </span>
-                                        <span x-show="sortBy !== 'nisn'" x-cloak class="opacity-30">
+                                        <span x-show="leftSortBy !== 'nisn'" x-cloak class="opacity-30">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
                                         </span>
                                     </span>
@@ -107,7 +155,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-for="siswa in sorted" :key="siswa.id">
+                            <template x-for="siswa in leftSorted" :key="siswa.id">
                                 <tr draggable="true"
                                     @dragstart="$event.dataTransfer.setData('student_id', siswa.id)"
                                     class="border-b border-gray-200 dark:border-white/10 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 cursor-grab active:cursor-grabbing">
@@ -128,7 +176,7 @@
                                     {{-- Aksi: Keluarkan --}}
                                     <td class="px-3 py-2.5 text-sm align-middle text-right">
                                         <button type="button"
-                                                @click="if (confirm('Apakah Anda yakin ingin mengeluarkan ' + siswa.name + ' dari rombel kelas ini?')) { $wire.unenrollStudent(siswa.id, '{{ $academicYear->id ?? '' }}') }"
+                                                @click="if (confirm('Apakah Anda yakin ingin mengeluarkan ' + siswa.name + ' dari rombel kelas ini?')) { unenroll(siswa.id) }"
                                                 title="Keluarkan dari kelas"
                                                 class="p-1 rounded-md transition-colors inline-flex items-center justify-center border border-transparent bg-danger-50 dark:bg-danger-500/10 text-danger-600 dark:text-danger-400 hover:bg-danger-600 hover:text-white dark:hover:bg-danger-500">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -141,7 +189,7 @@
                         </tbody>
                     </table>
                 </template>
-                <template x-if="rows.length === 0">
+                <template x-if="leftStudents.length === 0">
                     <div class="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 dark:text-gray-400">
                         <svg class="w-11 h-11 text-gray-500 dark:text-gray-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
@@ -156,12 +204,12 @@
         <!-- PANEL KANAN: Siswa Tanpa Kelas -->
         <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-5 flex flex-col h-[60vh] min-h-[500px] shadow-sm"
              @dragover.prevent
-             @drop="let id = event.dataTransfer.getData('student_id'); if (id && confirm('Apakah Anda yakin ingin mengeluarkan siswa dari rombel kelas ini?')) { $wire.unenrollStudent(id, '{{ $academicYear->id ?? '' }}') }">
+             @drop="let id = event.dataTransfer.getData('student_id'); if (id) unenroll(id)">
             
             <div class="flex justify-between items-center mb-2 gap-4 flex-wrap">
                 <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-primary-500"></span>
-                    Kandidat Siswa ({{ count($rightStudents) }})
+                    Kandidat Siswa (<span x-text="rightStudents.length"></span>)
                 </h4>
                 <div class="flex items-center gap-2">
                     <!-- Button Tambah Siswa Baru (Buka sub form) -->
@@ -246,34 +294,8 @@
             </div>
 
             <!-- Scrollable Area -->
-            <div class="flex-1 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-white/5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full pr-[2px]"
-                x-data="{
-                    sortBy: 'name',
-                    sortDir: 'asc',
-                    rows: {{ $rightStudentsJson }},
-                    get sorted() {
-                        return [...this.rows].sort((a, b) => {
-                            let va = this.sortBy === 'kelasSebelumnya'
-                                ? (a.kelasSebelumnya ?? '')
-                                : (a[this.sortBy] ?? '');
-                            let vb = this.sortBy === 'kelasSebelumnya'
-                                ? (b.kelasSebelumnya ?? '')
-                                : (b[this.sortBy] ?? '');
-                            if (va < vb) return this.sortDir === 'asc' ? -1 : 1;
-                            if (va > vb) return this.sortDir === 'asc' ? 1 : -1;
-                            return 0;
-                        });
-                    },
-                    toggle(col) {
-                        if (this.sortBy === col) {
-                            this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
-                        } else {
-                            this.sortBy = col;
-                            this.sortDir = 'asc';
-                        }
-                    }
-                }">
-                <template x-if="rows.length > 0">
+            <div class="flex-1 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-white/5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full pr-[2px]">
+                <template x-if="rightStudents.length > 0">
                     <table class="w-full text-left border-collapse">
                         <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900/90 backdrop-blur z-10 shadow-sm">
                             <tr>
@@ -281,14 +303,14 @@
 
                                 {{-- Header: Nama Siswa (sortable) --}}
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    @click="toggle('name')">
+                                    @click="toggleRight('name')">
                                     <span class="inline-flex items-center gap-1">
                                         Nama Siswa
-                                        <span x-show="sortBy === 'name'" x-cloak>
-                                            <svg x-show="sortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
-                                            <svg x-show="sortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <span x-show="rightSortBy === 'name'" x-cloak>
+                                            <svg x-show="rightSortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                                            <svg x-show="rightSortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </span>
-                                        <span x-show="sortBy !== 'name'" x-cloak class="opacity-30">
+                                        <span x-show="rightSortBy !== 'name'" x-cloak class="opacity-30">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
                                         </span>
                                     </span>
@@ -296,14 +318,14 @@
 
                                 {{-- Header: NISN (sortable) --}}
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    @click="toggle('nisn')">
+                                    @click="toggleRight('nisn')">
                                     <span class="inline-flex items-center gap-1">
                                         NISN
-                                        <span x-show="sortBy === 'nisn'" x-cloak>
-                                            <svg x-show="sortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
-                                            <svg x-show="sortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <span x-show="rightSortBy === 'nisn'" x-cloak>
+                                            <svg x-show="rightSortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                                            <svg x-show="rightSortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </span>
-                                        <span x-show="sortBy !== 'nisn'" x-cloak class="opacity-30">
+                                        <span x-show="rightSortBy !== 'nisn'" x-cloak class="opacity-30">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
                                         </span>
                                     </span>
@@ -311,14 +333,14 @@
 
                                 {{-- Header: Kelas Sblm (sortable) --}}
                                 <th class="px-3 py-2 text-xs font-bold uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/10 tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                    @click="toggle('kelasSebelumnya')">
+                                    @click="toggleRight('kelasSebelumnya')">
                                     <span class="inline-flex items-center gap-1">
                                         Kelas Sblm
-                                        <span x-show="sortBy === 'kelasSebelumnya'" x-cloak>
-                                            <svg x-show="sortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
-                                            <svg x-show="sortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <span x-show="rightSortBy === 'kelasSebelumnya'" x-cloak>
+                                            <svg x-show="rightSortDir === 'asc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                                            <svg x-show="rightSortDir === 'desc'" class="w-3 h-3 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </span>
-                                        <span x-show="sortBy !== 'kelasSebelumnya'" x-cloak class="opacity-30">
+                                        <span x-show="rightSortBy !== 'kelasSebelumnya'" x-cloak class="opacity-30">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
                                         </span>
                                     </span>
@@ -326,7 +348,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-for="siswa in sorted" :key="siswa.id">
+                            <template x-for="siswa in rightSorted" :key="siswa.id">
                                 <tr draggable="true"
                                     @dragstart="$event.dataTransfer.setData('student_id', siswa.id)"
                                     class="border-b border-gray-200 dark:border-white/10 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 cursor-grab active:cursor-grabbing">
@@ -334,7 +356,7 @@
                                     {{-- Aksi --}}
                                     <td class="px-3 py-2.5 text-sm align-middle text-center">
                                         <button type="button"
-                                                @click="$wire.enrollStudent(siswa.id, '{{ $kelas->id }}', '{{ $academicYear->id ?? '' }}')"
+                                                @click="enroll(siswa.id)"
                                                 title="Masukkan ke kelas"
                                                 class="p-1 rounded-md transition-colors inline-flex items-center justify-center border border-transparent bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-600 hover:text-white dark:hover:bg-primary-500">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -371,7 +393,7 @@
                         </tbody>
                     </table>
                 </template>
-                <template x-if="rows.length === 0">
+                <template x-if="rightStudents.length === 0">
                     <div class="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 dark:text-gray-400">
                         <svg class="w-11 h-11 text-gray-500 dark:text-gray-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

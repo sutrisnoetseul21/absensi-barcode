@@ -32,7 +32,7 @@ class ListEnrollments extends ListRecords
 
         if (!$classId || !$academicYearId) {
             \Filament\Notifications\Notification::make()->title('Gagal: Data Kelas atau Tahun Ajaran tidak valid.')->danger()->send();
-            return;
+            return false;
         }
 
         // Set state just in case it's needed for UI updates
@@ -54,6 +54,8 @@ class ListEnrollments extends ListRecords
             ->title('Siswa Berhasil Dimasukkan')
             ->success()
             ->send();
+
+        return true;
     }
 
     public function unenrollStudent($studentId, $academicYearId = null)
@@ -62,7 +64,7 @@ class ListEnrollments extends ListRecords
 
         if (!$academicYearId) {
             \Filament\Notifications\Notification::make()->title('Gagal: Data Tahun Ajaran tidak valid.')->danger()->send();
-            return;
+            return false;
         }
         
         $this->manageAcademicYearId = $academicYearId;
@@ -78,7 +80,7 @@ class ListEnrollments extends ListRecords
                 ->body('Siswa ini sudah memiliki data presensi di kelas ini. Hapus data presensinya terlebih dahulu di menu Laporan Detail sebelum mengeluarkan siswa dari kelas.')
                 ->danger()
                 ->send();
-            return;
+            return false;
         }
 
         \App\Models\EnrollmentSiswa::where('student_id', $studentId)
@@ -89,6 +91,8 @@ class ListEnrollments extends ListRecords
             ->title('Siswa Berhasil Dikeluarkan')
             ->success()
             ->send();
+            
+        return true;
     }
 
     public function registerNewStudent()

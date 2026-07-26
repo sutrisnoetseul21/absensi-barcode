@@ -51,8 +51,8 @@ class EnrollmentTable
             ->filters([
                 SelectFilter::make('academic_year_id')
                     ->label('Tahun Ajaran')
-                    ->options(TahunAjaran::pluck('name', 'id')->toArray())
-                    ->default(fn () => \App\Models\PengaturanSekolah::current()?->academic_year_id_active)
+                    ->options(TahunAjaran::orderedByYear()->pluck('name', 'id')->toArray())
+                    ->default(fn () => \App\Models\PengaturanSekolah::current()?->academic_year_id_active ?? \App\Models\TahunAjaran::where('status', 'aktif')->first()?->id)
                     ->selectablePlaceholder(false)
                     ->query(fn ($query) => $query),
             ])
