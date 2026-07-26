@@ -160,6 +160,16 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->required()
                             ->helperText('Menentukan jenis barcode yang akan dipindai oleh mesin presensi.'),
                     ])->columns(2),
+
+                Section::make('Pengaturan Perpustakaan')
+                    ->schema([
+                        TextInput::make('lama_pinjam_buku_hari')
+                            ->label('Batas Lama Pinjam Buku (Hari)')
+                            ->numeric()
+                            ->default(7)
+                            ->required()
+                            ->helperText('Angka ini akan digunakan sebagai patokan jatuh tempo secara otomatis saat eksemplar buku dipinjam.'),
+                    ])->columns(1),
             ])
             ->statePath('data');
     }

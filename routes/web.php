@@ -45,6 +45,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/siswa/cetak-kartu-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMassal'])->name('siswa.cetak-kartu-massal');
     Route::get('/admin/siswa/cetak-kartu-login-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLoginMassal'])->name('siswa.cetak-kartu-login-massal');
 
+    // Cetak Barcode Perpustakaan Routes
+    Route::get('/admin-perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');
+    Route::get('/admin-perpustakaan/eksemplar/cetak-barcode-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeMassal'])->name('perpustakaan.cetak-barcode-massal');
+    
+    // Kiosk Sirkulasi Perpustakaan Routes
+    Route::get('/admin-perpustakaan/sirkulasi', \App\Livewire\SirkulasiKiosk::class)->name('perpustakaan.sirkulasi');
+    Route::post('/admin-perpustakaan/sirkulasi/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {
+        return response()->json($action->execute($request->all(), auth()->id()));
+    })->name('perpustakaan.sirkulasi.process');
+
     // Download laporan hasil import siswa (PPDB)
     Route::get('/admin/import/download-laporan', function () {
         $reportKey = 'import_laporan_' . auth()->id();

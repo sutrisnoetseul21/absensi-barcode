@@ -34,6 +34,11 @@ class GuruTable
                     ->searchable()
                     ->default('—'),
 
+                TextColumn::make('presensiProfile.barcode_code')
+                    ->label('Barcode')
+                    ->searchable()
+                    ->default('—'),
+
                 TextColumn::make('user.email')
                     ->label('Email Login')
                     ->searchable()
@@ -297,6 +302,35 @@ class GuruTable
                             ->body("Email: **{$record->user->email}**\nPassword baru: **{$newPassword}**\n\nGuru wajib ganti password saat login berikutnya.")
                             ->success()
                             ->persistent() // tidak auto-dismiss, harus diklik manual
+                            ->send();
+                    }),
+                
+                // Custom Action: Generate Barcode
+                Action::make('generateBarcode')
+                    ->label(fn (Guru $record) => $record->presensiProfile && $record->presensiProfile->barcode_code ? 'Regenerate Barcode' : 'Generate Barcode')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Generate Barcode Guru')
+                    ->modalDescription(fn (Guru $record): string => "Sistem akan meng-generate Barcode berdasarkan NIP. Jika NIP kosong, angka acak akan digunakan.")
+                    ->action(function (Guru $record): void {
+                        $code = $record->nip;
+                        if (empty($code) || $code === '-') {
+                            // Generate random 10 digit string starting with 2 for teachers
+                            $code = '2' . mt_rand(100000000, 999999999);
+                        }
+                        
+                        $profile = $record->presensiProfile()->firstOrCreate(
+                            ['teacher_id' => $record->id],
+                            ['id' => (string) Str::uuid()]
+                        );
+                        
+                        $profile->update(['barcode_code' => $code]);
+                        
+                        Notification::make()
+                            ->title('Barcode berhasil di-generate')
+                            ->body("Barcode: **{$code}**")
+                            ->success()
                             ->send();
                     }),
 

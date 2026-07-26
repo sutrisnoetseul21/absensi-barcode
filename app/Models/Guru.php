@@ -26,6 +26,11 @@ class Guru extends Authenticatable
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function presensiProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TeacherPresensiProfile::class, 'teacher_id');
+    }
+
     // Kelas yang diampu (bisa > 1 kelas per tahun ajaran)
     public function kelasAjarans(): HasMany
     {

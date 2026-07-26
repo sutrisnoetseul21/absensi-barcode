@@ -25,6 +25,7 @@
 - academic_year_id_active (foreignUuid, nullable → academic_years)
 - enable_promotion_features (boolean)
 - barcode_scan_mode (string) default 'nisn'  → mode kios presensi ('nisn' atau 'nis')
+- lama_pinjam_buku_hari (integer) default 7  → batas lama peminjaman buku dalam hari
 - timestamps()
 ```
 > **Catatan:** Tabel ini cukup 1 baris. Gunakan Filament "Settings" resource untuk mengelolanya.
@@ -97,6 +98,18 @@
 - id (uuid, primary)
 - student_id (foreignUuid → students)
 - barcode_code (string, unique)  → INDEX wajib
+- barcode_active (boolean) default true
+- timestamps()
+```
+
+---
+
+### `teacher_presensi_profiles` ← **NEW (Layer Operasional)**
+> Profil presensi dan keanggotaan perpustakaan khusus untuk guru.
+```
+- id (uuid, primary)
+- teacher_id (foreignUuid → teachers)
+- barcode_code (string, unique)  → INDEX wajib (format angka)
 - barcode_active (boolean) default true
 - timestamps()
 ```
@@ -266,6 +279,63 @@
 
 ---
 
+## Modul Perpustakaan - NEW ERP
+
+### `kategori_bukus`
+```
+- id (uuid, primary)
+- nama_kategori (string)
+- timestamps()
+```
+
+### `bukus`
+```
+- id (uuid, primary)
+- kategori_id (foreignUuid → kategori_bukus)
+- mapel_id (foreignId, nullable → mata_pelajarans)
+- grade_level (tinyInteger, nullable)
+- judul (string)
+- penulis (string, nullable)
+- penerbit (string, nullable)
+- tahun_terbit (integer, nullable)
+- isbn (string, nullable)
+- lokasi_rak (string, nullable)
+- deleted_at (softDeletes)
+- timestamps()
+```
+
+### `eksemplar_bukus`
+```
+- id (uuid, primary)
+- buku_id (foreignUuid → bukus)
+- kode_eksemplar (string, unique)
+- status (enum: 'tersedia','dipinjam','rusak','hilang') default 'tersedia'
+- kondisi_fisik (enum: 'baik','rusak_ringan','rusak_berat') default 'baik'
+- deleted_at (softDeletes)
+- timestamps()
+```
+
+### `peminjamans`
+```
+- id (uuid, primary)
+- eksemplar_id (foreignUuid → eksemplar_bukus)
+- peminjam_type (string) → 'Siswa' atau 'Guru' (Morph Map)
+- peminjam_id (uuid)
+- tanggal_pinjam (date)
+- tanggal_jatuh_tempo (date)
+- tanggal_kembali (date, nullable)
+- status (enum: 'dipinjam','dikembalikan','terlambat','hilang') default 'dipinjam'
+- petugas_id (foreignUuid, nullable → users)
+- catatan (text, nullable)
+- timestamps()
+```
+
+---
+
+> **Catatan Teknis Peminjaman Guru:** Karena adanya anomali Morph Map (`Guru::class` memiliki alias `wali_kelas` & `guru`), DILARANG menggunakan metode `associate()` secara implisit saat pembuatan record peminjaman oleh Guru. Referensi dan detail aturan wajib *set manual* dapat dibaca pada file `docs/progres-development/fase-2-erp/perpustakaan/tahap-1.md`.
+
+---
+
 ## ERD (Relasi Seluruh Modul ERP)
 
 ```
@@ -297,6 +367,12 @@ student_enrollments <── attendances ──> users (scanned_by)
 promotion_logs ──< promotion_log_details >── students
 promotion_logs ──> academic_years (from/to)
 promotion_logs ──> users (executed_by)
+
+[PERPUSTAKAAN]
+kategori_bukus ──< bukus >── mata_pelajarans (opsional)
+bukus ──< eksemplar_bukus
+eksemplar_bukus ──< peminjamans >── users (petugas)
+peminjamans ──> polymorphic (Siswa / Guru)
 ```
 school_settings ──> academic_years (active)
 holidays ──> classes (nullable, khusus kelas)

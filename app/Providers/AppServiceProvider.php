@@ -37,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'admin'      => \App\Models\User::class,
             'wali_kelas' => \App\Models\Guru::class,
+            'siswa'      => \App\Models\Siswa::class,
+            'guru'       => \App\Models\Guru::class,
         ]);
 
         // ─────────────────────────────────────────────────────────────

@@ -28,6 +28,7 @@ class PengaturanSekolah extends Model
         'academic_year_id_active',
         'enable_promotion_features',
         'barcode_scan_mode',
+        'lama_pinjam_buku_hari',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class PengaturanSekolah extends Model
         'late_threshold_minutes'    => 'integer',
         'enable_promotion_features' => 'boolean',
         'work_days_history'         => 'array',
+        'lama_pinjam_buku_hari'     => 'integer',
     ];
 
     // Tahun ajaran yang sedang aktif
