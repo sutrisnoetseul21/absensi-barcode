@@ -20,7 +20,7 @@ Sebelum memulai sesi coding apapun, AI agent WAJIB membaca dokumen berikut:
 | 5 | [`docs/stack/FILAMENT-V4-INTEGRATION.md`](../stack/FILAMENT-V4-INTEGRATION.md) | Filament v4 — wajib sebelum buat Resource |
 | 6 | [`docs/blueprint/05-database.md`](05-database.md) | Skema database dan relasi |
 | 7 | [`docs/blueprint/06-business-rules.md`](06-business-rules.md) | Aturan bisnis (jam absen, debounce, formula) |
-| 8 | [`docs/progres-aplikasi-absensi/`](../progres-aplikasi-absensi/) | Detail eksekusi progres & keputusan teknis Tahap 1 s/d 12 |
+| 8 | [`docs/progres-development/`](../../progres-development/) | Detail eksekusi progres & keputusan teknis Tahap 1 s/d 14 |
 
 ---
 
@@ -67,7 +67,7 @@ Status: `[ ]` = belum | `[/]` = sedang dikerjakan | `[x]` = selesai
 
 ---
 
-Detail checklist dan panduan eksekusi untuk setiap tahap telah dipindahkan ke folder [`docs/progres-aplikasi-absensi`](../progres-aplikasi-absensi/).
+Detail checklist dan panduan eksekusi untuk setiap tahap telah dipindahkan ke folder [`docs/progres-aplikasi-absensi`](./).
 
 Silakan klik tautan pada tabel **Status Progres Keseluruhan** di bawah ini untuk melihat detail masing-masing tahap.
 
@@ -77,21 +77,21 @@ Silakan klik tautan pada tabel **Status Progres Keseluruhan** di bawah ini untuk
 
 | Tahap | Nama | Status |
 |-------|------|--------|
-| 0 | [Inisiasi Proyek & Setup](../progres-aplikasi-absensi/tahap-0.md) | ✅ Selesai |
-| 1 | [Skema Database](../progres-aplikasi-absensi/tahap-1.md) | ✅ Selesai |
-| 13 | [Manajemen Penghapusan vs Pengarsipan](../progres-aplikasi-absensi/tahap-13.md) | ✅ Selesai |
-| 14 | [Perlindungan Data Master Interaktif & Modal Pop-Up Edit](../progres-aplikasi-absensi/tahap-14.md) | ✅ Selesai |
-| 2 | [Multi-Guard Authentication](../progres-aplikasi-absensi/tahap-2.md) | ✅ Selesai |
-| 3 | [Data Master & Modul Admin](../progres-aplikasi-absensi/tahap-3.md) | ✅ Selesai |
-| 4 | [Kios Scanner Absensi](../progres-aplikasi-absensi/tahap-4.md) | ⬜ Belum dimulai |
-| 5 | [Dashboard Publik](../progres-aplikasi-absensi/tahap-5.md) | ⬜ Belum dimulai |
-| 6 | [Portal Wali Kelas](../progres-aplikasi-absensi/tahap-6.md) | ⬜ Belum dimulai |
-| 7 | [Portal Siswa](../progres-aplikasi-absensi/tahap-7.md) | ⬜ Belum dimulai |
-| 8 | [Import/Export Excel & Kartu OSIS](../progres-aplikasi-absensi/tahap-8.md) | ⬜ Belum dimulai |
-| 9 | [Kalender Hari Libur](../progres-aplikasi-absensi/tahap-9.md) | ⬜ Belum dimulai |
-| 10 | [Laporan & Dashboard Admin](../progres-aplikasi-absensi/tahap-10.md) | ⬜ Belum dimulai |
-| 11 | [Multi-Tahun Ajaran & Kenaikan Kelas](../progres-aplikasi-absensi/tahap-11.md) | ⬜ Belum dimulai |
-| 12 | [Auto-Mark Alpa (Scheduler)](../progres-aplikasi-absensi/tahap-12.md) | ⬜ Belum dimulai |
+| 0 | [Inisiasi Proyek & Setup](./tahap-0.md) | ✅ Selesai |
+| 1 | [Skema Database](./tahap-1.md) | ✅ Selesai |
+| 13 | [Manajemen Penghapusan vs Pengarsipan](./tahap-13.md) | ✅ Selesai |
+| 14 | [Perlindungan Data Master Interaktif & Modal Pop-Up Edit](./tahap-14.md) | ✅ Selesai |
+| 2 | [Multi-Guard Authentication](./tahap-2.md) | ✅ Selesai |
+| 3 | [Data Master & Modul Admin](./tahap-3.md) | ✅ Selesai |
+| 4 | [Kios Scanner Absensi](./tahap-4.md) | ⬜ Belum dimulai |
+| 5 | [Dashboard Publik](./tahap-5.md) | ⬜ Belum dimulai |
+| 6 | [Portal Wali Kelas](./tahap-6.md) | ⬜ Belum dimulai |
+| 7 | [Portal Siswa](./tahap-7.md) | ⬜ Belum dimulai |
+| 8 | [Import/Export Excel & Kartu OSIS](./tahap-8.md) | ⬜ Belum dimulai |
+| 9 | [Kalender Hari Libur](./tahap-9.md) | ⬜ Belum dimulai |
+| 10 | [Laporan & Dashboard Admin](./tahap-10.md) | ⬜ Belum dimulai |
+| 11 | [Multi-Tahun Ajaran & Kenaikan Kelas](./tahap-11.md) | ⬜ Belum dimulai |
+| 12 | [Auto-Mark Alpa (Scheduler)](./tahap-12.md) | ⬜ Belum dimulai |
 
 ---
 

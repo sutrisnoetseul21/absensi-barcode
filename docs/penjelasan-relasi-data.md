@@ -101,5 +101,66 @@ Setelah tahu siapa siswanya, sistem akan mencari `enrollment` (kelas) mana yang 
 Akhirnya, catatan absen dibuat di tabel `attendances`, mengunci info Siswa dan Kelas yang sedang dia duduki pada saat *scan* tersebut.
 
 > [!TIP]
-> Mengapa ada `class_id` di dalam `attendances` padahal sudah ada di `student_enrollments`?
 > Ini disebut **Denormalisasi**. Tujuannya agar saat kita ingin membuat grafik "Berapa banyak siswa 7A yang hadir hari ini?", sistem tidak perlu repot-repot melakukan *Join* antar tabel yang berat. Kueri akan langsung dieksekusi dengan super cepat karena datanya sudah tersedia di tabel absensi!
+
+---
+
+## 4. Relasi Guru dengan Jabatan (Kepegawaian / HRD)
+
+Untuk mengakomodasi fleksibilitas penugasan, seorang Guru (Teacher) dihubungkan ke Jabatan (Position) secara **Banyak-ke-Banyak (Many-to-Many)** melalui tabel pivot `teacher_jabatan`.
+
+```mermaid
+erDiagram
+    teachers ||--o{ teacher_jabatan : "menjabat"
+    jabatans ||--o{ teacher_jabatan : "dijabat oleh"
+
+    teachers {
+        uuid id PK
+        string name
+    }
+    
+    jabatans {
+        unsignedBigInteger id PK
+        string nama_jabatan
+    }
+
+    teacher_jabatan {
+        unsignedBigInteger id PK
+        uuid teacher_id FK
+        unsignedBigInteger jabatan_id FK
+    }
+```
+
+**Alur Cerita:**
+Guru Budi dapat merangkap jabatan sebagai "Wali Kelas" sekaligus "Wakil Kepala Sekolah". Kita cukup membuat dua baris di tabel `teacher_jabatan` untuk Budi, menautkannya ke dua ID jabatan berbeda. Hal ini memastikan pelaporan struktural sekolah akurat.
+
+---
+
+## 5. Relasi Guru dengan Mata Pelajaran & Kelas (Pengajaran / Jadwal)
+
+Di Modul Akademik ERP, kita memetakan **Siapa (Guru) mengajarkan Apa (Mata Pelajaran) di mana (Kelas) dan kapan (Tahun Ajaran)**. Relasi kompleks ini dijembatani oleh tabel `pengajarans`.
+
+```mermaid
+erDiagram
+    class_academic_year ||--o{ pengajarans : "menerima"
+    teachers ||--o{ pengajarans : "mengampu"
+    mata_pelajarans ||--o{ pengajarans : "materi"
+
+    class_academic_year {
+        uuid id PK
+        uuid class_id FK
+        uuid academic_year_id FK
+        uuid teacher_id FK "Sebagai Wali Kelas (opsional)"
+    }
+    
+    pengajarans {
+        uuid id PK
+        uuid class_academic_year_id FK "Representasi spesifik Kelas di Tahun Ajaran tertentu"
+        uuid teacher_id FK "Guru Pengampu"
+        unsignedBigInteger mata_pelajaran_id FK
+    }
+```
+
+**Alur Cerita:**
+Kita membuat sebuah entri di tabel `pengajarans` yang mengaitkan Guru Ani (Teacher), Matematika (Mata Pelajaran), dan 7A-2025/2026 (`class_academic_year_id`). 
+Data ini akan menjadi dasar bagi penyusunan *Jadwal Pelajaran* (Timetable) harian dan sistem penginputan nilai/E-Rapor oleh guru tersebut di masa depan. Konsep ini mirip dengan Pendaftaran (Enrollment) pada Siswa, menjamin riwayat mengajar tidak hilang berganti tahun ajaran.

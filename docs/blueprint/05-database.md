@@ -228,29 +228,78 @@
 
 ---
 
-## ERD (Relasi)
+## Modul Akademik & Kepegawaian (HRD) - NEW ERP
+
+### `jabatans` (Master Jabatan)
+```
+- id (unsignedBigInteger, primary)
+- nama_jabatan (string)
+- timestamps()
+```
+
+### `teacher_jabatan` (Pivot Guru & Jabatan)
+> Satu guru bisa merangkap beberapa jabatan (misal: "Wali Kelas" & "Wakil Kepala Sekolah").
+```
+- id (unsignedBigInteger, primary)
+- teacher_id (foreignUuid → teachers)
+- jabatan_id (foreignBigInteger → jabatans)
+- timestamps()
+```
+
+### `mata_pelajarans` (Master Mata Pelajaran)
+```
+- id (unsignedBigInteger, primary)
+- nama_mapel (string)
+- kode_mapel (string)
+- timestamps()
+```
+
+### `pengajarans` (Jadwal/Distribusi Mengajar)
+> Memetakan Guru ke Mata Pelajaran, untuk diajarkan di Kelas (beserta Tahun Ajarannya).
+```
+- id (uuid, primary)
+- class_academic_year_id (foreignUuid → class_academic_year)
+- teacher_id (foreignUuid → teachers)
+- mata_pelajaran_id (foreignBigInteger → mata_pelajarans)
+- timestamps()
+```
+
+---
+
+## ERD (Relasi Seluruh Modul ERP)
 
 ```
+[HRD]
+jabatans ──< teacher_jabatan >── teachers
+
+[AKADEMIK - DISTRIBUSI]
 academic_years ──< class_academic_year >── classes (template permanen)
                                   |
-                               teachers
+                               teachers (Wali Kelas)
+                                  |
+                             pengajarans (Distribusi Mengajar) ──> mata_pelajarans
+                                  |
+                               teachers (Guru Mapel)
 
+[AKADEMIK - ENROLLMENT SISWA]
 students ──< student_enrollments >── classes
                     |
-                academic_years
+              academic_years
 
+[PRESENSI ALAT]
 students ──< student_presensi_profiles > (1-to-1 relasi logis)
 
+[PRESENSI HARIAN]
 student_enrollments <── attendances ──> users (scanned_by)
                                     ──> polymorphic (manual_input_by)
 
+[KENAIKAN KELAS]
 promotion_logs ──< promotion_log_details >── students
 promotion_logs ──> academic_years (from/to)
 promotion_logs ──> users (executed_by)
-
+```
 school_settings ──> academic_years (active)
 holidays ──> classes (nullable, khusus kelas)
 invalid_scan_logs (standalone)
-```
 
 **Index wajib:** `students.barcode_code` (unique), `students.nisn` (unique), `attendances.[class_id, academic_year_id, date]`

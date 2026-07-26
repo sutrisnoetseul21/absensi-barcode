@@ -1,8 +1,13 @@
-# Dokumentasi Sistem Presensi Barcode
+# Dokumentasi Sistem ERP Sekolah (Tahap Pengembangan)
 
-Selamat datang di direktori dokumentasi proyek Sistem Presensi Barcode. 
+Selamat datang di direktori dokumentasi proyek **Sistem ERP (Enterprise Resource Planning) Sekolah**.
 
-Dokumentasi ini disusun untuk memandu jalannya pengembangan aplikasi dari tahap awal (MVP) hingga visi jangka panjang menjadi sebuah **ERP (Enterprise Resource Planning)** Sekolah yang komprehensif.
+Proyek ini awalnya bermula sebagai Sistem Presensi Barcode (Fase 1), dan kini sedang dalam masa pengembangan menuju ERP komprehensif yang mencakup Kepegawaian, Akademik, Perpustakaan, dan Keuangan (Fase 2).
+
+> **🤖 INSTRUKSI UNTUK AI AGENT (PENTING)**
+> Jika kamu adalah AI yang baru masuk ke proyek ini untuk membantu pengguna (*user*), **wajib hukumnya** untuk selalu membaca dan mengacu pada file di dalam folder `docs/` (terutama `docs/blueprint/` dan `docs/penjelasan-relasi-data.md`) sebelum menulis kode, agar arsitektur *Loose Coupling* dan *Multi-Guard* tidak rusak. Jika kamu diminta mencatat progres, buatlah di dalam folder `docs/progres-development/`.
+
+---
 
 ## Konsep Arsitektur (Menuju ERP)
 
@@ -39,8 +44,9 @@ Merupakan **Single Source of Truth** (Sumber Kebenaran Tunggal) dari spesifikasi
 - `06-business-rules.md` - Aturan bisnis dan validasi.
 - *(dan file blueprint lainnya)*
 
-### 📂 `progres-aplikasi-absensi/`
-Folder ini berisi log atau catatan perkembangan pengerjaan secara kronologis (dari Tahap 0 sampai seterusnya). Jika Anda ingin melihat rincian riwayat fitur apa saja yang dikerjakan pada tahap tertentu, Anda bisa melihat file di sini.
+### 📂 `progres-development/`
+Dokumen sejarah (fase-1-absensi) dan roadmap fitur ERP yang sedang dikerjakan.
+(Misalnya, jika sedang mengerjakan "Tahap 3", buka file `progres-development/fase-1-absensi/tahap-3.md`).n riwayat fitur apa saja yang dikerjakan pada tahap tertentu, Anda bisa melihat file di sini.
 
 ### 📂 `stack/`
 Berisi referensi, *guidelines*, dan panduan integrasi teknologi yang kita gunakan:
