@@ -268,7 +268,7 @@
                             Admin
                         </span>
                     </a>
-                    <a href="{{ route('kiosk.scan') }}"
+                    <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}"
                         class="ml-4 flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-indigo-500/50">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                         Presensi Digital
@@ -820,7 +820,7 @@
                         <span class="text-slate-700">·</span>
                         <a href="/admin" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
                         <span class="text-slate-700">·</span>
-                        <a href="{{ route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
+                        <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
                     </div>
                     <p class="text-xs text-slate-600">
                         &copy; {{ date('Y') }} {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Sistem Presensi' }}. Hak Cipta Dilindungi.

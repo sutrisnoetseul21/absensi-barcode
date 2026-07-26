@@ -33,7 +33,7 @@
                     <span class="text-slate-700">·</span>
                     <a href="/admin" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
                     <span class="text-slate-700">·</span>
-                    <a href="{{ route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
+                    <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
                 </div>
                 <p class="text-xs text-slate-600">
                     &copy; {{ date('Y') }} {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Sistem Presensi' }}. Hak Cipta Dilindungi.

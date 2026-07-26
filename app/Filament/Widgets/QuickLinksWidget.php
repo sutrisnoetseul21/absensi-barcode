@@ -68,7 +68,16 @@ class QuickLinksWidget extends Widget
                 ],
             ];
         } elseif ($panelId === 'admin-presensi') {
+            $settings = \App\Models\PengaturanSekolah::current();
+            $scannerUrl = $settings?->barcode_scan_mode === 'nis' ? url('/scan-nis') : url('/scan');
+
             $links = [
+                [
+                    'title' => 'Buka Kios Scanner',
+                    'url' => $scannerUrl,
+                    'icon' => 'heroicon-o-qr-code',
+                    'color' => 'primary',
+                ],
                 [
                     'title' => 'Input Presensi Manual',
                     'url' => url('/admin-presensi/input-presensi-manual'),
@@ -80,12 +89,6 @@ class QuickLinksWidget extends Widget
                     'url' => url('/admin-presensi/rekap-absensi-kelas'),
                     'icon' => 'heroicon-o-clipboard-document-list',
                     'color' => 'info',
-                ],
-                [
-                    'title' => 'Cetak Laporan',
-                    'url' => url('/admin-presensi/cetak-laporan-presensi'),
-                    'icon' => 'heroicon-o-printer',
-                    'color' => 'primary',
                 ],
                 [
                     'title' => 'Hari Libur',

@@ -23,6 +23,8 @@
 - checkin_time (time)                        → jam batas "Hadir" global, misal "07:00"
 - late_threshold_minutes (unsignedInteger)   → menit toleransi sebelum dianggap telat
 - academic_year_id_active (foreignUuid, nullable → academic_years)
+- enable_promotion_features (boolean)
+- barcode_scan_mode (string) default 'nisn'  → mode kios presensi ('nisn' atau 'nis')
 - timestamps()
 ```
 > **Catatan:** Tabel ini cukup 1 baris. Gunakan Filament "Settings" resource untuk mengelolanya.

@@ -27,6 +27,7 @@ class PengaturanSekolah extends Model
         'late_threshold_minutes',
         'academic_year_id_active',
         'enable_promotion_features',
+        'barcode_scan_mode',
     ];
 
     protected $casts = [

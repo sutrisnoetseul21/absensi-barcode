@@ -149,6 +149,16 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->label('Aktifkan Tombol Kenaikan & Kelulusan Kelas')
                             ->helperText('Jika diaktifkan, tombol Luluskan dan Naik Kelas akan muncul di tabel Siswa.')
                             ->default(false),
+                            
+                        Select::make('barcode_scan_mode')
+                            ->label('Mode Kios Scanner Barcode')
+                            ->options([
+                                'nisn' => 'Gunakan NISN (Default)',
+                                'nis' => 'Gunakan NIS',
+                            ])
+                            ->default('nisn')
+                            ->required()
+                            ->helperText('Menentukan jenis barcode yang akan dipindai oleh mesin presensi.'),
                     ])->columns(2),
             ])
             ->statePath('data');
