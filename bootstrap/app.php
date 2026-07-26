@@ -22,10 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectUsersTo(function (Request $request) {
-            if (Auth::guard('wali_kelas')->check()) {
+            $user = Auth::guard('web')->user();
+            if ($user && $user->hasRole('wali_kelas')) {
                 return '/wali-kelas';
             }
-            if (Auth::guard('siswa')->check()) {
+            if ($user && $user->hasRole('siswa')) {
                 return '/siswa';
             }
             return '/admin';

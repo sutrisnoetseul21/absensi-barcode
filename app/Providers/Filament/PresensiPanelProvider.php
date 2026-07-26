@@ -6,7 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Filament\Pages\Dashboard;
+use App\Filament\Presensi\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -18,6 +18,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Widgets\AdminAttendanceChart;
+use App\Filament\Widgets\QuickLinksWidget;
+use App\Filament\Widgets\PresensiStatusDonutChart;
 
 class PresensiPanelProvider extends PanelProvider
 {
@@ -84,7 +87,10 @@ class PresensiPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Presensi/Widgets'), for: 'App\Filament\Presensi\Widgets')
             ->widgets([
                 \App\Filament\Widgets\PortalWidget::class,
+                QuickLinksWidget::class,
                 AccountWidget::class,
+                PresensiStatusDonutChart::class,
+                AdminAttendanceChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

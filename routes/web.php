@@ -68,7 +68,7 @@ Route::middleware('auth')->group(function () {
 
 // Wali Kelas Routes
 Route::prefix('wali-kelas')->group(function () {
-    Route::get('/login', WaliKelasLogin::class)->middleware('guest:wali_kelas')->name('wali-kelas.login');
+    Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('wali-kelas.login');
     
     Route::middleware('auth.wali')->group(function () {
         Route::get('/', WaliKelasDashboard::class)->name('wali-kelas.dashboard');
@@ -85,7 +85,7 @@ Route::prefix('wali-kelas')->group(function () {
 
 // Siswa Routes
 Route::prefix('siswa')->group(function () {
-    Route::get('/login', SiswaLogin::class)->middleware('guest:siswa')->name('siswa.login');
+    Route::get('/login', SiswaLogin::class)->middleware('guest')->name('siswa.login');
     
     Route::middleware('auth.siswa')->group(function () {
         Route::get('/', SiswaDashboard::class)->name('siswa.dashboard');

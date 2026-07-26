@@ -6,7 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Filament\Pages\Dashboard;
+use App\Filament\Akademik\Pages\AkademikDashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -18,6 +18,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Akademik\Widgets\AkademikStatsWidget;
+use App\Filament\Widgets\QuickLinksWidget;
 
 class AkademikPanelProvider extends PanelProvider
 {
@@ -79,11 +81,13 @@ class AkademikPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Akademik/Resources'), for: 'App\Filament\Akademik\Resources')
             ->discoverPages(in: app_path('Filament/Akademik/Pages'), for: 'App\Filament\Akademik\Pages')
             ->pages([
-                Dashboard::class,
+                AkademikDashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Akademik/Widgets'), for: 'App\Filament\Akademik\Widgets')
             ->widgets([
                 \App\Filament\Widgets\PortalWidget::class,
+                QuickLinksWidget::class,
+                AkademikStatsWidget::class,
                 AccountWidget::class,
             ])
             ->middleware([
