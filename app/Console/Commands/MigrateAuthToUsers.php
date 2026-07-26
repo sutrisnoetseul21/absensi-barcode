@@ -7,6 +7,7 @@ use App\Models\Siswa;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 class MigrateAuthToUsers extends Command
@@ -87,13 +88,15 @@ class MigrateAuthToUsers extends Command
                 if (!$isDryRun) {
                     $user = User::firstOrNew(['email' => $email]);
                     if (!$user->exists) {
+                        $rawPassword = $teacher->password ?? null;
                         $user->name = $teacher->name;
-                        $user->password = 'temporary'; // will be overwritten immediately
+                        $user->password = !empty($rawPassword) ? $rawPassword : Hash::make($teacher->nip ?: 'password');
                         $user->must_change_password = $teacher->must_change_password ?? false;
                         $user->save();
 
-                        // Bypass Eloquent cast 'hashed'
-                        DB::table('users')->where('id', $user->id)->update(['password' => $teacher->password]);
+                        if (!empty($rawPassword)) {
+                            DB::table('users')->where('id', $user->id)->update(['password' => $rawPassword]);
+                        }
                     }
 
                     if (!$user->hasRole('wali_kelas')) {
@@ -153,13 +156,15 @@ class MigrateAuthToUsers extends Command
                 if (!$isDryRun) {
                     $user = User::firstOrNew(['email' => $email]);
                     if (!$user->exists) {
+                        $rawPassword = $student->password ?? null;
                         $user->name = $student->name;
-                        $user->password = 'temporary'; // will be overwritten immediately
+                        $user->password = !empty($rawPassword) ? $rawPassword : Hash::make($student->nisn ?: 'password');
                         $user->must_change_password = $student->must_change_password ?? false;
                         $user->save();
 
-                        // Bypass Eloquent cast 'hashed'
-                        DB::table('users')->where('id', $user->id)->update(['password' => $student->password]);
+                        if (!empty($rawPassword)) {
+                            DB::table('users')->where('id', $user->id)->update(['password' => $rawPassword]);
+                        }
                     }
 
                     if (!$user->hasRole('siswa')) {
