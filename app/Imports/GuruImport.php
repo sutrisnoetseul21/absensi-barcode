@@ -41,25 +41,55 @@ class GuruImport implements ToCollection
                 $existingGuru = Guru::whereRaw('LOWER(name) = ?', [strtolower($name)])->first();
             }
 
-            // Generate unique username
-            $username = $existingGuru ? $existingGuru->username : UsernameHelper::generateForGuru($name, $nip);
+            $excludeId = $existingGuru ? $existingGuru->id : null;
+            $username = $existingGuru ? null : UsernameHelper::generateForGuru($name, $nip, $excludeId);
+            $email = $username ? $username . '@' . config('school.email_domain', 'sekolah.sch.id') : null;
 
             $dataToSave = [
                 'name' => $name,
                 'nip' => $nip,
-                'username' => $username,
-                'must_change_password' => false,
             ];
-
-            // Hanya update password jika diisi di Excel, atau jika ini record baru
-            if (!$existingGuru || $passwordVal !== '') {
-                $dataToSave['password'] = $password; // hashed automatically by cast
-            }
 
             if ($existingGuru) {
                 $existingGuru->update($dataToSave);
+                
+                $user = \App\Models\User::where('teacher_id', $existingGuru->id)
+                            ->orWhere('id', $existingGuru->user_id)
+                            ->first();
+                
+                if ($user) {
+                    $userData = [
+                        'name' => $name,
+                    ];
+                    if ($passwordVal !== '') {
+                        $userData['password'] = $password;
+                    }
+                    $user->update($userData);
+                } else {
+                    $email = $email ?? UsernameHelper::generateForGuru($name, $nip, $excludeId) . '@' . config('school.email_domain', 'sekolah.sch.id');
+                    $user = \App\Models\User::create([
+                        'name' => $name,
+                        'email' => $email,
+                        'password' => $password,
+                        'must_change_password' => $passwordVal === '',
+                        'teacher_id' => $existingGuru->id,
+                    ]);
+                    $user->assignRole('wali_kelas');
+                    $existingGuru->update(['user_id' => $user->id]);
+                }
             } else {
-                Guru::create($dataToSave);
+                $user = \App\Models\User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => $password,
+                    'must_change_password' => $passwordVal === '',
+                ]);
+                $user->assignRole('wali_kelas');
+
+                $dataToSave['user_id'] = $user->id;
+                $guru = Guru::create($dataToSave);
+                
+                $user->update(['teacher_id' => $guru->id]);
             }
         }
     }
