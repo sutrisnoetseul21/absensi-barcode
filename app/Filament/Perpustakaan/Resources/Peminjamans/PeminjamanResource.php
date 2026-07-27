@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Perpustakaan\Resources;
+namespace App\Filament\Perpustakaan\Resources\Peminjamans;
 
 use App\Filament\Perpustakaan\Resources\Peminjamans\Pages;
 use App\Models\Peminjaman;

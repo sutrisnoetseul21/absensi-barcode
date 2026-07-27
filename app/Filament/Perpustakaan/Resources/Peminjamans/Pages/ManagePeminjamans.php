@@ -2,7 +2,7 @@
 
 namespace App\Filament\Perpustakaan\Resources\Peminjamans\Pages;
 
-use App\Filament\Perpustakaan\Resources\PeminjamanResource;
+use App\Filament\Perpustakaan\Resources\Peminjamans\PeminjamanResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 

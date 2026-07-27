@@ -29,31 +29,5 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Akun Wali Kelas
-        \App\Models\Guru::firstOrCreate(
-            ['username' => 'guru123'],
-            [
-                'name' => 'Bapak Budi',
-                'nip' => '198001012005011001',
-                'password' => 'password',
-            ]
-        );
-
-        // Akun Siswa
-        $siswa = \App\Models\Siswa::firstOrCreate(
-            ['username' => '1234567890'],
-            [
-                'nisn' => '1234567890',
-                'name' => 'Andi Siswa',
-                'password' => 'password',
-            ]
-        );
-
-        if ($siswa->wasRecentlyCreated) {
-            $siswa->presensiProfile()->create([
-                'barcode_code' => '1234567890',
-                'barcode_active' => true,
-            ]);
-        }
     }
 }
