@@ -8,16 +8,18 @@
   - Set `SESSION_LIFETIME=180` (3 jam) di `.env` sebagai buffer aman untuk window operasional 06.00–08.00. Tidak perlu pengecualian CSRF atau keep-alive token.
   - Pastikan timezone aplikasi di `config/app.php` adalah `Asia/Jakarta`.
 - `[x]` Buat route **di `routes/web.php`** (Bukan `api.php`):
-  - `GET /scan` untuk halaman kios Livewire (akses publik).
-  - `POST /scan` untuk endpoint fetch. Pasang middleware `throttle:60,1` untuk proteksi dasar.
-- `[x]` Buat Livewire component `AttendanceKiosk`
+  - `GET /scan` untuk halaman kios Livewire (mode Barcode/QR).
+  - `GET /scan-nis` untuk halaman kios Livewire (mode NIS).
+  - `POST /scan` dan `POST /scan-nis` untuk endpoint fetch. Pasang middleware `throttle:60,1` untuk proteksi dasar.
+- `[x]` Buat Livewire component `AttendanceKiosk` dan `AttendanceKioskNis`
 - `[x]` **Layout UI Kios**:
   - Tampilkan overlay "Sentuh layar untuk mengaktifkan kios" di awal untuk bypass kebijakan *audio autoplay* browser.
-  - Background modern (misalnya, perpaduan slate dan blue gradient) dengan elemen glassmorphism. Gunakan atribut `wire:ignore` pada area yang dimanipulasi murni oleh Alpine.js.
-  - Logo sekolah di bagian atas tengah.
-  - Card besar di tengah layar untuk menampung input dan feedback.
+  - Background modern dengan konsep **Split-Screen** (Layar Terbagi Dua). Kiri untuk pindaian, Kanan untuk riwayat lokal.
+  - Logo sekolah ditampilkan dinamis. Jika tidak ada, fallback ke ikon perisai.
+  - Card besar untuk menampung input dan feedback. Idle state beranimasi halus (pulse).
   - Area feedback: foto siswa (dengan placeholder avatar jika null) + nama + status (hijau=hadir, kuning=telat, merah=error, abu-abu/biru=libur).
   - State dan UI khusus jika terjadi **Network/Connection Error** (saat request `fetch()` gagal di-reach).
+  - **Fitur Baru (Riwayat Lokal)**: Di sebelah kanan, menampilkan 10 data siswa terakhir yang absen di perangkat tersebut (tidak sinkron antar Kios untuk mencegah kebingungan).
   - Loading indicator kecil (spinner/dot) yang aktif saat request in-flight.
 - `[x]` **Logic Scan (Alpine.js)**:
   - Livewire component `AttendanceKiosk` hanya merender shell/layout awal. Semua interaksi ditangani Alpine.js + `fetch()`. Ambil CSRF dari `<meta name="csrf-token">`.

@@ -61,6 +61,7 @@ class ProcessScanAction
             return [
                 'status' => 'holiday',
                 'name' => $siswa->name,
+                'class_name' => $siswa->enrollmentAktif ? $siswa->enrollmentAktif->kelas->name : '',
                 'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null,
                 'message' => 'Hari ini libur, tidak ada presensi'
             ];
@@ -76,6 +77,7 @@ class ProcessScanAction
             return [
                 'status' => 'already_scanned',
                 'name' => $siswa->name,
+                'class_name' => $enrollment->kelas->name ?? '',
                 'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null
             ];
         }
@@ -115,6 +117,7 @@ class ProcessScanAction
             return [
                 'status' => 'already_scanned',
                 'name' => $siswa->name,
+                'class_name' => $enrollment->kelas->name ?? '',
                 'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null
             ];
         } catch (\Exception $e) {
@@ -124,6 +127,7 @@ class ProcessScanAction
                 return [
                     'status' => 'already_scanned',
                     'name' => $siswa->name,
+                    'class_name' => $enrollment->kelas->name ?? '',
                     'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null
                 ];
             }
@@ -137,6 +141,7 @@ class ProcessScanAction
         return [
             'status' => $statusResponse,
             'name' => $siswa->name,
+            'class_name' => $enrollment->kelas->name ?? '',
             'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null,
             'late_minutes' => $lateMinutes
         ];

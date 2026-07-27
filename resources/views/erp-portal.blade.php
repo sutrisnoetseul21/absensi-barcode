@@ -79,7 +79,7 @@
         </div>
 
         <div class="text-center mt-16 text-sm text-slate-400">
-            <a href="{{ url('/login') }}" class="hover:text-white transition-colors underline underline-offset-4">Masuk ke Portal Admin</a>
+            <a href="{{ url('/admin') }}" class="hover:text-white transition-colors underline underline-offset-4">Masuk ke Portal Admin</a>
         </div>
     </div>
 </div>

@@ -29,15 +29,15 @@
 
                 <!-- Header Kanan: Menu Navigasi Desktop -->
                 <nav class="hidden lg:flex items-center space-x-1">
-                    <a href="{{ route('public.dashboard') }}"
+                    <a href="{{ url('/') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                            Presensi
+                            Home
                         </span>
                     </a>
-                    <a href="{{ route('siswa.login') }}"
+                    <a href="{{ url('/siswa') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -45,7 +45,15 @@
                             Portal Siswa
                         </span>
                     </a>
-                    <a href="{{ route('login') }}"
+                    <a href="{{ url('/wali-kelas') }}"
+                        class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
+                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Portal Guru
+                        </span>
+                    </a>
+                    <a href="{{ url('/admin') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -82,15 +90,19 @@
              :class="scrolled ? 'bg-white/95 border-slate-200' : 'bg-slate-950/80 border-white/10'"
              style="display: none;">
             <div class="px-4 pt-2 pb-6 space-y-2">
-                <a href="{{ route('public.dashboard') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ url('/') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Presensi
+                    Home
                 </a>
-                <a href="{{ route('siswa.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ url('/siswa') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Portal Siswa
                 </a>
-                <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ url('/wali-kelas') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                    Portal Guru
+                </a>
+                <a href="{{ url('/admin') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Admin
                 </a>

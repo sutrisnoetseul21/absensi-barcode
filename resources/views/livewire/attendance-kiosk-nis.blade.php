@@ -14,7 +14,7 @@
     <div x-show="!isActive" 
          class="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center cursor-pointer transition-opacity duration-300"
          @click="activateKiosk()">
-        <svg class="w-24 h-24 text-white mb-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+        <svg class="w-24 h-24 text-white mb-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
         <h1 class="text-4xl font-bold text-white tracking-wider">Sentuh Layar Untuk Mengaktifkan Presensi Digital</h1>
         <p class="text-slate-300 mt-4 text-xl">Sistem Presensi Digital {{ $settings->school_name ?? 'Sekolah' }}</p>
     </div>
@@ -33,100 +33,173 @@
            autocomplete="off">
     @endif
 
-    <!-- Main Card -->
-    <div class="relative w-full max-w-3xl mx-4">
-        <!-- Glassmorphism Card -->
-        <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden">
-            <!-- Header -->
-            <div class="bg-blue-600/90 text-white py-6 px-8 text-center relative">
-                @if($settings && $settings->school_logo_path)
-                    <img src="{{ asset('storage/'.$settings->school_logo_path) }}" alt="Logo" class="w-16 h-16 mx-auto mb-2 object-contain">
-                @endif
-                <h2 class="text-3xl font-bold">{{ $settings->school_name ?? 'Presensi Digital' }} (Mode NIS)</h2>
-                <p class="text-blue-100 mt-1">Silakan scan kartu Anda pada alat scanner</p>
-                
-                <!-- Loading Indicator -->
-                <div x-show="isLoading" class="absolute top-4 right-6 flex items-center space-x-2 bg-black/20 rounded-full px-3 py-1">
-                    <div class="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                    <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                    <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                </div>
-            </div>
-
-            <!-- Body / Feedback Area -->
-            <div class="p-10 min-h-[350px] flex flex-col items-center justify-center relative transition-colors duration-300"
-                 :class="{
-                     'bg-green-50': statusState === 'success',
-                     'bg-yellow-50': statusState === 'warning',
-                     'bg-red-50': statusState === 'error',
-                     'bg-slate-200': statusState === 'holiday',
-                     'bg-orange-50': statusState === 'network_error',
-                     'bg-transparent': statusState === 'idle'
-                 }">
-                
-                <!-- Idle State -->
-                <div x-show="statusState === 'idle' && !isLoading" class="text-center text-slate-400">
-                    <svg class="w-32 h-32 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                    <p class="text-2xl font-medium text-slate-500 animate-pulse">Menunggu Scan Barcode...</p>
-                </div>
-
-                <!-- Feedback State -->
-                <div x-show="statusState !== 'idle'" class="text-center w-full transform transition-all duration-300"
-                     x-transition:enter="ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                     style="display: none;">
-                    
-                    <div class="relative inline-block mb-6">
-                        <template x-if="photoUrl">
-                            <img :src="photoUrl" class="w-40 h-40 rounded-full border-4 shadow-lg object-cover" 
-                                 :class="borderColorClass">
-                        </template>
-                        <template x-if="!photoUrl && statusState !== 'network_error'">
-                            <div class="w-40 h-40 rounded-full border-4 shadow-lg flex items-center justify-center bg-white"
-                                 :class="borderColorClass">
-                                <svg class="w-20 h-20 text-slate-300" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                            </div>
-                        </template>
-                        <template x-if="statusState === 'network_error'">
-                            <div class="w-40 h-40 rounded-full border-4 shadow-lg flex items-center justify-center bg-white border-orange-500">
-                                <svg class="w-20 h-20 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M9 9a3 3 0 00-3 3v2m3-5a3 3 0 013-3m5 3v-2a3 3 0 00-3-3M21 21a9 9 0 01-9 9m9-9a9 9 0 00-9-9"></path></svg>
-                            </div>
-                        </template>
-                        
-                        <!-- Icon Badge -->
-                        <div class="absolute bottom-0 right-0 w-12 h-12 rounded-full border-4 border-white flex items-center justify-center text-white"
-                             :class="badgeColorClass">
-                             <svg x-show="statusState === 'success'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                             <svg x-show="statusState === 'warning'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                             <svg x-show="statusState === 'error'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                             <svg x-show="statusState === 'holiday'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                             <svg x-show="statusState === 'network_error'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <!-- Main Container: Wider to accommodate history -->
+    <div class="relative w-full max-w-6xl mx-4">
+        <!-- Glassmorphism Container with Flex Row -->
+        <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden flex flex-col md:flex-row min-h-[550px]">
+            
+            <!-- Left Side: Scanner UI -->
+            <div class="w-full md:w-7/12 flex flex-col relative">
+                <!-- Header -->
+                <div class="bg-blue-600/95 text-white py-8 px-8 text-center relative flex flex-col items-center justify-center">
+                    @if($settings && $settings->school_logo_path)
+                        <img src="{{ asset('storage/'.$settings->school_logo_path) }}" alt="Logo" class="w-24 h-24 mx-auto mb-3 object-contain drop-shadow-md">
+                    @else
+                        <!-- Fallback Logo if none uploaded -->
+                        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-sm border border-white/30">
+                            <svg class="w-12 h-12 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" /></svg>
                         </div>
+                    @endif
+                    <h2 class="text-3xl font-bold tracking-tight">{{ $settings->school_name ?? 'Presensi Digital' }}</h2>
+                    <p class="text-blue-100 mt-2 font-medium bg-blue-700/50 px-4 py-1 rounded-full text-sm inline-block">Mode NIS</p>
+                    
+                    <!-- Loading Indicator -->
+                    <div x-show="isLoading" class="absolute top-4 right-6 flex items-center space-x-2 bg-black/20 rounded-full px-3 py-1">
+                        <div class="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                </div>
+
+                <!-- Body / Feedback Area -->
+                <div class="flex-1 p-10 pb-20 flex flex-col items-center justify-center relative transition-colors duration-300"
+                     :class="{
+                         'bg-green-50/80': statusState === 'success',
+                         'bg-yellow-50/80': statusState === 'warning',
+                         'bg-red-50/80': statusState === 'error',
+                         'bg-slate-200/80': statusState === 'holiday',
+                         'bg-orange-50/80': statusState === 'network_error',
+                         'bg-transparent': statusState === 'idle'
+                     }">
+                    
+                    <!-- Idle State -->
+                    <div x-show="statusState === 'idle' && !isLoading" class="text-center text-slate-400">
+                        <div class="w-32 h-32 mx-auto mb-6 flex items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300">
+                            <svg class="w-16 h-16 text-slate-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                        </div>
+                        <p class="text-2xl font-bold text-slate-500">Silakan Scan NIS</p>
+                        <p class="text-slate-400 mt-2">Arahkan kartu pada scanner yang tersedia</p>
                     </div>
 
-                    <h3 class="text-4xl font-bold text-slate-800 mb-2" x-text="studentName"></h3>
-                    <p class="text-2xl font-medium" :class="textColorClass" x-text="statusMessage"></p>
-                    
-                    <template x-if="lateMinutes > 0">
-                        <p class="mt-3 text-lg text-yellow-700 bg-yellow-100 inline-block px-4 py-1 rounded-full font-semibold">
-                            Terlambat: <span x-text="lateMinutes"></span> Menit
-                        </p>
-                    </template>
+                    <!-- Feedback State -->
+                    <div x-show="statusState !== 'idle'" class="text-center w-full transform transition-all duration-300"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         style="display: none;">
+                        
+                        <div class="relative inline-block mb-6">
+                            <template x-if="photoUrl">
+                                <img :src="photoUrl" class="w-48 h-48 rounded-full border-8 shadow-xl object-cover" 
+                                     :class="borderColorClass">
+                            </template>
+                            <template x-if="!photoUrl && statusState !== 'network_error'">
+                                <div class="w-48 h-48 rounded-full border-8 shadow-xl flex items-center justify-center bg-white"
+                                     :class="borderColorClass">
+                                    <svg class="w-24 h-24 text-slate-300" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                </div>
+                            </template>
+                            <template x-if="statusState === 'network_error'">
+                                <div class="w-48 h-48 rounded-full border-8 shadow-xl flex items-center justify-center bg-white border-orange-500">
+                                    <svg class="w-24 h-24 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M9 9a3 3 0 00-3 3v2m3-5a3 3 0 013-3m5 3v-2a3 3 0 00-3-3M21 21a9 9 0 01-9 9m9-9a9 9 0 00-9-9"></path></svg>
+                                </div>
+                            </template>
+                            
+                            <!-- Icon Badge -->
+                            <div class="absolute bottom-1 right-1 w-14 h-14 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md"
+                                 :class="badgeColorClass">
+                                 <svg x-show="statusState === 'success'" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                 <svg x-show="statusState === 'warning'" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                 <svg x-show="statusState === 'error'" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                 <svg x-show="statusState === 'holiday'" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                 <svg x-show="statusState === 'network_error'" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                        </div>
+
+                        <h3 class="text-4xl font-bold text-slate-800 mb-2 tracking-tight" x-text="studentName"></h3>
+                        <p class="text-2xl font-semibold mt-2" :class="textColorClass" x-text="statusMessage"></p>
+                        
+                        <template x-if="lateMinutes > 0">
+                            <p class="mt-4 text-lg text-yellow-700 bg-yellow-100 inline-block px-5 py-1.5 rounded-full font-bold shadow-sm border border-yellow-200">
+                                Terlambat: <span x-text="lateMinutes"></span> Menit
+                            </p>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Footer Input Debug -->
+                <div class="bg-white/80 border-t border-slate-100 p-4 flex justify-between items-center text-sm text-slate-500 absolute bottom-0 w-full rounded-bl-3xl">
+                    @if(!$isGlobalHoliday)
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="font-mono bg-slate-100 px-2 py-0.5 rounded" x-text="barcode || '---'"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full shadow-inner animate-pulse" :class="isActive ? 'bg-green-500' : 'bg-red-500'"></span>
+                        <span class="font-semibold" x-text="isActive ? 'Sistem Aktif' : 'Menunggu Aktivasi'"></span>
+                    </div>
+                    @else
+                    <div class="w-full text-center font-semibold text-slate-600">Sistem Presensi Dinonaktifkan (Hari Libur)</div>
+                    @endif
                 </div>
             </div>
-            
-            <!-- Footer Input Debug -->
-            <div class="bg-slate-50 border-t border-slate-100 p-4 flex justify-between items-center text-sm text-slate-500">
-                @if(!$isGlobalHoliday)
-                <div>Input Buffer: <span class="font-mono text-slate-800" x-text="barcode"></span></div>
-                <div class="flex items-center space-x-2">
-                    <span class="w-3 h-3 rounded-full" :class="isActive ? 'bg-green-500' : 'bg-red-500'"></span>
-                    <span x-text="isActive ? 'Presensi Digital Aktif' : 'Menunggu Aktivasi'"></span>
+
+            <!-- Right Side: Recent History -->
+            <div class="w-full md:w-5/12 bg-slate-50/90 border-l border-slate-200/60 flex flex-col z-10 backdrop-blur-md rounded-br-3xl overflow-hidden pb-4">
+                <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-white/50">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Baru Saja Presensi
+                    </h3>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded-md" x-text="recentScans.length + ' Data'"></span>
                 </div>
-                @else
-                <div class="w-full text-center">Presensi Digital Dinonaktifkan (Hari Libur)</div>
-                @endif
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 relative" style="scrollbar-width: thin;">
+                    <template x-if="recentScans.length === 0">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 opacity-60">
+                            <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <p class="font-medium text-sm">Belum ada riwayat (Lokal)</p>
+                        </div>
+                    </template>
+                    
+                    <template x-for="(scan, index) in recentScans" :key="scan.id">
+                        <div class="bg-white border border-slate-100 rounded-xl p-3 flex items-center gap-3 shadow-sm transform transition-all duration-500 ease-out"
+                             x-transition:enter="opacity-0 -translate-x-4 scale-95"
+                             x-transition:enter-end="opacity-100 translate-x-0 scale-100">
+                            <!-- Avatar -->
+                            <div class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                <template x-if="scan.photo_url">
+                                    <img :src="scan.photo_url" class="w-full h-full object-cover">
+                                </template>
+                                <template x-if="!scan.photo_url">
+                                    <span class="text-sm font-bold text-slate-400" x-text="scan.name.substring(0,2).toUpperCase()"></span>
+                                </template>
+                            </div>
+                            
+                            <!-- Info -->
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-bold text-slate-800 truncate" x-text="scan.name"></h4>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-xs text-slate-500 font-medium" x-text="scan.class_name"></span>
+                                    <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span class="text-[11px] font-mono text-slate-400" x-text="scan.time"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Badge -->
+                            <div class="flex-shrink-0">
+                                <span class="px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider"
+                                      :class="{
+                                          'bg-emerald-100 text-emerald-700': scan.status === 'success_on_time',
+                                          'bg-amber-100 text-amber-700': scan.status === 'success_late',
+                                          'bg-slate-100 text-slate-600': scan.status === 'already_scanned' || scan.status === 'holiday',
+                                          'bg-red-100 text-red-700': scan.status === 'error'
+                                      }" x-text="scan.status === 'success_on_time' ? 'Hadir' : (scan.status === 'success_late' ? 'Telat' : (scan.status === 'already_scanned' ? 'Sudah Absen' : 'Libur'))">
+                                </span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </div>
         </div>
     </div>
@@ -148,17 +221,18 @@
                 statusMessage: @json($isGlobalHoliday ? 'Sistem Presensi Digital Dinonaktifkan.' : ''),
                 lateMinutes: 0,
                 
+                // History Array
+                recentScans: [],
+                
                 // Timers
                 resetTimer: null,
                 refocusInterval: null,
                 
                 initKiosk() {
-                    // Cek autofocus berkala untuk memastikan selalu fokus
                     this.refocusInterval = setInterval(() => {
                         this.refocusInput();
                     }, 2000);
                     
-                    // Listen to barcode length
                     this.$watch('barcode', (val) => {
                         if (val.length >= 10 && this.isActive && !this.isLoading) {
                             this.submitScan();
@@ -168,7 +242,6 @@
                 
                 activateKiosk() {
                     this.isActive = true;
-                    // Play a silent sound to unlock audio context in browsers
                     try {
                         let audio = document.getElementById('audio-success');
                         if (audio) {
@@ -192,20 +265,15 @@
                 
                 async submitScan() {
                     const currentBarcode = this.barcode.trim();
-                    this.barcode = ''; // Langsung bersihkan untuk input berikutnya
+                    this.barcode = ''; 
                     
                     if (currentBarcode.length === 0) return;
                     
                     this.isLoading = true;
-                    
-                    // Jika ada timer reset, matikan (interrupt)
-                    if (this.resetTimer) {
-                        clearTimeout(this.resetTimer);
-                    }
+                    if (this.resetTimer) clearTimeout(this.resetTimer);
                     
                     try {
                         const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
-                        
                         const response = await fetch('/scan-nis', {
                             method: 'POST',
                             headers: {
@@ -216,14 +284,11 @@
                             body: JSON.stringify({ barcode: currentBarcode })
                         });
                         
-                        // Handle CSRF Token Mismatch or other HTTP errors
                         if (!response.ok) {
                             if (response.status === 419) {
-                                // CSRF Expired, reload page
                                 window.location.reload();
                                 return;
                             }
-                            
                             const errorData = await response.json().catch(() => ({}));
                             this.showFeedback('error', 'Error Sistem', null, errorData.message || `Terjadi kesalahan (Kode: ${response.status})`);
                             this.playAudio('error');
@@ -233,7 +298,6 @@
                         const data = await response.json();
                         this.handleResponse(data);
                     } catch (error) {
-                        console.error('Network error:', error);
                         this.showFeedback('network_error', 'Gagal Terhubung', null, 'Terjadi gangguan jaringan atau server.');
                         this.playAudio('network');
                     } finally {
@@ -244,13 +308,21 @@
                 
                 handleResponse(data) {
                     const status = data.status;
-                    
-                    if (status === 'duplicate_request') {
-                        // Silent ignore
-                        return;
-                    }
+                    if (status === 'duplicate_request') return;
                     
                     this.lateMinutes = data.late_minutes || 0;
+                    
+                    // Push to history for specific statuses
+                    if (['success_on_time', 'success_late', 'already_scanned'].includes(status) && data.name) {
+                        this.addToHistory({
+                            id: Date.now() + Math.random(), // unique key
+                            name: data.name,
+                            class_name: data.class_name || '-',
+                            photo_url: data.photo_url,
+                            status: status,
+                            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                        });
+                    }
                     
                     switch(status) {
                         case 'success_on_time':
@@ -259,7 +331,7 @@
                             break;
                         case 'success_late':
                             this.showFeedback('warning', data.name, data.photo_url, 'Berhasil Hadir (Terlambat)');
-                            this.playAudio('success'); // Pakai beep biasa, tapi UI beda
+                            this.playAudio('success'); 
                             break;
                         case 'already_scanned':
                             this.showFeedback('error', data.name || 'Siswa', data.photo_url, 'Sudah Melakukan Presensi Hari Ini');
@@ -283,13 +355,20 @@
                     }
                 },
                 
+                addToHistory(entry) {
+                    this.recentScans.unshift(entry);
+                    // Keep only top 10
+                    if (this.recentScans.length > 10) {
+                        this.recentScans.pop();
+                    }
+                },
+                
                 showFeedback(state, name, photo, message) {
                     this.statusState = state;
                     this.studentName = name;
                     this.photoUrl = photo;
                     this.statusMessage = message;
                     
-                    // Set auto-reset ke idle setelah 3 detik
                     @if(!$isGlobalHoliday)
                     this.resetTimer = setTimeout(() => {
                         this.statusState = 'idle';

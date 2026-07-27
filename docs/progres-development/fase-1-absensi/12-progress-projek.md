@@ -83,8 +83,8 @@ Silakan klik tautan pada tabel **Status Progres Keseluruhan** di bawah ini untuk
 | 14 | [Perlindungan Data Master Interaktif & Modal Pop-Up Edit](./tahap-14.md) | ✅ Selesai |
 | 2 | [Multi-Guard Authentication](./tahap-2.md) | ✅ Selesai |
 | 3 | [Data Master & Modul Admin](./tahap-3.md) | ✅ Selesai |
-| 4 | [Kios Scanner Absensi](./tahap-4.md) | ⬜ Belum dimulai |
-| 5 | [Dashboard Publik](./tahap-5.md) | ⬜ Belum dimulai |
+| 4 | [Kios Scanner Absensi](./tahap-4.md) | ✅ Selesai |
+| 5 | [Dashboard Publik](./tahap-5.md) | ✅ Selesai |
 | 6 | [Portal Wali Kelas](./tahap-6.md) | ⬜ Belum dimulai |
 | 7 | [Portal Siswa](./tahap-7.md) | ⬜ Belum dimulai |
 | 8 | [Import/Export Excel & Kartu OSIS](./tahap-8.md) | ⬜ Belum dimulai |
