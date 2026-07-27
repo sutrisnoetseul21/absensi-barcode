@@ -108,18 +108,28 @@ class SchoolSettingsPage extends Page implements HasForms
                         FileUpload::make('hero_image_path')
                             ->label('Gambar Background Frontend (Hero Image)')
                             ->image()
+                            ->imageResizeTargetWidth(1920)
+                            ->imageResizeTargetHeight(1080)
+                            ->imageResizeMode('contain')
+                            ->imageResizeUpscale(false)
+                            ->maxSize(10240)
                             ->disk('public')
                             ->directory('settings')
                             ->nullable()
-                            ->helperText('Gambar ini akan digunakan sebagai background halaman depan portal presensi.'),
+                            ->helperText('Gambar ini akan digunakan sebagai background halaman depan portal presensi (Maksimal 10MB, disarankan format JPG/PNG).'),
                             
                         FileUpload::make('login_background_path')
                             ->label('Gambar Background Login (Portal)')
                             ->image()
+                            ->imageResizeTargetWidth(1920)
+                            ->imageResizeTargetHeight(1080)
+                            ->imageResizeMode('contain')
+                            ->imageResizeUpscale(false)
+                            ->maxSize(10240)
                             ->disk('public')
                             ->directory('settings')
                             ->nullable()
-                            ->helperText('Gambar ini akan digunakan sebagai background halaman Login Siswa dan Wali Kelas.'),
+                            ->helperText('Gambar ini akan digunakan sebagai background halaman Login Siswa dan Wali Kelas (Maksimal 10MB, disarankan format JPG/PNG).'),
                     ])->columns(1),
 
                 Section::make('Pengaturan Sistem')
