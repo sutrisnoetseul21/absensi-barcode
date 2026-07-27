@@ -38,6 +38,7 @@ class SiswaBaruImport implements ToCollection
         set_time_limit(300); // 5 menit
 
         // ─── Pra-proses: kumpulkan data referensi dari DB ─────────────────────
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
         $existingNisns  = Siswa::withTrashed()->pluck('nisn')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
         $existingNises  = Siswa::withTrashed()->whereNotNull('nis')->pluck('nis')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
         $validKelasMap  = Kelas::pluck('id', 'name')->toArray(); // ['7A' => uuid, ...]
