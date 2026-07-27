@@ -117,9 +117,9 @@ class GetPublicDashboardDataAction
                 }
             }
 
-            // Wall of Fame: Top 5
+            // Wall of Fame: Top 10
             usort($wallOfFameRaw, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
-            $wallOfFame = array_slice($wallOfFameRaw, 0, 5);
+            $wallOfFame = array_slice($wallOfFameRaw, 0, 10);
 
             // Donut Chart logic
             $totalActiveStudents = $totalStudents->sum();

@@ -1,6 +1,7 @@
 <div
     x-data="{ 
         mode: '{{ $mode }}',
+        donutData: @js($donutData),
         activeSlide: 0, 
         selectedAngkatan: '', 
         selectedKelas: '', 
@@ -114,9 +115,18 @@
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false, 
-                        cutout: '75%',
+                        cutout: '80%',
                         plugins: { 
-                            legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } } 
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: 'Plus Jakarta Sans', size: 13 },
+                                bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                                padding: 12,
+                                cornerRadius: 12,
+                                displayColors: true,
+                                usePointStyle: true,
+                            }
                         } 
                     }
                 });
@@ -192,6 +202,7 @@
         },
         
         updateCharts(data) {
+            this.donutData = data.donut;
             if(this.charts.donut) {
                 this.charts.donut.data.datasets[0].data = [
                     data.donut.hadir, data.donut.telat, data.donut.sakit, 
@@ -257,7 +268,7 @@
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Wali Kelas
+                            Portal Guru
                         </span>
                     </a>
                     <a href="{{ route('login') }}"
@@ -303,7 +314,7 @@
                 </a>
                 <a href="{{ route('wali-kelas.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Wali Kelas
+                    Portal Guru
                 </a>
                 <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
@@ -333,7 +344,7 @@
 
         <!-- SEKSI 4: 6 Stat Cards Global (Live Polling) - MODERN VERSION -->
         @if(!$isTodayHoliday)
-        <div wire:poll.300000ms="$refresh" class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-10">
+        <div wire:poll.300000ms="$refresh" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
 
             <!-- Total Siswa Aktif -->
             <div class="relative bg-gradient-to-br from-brand-primary to-brand-primary-dark rounded-2xl p-5 shadow-lg shadow-brand-primary-100/50 overflow-hidden group cursor-default">
@@ -418,10 +429,10 @@
         @endif
 
         <!-- SEKSI 5: Widget Libur, Charts & Wall of Fame -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10" wire:ignore>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10" wire:ignore>
 
             <!-- Widget Hari Libur -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col h-[380px]">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col h-[440px]">
                 <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
                     <div class="w-10 h-10 flex items-center justify-center bg-rose-100 rounded-2xl text-rose-600 flex-shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -469,48 +480,50 @@
                         return null;
                     }
                 }">
-                    <!-- Calendar Header -->
-                    <div class="flex items-center justify-between mb-3 px-1">
-                        <button @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <div class="font-bold text-slate-800 text-sm" x-text="monthNames[currMonth] + ' ' + currYear"></div>
-                        <button @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
-                    </div>
+                    <div class="w-full max-w-[280px] mx-auto flex-1 flex flex-col">
+                        <!-- Calendar Header -->
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <button @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <div class="font-bold text-slate-800 text-sm" x-text="monthNames[currMonth] + ' ' + currYear"></div>
+                            <button @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
 
-                    <!-- Calendar Grid -->
-                    <div class="grid grid-cols-7 gap-1 mb-2">
-                        <template x-for="day in dayNames">
-                            <div class="text-center text-[10px] font-bold text-slate-400 uppercase" x-text="day"></div>
-                        </template>
-                    </div>
-                    
-                    <div class="grid grid-cols-7 gap-1 flex-1 content-start relative">
-                        <template x-for="blank in blankDays">
-                            <div class="aspect-square"></div>
-                        </template>
-                        <template x-for="date in daysInMonth" :key="date">
-                            <div class="aspect-square relative group">
-                                <div class="w-full h-full flex flex-col items-center justify-center rounded-lg border text-[13px] font-semibold transition-all cursor-default"
-                                    :class="{
-                                        'bg-rose-50 text-rose-600 border-rose-200': getHoliday(date) && getHoliday(date).type === 'nasional',
-                                        'bg-amber-50 text-amber-600 border-amber-200': getHoliday(date) && getHoliday(date).type !== 'nasional',
-                                        'bg-brand-primary text-white shadow-md shadow-brand-primary-100 border-brand-primary': isToday(date) && !getHoliday(date),
-                                        'text-slate-700 hover:bg-slate-50 border-transparent': !isToday(date) && !getHoliday(date)
-                                    }">
-                                    <span x-text="date"></span>
-                                    
-                                    <!-- Tooltip / Hover Event -->
-                                    <div x-show="getHoliday(date)" class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[150px] bg-slate-800 text-white text-[10px] py-1.5 px-2.5 rounded-lg text-center z-20 shadow-xl border border-slate-700" style="display: none;">
-                                        <div class="font-bold truncate" x-text="getHoliday(date) ? getHoliday(date).desc : ''"></div>
-                                        <!-- Arrow -->
-                                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                        <!-- Calendar Grid -->
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                            <template x-for="day in dayNames">
+                                <div class="text-center text-[10px] font-bold text-slate-400 uppercase" x-text="day"></div>
+                            </template>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-1 flex-1 content-start relative">
+                            <template x-for="blank in blankDays">
+                                <div class="aspect-square"></div>
+                            </template>
+                            <template x-for="date in daysInMonth" :key="date">
+                                <div class="aspect-square relative group">
+                                    <div class="w-full h-full flex flex-col items-center justify-center rounded-lg border text-[13px] font-semibold transition-all cursor-default"
+                                        :class="{
+                                            'bg-rose-50 text-rose-600 border-rose-200': getHoliday(date) && getHoliday(date).type === 'nasional',
+                                            'bg-amber-50 text-amber-600 border-amber-200': getHoliday(date) && getHoliday(date).type !== 'nasional',
+                                            'bg-brand-primary text-white shadow-md shadow-brand-primary-100 border-brand-primary': isToday(date) && !getHoliday(date),
+                                            'text-slate-700 hover:bg-slate-50 border-transparent': !isToday(date) && !getHoliday(date)
+                                        }">
+                                        <span x-text="date"></span>
+                                        
+                                        <!-- Tooltip / Hover Event -->
+                                        <div x-show="getHoliday(date)" class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[150px] bg-slate-800 text-white text-[10px] py-1.5 px-2.5 rounded-lg text-center z-20 shadow-xl border border-slate-700" style="display: none;">
+                                            <div class="font-bold truncate" x-text="getHoliday(date) ? getHoliday(date).desc : ''"></div>
+                                            <!-- Arrow -->
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
                     </div>
                     
                     <!-- Legend -->
@@ -524,7 +537,7 @@
 
             @if($isTodayHoliday)
                 <!-- Card Hari Ini Libur -->
-                <div class="lg:col-span-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl shadow-sm border border-amber-200 p-8 h-[380px] flex flex-col items-center justify-center text-center">
+                <div class="lg:col-span-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl shadow-sm border border-amber-200 p-8 h-[440px] flex flex-col items-center justify-center text-center">
                     <div class="bg-amber-100 p-4 rounded-full text-amber-600 mb-4 animate-pulse">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
@@ -534,19 +547,51 @@
                 </div>
             @else
                 <!-- Donut Chart -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[380px] flex flex-col">
-                    <div class="flex items-center justify-between mb-3">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[440px] flex flex-col">
+                    <div class="flex items-center justify-between mb-5">
                         <div>
                             <h3 class="text-base font-bold text-slate-800">Komposisi Presensi</h3>
                             <p class="text-xs text-slate-400">Rekap hari ini</p>
                         </div>
-                        <span class="text-xs font-semibold bg-brand-accent-50 text-brand-accent-700 px-3 py-1.5 rounded-full border border-brand-accent-50">● Live</span>
+                        <span class="text-xs font-semibold bg-brand-accent-50 text-brand-accent-700 px-3 py-1.5 rounded-full border border-brand-accent-50 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span> Live
+                        </span>
                     </div>
-                    <div class="relative flex-1"><canvas id="donutChart"></canvas></div>
+                    
+                    <div class="flex-1 flex flex-col items-center justify-center gap-6">
+                        <!-- Chart Container with Centered Total -->
+                        <div class="relative w-44 h-44 sm:w-48 sm:h-48 flex-shrink-0">
+                            <canvas id="donutChart" class="relative z-10"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span class="text-3xl font-black text-slate-800 leading-none" x-text="Object.values(donutData).reduce((a, b) => a + b, 0)"></span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Siswa</span>
+                            </div>
+                        </div>
+
+                        <!-- Custom Aesthetic Legend -->
+                        <div class="flex-1 w-full grid grid-cols-2 gap-x-2 gap-y-2 content-center">
+                            <template x-for="item in [
+                                { label: 'Hadir', key: 'hadir', color: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+                                { label: 'Telat', key: 'telat', color: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-700' },
+                                { label: 'Sakit', key: 'sakit', color: 'bg-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' },
+                                { label: 'Izin', key: 'izin', color: 'bg-violet-500', bg: 'bg-violet-50', text: 'text-violet-700' },
+                                { label: 'Alpa', key: 'alpa', color: 'bg-rose-500', bg: 'bg-rose-50', text: 'text-rose-700' },
+                                { label: 'Belum Absen', key: 'belum_absen', color: 'bg-slate-300', bg: 'bg-slate-100', text: 'text-slate-600' }
+                            ]">
+                                <div class="flex items-center justify-between p-2 rounded-xl transition-all hover:bg-slate-50 border border-transparent hover:border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full shadow-sm" :class="item.color"></div>
+                                        <span class="text-[11px] font-semibold text-slate-600" x-text="item.label"></span>
+                                    </div>
+                                    <div class="px-2 py-0.5 rounded-md text-[11px] font-bold" :class="item.bg + ' ' + item.text" x-text="donutData[item.key]"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Line Chart -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[380px] flex flex-col">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[440px] flex flex-col">
                     <div class="flex items-center justify-between mb-3">
                         <div>
                             <h3 class="text-base font-bold text-slate-800">Tren Kehadiran</h3>
@@ -558,7 +603,7 @@
                 </div>
 
                 <!-- 🏆 WIDGET WALL OF FAME -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[380px] flex flex-col">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[440px] flex flex-col">
                     <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
                         <div class="w-10 h-10 flex items-center justify-center bg-brand-warning-50 rounded-2xl text-brand-warning-dark flex-shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
@@ -568,12 +613,12 @@
                             <p class="text-xs text-slate-400">Peringkat kehadiran terbaik bulan ini</p>
                         </div>
                     </div>
-                    <div class="flex-1 flex flex-col justify-center space-y-3">
+                    <div class="flex-1 flex flex-col space-y-3 overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;">
                         @foreach($wallOfFame as $index => $kelas)
                         @php
-                            $medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-                            $barColors = ['bg-amber-400','bg-slate-400','bg-orange-400','bg-brand-primary-light','bg-sky-300'];
-                            $textColors = ['text-amber-600','text-slate-600','text-orange-600','text-brand-primary','text-sky-500'];
+                            $medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+                            $barColors = ['bg-amber-400','bg-slate-400','bg-orange-400','bg-brand-primary-light','bg-sky-300','bg-indigo-300','bg-purple-300','bg-fuchsia-300','bg-pink-300','bg-rose-300'];
+                            $textColors = ['text-amber-600','text-slate-600','text-orange-600','text-brand-primary','text-sky-500','text-indigo-500','text-purple-500','text-fuchsia-500','text-pink-500','text-rose-500'];
                         @endphp
                         <div class="group">
                             <div class="flex items-center justify-between mb-1.5">
@@ -652,7 +697,6 @@
                                     <div class="flex justify-between items-center mb-4">
                                         <div class="flex items-center gap-2">
                                             <div class="w-8 h-8 bg-brand-primary text-white rounded-xl flex items-center justify-center font-black text-xs" x-text="kelas.name.replace('Kelas ','').replace('kelas ','')"></div>
-                                            <h4 class="text-sm font-bold text-slate-800" x-text="kelas.name"></h4>
                                         </div>
                                         <span class="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg" x-text="kelas.total_students + ' Siswa'"></span>
                                     </div>
