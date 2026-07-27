@@ -17,6 +17,10 @@
                 $loginTitle = 'Portal Presensi';
                 $loginSubtitle = 'Pusat rekapitulasi kehadiran, izin, sakit, dan cetak laporan harian.';
                 $formTitle = 'Login Presensi';
+            } elseif ($panelId === 'admin-perpustakaan') {
+                $loginTitle = 'Portal Perpustakaan';
+                $loginSubtitle = 'Manajemen koleksi buku, anggota, dan sirkulasi peminjaman.';
+                $formTitle = 'Login Perpustakaan';
             } else {
                 $loginTitle = 'Portal Super Admin';
                 $loginSubtitle = 'Pusat kendali sistem presensi. Kelola konfigurasi sistem dan hak akses.';
