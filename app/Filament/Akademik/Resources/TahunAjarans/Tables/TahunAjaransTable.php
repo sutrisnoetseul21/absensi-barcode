@@ -57,22 +57,9 @@ class TahunAjaransTable
                     ->modalDescription(function (\App\Models\TahunAjaran $record) {
                         $hasData = $record->kelasAjarans()->exists() || $record->enrollments()->exists() || $record->absensis()->exists();
                         if ($hasData || $record->status === 'aktif') {
-                            return new \Illuminate\Support\HtmlString('<span style="color: #ef4444; font-weight: bold;">⚠️ Peringatan: Tahun Ajaran ini sudah terisi data akademik (Kelas/Siswa/Presensi) atau berstatus Aktif. Mengubah data ini dapat merusak riwayat akademik!</span>');
+                            return new \Illuminate\Support\HtmlString('<span style="color: #ef4444; font-weight: bold;">⚠️ Peringatan: Tahun Ajaran ini sudah terisi data. Anda hanya dapat merubah Status (Aktif/Arsip). Tahun mulai/selesai tidak dapat diubah lagi!</span>');
                         }
                         return null;
-                    })
-                    ->before(function (\App\Models\TahunAjaran $record, \Filament\Actions\EditAction $action) {
-                        $hasData = $record->kelasAjarans()->exists() || $record->enrollments()->exists() || $record->absensis()->exists();
-                        if ($hasData) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Perubahan Ditolak')
-                                ->body('Tahun Ajaran tidak dapat diubah karena sudah memiliki data kelas, siswa, atau presensi terkait.')
-                                ->danger()
-                                ->persistent()
-                                ->send();
-
-                            $action->cancel();
-                        }
                     }),
 
                 DeleteAction::make()

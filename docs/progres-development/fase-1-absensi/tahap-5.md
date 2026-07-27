@@ -17,6 +17,8 @@
 - `[x]` Jam Tutup Absensi dinamis sesuai `checkin_time + 60 menit`. Pembedaan "Belum Absen" vs "Alpa (Dinamis)".
 - `[x]` Cache ringan agregasi (`Cache::remember`, TTL 5 menit) tanpa parameter kelas/angkatan.
 - `[x]` **Perbaikan Navigasi Header Global**: Link ke Portal Siswa (`/siswa`), Guru (`/wali-kelas`), dan Admin (`/admin`) pada seluruh halaman ERP (Presensi & Perpustakaan) diperbaiki untuk mencegah bug redirect dari middleware *guest*.
+- `[x]` **Penyempurnaan Tema & UI**: Sinkronisasi header Dasbor Siswa & Wali Kelas dengan tema kustom (`brand-primary`) dan penambahan *soft gradient* pada widget ringkasan statistik.
+- `[x]` **Penyempurnaan Logika Tahun Ajaran**: Proteksi ketat pada `start_year` & `end_year` jika data terisi (disabled form), namun `status` (Aktif/Arsip) tetap dapat diedit dengan aman. Otomatisasi `end_year` (start_year + 1) dengan notifikasi *unique* berbahasa Indonesia.
 
 **Verifikasi Tahap 5 Selesai:**
 - `[x]` Halaman `/` dapat diakses tanpa login, navigasi manual dan highlight kelas berfungsi (mobile-friendly).

@@ -45,7 +45,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
         <!-- SEKSI 2: Header Profil & Log Out -->
-        <div class="relative bg-emerald-700 rounded-3xl overflow-hidden shadow-xl border border-emerald-600 mb-8">
+        <div class="relative bg-brand-primary rounded-3xl overflow-hidden shadow-xl border border-brand-primary mb-8">
             <!-- Background Blobs -->
             <div class="absolute inset-0 overflow-hidden pointer-events-none">
                 <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-teal-500 mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
@@ -135,37 +135,37 @@
 
         <!-- SEKSI 3: Ringkasan Statistik -->
         <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl shadow-sm border border-emerald-200 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
                 <p class="text-[10px] font-bold text-slate-500 uppercase text-center leading-tight">Hadir Tepat Waktu</p>
                 <p class="text-3xl font-extrabold text-slate-800 mt-1">{{ $monthlyStats['H'] ?? 0 }}</p>
             </div>
             
-            <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl shadow-sm border border-amber-200 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center text-yellow-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
                 <p class="text-xs font-semibold text-slate-500 uppercase">Telat</p>
                 <p class="text-3xl font-extrabold text-slate-800 mt-1">{{ $monthlyStats['T'] ?? 0 }}</p>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-sm border border-blue-200 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
                 <p class="text-xs font-semibold text-slate-500 uppercase">Izin</p>
                 <p class="text-3xl font-extrabold text-slate-800 mt-1">{{ $monthlyStats['I'] ?? 0 }}</p>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-purple-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-sm border border-purple-200 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg></div>
                 <p class="text-xs font-semibold text-slate-500 uppercase">Sakit</p>
                 <p class="text-3xl font-extrabold text-slate-800 mt-1">{{ $monthlyStats['S'] ?? 0 }}</p>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
+            <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl shadow-sm border border-red-200 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></div>
                 <p class="text-xs font-semibold text-slate-500 uppercase">Alpa</p>
                 <p class="text-3xl font-extrabold text-slate-800 mt-1">{{ $monthlyStats['A'] ?? 0 }}</p>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-orange-100 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
+            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl shadow-sm border border-orange-200 p-5 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300 hover:shadow-md group">
                 <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-500 mb-2 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
                 <p class="text-xs font-semibold text-slate-500 uppercase">Total Telat</p>
                 <div class="flex items-baseline mt-1">

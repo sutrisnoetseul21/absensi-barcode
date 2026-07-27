@@ -21,18 +21,36 @@ class TahunAjaranForm
                     ->maxValue(2100)
                     ->required()
                     ->unique(table: 'academic_years', column: 'start_year', ignoreRecord: true)
+                    ->disabled(function (?\App\Models\TahunAjaran $record) {
+                        if (!$record) return false;
+                        return $record->kelasAjarans()->exists() || $record->enrollments()->exists() || $record->absensis()->exists() || $record->status === 'aktif';
+                    })
+                    ->validationMessages([
+                        'unique' => 'Tahun Mulai ini sudah terdaftar sebelumnya.',
+                    ])
+                    ->dehydrated()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (?string $state, $set) {
+                        if ($state && is_numeric($state)) {
+                            $set('end_year', (int) $state + 1);
+                        } else {
+                            $set('end_year', null);
+                        }
+                    })
                     ->helperText('Tahun awal semester ganjil, misal 2024 untuk TP 2024/2025.'),
 
                 TextInput::make('end_year')
                     ->label('Tahun Selesai')
-                    ->placeholder('Contoh: 2025')
+                    ->placeholder('Otomatis terisi')
                     ->integer()
-                    ->minValue(2000)
-                    ->maxValue(2100)
                     ->required()
                     ->unique(table: 'academic_years', column: 'end_year', ignoreRecord: true)
-                    ->gt('start_year')
-                    ->helperText('Harus lebih besar dari Tahun Mulai.'),
+                    ->validationMessages([
+                        'unique' => 'Tahun Selesai ini sudah terdaftar sebelumnya.',
+                    ])
+                    ->disabled()
+                    ->dehydrated()
+                    ->helperText('Terisi otomatis (Tahun Mulai + 1).'),
 
                 Select::make('status')
                     ->label('Status')
