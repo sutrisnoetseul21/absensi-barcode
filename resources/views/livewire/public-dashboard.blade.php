@@ -173,7 +173,7 @@
                             datasets: [{
                                 label: '% Kehadiran Bulanan',
                                 data: data.bar[grade].data,
-                                backgroundColor: '#4f46e5',
+                                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--color-brand-primary').trim() || '#4f46e5',
                                 borderRadius: 4,
                             }]
                         },
@@ -219,14 +219,14 @@
     <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
         x-data="{ scrolled: false, mobileMenuOpen: false }"
         @scroll.window="scrolled = window.scrollY > 30"
-        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-indigo-100/50 border-b border-white/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-transparent')">
+        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-brand-primary-100/50 border-b border-white/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-transparent')">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <!-- Header Kiri: Logo & Nama Sekolah -->
                 <div class="flex items-center gap-3 group">
                     @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
                         <div class="relative">
-                            <div class="absolute inset-0 bg-indigo-400/30 rounded-xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                            <div class="absolute inset-0 bg-brand-primary-light/30 rounded-xl blur-md group-hover:blur-lg transition-all duration-300"></div>
                             <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo"
                                 class="relative h-10 sm:h-12 w-auto object-contain drop-shadow-md">
                         </div>
@@ -236,7 +236,7 @@
                             :class="scrolled ? 'text-slate-800' : 'text-white drop-shadow-md'">
                             {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'SMPN 1 Majenang' }}
                         </h1>
-                        <p class="text-xs font-medium transition-colors duration-300" :class="scrolled ? 'text-indigo-600' : 'text-indigo-200'">
+                        <p class="text-xs font-medium transition-colors duration-300" :class="scrolled ? 'text-brand-primary' : 'text-brand-primary-100'">
                             Sistem Presensi Digital
                         </p>
                     </div>
@@ -246,7 +246,7 @@
                 <nav class="hidden lg:flex items-center space-x-1">
                     <a href="{{ route('siswa.login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
-                        :class="scrolled ? 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
+                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             Portal Siswa
@@ -254,7 +254,7 @@
                     </a>
                     <a href="{{ route('wali-kelas.login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
-                        :class="scrolled ? 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
+                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             Wali Kelas
@@ -262,14 +262,14 @@
                     </a>
                     <a href="{{ route('login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
-                        :class="scrolled ? 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
+                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             Admin
                         </span>
                     </a>
                     <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}"
-                        class="ml-4 flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-indigo-500/50">
+                        class="ml-4 flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary-light hover:to-brand-secondary-light text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-primary/30 transition-all duration-300 transform hover:scale-105 hover:shadow-brand-primary/50">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                         Presensi Digital
                         <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse ml-1"></span>
@@ -298,18 +298,18 @@
              style="display: none;">
             <div class="px-4 pt-2 pb-6 space-y-2">
                 <a href="{{ route('siswa.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Portal Siswa
                 </a>
                 <a href="{{ route('wali-kelas.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Wali Kelas
                 </a>
                 <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
+                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Admin
                 </a>
-                <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-3 rounded-xl font-bold shadow-md shadow-indigo-200">
+                <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-4 py-3 rounded-xl font-bold shadow-md shadow-brand-primary-100">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                     Presensi Digital
                 </a>
@@ -336,20 +336,20 @@
         <div wire:poll.300000ms="$refresh" class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-10">
 
             <!-- Total Siswa Aktif -->
-            <div class="relative bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-5 shadow-lg shadow-indigo-200/50 overflow-hidden group cursor-default">
+            <div class="relative bg-gradient-to-br from-brand-primary to-brand-primary-dark rounded-2xl p-5 shadow-lg shadow-brand-primary-100/50 overflow-hidden group cursor-default">
                 <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                 <div class="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full"></div>
                 <div class="absolute -right-1 -top-1 w-8 h-8 bg-white/10 rounded-full"></div>
-                <p class="text-xs font-semibold text-indigo-200 uppercase tracking-widest mb-2">Total Siswa</p>
+                <p class="text-xs font-semibold text-brand-primary-100 uppercase tracking-widest mb-2">Total Siswa</p>
                 <div class="flex items-baseline gap-1">
                     <span class="text-3xl font-black text-white">{{ $realStats['total_siswa'] }}</span>
-                    <span class="text-sm font-medium text-indigo-300">Siswa</span>
+                    <span class="text-sm font-medium text-brand-primary-light">Siswa</span>
                 </div>
-                <div class="mt-2 flex items-center gap-1 text-indigo-200 text-xs"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg> Aktif Tahun Ini</div>
+                <div class="mt-2 flex items-center gap-1 text-brand-primary-100 text-xs"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg> Aktif Tahun Ini</div>
             </div>
 
             <!-- Hadir & Telat -->
-            <div class="relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-lg shadow-emerald-200/50 overflow-hidden group cursor-default">
+            <div class="relative bg-gradient-to-br from-brand-accent to-brand-accent-dark rounded-2xl p-5 shadow-lg shadow-brand-accent-50/50 overflow-hidden group cursor-default">
                 <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                 <div class="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full"></div>
                 <div class="absolute -right-1 -top-1 w-8 h-8 bg-white/10 rounded-full"></div>
@@ -364,7 +364,7 @@
             </div>
 
             <!-- Belum Absen -->
-            <div class="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 shadow-lg shadow-amber-200/50 overflow-hidden group cursor-default">
+            <div class="relative bg-gradient-to-br from-brand-warning to-brand-warning-dark rounded-2xl p-5 shadow-lg shadow-brand-warning-50/50 overflow-hidden group cursor-default">
                 <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                 <div class="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full"></div>
                 <div class="absolute -right-1 -top-1 w-8 h-8 bg-white/10 rounded-full"></div>
@@ -377,7 +377,7 @@
             </div>
 
             <!-- Sakit -->
-            <div class="relative bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-5 shadow-lg shadow-sky-200/50 overflow-hidden group cursor-default">
+            <div class="relative bg-gradient-to-br from-brand-info to-brand-info-dark rounded-2xl p-5 shadow-lg shadow-brand-info-200/50 overflow-hidden group cursor-default">
                 <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                 <div class="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full"></div>
                 <div class="absolute -right-1 -top-1 w-8 h-8 bg-white/10 rounded-full"></div>
@@ -390,7 +390,7 @@
             </div>
 
             <!-- Izin -->
-            <div class="relative bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 shadow-lg shadow-violet-200/50 overflow-hidden group cursor-default">
+            <div class="relative bg-gradient-to-br from-brand-secondary to-brand-secondary-dark rounded-2xl p-5 shadow-lg shadow-brand-secondary-50/50 overflow-hidden group cursor-default">
                 <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                 <div class="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full"></div>
                 <div class="absolute -right-1 -top-1 w-8 h-8 bg-white/10 rounded-full"></div>
@@ -403,7 +403,7 @@
             </div>
 
             <!-- Alpa (Tanpa Keterangan) -->
-            <div class="relative bg-gradient-to-br from-rose-500 to-red-700 rounded-2xl p-5 shadow-lg shadow-rose-200/50 overflow-hidden group cursor-default">
+            <div class="relative bg-gradient-to-br from-brand-danger to-brand-danger-dark rounded-2xl p-5 shadow-lg shadow-brand-danger-50/50 overflow-hidden group cursor-default">
                 <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                 <div class="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full"></div>
                 <div class="absolute -right-1 -top-1 w-8 h-8 bg-white/10 rounded-full"></div>
@@ -497,7 +497,7 @@
                                     :class="{
                                         'bg-rose-50 text-rose-600 border-rose-200': getHoliday(date) && getHoliday(date).type === 'nasional',
                                         'bg-amber-50 text-amber-600 border-amber-200': getHoliday(date) && getHoliday(date).type !== 'nasional',
-                                        'bg-indigo-600 text-white shadow-md shadow-indigo-200 border-indigo-600': isToday(date) && !getHoliday(date),
+                                        'bg-brand-primary text-white shadow-md shadow-brand-primary-100 border-brand-primary': isToday(date) && !getHoliday(date),
                                         'text-slate-700 hover:bg-slate-50 border-transparent': !isToday(date) && !getHoliday(date)
                                     }">
                                     <span x-text="date"></span>
@@ -517,7 +517,7 @@
                     <div class="mt-auto pt-3 border-t border-slate-100 flex items-center justify-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-rose-400"></div> Nasional</div>
                         <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-amber-400"></div> Sekolah</div>
-                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-indigo-600"></div> Hari Ini</div>
+                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-brand-primary"></div> Hari Ini</div>
                     </div>
                 </div>
             </div>
@@ -540,7 +540,7 @@
                             <h3 class="text-base font-bold text-slate-800">Komposisi Presensi</h3>
                             <p class="text-xs text-slate-400">Rekap hari ini</p>
                         </div>
-                        <span class="text-xs font-semibold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100">● Live</span>
+                        <span class="text-xs font-semibold bg-brand-accent-50 text-brand-accent-700 px-3 py-1.5 rounded-full border border-brand-accent-50">● Live</span>
                     </div>
                     <div class="relative flex-1"><canvas id="donutChart"></canvas></div>
                 </div>
@@ -552,7 +552,7 @@
                             <h3 class="text-base font-bold text-slate-800">Tren Kehadiran</h3>
                             <p class="text-xs text-slate-400">30 hari terakhir</p>
                         </div>
-                        <span class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full border border-indigo-100">30 Hari</span>
+                        <span class="text-xs font-semibold bg-brand-primary-50 text-brand-primary-dark px-3 py-1.5 rounded-full border border-brand-primary-100">30 Hari</span>
                     </div>
                     <div class="relative flex-1"><canvas id="lineChart"></canvas></div>
                 </div>
@@ -560,7 +560,7 @@
                 <!-- 🏆 WIDGET WALL OF FAME -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 h-[380px] flex flex-col">
                     <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
-                        <div class="w-10 h-10 flex items-center justify-center bg-amber-100 rounded-2xl text-amber-600 flex-shrink-0">
+                        <div class="w-10 h-10 flex items-center justify-center bg-brand-warning-50 rounded-2xl text-brand-warning-dark flex-shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                         </div>
                         <div>
@@ -572,8 +572,8 @@
                         @foreach($wallOfFame as $index => $kelas)
                         @php
                             $medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-                            $barColors = ['bg-amber-400','bg-slate-400','bg-orange-400','bg-indigo-300','bg-sky-300'];
-                            $textColors = ['text-amber-600','text-slate-600','text-orange-600','text-indigo-500','text-sky-500'];
+                            $barColors = ['bg-amber-400','bg-slate-400','bg-orange-400','bg-brand-primary-light','bg-sky-300'];
+                            $textColors = ['text-amber-600','text-slate-600','text-orange-600','text-brand-primary','text-sky-500'];
                         @endphp
                         <div class="group">
                             <div class="flex items-center justify-between mb-1.5">
@@ -603,12 +603,12 @@
         <!-- SEKSI 6: Laporan Per Angkatan (Slider) -->
         <div wire:ignore class="relative bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-10 overflow-hidden">
             <!-- Decorative background accent -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-indigo-50 to-transparent rounded-3xl pointer-events-none"></div>
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-brand-primary-50 to-transparent rounded-3xl pointer-events-none"></div>
 
             <!-- Section Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-8 relative z-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <div class="w-10 h-10 bg-brand-primary-50 text-brand-primary rounded-2xl flex items-center justify-center flex-shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </div>
                     <div>
@@ -621,7 +621,7 @@
                     @foreach([7, 8, 9] as $index => $grade)
                         <button @click="activeSlide = {{ $index }}; selectedAngkatan = '{{ $grade }}'"
                             class="flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap"
-                            :class="activeSlide === {{ $index }} ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'">
+                            :class="activeSlide === {{ $index }} ? 'bg-white text-brand-primary-dark shadow-sm' : 'text-slate-500 hover:text-slate-700'">
                             Kelas {{ $grade }}
                         </button>
                     @endforeach
@@ -647,11 +647,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             <template x-for="kelas in allClasses.filter(c => c.grade_level == {{ $grade }})" :key="kelas.id">
                                 <div :id="'class-card-' + kelas.id"
-                                    class="group bg-slate-50 hover:bg-white border border-slate-100 hover:border-indigo-200 rounded-2xl p-5 hover:shadow-lg hover:shadow-indigo-50/80 transition-all duration-300">
+                                    class="group bg-slate-50 hover:bg-white border border-slate-100 hover:border-brand-primary-100 rounded-2xl p-5 hover:shadow-lg hover:shadow-brand-primary-50/80 transition-all duration-300">
                                     <!-- Card Header -->
                                     <div class="flex justify-between items-center mb-4">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black text-xs" x-text="kelas.name.replace('Kelas ','').replace('kelas ','')"></div>
+                                            <div class="w-8 h-8 bg-brand-primary text-white rounded-xl flex items-center justify-center font-black text-xs" x-text="kelas.name.replace('Kelas ','').replace('kelas ','')"></div>
                                             <h4 class="text-sm font-bold text-slate-800" x-text="kelas.name"></h4>
                                         </div>
                                         <span class="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg" x-text="kelas.total_students + ' Siswa'"></span>
@@ -673,10 +673,10 @@
                                         <div>
                                             <div class="flex justify-between text-xs mb-1.5">
                                                 <span class="text-slate-500 font-medium">Rata-rata Bulan Ini</span>
-                                                <span class="font-bold text-indigo-600" x-text="kelas.month_percentage + '%'"></span>
+                                                <span class="font-bold text-brand-primary" x-text="kelas.month_percentage + '%'"></span>
                                             </div>
                                             <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                                                <div class="bg-gradient-to-r from-indigo-400 to-violet-600 h-full rounded-full transition-all duration-1000"
+                                                <div class="bg-gradient-to-r from-brand-primary-light to-brand-secondary h-full rounded-full transition-all duration-1000"
                                                     :style="'width: ' + kelas.month_percentage + '%'"></div>
                                             </div>
                                             <p class="text-xs text-slate-400 mt-1" x-text="kelas.month_present_avg + ' / ' + kelas.total_students + ' siswa'"></p>
@@ -694,7 +694,7 @@
                 @foreach([7, 8, 9] as $index => $grade)
                     <button @click="activeSlide = {{ $index }}; selectedAngkatan = '{{ $grade }}'"
                             class="h-2 rounded-full transition-all duration-300"
-                            :class="activeSlide === {{ $index }} ? 'bg-indigo-600 w-8' : 'bg-slate-300 hover:bg-slate-400 w-2'">
+                            :class="activeSlide === {{ $index }} ? 'bg-brand-primary w-8' : 'bg-slate-300 hover:bg-slate-400 w-2'">
                     </button>
                 @endforeach
             </div>

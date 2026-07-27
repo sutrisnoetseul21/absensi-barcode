@@ -1,4 +1,53 @@
 @import "tailwindcss";
+
+@theme {
+  /* Brand Primary (Indigo) */
+  --color-brand-primary: #4f46e5;      /* indigo-600 */
+  --color-brand-primary-light: #818cf8; /* indigo-400 */
+  --color-brand-primary-dark: #3730a3;  /* indigo-800 */
+  --color-brand-primary-50: #eef2ff;    /* indigo-50 */
+  --color-brand-primary-100: #e0e7ff;   /* indigo-100 */
+  --color-brand-primary-950: #1e1b4b;   /* indigo-950 */
+  
+  /* Brand Secondary (Violet) */
+  --color-brand-secondary: #8b5cf6;     /* violet-500 */
+  --color-brand-secondary-light: #a78bfa;/* violet-400 */
+  --color-brand-secondary-dark: #7c3aed; /* violet-600 */
+  --color-brand-secondary-50: #f5f3ff;   /* violet-50 */
+  --color-brand-secondary-950: #2e1065;  /* violet-950 */
+
+  /* Brand Accent (Emerald) */
+  --color-brand-accent: #10b981;        /* emerald-500 */
+  --color-brand-accent-light: #34d399;  /* emerald-400 */
+  --color-brand-accent-dark: #059669;   /* emerald-600 */
+  --color-brand-accent-50: #ecfdf5;     /* emerald-50 */
+  --color-brand-accent-700: #047857;    /* emerald-700 */
+  --color-brand-accent-950: #022c22;    /* emerald-950 */
+
+  /* Brand Warning (Amber) */
+  --color-brand-warning: #f59e0b;       /* amber-500 */
+  --color-brand-warning-light: #fbbf24; /* amber-400 */
+  --color-brand-warning-dark: #d97706;  /* amber-600 */
+  --color-brand-warning-50: #fffbeb;    /* amber-50 */
+  --color-brand-warning-100: #fef3c7;   /* amber-100 */
+
+  /* Brand Danger (Rose) */
+  --color-brand-danger: #f43f5e;        /* rose-500 */
+  --color-brand-danger-light: #fb7185;  /* rose-400 */
+  --color-brand-danger-dark: #e11d48;   /* rose-600 */
+  --color-brand-danger-50: #fff1f2;     /* rose-50 */
+  --color-brand-danger-100: #ffe4e6;    /* rose-100 */
+  --color-brand-danger-700: #be123c;    /* rose-700 */
+  
+  /* Brand Info (Sky) */
+  --color-brand-info: #0ea5e9;          /* sky-500 */
+  --color-brand-info-light: #38bdf8;    /* sky-400 */
+  --color-brand-info-dark: #0284c7;     /* sky-600 */
+  --color-brand-info-50: #f0f9ff;       /* sky-50 */
+  --color-brand-info-200: #bae6fd;      /* sky-200 */
+
+}
+
 @keyframes blob {
   0% { transform: translate(0px, 0px) scale(1); }
   33% { transform: translate(30px, -50px) scale(1.1); }

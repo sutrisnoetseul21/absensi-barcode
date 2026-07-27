@@ -29,6 +29,12 @@ class PengaturanSekolah extends Model
         'enable_promotion_features',
         'barcode_scan_mode',
         'lama_pinjam_buku_hari',
+        'theme_primary',
+        'theme_secondary',
+        'theme_accent',
+        'theme_warning',
+        'theme_danger',
+        'theme_info',
     ];
 
     protected $casts = [

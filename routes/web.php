@@ -10,6 +10,7 @@ use App\Livewire\ForceChangePassword;
 
 use App\Livewire\PublicDashboard;
 use App\Livewire\PublicDashboardV1;
+use App\Livewire\Public\KatalogPerpustakaan;
 
 // ERP Portal Route
 Route::get('/', fn() => view('erp-portal'))->name('erp.portal');
@@ -19,8 +20,10 @@ Route::get('/presensi', PublicDashboard::class)->name('public.dashboard');
 Route::get('/presensi/dashboardv1', PublicDashboardV1::class)->name('public.dashboard.v1');
 Route::get('/presensi/display', PublicDashboard::class)->name('public.display');
 
-// Dashboard Publik Perpustakaan (Placeholder)
-Route::get('/perpustakaan', fn() => view('perpustakaan-placeholder'))->name('perpustakaan.dashboard');
+// Dashboard Publik Perpustakaan
+Route::get('/perpustakaan', KatalogPerpustakaan::class)
+    ->middleware('throttle:60,1')
+    ->name('perpustakaan.dashboard');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
 Route::get('/login', fn() => view('auth.portal-selection'))->name('login');
 
