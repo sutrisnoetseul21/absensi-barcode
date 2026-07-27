@@ -14,6 +14,9 @@ class GuruImport implements ToCollection
         // ─── Tweak Performa: Hindari Timeout Hashing Bcrypt ───────────────────
         \Illuminate\Support\Facades\Config::set('hashing.bcrypt.rounds', 4);
         set_time_limit(300); // 5 menit
+
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'wali_kelas', 'guard_name' => 'web']);
+
         
         foreach ($rows as $index => $row) {
             if ($index === 0) {
@@ -67,23 +70,27 @@ class GuruImport implements ToCollection
                     $user->update($userData);
                 } else {
                     $email = $email ?? UsernameHelper::generateForGuru($name, $nip, $excludeId) . '@' . config('school.email_domain', 'sekolah.sch.id');
-                    $user = \App\Models\User::create([
-                        'name' => $name,
-                        'email' => $email,
-                        'password' => $password,
-                        'must_change_password' => $passwordVal === '',
-                        'teacher_id' => $existingGuru->id,
-                    ]);
+                    $user = \App\Models\User::firstOrCreate(
+                        ['email' => $email],
+                        [
+                            'name' => $name,
+                            'password' => $password,
+                            'must_change_password' => $passwordVal === '',
+                            'teacher_id' => $existingGuru->id,
+                        ]
+                    );
                     $user->assignRole('wali_kelas');
                     $existingGuru->update(['user_id' => $user->id]);
                 }
             } else {
-                $user = \App\Models\User::create([
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => $password,
-                    'must_change_password' => $passwordVal === '',
-                ]);
+                $user = \App\Models\User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => $name,
+                        'password' => $password,
+                        'must_change_password' => $passwordVal === '',
+                    ]
+                );
                 $user->assignRole('wali_kelas');
 
                 $dataToSave['user_id'] = $user->id;
