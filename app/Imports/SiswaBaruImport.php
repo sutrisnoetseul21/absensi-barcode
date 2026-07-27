@@ -130,18 +130,25 @@ class SiswaBaruImport implements ToCollection
                 continue;
             }
 
-            // ─── Simpan siswa ke tabel students ───────────────────────────────
+            // ─── Simpan user & siswa ──────────────────────────────────────────
             $password = $passwordVal !== '' ? $passwordVal : $nisn;
 
-            $siswa = Siswa::create([
-                'nisn'                 => $nisn,
-                'nis'                  => $nis ?: null,
+            $user = \App\Models\User::create([
                 'name'                 => $name,
-                'birth_place'          => $birth_place ?: null,
-                'birth_date'           => $birth_date,
-                'address'              => $address ?: null,
+                'email'                => $nisn . '@' . config('school.email_domain'),
                 'password'             => $password,
                 'must_change_password' => false,
+            ]);
+            $user->assignRole('siswa');
+
+            $siswa = Siswa::create([
+                'user_id'     => $user->id,
+                'nisn'        => $nisn,
+                'nis'         => $nis ?: null,
+                'name'        => $name,
+                'birth_place' => $birth_place ?: null,
+                'birth_date'  => $birth_date,
+                'address'     => $address ?: null,
             ]);
 
             // Tandai NISN sudah diproses agar baris berikutnya tidak duplikat
