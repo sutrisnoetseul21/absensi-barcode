@@ -6,7 +6,10 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Presensi;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.portal')]
 class SiswaDashboard extends Component
 {
     public $student;

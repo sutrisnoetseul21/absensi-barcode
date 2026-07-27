@@ -27,9 +27,9 @@
             <!-- Right: Links -->
             <div class="flex flex-col items-start sm:items-end gap-3">
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('siswa.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
+                    <a href="{{ route('portal-siswa.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
                     <span class="text-slate-700">·</span>
-                    <a href="{{ route('wali-kelas.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Wali Kelas</a>
+                    <a href="{{ route('portal-guru.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Guru</a>
                     <span class="text-slate-700">·</span>
                     <a href="/admin" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
                     <span class="text-slate-700">·</span>

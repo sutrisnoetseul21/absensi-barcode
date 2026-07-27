@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 flex flex-col font-jakarta"
+<div class="min-h-full bg-slate-50 flex flex-col font-jakarta"
     x-data="{
         selectedMonthYear: @entangle('selectedMonthYear').live,
         
@@ -96,16 +96,8 @@
                     </div>
                 </div>
                 
-                <!-- Tombol Logout & Pilih Bulan -->
+                <!-- Tombol Pilih Bulan -->
                 <div class="flex flex-col items-end gap-4 w-full md:w-auto">
-                    <form action="{{ route('siswa.logout') }}" method="POST" class="w-full md:w-auto">
-                        @csrf
-                        <button type="submit" class="w-full md:w-auto bg-red-500/90 hover:bg-red-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-red-500/30 flex items-center justify-center backdrop-blur-sm border border-red-400">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            Keluar
-                        </button>
-                    </form>
-                    
                     <div class="relative w-full md:w-56">
                         <select wire:model.live="selectedMonthYear" class="block w-full pl-4 pr-10 py-2.5 text-slate-800 border-white focus:outline-none focus:ring-2 focus:ring-white sm:text-sm rounded-xl shadow-lg bg-white/90 backdrop-blur-md cursor-pointer appearance-none font-bold">
                             @foreach($availableMonths as $val => $label)

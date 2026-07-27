@@ -85,35 +85,35 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// Wali Kelas Routes
-Route::prefix('wali-kelas')->group(function () {
-    Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('wali-kelas.login');
+// Wali Kelas Routes (Portal Guru)
+Route::prefix('portal-guru')->group(function () {
+    Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('portal-guru.login');
     
     Route::middleware('auth.wali')->group(function () {
-        Route::get('/', WaliKelasDashboard::class)->name('wali-kelas.dashboard');
-        Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('wali-kelas.student-detail');
+        Route::get('/', WaliKelasDashboard::class)->name('portal-guru.dashboard');
+        Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
             return redirect('/');
-        })->name('wali-kelas.logout');
+        })->name('portal-guru.logout');
     });
 });
 
-// Siswa Routes
-Route::prefix('siswa')->group(function () {
-    Route::get('/login', SiswaLogin::class)->middleware('guest')->name('siswa.login');
+// Siswa Routes (Portal Siswa)
+Route::prefix('portal-siswa')->group(function () {
+    Route::get('/login', SiswaLogin::class)->middleware('guest')->name('portal-siswa.login');
     
     Route::middleware('auth.siswa')->group(function () {
-        Route::get('/', SiswaDashboard::class)->name('siswa.dashboard');
+        Route::get('/', SiswaDashboard::class)->name('portal-siswa.dashboard');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
             return redirect('/');
-        })->name('siswa.logout');
+        })->name('portal-siswa.logout');
     });
 });

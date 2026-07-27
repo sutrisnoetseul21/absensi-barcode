@@ -37,7 +37,7 @@
                 </div>
             </div>
             <h1 class="text-4xl lg:text-5xl font-extrabold text-white mb-6 leading-tight">
-                Selamat Datang di <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-300 drop-shadow-sm">Portal Wali Kelas</span>
+                Selamat Datang di <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-300 drop-shadow-sm">Portal Guru</span>
             </h1>
             <p class="text-lg text-slate-300 leading-relaxed mb-8 max-w-md">
                 Akses manajemen data kelas Anda, pantau riwayat kehadiran harian siswa, dan kelola laporan secara efisien.
@@ -66,7 +66,7 @@
                  <div class="mx-auto w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-inner">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v7"></path></svg>
                 </div>
-                <h2 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md">Portal Wali Kelas</h2>
+                <h2 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md">Portal Guru</h2>
                 <p class="text-sm text-indigo-100 mt-1 drop-shadow-sm">Sistem Presensi Berbasis Barcode</p>
             </div>
 

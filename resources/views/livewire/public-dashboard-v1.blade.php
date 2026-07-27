@@ -244,7 +244,7 @@
 
                 <!-- Header Kanan: Menu Navigasi Desktop -->
                 <nav class="hidden lg:flex items-center space-x-1">
-                    <a href="{{ route('siswa.login') }}"
+                    <a href="{{ route('portal-siswa.login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -252,7 +252,7 @@
                             Portal Siswa
                         </span>
                     </a>
-                    <a href="{{ route('wali-kelas.login') }}"
+                    <a href="{{ route('portal-guru.login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -333,12 +333,12 @@
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-wrap gap-4 mb-14">
-                    <a href="{{ route('siswa.login') }}"
+                    <a href="{{ route('portal-siswa.login') }}"
                         class="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white px-7 py-3.5 rounded-xl font-bold shadow-xl shadow-indigo-900/50 transition-all duration-300 transform hover:scale-105">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                         Portal Siswa
                     </a>
-                    <a href="{{ route('wali-kelas.login') }}"
+                    <a href="{{ route('portal-guru.login') }}"
                         class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-white/30 text-white px-7 py-3.5 rounded-xl font-bold backdrop-blur-sm transition-all duration-300 transform hover:scale-105">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         Wali Kelas
@@ -814,9 +814,9 @@
                 <!-- Right: Links -->
                 <div class="flex flex-col items-start sm:items-end gap-3">
                     <div class="flex flex-wrap gap-3">
-                        <a href="{{ route('siswa.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
+                        <a href="{{ route('portal-siswa.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
                         <span class="text-slate-700">·</span>
-                        <a href="{{ route('wali-kelas.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Wali Kelas</a>
+                        <a href="{{ route('portal-guru.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Guru</a>
                         <span class="text-slate-700">·</span>
                         <a href="/admin" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
                         <span class="text-slate-700">·</span>

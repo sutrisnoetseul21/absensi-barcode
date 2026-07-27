@@ -71,6 +71,7 @@ class SiswaForm
                 TextInput::make('email')
                     ->label('Email Login')
                     ->email()
+                    ->autocomplete('off')
                     ->required(fn (string $operation): bool => $operation === 'edit')
                     ->maxLength(255)
                     ->helperText('Otomatis di-generate jika dikosongkan saat create.')
@@ -80,6 +81,7 @@ class SiswaForm
                     ->password()
                     ->revealable()
                     ->label('Password Login')
+                    ->autocomplete('new-password')
                     ->dehydrated(false)
                     ->maxLength(255)
                     ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Biarkan kosong jika tidak ingin mengubah password.' : 'Kosongkan untuk menggunakan NISN sebagai password default.'),

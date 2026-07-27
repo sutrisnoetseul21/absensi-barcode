@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 flex flex-col font-jakarta"
+<div class="min-h-full bg-slate-50 flex flex-col font-jakarta"
     x-data="{
         selectedMonthYear: @entangle('selectedMonthYear').live,
         

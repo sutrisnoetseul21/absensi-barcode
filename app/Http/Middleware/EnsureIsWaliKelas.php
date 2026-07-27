@@ -17,14 +17,14 @@ class EnsureIsWaliKelas
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('web')->check() || !Auth::user()->hasRole('wali_kelas') || Auth::user()->teacher === null) {
-            return redirect('/wali-kelas/login');
+            return redirect('/portal-guru/login');
         }
 
         $user = Auth::user();
 
         if ($user && $user->must_change_password) {
-            if (!$request->is('wali-kelas/ganti-password') && !$request->is('wali-kelas/logout')) {
-                return redirect('/wali-kelas/ganti-password');
+            if (!$request->is('portal-guru/ganti-password') && !$request->is('portal-guru/logout')) {
+                return redirect('/portal-guru/ganti-password');
             }
         }
 

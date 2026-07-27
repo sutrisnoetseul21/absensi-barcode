@@ -50,7 +50,7 @@
                             Home
                         </span>
                     </a>
-                    <a href="{{ route('siswa.login') }}"
+                    <a href="{{ route('portal-siswa.login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-teal-700 hover:bg-teal-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -58,7 +58,7 @@
                             Portal Siswa
                         </span>
                     </a>
-                    <a href="{{ route('wali-kelas.login') }}"
+                    <a href="{{ route('portal-guru.login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-teal-700 hover:bg-teal-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -107,11 +107,11 @@
                    :class="scrolled ? 'text-slate-700 hover:bg-teal-50 hover:text-teal-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Home
                 </a>
-                <a href="{{ route('siswa.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ route('portal-siswa.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-teal-50 hover:text-teal-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Portal Siswa
                 </a>
-                <a href="{{ route('wali-kelas.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ route('portal-guru.login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-teal-50 hover:text-teal-600' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Portal Guru
                 </a>

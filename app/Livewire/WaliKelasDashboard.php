@@ -14,7 +14,9 @@ use App\Exports\PresensiMatrixExport;
 use App\Exports\LaporanPresensiRangeExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.portal')]
 class WaliKelasDashboard extends Component
 {
     public $classes = [];

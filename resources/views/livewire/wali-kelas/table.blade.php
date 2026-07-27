@@ -26,7 +26,7 @@
                     <tr class="{{ $rowBg }} transition-colors">
                         <td class="py-3 px-6 sticky left-0 z-10 shadow-[1px_0_0_0_#f1f5f9] {{ $stickyBg }}">
                             <div class="flex flex-col">
-                                <a href="{{ route('wali-kelas.student-detail', ['id' => $student->id]) }}" class="font-bold text-indigo-700 hover:text-indigo-900 hover:underline transition-colors whitespace-nowrap cursor-pointer" title="Lihat Detail Siswa">
+                                <a href="{{ route('portal-guru.student-detail', ['id' => $student->id]) }}" class="font-bold text-indigo-700 hover:text-indigo-900 hover:underline transition-colors whitespace-nowrap cursor-pointer" title="Lihat Detail Siswa">
                                     {{ $student->name }}
                                 </a>
                                 <div class="flex gap-1 mt-1">

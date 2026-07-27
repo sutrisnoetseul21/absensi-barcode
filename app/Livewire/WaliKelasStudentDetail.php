@@ -8,7 +8,9 @@ use Carbon\Carbon;
 use App\Models\Presensi;
 use App\Models\Siswa;
 use App\Models\KelasAjaran;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.portal')]
 class WaliKelasStudentDetail extends Component
 {
     public $student;

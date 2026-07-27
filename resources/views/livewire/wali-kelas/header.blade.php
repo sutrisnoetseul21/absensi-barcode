@@ -1,66 +1,58 @@
-<!-- Header Banner -->
-<div class="relative bg-blue-900 overflow-hidden rounded-b-[2.5rem] shadow-xl pb-16">
-    <div class="absolute inset-0 z-0">
-        <img src="{{ asset('hero-bg-school.png') }}" class="w-full h-full object-cover object-center opacity-60 mix-blend-overlay">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-950/90 via-blue-900/70 to-blue-800/40"></div>
-        <!-- Decorative Blobs -->
-        <div class="absolute top-0 -left-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-screen filter blur-[80px] opacity-30 animate-blob"></div>
-        <div class="absolute bottom-0 right-10 w-72 h-72 bg-cyan-400 rounded-full mix-blend-screen filter blur-[80px] opacity-30 animate-blob animation-delay-2000"></div>
-    </div>
-    
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-        <div class="md:flex md:items-center md:justify-between">
+<!-- Header Banner Card -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+    <div class="relative bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary border border-brand-primary/30 rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden text-white">
+        <!-- Decorative Glow Blobs -->
+        <div class="absolute -top-12 -right-12 w-80 h-80 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-80 h-80 bg-brand-secondary/20 rounded-full filter blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 md:flex md:items-center md:justify-between gap-6">
             <div class="flex-1 min-w-0">
-                <h2 class="text-3xl font-extrabold leading-9 text-white sm:text-4xl sm:truncate flex items-center gap-4">
-                    <div class="w-12 h-12 bg-white/20 rounded-xl backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-lg">
-                        <svg class="w-7 h-7 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white shadow-lg border border-white/30">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     </div>
-                    Dashboard Wali Kelas
-                </h2>
-                <p class="mt-4 text-base text-indigo-200 max-w-2xl">
-                    Kelola data presensi, pantau keterlambatan harian, dan lakukan presensi manual untuk siswa di kelas binaan Anda.
-                </p>
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white sm:text-3xl tracking-tight">
+                            Dashboard Portal Guru
+                        </h2>
+                        <p class="mt-1 text-sm text-indigo-100/90 font-medium max-w-2xl">
+                            Kelola data presensi, pantau keterlambatan harian, dan lakukan presensi manual untuk siswa di kelas binaan Anda.
+                        </p>
+                    </div>
+                </div>
                 
                 @if(count($classes) > 0 && $selectedClassId && !empty($todayStats))
                 <div class="mt-5 flex flex-wrap items-center gap-3">
-                    <div class="bg-emerald-500/20 border border-emerald-400/30 rounded-lg px-3 py-1.5 backdrop-blur-md flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-sm font-medium text-emerald-100">Sudah Absen Hari Ini: <span class="font-bold text-white">{{ $todayStats['total'] - $todayStats['belum'] }}</span></span>
+                    <div class="bg-white/15 border border-white/25 rounded-xl px-4 py-2 flex items-center gap-3 backdrop-blur-md">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+                        </span>
+                        <span class="text-sm font-semibold text-white">Sudah Absen Hari Ini: <span class="font-extrabold text-emerald-300 ml-1">{{ $todayStats['total'] - $todayStats['belum'] }}</span></span>
                     </div>
-                    <div class="bg-rose-500/20 border border-rose-400/30 rounded-lg px-3 py-1.5 backdrop-blur-md flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-                        <span class="text-sm font-medium text-rose-100">Belum Absen: <span class="font-bold text-white">{{ $todayStats['belum'] }}</span></span>
+                    <div class="bg-white/15 border border-white/25 rounded-xl px-4 py-2 flex items-center gap-3 backdrop-blur-md">
+                        <span class="w-3 h-3 rounded-full bg-rose-400 shadow-sm"></span>
+                        <span class="text-sm font-semibold text-white">Belum Absen: <span class="font-extrabold text-rose-300 ml-1">{{ $todayStats['belum'] }}</span></span>
                     </div>
                 </div>
                 @endif
             </div>
-            <div class="mt-6 flex xl:mt-0 xl:ml-4 gap-4 items-center">
+            
+            <div class="mt-6 md:mt-0 flex flex-wrap xl:flex-nowrap gap-3 items-center">
                 @if(count($classes) > 0 && $selectedClassId)
-                    <button wire:click="openCetakModal" class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-xl shadow-lg shadow-emerald-500/30 text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 transform hover:-translate-y-0.5 group">
-                        <svg class="-ml-1 mr-2 h-5 w-5 text-emerald-100 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button wire:click="openCetakModal" class="inline-flex items-center px-4 py-2.5 border border-white/25 rounded-xl shadow-lg text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-300">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-indigo-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                         Cetak Laporan
                     </button>
                     
-                    <button wire:click="openInputModal" class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-xl shadow-lg shadow-blue-500/30 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:-translate-y-0.5 group">
-                        <svg class="-ml-1 mr-2 h-5 w-5 text-blue-100 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button wire:click="openInputModal" class="inline-flex items-center px-4 py-2.5 border border-transparent rounded-xl shadow-xl text-sm font-bold text-slate-900 bg-white hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-300 transform hover:-translate-y-0.5">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         Input Manual
                     </button>
-                @endif
-                
-                @if(Auth::check() && Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null)
-                    <form action="{{ route('wali-kelas.logout') }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center px-4 py-2.5 border border-white/20 rounded-xl shadow-sm text-sm font-bold text-white bg-white/10 hover:bg-white/20 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-500 transition-all duration-300">
-                            <svg class="-ml-1 mr-2 h-5 w-5 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Keluar
-                        </button>
-                    </form>
                 @endif
             </div>
         </div>
