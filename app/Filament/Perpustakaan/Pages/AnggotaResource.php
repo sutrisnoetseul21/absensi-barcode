@@ -121,7 +121,10 @@ class AnggotaResource extends Page implements HasTable
                 TextColumn::make('barcode_code')
                     ->label('Kode Barcode')
                     ->searchable()
-                    ->placeholder('Belum ada barcode'),
+                    ->placeholder('Belum ada barcode')
+                    ->copyable()
+                    ->copyMessage('Kode barcode berhasil disalin')
+                    ->copyMessageDuration(1500),
                 IconColumn::make('barcode_active')
                     ->label('Status Barcode')
                     ->boolean()
