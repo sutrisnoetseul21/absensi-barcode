@@ -8,6 +8,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
@@ -32,6 +33,7 @@ class PengaturanPerpustakaan extends Page implements HasForms
         if ($settings) {
             $this->form->fill([
                 'lama_pinjam_buku_hari' => $settings->lama_pinjam_buku_hari,
+                'barcode_scan_mode' => $settings->barcode_scan_mode ?? 'nisn',
             ]);
         }
     }
@@ -50,6 +52,16 @@ class PengaturanPerpustakaan extends Page implements HasForms
                             ->minValue(1)
                             ->maxValue(365)
                             ->helperText('Berapa hari maksimal anggota dapat meminjam buku sebelum ditandai terlambat.'),
+                        
+                        Select::make('barcode_scan_mode')
+                            ->label('Mode Kios Scanner Barcode (Siswa)')
+                            ->options([
+                                'nisn' => 'Gunakan NISN',
+                                'nis' => 'Gunakan NIS',
+                            ])
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('Pengaturan mode ini diatur melalui Pengaturan Admin Sekolah Utama.'),
                     ])
             ])
             ->statePath('data');
