@@ -60,6 +60,40 @@ class GuruTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->headerActions([
+                Action::make('generate_barcode_masal')
+                    ->label('Generate Barcode Masal')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Generate Barcode Masal Guru')
+                    ->modalDescription('Sistem akan meng-generate Barcode untuk semua guru yang belum memiliki Barcode berdasarkan NIP. Jika NIP kosong, angka acak akan digunakan.')
+                    ->action(function () {
+                        $gurus = \App\Models\Guru::with('presensiProfile')->get();
+                        $count = 0;
+                        foreach ($gurus as $guru) {
+                            if (!$guru->presensiProfile || empty($guru->presensiProfile->barcode_code)) {
+                                $code = $guru->nip;
+                                if (empty($code) || $code === '-') {
+                                    $code = '2' . mt_rand(100000000, 999999999);
+                                }
+                                
+                                $profile = $guru->presensiProfile()->firstOrCreate(
+                                    ['teacher_id' => $guru->id],
+                                    ['id' => (string) \Illuminate\Support\Str::uuid()]
+                                );
+                                
+                                $profile->update(['barcode_code' => $code]);
+                                $count++;
+                            }
+                        }
+                        
+                        \Filament\Notifications\Notification::make()
+                            ->title('Barcode Masal Selesai')
+                            ->body("Berhasil meng-generate barcode untuk {$count} guru.")
+                            ->success()
+                            ->send();
+                    }),
+
                 Action::make('download_template')
                     ->label('Download Template')
                     ->icon('heroicon-o-arrow-down-tray')

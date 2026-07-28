@@ -41,7 +41,7 @@ class ProcessSirkulasiAction
                 'peminjam_id' => $siswa->id,
                 'peminjam_type' => 'siswa',
                 'name' => $siswa->name,
-                'sub_info' => 'Siswa ' . ($siswa->kelasAjaranAktif() ? $siswa->kelasAjaranAktif()->kelas->name : '')
+                'sub_info' => 'Siswa ' . ($siswa->enrollmentAktif ? $siswa->enrollmentAktif->kelas->name : '')
             ];
         }
 

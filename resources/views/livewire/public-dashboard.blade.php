@@ -263,7 +263,7 @@
                             Home
                         </span>
                     </a>
-                    <a href="{{ url('/siswa') }}"
+                    <a href="{{ url('/portal-siswa') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -271,7 +271,7 @@
                             Portal Siswa
                         </span>
                     </a>
-                    <a href="{{ url('/wali-kelas') }}"
+                    <a href="{{ url('/portal-guru') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -279,7 +279,7 @@
                             Portal Guru
                         </span>
                     </a>
-                    <a href="{{ url('/admin') }}"
+                    <a href="{{ route('login') }}"
                         class="relative group px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
                         :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
                         <span class="flex items-center gap-1.5">
@@ -320,15 +320,15 @@
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Home
                 </a>
-                <a href="{{ url('/siswa') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ url('/portal-siswa') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Portal Siswa
                 </a>
-                <a href="{{ url('/wali-kelas') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ url('/portal-guru') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Portal Guru
                 </a>
-                <a href="{{ url('/admin') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
+                <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
                    :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
                     Admin
                 </a>

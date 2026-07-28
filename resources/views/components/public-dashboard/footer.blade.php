@@ -27,11 +27,11 @@
             <!-- Right: Links -->
             <div class="flex flex-col items-start sm:items-end gap-3">
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('portal-siswa.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
+                    <a href="{{ url('/portal-siswa') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Siswa</a>
                     <span class="text-slate-700">·</span>
-                    <a href="{{ route('portal-guru.login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Guru</a>
+                    <a href="{{ url('/portal-guru') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Guru</a>
                     <span class="text-slate-700">·</span>
-                    <a href="/admin" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
+                    <a href="{{ route('login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
                     <span class="text-slate-700">·</span>
                     <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
                 </div>

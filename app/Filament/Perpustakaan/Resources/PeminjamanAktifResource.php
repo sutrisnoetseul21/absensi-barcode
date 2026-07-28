@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Perpustakaan\Resources\Peminjamans;
+namespace App\Filament\Perpustakaan\Resources;
 
-use App\Filament\Perpustakaan\Resources\Peminjamans\Pages;
+use App\Filament\Perpustakaan\Resources\PeminjamanAktifResource\Pages;
 use App\Models\Peminjaman;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
@@ -11,15 +11,17 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
-class PeminjamanResource extends Resource
+class PeminjamanAktifResource extends Resource
 {
     protected static ?string $model = Peminjaman::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     
-    protected static string | \UnitEnum | null $navigationGroup = 'Perpustakaan';
-    protected static ?string $modelLabel = 'Riwayat Peminjaman';
-    protected static ?string $pluralModelLabel = 'Riwayat Peminjaman';
+    protected static string | \UnitEnum | null $navigationGroup = 'Sirkulasi';
+    protected static ?int $navigationSort = 1;
+    protected static ?string $modelLabel = 'Peminjaman Aktif';
+    protected static ?string $pluralModelLabel = 'Peminjaman Aktif';
+    protected static ?string $navigationLabel = 'Peminjaman';
     
     // Nonaktifkan create button karena peminjaman via kiosk
     public static function canCreate(): bool
@@ -118,10 +120,14 @@ class PeminjamanResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('status', 'dipinjam')->where('tanggal_jatuh_tempo', '<', Carbon::now()->startOfDay()))
                     ->toggle(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-            ])
+            ->actions([])
             ->bulkActions([]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereIn('status', ['dipinjam', 'terlambat']);
     }
 
     public static function getRelations(): array
@@ -134,7 +140,7 @@ class PeminjamanResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManagePeminjamans::route('/'),
+            'index' => Pages\ManagePeminjamanAktifs::route('/'),
         ];
     }
 }

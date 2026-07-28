@@ -20,6 +20,10 @@ class KategoriBukuResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Pengaturan';
+
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $recordTitleAttribute = 'nama_kategori';
 
     public static function form(Schema $schema): Schema

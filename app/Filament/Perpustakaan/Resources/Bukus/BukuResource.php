@@ -22,6 +22,10 @@ class BukuResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
+
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $recordTitleAttribute = 'judul';
 
     public static function form(Schema $schema): Schema

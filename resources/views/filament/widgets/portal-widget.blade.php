@@ -10,6 +10,7 @@
             $canAccessAdmin = $user->canAccessPanel(filament()->getPanel('admin'));
             $canAccessAkademik = $user->canAccessPanel(filament()->getPanel('admin-akademik'));
             $canAccessPresensi = $user->canAccessPanel(filament()->getPanel('admin-presensi'));
+            $canAccessPerpustakaan = $user->canAccessPanel(filament()->getPanel('admin-perpustakaan'));
         @endphp
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -53,6 +54,21 @@
                     <div>
                         <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400">Presensi</h3>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Absensi & Laporan</p>
+                    </div>
+                </div>
+            </a>
+            @endif
+
+            {{-- Panel Perpustakaan --}}
+            @if($canAccessPerpustakaan)
+            <a href="{{ url('/admin-perpustakaan') }}" class="group block p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-blue-500 hover:ring-1 hover:ring-blue-500 transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50">
+                        @svg('heroicon-o-book-open', 'w-6 h-6')
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">Perpustakaan</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sirkulasi & Katalog</p>
                     </div>
                 </div>
             </a>
