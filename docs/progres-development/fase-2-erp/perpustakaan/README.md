@@ -36,3 +36,6 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 
 5. **Pengiriman ID Massal (Bulk Print)**:
    Saat menangani form bulk (memilih banyak ID di Filament) yang butuh dibuka di tab terpisah, selalu gunakan metode *Session Transfer* (generate UUID key unik, taruh ID array ke `cache`/`session`, lalu *redirect* membawa key). Mengirim comma-separated string panjang di parameter URL (`?ids=`) terbukti menghasilkan `Error 414 URI Too Long` dari server web Nginx.
+
+6. **Hotfix Regresi Relasi Siswa (Tahap 8)**:
+   Jangan pernah menggunakan metode relasi `$siswa->kelasAjaranAktif()` karena metode tersebut **TIDAK PERNAH ADA** di Model `Siswa`. Gunakan `$siswa->enrollmentAktif` untuk mengakses data pendaftaran aktif. (Bug ini sempat menyebabkan Kiosk Sirkulasi lumpuh dari Tahap 4 hingga Tahap 8).
