@@ -9,6 +9,8 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 4. **[Tahap 3 (26 Juli 2026)]**: Realisasi Cetak Barcode Eksemplar. Mengadopsi metode render browser murni via HTML+CSS Print (bukan DomPDF) demi ketajaman scan. Masalah URI Too Long dalam cetak bulk 200 buku diselesaikan menggunakan metode transit ID via Session Database.
 5. **[Tahap 4 (26 Juli 2026)]**: Pembangunan UI Kiosk Sirkulasi menggunakan Alpine JS dan Livewire (dua state scan: Peminjam & Buku). Fitur relasi barcode ke model Guru lewat entitas `teacher_presensi_profiles`. Perbaikan bug Enum `status` Peminjaman dari 'selesai' ke `'dikembalikan'`.
 6. **[Tahap 5 (26 Juli 2026)]**: Penyempurnaan akhir dengan Widget Statistik di halaman dashboard (mengalkulasi *buku terlambat* secara real-time tanpa *cronjob*), serta melengkapi tabel *Riwayat Peminjaman* dan penambahan jumlah eksemplar *Tersedia* secara agregasi performa tinggi (`withCount`).
+7. **[Tahap 8 (27 Juli 2026)]**: Restrukturisasi navigasi sidebar panel Perpustakaan (grup Koleksi Buku, Sirkulasi, Laporan, Pengaturan). Pemisahan PeminjamanAktifResource dan RiwayatPengembalianResource. Tambah halaman Laporan Sirkulasi dan Pengaturan Perpustakaan.
+8. **[Tahap 9 (28 Juli 2026)]**: Penyempurnaan UI halaman Anggota (kolom Kelas, kolom Pinjaman Aktif interaktif dengan pop-up modal, barcode copyable, filter baru). Revisi Cetak Kartu Siswa: judul diubah dari "KARTU PRESENSI" menjadi "KARTU SISWA", nilai NIS/NISN pada kartu mengikuti setting `barcode_scan_mode`, URL footer kartu dinamis dari env `SCHOOL_EMAIL_DOMAIN`.
 
 ## Daftar Model & Tabel Inti
 - `KategoriBuku` (`kategori_bukus`)
@@ -39,3 +41,10 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 
 6. **Hotfix Regresi Relasi Siswa (Tahap 8)**:
    Jangan pernah menggunakan metode relasi `$siswa->kelasAjaranAktif()` karena metode tersebut **TIDAK PERNAH ADA** di Model `Siswa`. Gunakan `$siswa->enrollmentAktif` untuk mengakses data pendaftaran aktif. (Bug ini sempat menyebabkan Kiosk Sirkulasi lumpuh dari Tahap 4 hingga Tahap 8).
+
+7. **Environment Variable `SCHOOL_EMAIL_DOMAIN` (Tahap 9)**:
+   URL domain sekolah yang tercetak di footer Kartu Siswa diambil dari env variable `.env` ini. Pastikan diisi saat deploy ke server baru:
+   ```
+   SCHOOL_EMAIL_DOMAIN=smpn1majenang.sch.id
+   ```
+   Jika tidak diset, sistem akan menggunakan nilai fallback `smpn1majenang.sch.id`. Variabel yang sama berlaku untuk cetak kartu tunggal maupun massal.
