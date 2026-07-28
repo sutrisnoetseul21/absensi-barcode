@@ -49,6 +49,11 @@ class Guru extends Authenticatable
             ->withTimestamps();
     }
 
+    public function teacherJabatans(): HasMany
+    {
+        return $this->hasMany(TeacherJabatan::class, 'teacher_id');
+    }
+
     public function pengajarans(): HasMany
     {
         return $this->hasMany(Pengajaran::class, 'teacher_id');

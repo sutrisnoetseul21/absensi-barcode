@@ -57,9 +57,9 @@ class GuruForm
                         return empty($mapel) ? 'Belum ada mata pelajaran' : implode(', ', $mapel);
                     }),
 
-                Repeater::make('jabatans')
+                Repeater::make('teacherJabatans')
                     ->label('Jabatan Tambahan')
-                    ->relationship('jabatans')
+                    ->relationship('teacherJabatans')
                     ->schema([
                         Select::make('jabatan_id')
                             ->label('Jabatan')
