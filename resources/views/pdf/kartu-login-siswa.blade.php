@@ -338,7 +338,13 @@
         $enrollment = $student->enrollmentAktif;
         $className = $enrollment?->kelas?->name ?? '-';
         $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcodeData = $student->barcode_code ?? $student->nisn ?? 'NO-BARCODE';
+        $mode = $settings?->barcode_scan_mode ?? 'nisn';
+        $isNisMode = $mode === 'nis';
+        
+        $identifierLabel = $isNisMode ? 'NIS' : 'NISN';
+        $identifierValue = $isNisMode ? $student->nis : $student->nisn;
+        
+        $barcodeData = $student->barcode_code ?? $identifierValue ?? 'NO-BARCODE';
         $barcodeImage = base64_encode($generator->getBarcode($barcodeData, $generator::TYPE_CODE_128, 2, 50));
 
         $logoPath = null;
@@ -383,7 +389,7 @@
                     <img class="logo" src="{{ $logoPath }}" alt="Logo">
                 @endif
                 <div class="school-name">{{ strtoupper($settings->school_name ?? 'NAMA SEKOLAH') }}</div>
-                <div class="card-title">KARTU PRESENSI</div>
+                <div class="card-title">KARTU SISWA</div>
             </div>
 
             <!-- Soft Rounded Photo -->
@@ -407,9 +413,9 @@
             <div class="login-box">
                 <div class="login-label">
                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    Username (NISN)
+                    Username ({{ $identifierLabel }})
                 </div>
-                <div class="login-value">{{ $student->nisn }}</div>
+                <div class="login-value">{{ $identifierValue }}</div>
             </div>
 
             <!-- Barcode -->
@@ -419,7 +425,7 @@
 
             <!-- Modern Footer Centered -->
             <div class="footer">
-                <span class="footer-url">presensi.smpn1majenang.sch.id</span>
+                <span class="footer-url">{{ env('SCHOOL_EMAIL_DOMAIN', 'smpn1majenang.sch.id') }}</span>
             </div>
 
         </div>
