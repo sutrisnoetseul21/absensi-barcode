@@ -128,11 +128,18 @@ erDiagram
         unsignedBigInteger id PK
         uuid teacher_id FK
         unsignedBigInteger jabatan_id FK
+        date tanggal_mulai
+        date tanggal_selesai
     }
 ```
 
 **Alur Cerita:**
 Guru Budi dapat merangkap jabatan sebagai "Wali Kelas" sekaligus "Wakil Kepala Sekolah". Kita cukup membuat dua baris di tabel `teacher_jabatan` untuk Budi, menautkannya ke dua ID jabatan berbeda. Hal ini memastikan pelaporan struktural sekolah akurat.
+
+> [!WARNING]
+> **Teknis Filament Repeater & BelongsToMany:**
+> Meskipun secara konseptual tabel `teacher_jabatan` murni berupa *pivot*, di dalam kode kita membuatkan model Eloquent khusus `App\Models\TeacherJabatan`. 
+> Hal ini dilakukan untuk menghindari **bug pada Filament v3 Repeater** (error `Field 'nama_jabatan' doesn't have a default value`). Dengan menggunakan relasi `HasMany` ke model perantara (`teacherJabatans()`), Filament dapat menambah/menghapus baris *pivot* beserta data tambahannya (`tanggal_mulai`, `tanggal_selesai`) dengan aman tanpa mencoba membuat *Master Jabatan* baru secara tidak sengaja.
 
 ---
 
