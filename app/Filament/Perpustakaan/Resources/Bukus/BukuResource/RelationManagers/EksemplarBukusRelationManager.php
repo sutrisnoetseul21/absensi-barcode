@@ -10,15 +10,16 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\CreateAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -100,80 +101,77 @@ class EksemplarBukusRelationManager extends RelationManager
                     ->color('info')
                     ->url(fn () => route('perpustakaan.cetak-barcode', ['buku' => $this->getOwnerRecord()]))
                     ->openUrlInNewTab(),
-                CreateAction::make(),
-                Action::make('generateMassal')
-                    ->label('Generate Massal')
-                    ->icon('heroicon-o-document-duplicate')
-                    ->color('success')
+                Action::make('tambahEksemplar')
+                    ->label('Tambah Eksemplar')
+                    ->icon('heroicon-o-plus')
+                    ->color('primary')
                     ->form([
+                        Forms\Components\Toggle::make('input_manual')
+                            ->label('Input Manual')
+                            ->default(false)
+                            ->live(),
                         TextInput::make('prefix')
                             ->label('Prefix')
-                            ->required()
+                            ->default('UMM')
+                            ->placeholder('Contoh: PAI')
+                            ->required(fn ($get) => !$get('input_manual'))
                             ->maxLength(50)
-                            ->placeholder('Contoh: MTK7-'),
-                        TextInput::make('mulai_dari')
-                            ->label('Mulai Dari Angka')
-                            ->numeric()
-                            ->default(1)
-                            ->required()
-                            ->minValue(1),
+                            ->visible(fn ($get) => !$get('input_manual')),
                         TextInput::make('jumlah')
                             ->label('Jumlah Generate')
                             ->numeric()
-                            ->required()
+                            ->default(1)
                             ->minValue(1)
-                            ->maxValue(500),
-                        TextInput::make('panjang_digit')
-                            ->label('Panjang Digit Angka')
-                            ->numeric()
-                            ->default(3)
-                            ->required()
-                            ->minValue(1)
-                            ->maxValue(10),
+                            ->required(fn ($get) => !$get('input_manual'))
+                            ->visible(fn ($get) => !$get('input_manual')),
+                        TextInput::make('kode_eksemplar')
+                            ->label('Kode Eksemplar')
+                            ->required(fn ($get) => $get('input_manual'))
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255)
+                            ->visible(fn ($get) => $get('input_manual')),
                     ])
                     ->action(function (array $data, Action $action) {
-                        $prefix = $data['prefix'];
-                        $mulaiDari = (int) $data['mulai_dari'];
-                        $jumlah = (int) $data['jumlah'];
-                        $panjangDigit = (int) $data['panjang_digit'];
-
-                        $codes = [];
-                        for ($i = $mulaiDari; $i < $mulaiDari + $jumlah; $i++) {
-                            $codes[] = $prefix . str_pad((string)$i, $panjangDigit, '0', STR_PAD_LEFT);
-                        }
-
-                        // Cek bentrok
-                        $existingCodes = EksemplarBuku::whereIn('kode_eksemplar', $codes)->pluck('kode_eksemplar')->toArray();
-                        if (count($existingCodes) > 0) {
-                            $samples = array_slice($existingCodes, 0, 5);
-                            $sampleStr = implode(', ', $samples);
-                            if (count($existingCodes) > 5) {
-                                $sampleStr .= '... dan lainnya';
-                            }
-                            
-                            Notification::make()
-                                ->danger()
-                                ->title('Generate Dibatalkan: Kode Bentrok')
-                                ->body('Terdapat kode eksemplar yang sudah ada di database: ' . $sampleStr)
-                                ->send();
-                                
-                            $action->halt();
-                        }
-
-                        $now = now();
                         $ownerId = $this->getOwnerRecord()->id;
+                        $now = now();
                         $inserts = [];
 
-                        foreach ($codes as $code) {
+                        if ($data['input_manual'] ?? false) {
                             $inserts[] = [
                                 'id' => (string) Str::uuid(),
                                 'buku_id' => $ownerId,
-                                'kode_eksemplar' => $code,
+                                'kode_eksemplar' => $data['kode_eksemplar'],
                                 'status' => 'tersedia',
                                 'kondisi_fisik' => 'baik',
                                 'created_at' => $now,
                                 'updated_at' => $now,
                             ];
+                        } else {
+                            $prefix = $data['prefix'];
+                            $jumlah = (int) $data['jumlah'];
+                            
+                            try {
+                                $codes = EksemplarBuku::generateKodeEksemplar($prefix, $jumlah);
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Gagal Generate')
+                                    ->body($e->getMessage())
+                                    ->send();
+                                $action->halt();
+                            }
+                            
+                            foreach ($codes as $code) {
+                                $inserts[] = [
+                                    'id' => (string) Str::uuid(),
+                                    'buku_id' => $ownerId,
+                                    'kode_eksemplar' => $code,
+                                    'status' => 'tersedia',
+                                    'kondisi_fisik' => 'baik',
+                                    'created_at' => $now,
+                                    'updated_at' => $now,
+                                ];
+                            }
                         }
 
                         try {
@@ -185,8 +183,8 @@ class EksemplarBukusRelationManager extends RelationManager
                         } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
-                                ->title('Gagal Generate Eksemplar')
-                                ->body('Terjadi kesalahan saat menyimpan data. Kemungkinan ada proses lain yang membuat kode serupa secara bersamaan, silakan coba lagi.')
+                                ->title('Gagal Menyimpan Eksemplar')
+                                ->body('Terjadi kesalahan saat menyimpan data.')
                                 ->send();
                             
                             $action->halt();
@@ -194,8 +192,8 @@ class EksemplarBukusRelationManager extends RelationManager
 
                         Notification::make()
                             ->success()
-                            ->title('Berhasil Generate')
-                            ->body("Berhasil membuat {$jumlah} eksemplar buku.")
+                            ->title('Berhasil')
+                            ->body("Berhasil menambahkan " . count($inserts) . " eksemplar buku.")
                             ->send();
                     }),
             ])
@@ -226,7 +224,7 @@ class EksemplarBukusRelationManager extends RelationManager
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    \Filament\Tables\Actions\BulkAction::make('cetakBarcodeTerpilih')
+                    BulkAction::make('cetakBarcodeTerpilih')
                         ->label('Cetak Barcode')
                         ->icon('heroicon-o-printer')
                         ->color('info')
@@ -235,19 +233,46 @@ class EksemplarBukusRelationManager extends RelationManager
                             session()->put($sessionKey, $records->pluck('id')->toArray());
                             return redirect()->to(route('perpustakaan.cetak-barcode-massal', ['session_key' => $sessionKey]));
                         }),
-                    DeleteBulkAction::make()
-                        ->before(function (DeleteBulkAction $action, $records) {
+                    BulkAction::make('hapusTerpilih')
+                        ->label('Hapus Terpilih')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $failedCodes = [];
+                            $deletedCount = 0;
+                            
                             foreach ($records as $record) {
-                                if ($record->peminjamans()->exists()) {
-                                    Notification::make()
-                                        ->danger()
-                                        ->title('Penghapusan Massal Gagal')
-                                        ->body("Eksemplar '{$record->kode_eksemplar}' tidak dapat dihapus karena memiliki riwayat peminjaman.")
-                                        ->send();
-                                    $action->halt();
+                                if ($record->status !== 'tersedia') {
+                                    $failedCodes[] = "{$record->kode_eksemplar} (Status: {$record->status})";
+                                    continue;
                                 }
+                                if ($record->peminjamans()->exists()) {
+                                    $failedCodes[] = "{$record->kode_eksemplar} (Pernah/sedang dipinjam)";
+                                    continue;
+                                }
+                                
+                                $record->delete();
+                                $deletedCount++;
                             }
-                        }),
+                            
+                            if (count($failedCodes) > 0) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Sebagian Gagal Dihapus')
+                                    ->body("Gagal menghapus eksemplar berikut:\n" . implode("\n", $failedCodes))
+                                    ->send();
+                            }
+                            
+                            if ($deletedCount > 0) {
+                                Notification::make()
+                                    ->success()
+                                    ->title('Berhasil Dihapus')
+                                    ->body("Berhasil menghapus {$deletedCount} eksemplar.")
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     ForceDeleteBulkAction::make()
                         ->before(function (ForceDeleteBulkAction $action, $records) {
                             foreach ($records as $record) {

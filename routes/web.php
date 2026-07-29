@@ -58,6 +58,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin-perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');
     Route::get('/admin-perpustakaan/eksemplar/cetak-barcode-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeMassal'])->name('perpustakaan.cetak-barcode-massal');
     
+    // Cetak Label Spine Buku Routes
+    Route::get('/admin-perpustakaan/buku/{buku}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpine'])->name('perpustakaan.cetak-label-spine');
+    Route::get('/admin-perpustakaan/buku/cetak/label-spine-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineMassal'])->name('perpustakaan.cetak-label-spine-massal');
+    
     // Kiosk Sirkulasi Perpustakaan Routes
     Route::get('/admin-perpustakaan/sirkulasi', \App\Livewire\SirkulasiKiosk::class)->name('perpustakaan.sirkulasi');
     Route::post('/admin-perpustakaan/sirkulasi/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {

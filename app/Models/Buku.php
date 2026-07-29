@@ -13,6 +13,7 @@ class Buku extends Model
     use HasUuids, SoftDeletes;
 
     protected $fillable = [
+        'klasifikasi_ddc_id',
         'kategori_id',
         'mapel_id',
         'grade_level',
@@ -34,6 +35,11 @@ class Buku extends Model
         return $this->belongsTo(KategoriBuku::class, 'kategori_id');
     }
 
+    public function klasifikasiDdc(): BelongsTo
+    {
+        return $this->belongsTo(KlasifikasiDdc::class, 'klasifikasi_ddc_id');
+    }
+
     public function mataPelajaran(): BelongsTo
     {
         return $this->belongsTo(MataPelajaran::class, 'mapel_id');
@@ -42,5 +48,10 @@ class Buku extends Model
     public function eksemplarBukus(): HasMany
     {
         return $this->hasMany(EksemplarBuku::class, 'buku_id');
+    }
+
+    public function getCallNumberAttribute(): string
+    {
+        return \App\Services\CallNumberService::generate($this);
     }
 }

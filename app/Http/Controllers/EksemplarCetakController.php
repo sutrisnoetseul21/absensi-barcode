@@ -49,4 +49,45 @@ class EksemplarCetakController extends Controller
             'buku' => null, // Karena bisa campuran dari beberapa buku jika diakses global, tapi konteksnya dari 1 buku
         ]);
     }
+
+    public function cetakLabelSpine(Buku $buku, Request $request)
+    {
+        $jumlah = $request->query('jumlah', 1);
+        $jumlah = max((int) $jumlah, 1);
+        
+        $eksemplars = $buku->eksemplarBukus()->orderBy('kode_eksemplar')->limit($jumlah)->get();
+        
+        if ($eksemplars->isEmpty()) {
+            abort(404, 'Buku ini belum memiliki eksemplar.');
+        }
+
+        return view('pdf.label-spine-buku', [
+            'eksemplars' => $eksemplars,
+            'buku' => $buku,
+        ]);
+    }
+
+    public function cetakLabelSpineMassal(Request $request)
+    {
+        $sessionKey = $request->query('session_key');
+        if (empty($sessionKey)) {
+            abort(400, 'Parameter session_key tidak ditemukan');
+        }
+
+        $ids = session()->get($sessionKey);
+        if (empty($ids) || !is_array($ids)) {
+            abort(404, 'Data session cetak telah kedaluwarsa atau tidak valid. Silakan ulangi proses cetak.');
+        }
+
+        $eksemplars = EksemplarBuku::with('buku')->whereIn('id', $ids)->orderBy('kode_eksemplar')->get();
+
+        if ($eksemplars->isEmpty()) {
+            abort(404, 'Data eksemplar tidak ditemukan');
+        }
+
+        return view('pdf.label-spine-buku', [
+            'eksemplars' => $eksemplars,
+            'buku' => null,
+        ]);
+    }
 }

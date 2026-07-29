@@ -11,6 +11,7 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 6. **[Tahap 5 (26 Juli 2026)]**: Penyempurnaan akhir dengan Widget Statistik di halaman dashboard (mengalkulasi *buku terlambat* secara real-time tanpa *cronjob*), serta melengkapi tabel *Riwayat Peminjaman* dan penambahan jumlah eksemplar *Tersedia* secara agregasi performa tinggi (`withCount`).
 7. **[Tahap 8 (27 Juli 2026)]**: Restrukturisasi navigasi sidebar panel Perpustakaan (grup Koleksi Buku, Sirkulasi, Laporan, Pengaturan). Pemisahan PeminjamanAktifResource dan RiwayatPengembalianResource. Tambah halaman Laporan Sirkulasi dan Pengaturan Perpustakaan.
 8. **[Tahap 9 (28 Juli 2026)]**: Penyempurnaan UI halaman Anggota (kolom Kelas, kolom Pinjaman Aktif interaktif dengan pop-up modal, barcode copyable, filter baru). Revisi Cetak Kartu Siswa: judul diubah dari "KARTU PRESENSI" menjadi "KARTU SISWA", nilai NIS/NISN pada kartu mengikuti setting `barcode_scan_mode`, URL footer kartu dinamis dari env `SCHOOL_EMAIL_DOMAIN`.
+9. **[Tahap 10 (29 Juli 2026)]**: Unifikasi UI cetak label spine dan barcode 100% mengikuti standar visual SLiMS (Grid 3x7 ukuran 6x3.5cm, garis tepi guard bar, spasi karakter). Refactor generate kode eksemplar menjadi format 5 digit terpisah per prefix (contoh `UMM00001`). Perbaikan bug formasi cetak massal berbasis eksemplar.
 
 ## Daftar Model & Tabel Inti
 - `KategoriBuku` (`kategori_bukus`)

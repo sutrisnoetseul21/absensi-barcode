@@ -2,6 +2,8 @@
 
 namespace App\Filament\Perpustakaan\Resources\Bukus\Tables;
 
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -29,6 +31,10 @@ class BukusTable
                 TextColumn::make('kategoriBuku.nama_kategori')
                     ->label('Kategori')
                     ->sortable(),
+                TextColumn::make('call_number')
+                    ->label('Call Number')
+                    ->getStateUsing(fn ($record) => $record->call_number)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('jumlah_eksemplar')
                     ->label('Total Eksemplar')
                     ->sortable(),
@@ -46,6 +52,28 @@ class BukusTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                Action::make('cetakLabelSpine')
+                    ->label('Cetak Label Spine')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('jumlah_cetak')
+                            ->label('Jumlah Label yang Dicetak')
+                            ->numeric()
+                            ->required()
+                            ->minValue(1)
+                            ->maxValue(fn ($record) => max($record->eksemplarBukus()->count(), 1))
+                            ->default(fn ($record) => max($record->eksemplarBukus()->count(), 1))
+                    ])
+                    ->action(function ($record, array $data) {
+                        return redirect()->to(route('perpustakaan.cetak-label-spine', ['buku' => $record, 'jumlah' => $data['jumlah_cetak']]));
+                    }),
+                Action::make('cetakBarcode')
+                    ->label('Cetak Barcode')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('success')
+                    ->url(fn ($record) => route('perpustakaan.cetak-barcode', ['buku' => $record]))
+                    ->openUrlInNewTab(),
                 EditAction::make(),
                 DeleteAction::make()
                     ->before(function (DeleteAction $action, $record) {
@@ -72,6 +100,34 @@ class BukusTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('cetakBarcodeTerpilih')
+                        ->label('Cetak Barcode')
+                        ->icon('heroicon-o-qr-code')
+                        ->color('success')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $eksemplarIds = \App\Models\EksemplarBuku::whereIn('buku_id', $records->pluck('id'))->pluck('id')->toArray();
+                            if (empty($eksemplarIds)) {
+                                Notification::make()->warning()->title('Tidak ada eksemplar')->body('Buku yang dipilih belum memiliki eksemplar.')->send();
+                                return;
+                            }
+                            $sessionKey = 'cetak_barcode_ids_' . uniqid();
+                            session()->put($sessionKey, $eksemplarIds);
+                            return redirect()->to(route('perpustakaan.cetak-barcode-massal', ['session_key' => $sessionKey]));
+                        }),
+                    BulkAction::make('cetakLabelSpineTerpilih')
+                        ->label('Cetak Label Spine')
+                        ->icon('heroicon-o-printer')
+                        ->color('info')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $eksemplarIds = \App\Models\EksemplarBuku::whereIn('buku_id', $records->pluck('id'))->pluck('id')->toArray();
+                            if (empty($eksemplarIds)) {
+                                Notification::make()->warning()->title('Tidak ada eksemplar')->body('Buku yang dipilih belum memiliki eksemplar.')->send();
+                                return;
+                            }
+                            $sessionKey = 'cetak_label_spine_ids_' . uniqid();
+                            session()->put($sessionKey, $eksemplarIds);
+                            return redirect()->to(route('perpustakaan.cetak-label-spine-massal', ['session_key' => $sessionKey]));
+                        }),
                     DeleteBulkAction::make()
                         ->before(function (DeleteBulkAction $action, $records) {
                             foreach ($records as $record) {

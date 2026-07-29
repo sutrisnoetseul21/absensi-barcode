@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Barcode Eksemplar - {{ $buku ? $buku->judul : 'Massal' }}</title>
+    <title>Cetak Label Spine - {{ isset($buku) && $buku ? $buku->judul : 'Massal' }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -83,7 +83,7 @@
             justify-content: center;
         }
 
-        /* ===== LABEL BARCODE (SLiMS Style) ===== */
+        /* ===== LABEL SPINE (SLiMS Style) ===== */
         .label-container {
             width: 6cm;
             height: 3.5cm;
@@ -112,49 +112,22 @@
             print-color-adjust: exact;
         }
 
-        .book-title {
-            font-size: 8pt;
-            color: #000;
-            text-align: center;
-            margin-top: 3px;
-            margin-bottom: 2px;
-            padding: 0 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Trik CSS untuk membuat barcode panjang di tepi (Guard Bars) persis SLiMS */
-        .barcode-wrapper {
-            position: relative;
-            width: 80%;
-            height: 14mm;
-            margin-top: 2px;
-        }
-
-        .barcode-image {
-            width: 100%;
-            height: 100%;
-            object-fit: fill; /* Memastikan bar stretch sempurna */
-        }
-
-        .barcode-text-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 6%; /* Menyisakan 6% bar di kiri untuk memanjang ke bawah */
-            right: 6%; /* Menyisakan 6% bar di kanan */
-            background-color: #ffffff;
-            height: 5mm;
+        .call-number-container {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .call-number-line {
+            font-size: 11pt;
             color: #000;
-            letter-spacing: 3px;
-            text-transform: uppercase;
+            text-align: center;
+            line-height: 1.3;
+            width: 100%;
+            word-wrap: break-word;
         }
 
         /* ===== PRINT STYLES ===== */
@@ -183,16 +156,14 @@
 <body>
 
     @php
-        $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
         $sekolah = \App\Models\PengaturanSekolah::first();
-        // BUG FIX: kolom database bernama school_name, bukan nama_sekolah!
         $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'PERPUSTAKAAN SMPN 3 KEDUNGREJA';
     @endphp
 
     <div class="print-controls">
         <button onclick="window.print()" class="btn-print">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Cetak Barcode
+            Cetak Label Spine
         </button>
         <span class="print-hint">Gunakan kertas A4 untuk hasil optimal</span>
     </div>
@@ -202,17 +173,19 @@
     <div class="page">
         @foreach ($pageEksemplars as $eks)
             @php
-                $judulBuku = $buku ? $buku->judul : ($eks->buku ? $eks->buku->judul : 'Tanpa Judul');
-                $barcodeData = $eks->kode_eksemplar;
-                $barcodeText = implode(' ', str_split($barcodeData));
-                $barcodeImage = base64_encode($generator->getBarcode($barcodeData, $generator::TYPE_CODE_128, 2, 50));
+                $bukuTerkait = $eks->buku;
+                $callNumber = $bukuTerkait ? $bukuTerkait->call_number : '';
+                $lines = explode("\n", str_replace("\r", "", $callNumber));
+                $line1 = $lines[0] ?? '';
+                $line2 = $lines[1] ?? '';
+                $line3 = $lines[2] ?? '';
             @endphp
             <div class="label-container">
                 <div class="label-header">{{ Str::limit($namaSekolah, 40) }}</div>
-                <div class="book-title">{{ Str::limit($judulBuku, 40) }}</div>
-                <div class="barcode-wrapper">
-                    <img class="barcode-image" src="data:image/png;base64,{{ $barcodeImage }}" alt="Barcode">
-                    <div class="barcode-text-overlay">{{ $barcodeText }}</div>
+                <div class="call-number-container">
+                    <div class="call-number-line">{{ $line1 }}</div>
+                    <div class="call-number-line">{{ $line2 }}</div>
+                    <div class="call-number-line">{{ $line3 }}</div>
                 </div>
             </div>
         @endforeach
