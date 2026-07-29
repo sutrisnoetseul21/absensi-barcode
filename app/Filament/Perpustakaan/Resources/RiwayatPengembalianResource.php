@@ -36,18 +36,18 @@ class RiwayatPengembalianResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            \Filament\Schemas\Components\Select::make('status')
+            \Filament\Forms\Components\Select::make('status')
                 ->options([
                     'dipinjam' => 'Dipinjam',
                     'dikembalikan' => 'Dikembalikan',
                     'hilang' => 'Hilang',
                 ])
                 ->required(),
-            \Filament\Schemas\Components\DatePicker::make('tanggal_pinjam')
+            \Filament\Forms\Components\DatePicker::make('tanggal_pinjam')
                 ->required(),
-            \Filament\Schemas\Components\DatePicker::make('tanggal_jatuh_tempo')
+            \Filament\Forms\Components\DatePicker::make('tanggal_jatuh_tempo')
                 ->required(),
-            \Filament\Schemas\Components\DatePicker::make('tanggal_kembali'),
+            \Filament\Forms\Components\DatePicker::make('tanggal_kembali'),
         ]);
     }
 
