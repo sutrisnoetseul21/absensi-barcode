@@ -3,6 +3,24 @@
      x-init="initKiosk()"
      wire:ignore>
     
+    <!-- Include Html5Qrcode Library -->
+    <script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
+
+    <style>
+        #reader video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 1rem;
+        }
+        #reader__scan_region {
+            background: transparent !important;
+        }
+        #reader__dashboard {
+            display: none !important;
+        }
+    </style>
+
     <!-- Audio Elements -->
     <audio id="audio-success" src="/audio/beep.mp3" preload="auto"></audio>
     <audio id="audio-error" src="/audio/buzz.mp3" preload="auto"></audio>
@@ -72,13 +90,22 @@
                          'bg-transparent': statusState === 'idle'
                      }">
                     
-                    <!-- Idle State -->
-                    <div x-show="statusState === 'idle' && !isLoading" class="text-center text-slate-400">
+                    <!-- Idle State: Hardware Scanner Visualizer -->
+                    <div x-show="statusState === 'idle' && !isCameraActive && !isLoading" class="text-center text-slate-400">
                         <div class="w-32 h-32 mx-auto mb-6 flex items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300">
                             <svg class="w-16 h-16 text-slate-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                         </div>
                         <p class="text-2xl font-bold text-slate-500">Menunggu Scan Barcode...</p>
                         <p class="text-slate-400 mt-2">Arahkan barcode kartu pada scanner</p>
+                    </div>
+
+                    <!-- Idle State: Camera Visualizer (Replaces central visualizer when camera is active) -->
+                    <div x-show="statusState === 'idle' && isCameraActive && !isLoading" class="flex flex-col items-center justify-center w-full max-w-xs mx-auto" style="display: none;">
+                        <div id="reader" class="w-full h-56 bg-slate-900 rounded-2xl overflow-hidden shadow-xl border-2 border-blue-500/80 relative"></div>
+                        <p class="text-xs font-semibold text-blue-600 mt-3 flex items-center gap-1.5 animate-pulse">
+                            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                            Arahkan Barcode / QR Kartu ke Kamera
+                        </p>
                     </div>
 
                     <!-- Feedback State -->
@@ -127,16 +154,40 @@
                     </div>
                 </div>
                 
-                <!-- Footer Input Debug -->
-                <div class="bg-white/80 border-t border-slate-100 p-4 flex justify-between items-center text-sm text-slate-500 absolute bottom-0 w-full rounded-bl-3xl">
+                <!-- Footer Input Debug & Camera Control (Bottom Right) -->
+                <div class="bg-white/80 border-t border-slate-100 p-3 px-4 flex justify-between items-center text-sm text-slate-500 absolute bottom-0 w-full rounded-bl-3xl z-20">
                     @if(!$isGlobalHoliday)
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <span class="font-mono bg-slate-100 px-2 py-0.5 rounded" x-text="barcode || '---'"></span>
+                        <span class="font-mono bg-slate-100 px-2 py-0.5 rounded text-xs" x-text="barcode || '---'"></span>
+                        <div class="flex items-center space-x-1.5 ml-2">
+                            <span class="w-2.5 h-2.5 rounded-full shadow-inner animate-pulse" :class="isActive ? 'bg-green-500' : 'bg-red-500'"></span>
+                            <span class="font-semibold text-xs" x-text="isActive ? 'Sistem Aktif' : 'Menunggu Aktivasi'"></span>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full shadow-inner animate-pulse" :class="isActive ? 'bg-green-500' : 'bg-red-500'"></span>
-                        <span class="font-semibold" x-text="isActive ? 'Sistem Aktif' : 'Menunggu Aktivasi'"></span>
+
+                    <!-- Bottom Right Controls: Camera Selection & Toggle -->
+                    <div class="flex items-center gap-2">
+                        <template x-if="isCameraActive && cameraList.length > 1">
+                            <select x-model="selectedCameraId" @change="changeCamera()" class="text-xs bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <template x-for="cam in cameraList" :key="cam.id">
+                                    <option :value="cam.id" x-text="cam.label || 'Kamera (' + cam.id.substring(0, 5) + ')'"></option>
+                                </template>
+                            </select>
+                        </template>
+
+                        <button @click="toggleCamera()" 
+                                type="button"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium text-xs transition-all duration-200 shadow-sm border"
+                                :class="isCameraActive 
+                                    ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100' 
+                                    : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span x-text="isCameraActive ? 'Matikan Kamera' : 'Gunakan Kamera'"></span>
+                        </button>
                     </div>
                     @else
                     <div class="w-full text-center font-semibold text-slate-600">Sistem Presensi Dinonaktifkan (Hari Libur)</div>
@@ -228,6 +279,13 @@
                 resetTimer: null,
                 refocusInterval: null,
                 
+                // Camera State
+                isCameraActive: false,
+                cameraList: [],
+                selectedCameraId: '',
+                html5QrcodeScanner: null,
+                lastCameraScanTime: 0,
+                
                 initKiosk() {
                     this.refocusInterval = setInterval(() => {
                         this.refocusInput();
@@ -238,6 +296,131 @@
                             this.submitScan();
                         }
                     });
+                },
+
+                async toggleCamera() {
+                    if (this.isCameraActive) {
+                        await this.stopCamera();
+                    } else {
+                        await this.startCamera();
+                    }
+                },
+                
+                async getAvailableCameras() {
+                    try {
+                        if (typeof Html5Qrcode !== 'undefined') {
+                            const devices = await Html5Qrcode.getCameras();
+                            if (devices && devices.length) {
+                                this.cameraList = devices;
+                                if (!this.selectedCameraId) {
+                                    this.selectedCameraId = devices[0].id;
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("Daftar kamera belum bisa diambil:", err);
+                    }
+                },
+                
+                async startCamera() {
+                    if (!this.isActive) {
+                        this.activateKiosk();
+                    }
+
+                    // 1. Cek ketersediaan navigator.mediaDevices
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        alert('Browser Anda memblokir akses kamera (perlu HTTPS atau alamat http://localhost:8001).');
+                        return;
+                    }
+
+                    // 2. Minta izin akses kamera secara langsung ke browser terlebih dahulu
+                    try {
+                        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        tempStream.getTracks().forEach(track => track.stop());
+                    } catch (permErr) {
+                        console.error("Izin kamera ditolak:", permErr);
+                        alert('Akses kamera ditolak oleh browser atau sedang digunakan aplikasi lain. Mohon izinkan akses kamera di browser Anda.');
+                        return;
+                    }
+
+                    // 3. Ambil daftar perangkat kamera setelah izin diberikan
+                    await this.getAvailableCameras();
+
+                    this.isCameraActive = true;
+                    this.$nextTick(async () => {
+                        try {
+                            if (this.html5QrcodeScanner) {
+                                await this.html5QrcodeScanner.stop().catch(() => {});
+                            }
+                            this.html5QrcodeScanner = new Html5Qrcode("reader");
+
+                            // Jika ada kamera yang terdaftar gunakan ID-nya, jika tidak gunakan facingMode
+                            const cameraConfig = (this.cameraList.length > 0 && this.selectedCameraId)
+                                ? this.selectedCameraId
+                                : { facingMode: "user" };
+
+                            await this.html5QrcodeScanner.start(
+                                cameraConfig,
+                                {
+                                    fps: 10,
+                                    qrbox: { width: 200, height: 200 },
+                                    aspectRatio: 1.0
+                                },
+                                (decodedText) => {
+                                    this.onCameraScan(decodedText);
+                                },
+                                (errorMessage) => {}
+                            );
+                        } catch (err) {
+                            console.error("Gagal memulai kamera via ID, mencoba fallback mode:", err);
+                            try {
+                                const fallbackConfig = { facingMode: "environment" };
+                                await this.html5QrcodeScanner.start(
+                                    fallbackConfig,
+                                    { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
+                                    (decodedText) => { this.onCameraScan(decodedText); },
+                                    () => {}
+                                );
+                            } catch(fallbackErr) {
+                                console.error("Fallback kamera juga gagal:", fallbackErr);
+                                this.isCameraActive = false;
+                                alert('Gagal memuat video stream kamera. Pastikan kamera terhubung dan izin telah diberikan di browser.');
+                            }
+                        }
+                    });
+                },
+                
+                async changeCamera() {
+                    if (this.isCameraActive && this.selectedCameraId) {
+                        if (this.html5QrcodeScanner) {
+                            try {
+                                await this.html5QrcodeScanner.stop();
+                            } catch (e) {}
+                            this.html5QrcodeScanner = null;
+                        }
+                        await this.startCamera();
+                    }
+                },
+                
+                async stopCamera() {
+                    if (this.html5QrcodeScanner) {
+                        try {
+                            await this.html5QrcodeScanner.stop();
+                        } catch (e) {}
+                        this.html5QrcodeScanner = null;
+                    }
+                    this.isCameraActive = false;
+                },
+                
+                onCameraScan(decodedText) {
+                    const now = Date.now();
+                    // Cooldown 3 detik per scan kamera
+                    if (now - this.lastCameraScanTime < 3000) return;
+                    if (this.isLoading) return;
+
+                    this.lastCameraScanTime = now;
+                    this.barcode = decodedText;
+                    this.submitScan();
                 },
                 
                 activateKiosk() {
