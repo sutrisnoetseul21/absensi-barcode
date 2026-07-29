@@ -8,6 +8,11 @@ use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -31,7 +36,20 @@ class PeminjamanAktifResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->schema([]);
+        return $schema->schema([
+            \Filament\Schemas\Components\Select::make('status')
+                ->options([
+                    'dipinjam' => 'Dipinjam',
+                    'dikembalikan' => 'Dikembalikan',
+                    'hilang' => 'Hilang',
+                ])
+                ->required(),
+            \Filament\Schemas\Components\DatePicker::make('tanggal_pinjam')
+                ->required(),
+            \Filament\Schemas\Components\DatePicker::make('tanggal_jatuh_tempo')
+                ->required(),
+            \Filament\Schemas\Components\DatePicker::make('tanggal_kembali'),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -120,8 +138,33 @@ class PeminjamanAktifResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('status', 'dipinjam')->where('tanggal_jatuh_tempo', '<', Carbon::now()->startOfDay()))
                     ->toggle(),
             ])
-            ->actions([])
-            ->bulkActions([]);
+            ->actions([
+                Action::make('kembalikan')
+                    ->label('Kembalikan')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Kembalikan Buku')
+                    ->modalDescription('Apakah Anda yakin buku ini sudah dikembalikan?')
+                    ->action(function (Peminjaman $record) {
+                        $record->update([
+                            'status' => 'dikembalikan',
+                            'tanggal_kembali' => now(),
+                        ]);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Buku berhasil dikembalikan')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (Peminjaman $record) => $record->status === 'dipinjam'),
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
     }
 
     public static function getEloquentQuery(): Builder

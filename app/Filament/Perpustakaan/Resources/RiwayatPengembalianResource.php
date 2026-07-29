@@ -8,6 +8,10 @@ use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -31,7 +35,20 @@ class RiwayatPengembalianResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->schema([]);
+        return $schema->schema([
+            \Filament\Schemas\Components\Select::make('status')
+                ->options([
+                    'dipinjam' => 'Dipinjam',
+                    'dikembalikan' => 'Dikembalikan',
+                    'hilang' => 'Hilang',
+                ])
+                ->required(),
+            \Filament\Schemas\Components\DatePicker::make('tanggal_pinjam')
+                ->required(),
+            \Filament\Schemas\Components\DatePicker::make('tanggal_jatuh_tempo')
+                ->required(),
+            \Filament\Schemas\Components\DatePicker::make('tanggal_kembali'),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -120,8 +137,15 @@ class RiwayatPengembalianResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('status', 'dipinjam')->where('tanggal_jatuh_tempo', '<', Carbon::now()->startOfDay()))
                     ->toggle(),
             ])
-            ->actions([])
-            ->bulkActions([]);
+            ->actions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
     }
 
     public static function getEloquentQuery(): Builder
