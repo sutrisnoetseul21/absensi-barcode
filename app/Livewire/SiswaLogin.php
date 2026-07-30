@@ -62,7 +62,7 @@ class SiswaLogin extends Component
             RateLimiter::clear($key);
             session()->regenerate();
 
-            return redirect()->intended('/siswa');
+            return redirect()->intended('/portal-siswa');
         }
 
         RateLimiter::hit($key);

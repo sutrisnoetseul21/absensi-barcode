@@ -25,10 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function (Request $request) {
             $user = Auth::guard('web')->user();
             if ($user && $user->hasRole('wali_kelas')) {
-                return '/wali-kelas';
+                return '/portal-guru';
             }
             if ($user && $user->hasRole('siswa')) {
-                return '/siswa';
+                return '/portal-siswa';
+            }
+            if ($user && ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan'))) {
+                return '/portal-perpustakaan';
             }
             return '/admin';
         });

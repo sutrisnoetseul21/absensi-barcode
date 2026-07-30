@@ -49,7 +49,7 @@ class WaliKelasLogin extends Component
             RateLimiter::clear($key);
             session()->regenerate();
 
-            return redirect()->intended('/wali-kelas');
+            return redirect()->intended('/portal-guru');
         }
 
         RateLimiter::hit($key);
