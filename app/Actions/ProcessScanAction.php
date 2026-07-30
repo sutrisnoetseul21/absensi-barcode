@@ -24,23 +24,23 @@ class ProcessScanAction
             return ['status' => 'duplicate_request'];
         }
 
-        // 2. Pencarian Siswa
-        if ($type === 'nis') {
-            $siswa = Siswa::with(['enrollmentAktif', 'presensiProfile'])->where('nis', $barcode)->first();
-        } else {
-            // Default: NISN (barcode_code = nisn)
-            $siswa = Siswa::with(['enrollmentAktif', 'presensiProfile'])
-                ->whereHas('presensiProfile', function($query) use ($barcode) {
-                    $query->where('barcode_code', $barcode);
-                })->first();
-        }
+        // 2. Pencarian Siswa (Pencarian Fleksibel: NISN, NIS, atau barcode_code)
+        $siswa = Siswa::with(['enrollmentAktif', 'presensiProfile'])
+            ->where(function($query) use ($barcode) {
+                $query->where('nisn', $barcode)
+                      ->orWhere('nis', $barcode)
+                      ->orWhereHas('presensiProfile', function($subQuery) use ($barcode) {
+                          $subQuery->where('barcode_code', $barcode);
+                      });
+            })->first();
 
         if (!$siswa) {
             $this->logAttempt($barcode, null, 'not_found', $now, $ipAddress);
             return ['status' => 'not_found'];
         }
 
-        if (!$siswa->barcode_active) {
+        $isBarcodeActive = $siswa->presensiProfile ? $siswa->presensiProfile->barcode_active : true;
+        if (!$isBarcodeActive) {
             $this->logAttempt($barcode, $siswa->id, 'barcode_inactive', $now, $ipAddress);
             return ['status' => 'barcode_inactive'];
         }
