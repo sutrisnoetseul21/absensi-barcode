@@ -285,6 +285,8 @@
                 selectedCameraId: '',
                 html5QrcodeScanner: null,
                 lastCameraScanTime: 0,
+                candidateCameraCode: null,
+                candidateCameraCount: 0,
                 
                 initKiosk() {
                     this.refocusInterval = setInterval(() => {
@@ -327,6 +329,10 @@
                         this.activateKiosk();
                     }
 
+                    // Reset candidate counter
+                    this.candidateCameraCode = null;
+                    this.candidateCameraCount = 0;
+
                     // 1. Cek ketersediaan navigator.mediaDevices
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                         alert('Browser Anda memblokir akses kamera (perlu HTTPS atau alamat http://localhost:8001).');
@@ -352,7 +358,11 @@
                             if (this.html5QrcodeScanner) {
                                 await this.html5QrcodeScanner.stop().catch(() => {});
                             }
-                            this.html5QrcodeScanner = new Html5Qrcode("reader-nis");
+                            this.html5QrcodeScanner = new Html5Qrcode("reader-nis", {
+                                experimentalFeatures: {
+                                    useBarCodeDetectorIfSupported: true
+                                }
+                            });
 
                             // Jika ada kamera yang terdaftar gunakan ID-nya, jika tidak gunakan facingMode
                             const cameraConfig = (this.cameraList.length > 0 && this.selectedCameraId)
@@ -362,9 +372,9 @@
                             await this.html5QrcodeScanner.start(
                                 cameraConfig,
                                 {
-                                    fps: 10,
-                                    qrbox: { width: 200, height: 200 },
-                                    aspectRatio: 1.0
+                                    fps: 15,
+                                    qrbox: { width: 250, height: 140 }, // Rasio memanjang pas untuk Barcode Batang 1D
+                                    aspectRatio: 1.333333
                                 },
                                 (decodedText) => {
                                     this.onCameraScan(decodedText);
@@ -377,7 +387,7 @@
                                 const fallbackConfig = { facingMode: "environment" };
                                 await this.html5QrcodeScanner.start(
                                     fallbackConfig,
-                                    { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
+                                    { fps: 15, qrbox: { width: 250, height: 140 }, aspectRatio: 1.333333 },
                                     (decodedText) => { this.onCameraScan(decodedText); },
                                     () => {}
                                 );
@@ -413,14 +423,32 @@
                 },
                 
                 onCameraScan(decodedText) {
+                    const cleanCode = decodedText ? decodedText.trim() : '';
+                    if (!cleanCode || cleanCode.length < 3) return;
+
                     const now = Date.now();
-                    // Cooldown 3 detik per scan kamera
+                    // Cooldown 3 detik antar submit
                     if (now - this.lastCameraScanTime < 3000) return;
                     if (this.isLoading) return;
 
-                    this.lastCameraScanTime = now;
-                    this.barcode = decodedText;
-                    this.submitScan();
+                    // Konfirmasi Pembacaan Ganda (Double Verification) agar barcode 1D terbaca stabil & utuh
+                    if (this.candidateCameraCode !== cleanCode) {
+                        this.candidateCameraCode = cleanCode;
+                        this.candidateCameraCount = 1;
+                        return;
+                    } else {
+                        this.candidateCameraCount++;
+                    }
+
+                    // Hanya kirim ke server setelah terbaca stabil (2 frame berturut-turut persis sama)
+                    if (this.candidateCameraCount >= 2) {
+                        this.lastCameraScanTime = now;
+                        this.candidateCameraCode = null;
+                        this.candidateCameraCount = 0;
+
+                        this.barcode = cleanCode;
+                        this.submitScan();
+                    }
                 },
                 
                 activateKiosk() {
