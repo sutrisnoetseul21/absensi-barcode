@@ -72,14 +72,15 @@ class BukuForm
                         Select::make('grade_level')
                             ->label('Jenjang (Grade)')
                             ->options([
+                                'umum' => 'Semua Jenjang / Umum',
                                 '7' => 'Kelas 7',
                                 '8' => 'Kelas 8',
                                 '9' => 'Kelas 9',
-                                '10' => 'Kelas 10',
-                                '11' => 'Kelas 11',
-                                '12' => 'Kelas 12',
                             ])
-                            ->nullable(),
+                            ->placeholder('Pilih Jenjang')
+                            ->nullable()
+                            ->formatStateUsing(fn ($state) => $state !== null ? (string)$state : 'umum')
+                            ->dehydrateStateUsing(fn ($state) => $state === 'umum' ? null : $state),
                     ])->columns(2)->columnSpanFull(),
 
                     Placeholder::make('call_number')
