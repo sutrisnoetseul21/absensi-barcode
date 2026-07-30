@@ -12,21 +12,25 @@
         </a>
     </div>
 
-    <!-- Scan Circulation Widget Card (Clean & Light Mode) -->
-    <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-sm space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+    <!-- Scan Circulation Widget Card (Vibrant Brand Gradient Theme) -->
+    <div class="relative bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary border border-brand-primary/40 rounded-3xl p-6 lg:p-8 text-white shadow-2xl overflow-hidden space-y-6">
+        <!-- Decorative Glow Blobs -->
+        <div class="absolute -top-12 -right-12 w-80 h-80 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-80 h-80 bg-brand-secondary/20 rounded-full filter blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/20">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center font-bold shadow-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-extrabold text-slate-900">Terminal Transaksi Sirkulasi</h3>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Langkah 1: Identifikasi Anggota &rarr; Langkah 2: Scan Barcode Buku</p>
+                    <h3 class="text-xl lg:text-2xl font-extrabold text-white tracking-tight">Terminal Transaksi Sirkulasi</h3>
+                    <p class="text-xs text-indigo-100/90 font-medium mt-0.5">Langkah 1: Identifikasi Anggota &rarr; Langkah 2: Scan Barcode Buku</p>
                 </div>
             </div>
 
             @if($peminjamNama)
-                <button type="button" wire:click="resetPeminjam" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors">
+                <button type="button" wire:click="resetPeminjam" class="px-4 py-2 bg-rose-500/25 hover:bg-rose-500/40 text-white border border-rose-300/40 rounded-xl text-xs font-extrabold backdrop-blur-md transition-all shadow">
                     Reset Peminjam
                 </button>
             @endif
@@ -34,42 +38,42 @@
 
         <!-- Feedback Alert -->
         @if($feedbackMessage)
-            <div class="p-4 rounded-2xl text-xs font-bold border flex items-center justify-between {{ $feedbackType === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800' }}">
-                <div class="flex items-center gap-2">
+            <div class="relative z-10 p-4 rounded-2xl text-xs font-bold border backdrop-blur-md flex items-center justify-between shadow-md {{ $feedbackType === 'success' ? 'bg-emerald-500/20 border-emerald-300/40 text-emerald-100' : 'bg-rose-500/20 border-rose-300/40 text-rose-100' }}">
+                <div class="flex items-center gap-2.5">
                     @if($feedbackType === 'success')
-                        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <div class="w-6 h-6 rounded-full bg-emerald-400 text-slate-950 font-bold flex items-center justify-center">✓</div>
                     @else
-                        <svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="w-6 h-6 rounded-full bg-rose-400 text-slate-950 font-bold flex items-center justify-center">!</div>
                     @endif
-                    <span>{{ $feedbackMessage }}</span>
+                    <span class="text-sm">{{ $feedbackMessage }}</span>
                 </div>
-                <button type="button" wire:click="$set('feedbackMessage', null)" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+                <button type="button" wire:click="$set('feedbackMessage', null)" class="text-white/80 hover:text-white font-bold text-lg">&times;</button>
             </div>
         @endif
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Step 1: Scan Kartu Anggota -->
-            <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 space-y-3">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[11px] font-extrabold flex items-center justify-center">1</span>
-                    <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Scan Kartu Anggota (NISN / NIS / NIP)</label>
+            <div class="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/25 space-y-3.5 shadow-lg">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-full bg-white text-slate-900 text-xs font-extrabold flex items-center justify-center shadow-md">1</span>
+                    <label class="block text-xs font-extrabold text-white uppercase tracking-wider">Scan Kartu Anggota (NISN / NIS / NIP)</label>
                 </div>
                 
                 @if($peminjamNama)
-                    <div class="p-3.5 bg-white border border-emerald-300 rounded-xl flex items-center gap-3 shadow-sm">
-                        <div class="w-10 h-10 rounded-xl bg-brand-primary text-white font-extrabold flex items-center justify-center text-xs shadow-sm">
+                    <div class="p-4 bg-white/20 border border-white/35 rounded-xl flex items-center gap-3.5 shadow-inner backdrop-blur-md">
+                        <div class="w-11 h-11 rounded-xl bg-white text-slate-900 font-extrabold flex items-center justify-center text-sm shadow">
                             {{ strtoupper(substr($peminjamNama, 0, 2)) }}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-bold text-slate-900 truncate">{{ $peminjamNama }}</h4>
-                            <p class="text-xs text-slate-500 truncate">{{ $peminjamSub }}</p>
+                            <h4 class="text-sm font-extrabold text-white truncate">{{ $peminjamNama }}</h4>
+                            <p class="text-xs text-indigo-100 font-medium truncate">{{ $peminjamSub }}</p>
                         </div>
-                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md uppercase">Terverifikasi</span>
+                        <span class="px-2.5 py-1 bg-emerald-400 text-slate-950 text-[10px] font-extrabold rounded-lg uppercase shadow-sm">Terverifikasi</span>
                     </div>
                 @else
                     <form wire:submit.prevent="processScanPeminjam" class="flex gap-2">
-                        <input wire:model="barcodeAnggota" type="text" placeholder="Scan/ketik NISN, NIS, atau NIP..." class="flex-1 px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary shadow-sm font-medium">
-                        <button type="submit" class="px-4 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/20 transition-all">
+                        <input wire:model="barcodeAnggota" type="text" placeholder="Scan/ketik NISN, NIS, atau NIP..." class="flex-1 px-4 py-3 bg-white text-slate-900 font-semibold placeholder-slate-400 border-2 border-white/60 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-white/40 focus:border-white focus:bg-white shadow-md transition-all">
+                        <button type="submit" class="px-5 py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-extrabold shadow-lg transition-transform hover:scale-[1.02]">
                             Cari
                         </button>
                     </form>
@@ -77,14 +81,14 @@
             </div>
 
             <!-- Step 2: Scan Barcode Buku -->
-            <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 space-y-3">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full {{ $peminjamId ? 'bg-brand-primary text-white' : 'bg-slate-300 text-slate-600' }} text-[11px] font-extrabold flex items-center justify-center">2</span>
-                    <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Scan Kode Eksemplar Buku</label>
+            <div class="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/25 space-y-3.5 shadow-lg">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-full {{ $peminjamId ? 'bg-white text-slate-900' : 'bg-white/30 text-white/70' }} text-xs font-extrabold flex items-center justify-center shadow-md">2</span>
+                    <label class="block text-xs font-extrabold text-white uppercase tracking-wider">Scan Kode Eksemplar Buku</label>
                 </div>
                 <form wire:submit.prevent="processScanBuku" class="flex gap-2">
-                    <input wire:model="barcodeBuku" type="text" placeholder="Scan/ketik kode eksemplar (misal: UMM00001)..." class="flex-1 px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary shadow-sm font-medium {{ !$peminjamId ? 'opacity-60 bg-slate-100 cursor-not-allowed' : '' }}" {{ !$peminjamId ? 'disabled' : '' }}>
-                    <button type="submit" class="px-4 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/20 transition-all {{ !$peminjamId ? 'opacity-50 cursor-not-allowed' : '' }}" {{ !$peminjamId ? 'disabled' : '' }}>
+                    <input wire:model="barcodeBuku" type="text" placeholder="Scan/ketik kode eksemplar (misal: UMM00001)..." class="flex-1 px-4 py-3 bg-white text-slate-900 font-semibold placeholder-slate-400 border-2 border-white/60 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-white/40 focus:border-white focus:bg-white shadow-md transition-all {{ !$peminjamId ? 'opacity-60 bg-white/70 cursor-not-allowed' : '' }}" {{ !$peminjamId ? 'disabled' : '' }}>
+                    <button type="submit" class="px-5 py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-extrabold shadow-lg transition-transform hover:scale-[1.02] {{ !$peminjamId ? 'opacity-50 cursor-not-allowed' : '' }}" {{ !$peminjamId ? 'disabled' : '' }}>
                         Proses
                     </button>
                 </form>

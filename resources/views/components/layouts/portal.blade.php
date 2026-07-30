@@ -41,7 +41,7 @@
             </style>
         @endif
     </head>
-    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex h-screen overflow-hidden" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('portal_sidebar_collapsed') === 'true' }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val))">
         
         @php
             $user = Auth::guard('web')->user();
@@ -81,35 +81,47 @@
              @click="sidebarOpen = false" style="display: none;"></div>
 
         <!-- Sidebar -->
-        <aside class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200/80 flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none"
-               :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}">
+        <aside class="fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200/80 flex flex-col transform transition-all duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none"
+               :class="{
+                   'translate-x-0': sidebarOpen, 
+                   '-translate-x-full': !sidebarOpen,
+                   'w-72 lg:w-72': !sidebarCollapsed,
+                   'w-72 lg:w-20': sidebarCollapsed
+               }">
             
             <!-- Sidebar Header (Brand Gradient) -->
-            <div class="flex items-center justify-between h-20 px-6 bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-sm">
-                <div class="flex items-center gap-3">
+            <div class="flex items-center justify-between h-20 bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-sm transition-all duration-300"
+                 :class="sidebarCollapsed ? 'px-3 justify-center' : 'px-6'">
+                <div class="flex items-center gap-3 overflow-hidden">
                     @if($sekolah?->school_logo_path)
-                        <div class="h-10 w-10 bg-white p-1 rounded-xl shadow-md flex items-center justify-center">
+                        <div class="h-10 w-10 min-w-10 bg-white p-1 rounded-xl shadow-md flex items-center justify-center">
                             <img src="{{ asset('storage/' . $sekolah->school_logo_path) }}" alt="Logo" class="h-full w-full object-contain">
                         </div>
                     @else
-                        <div class="h-10 w-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/30 shadow-sm">
+                        <div class="h-10 w-10 min-w-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/30 shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                         </div>
                     @endif
-                    <div class="flex flex-col">
-                        <span class="font-extrabold text-white text-base leading-tight truncate w-40 tracking-tight">{{ $sekolah?->school_name ?? 'ERP Sekolah' }}</span>
-                        <span class="text-[10px] text-indigo-100 font-bold tracking-widest uppercase opacity-90">Portal {{ $userRole }}</span>
+                    <div class="flex flex-col" x-show="!sidebarCollapsed" x-transition.opacity>
+                        <span class="font-extrabold text-white text-base leading-tight truncate w-36 tracking-tight">{{ $sekolah?->school_name ?? 'ERP Sekolah' }}</span>
+                        <span class="text-[10px] text-indigo-100 font-bold tracking-widest uppercase opacity-90 truncate">Portal {{ $userRole }}</span>
                     </div>
                 </div>
+
+                <!-- Desktop Garis Tiga Toggle Button -->
+                <button @click="sidebarCollapsed = !sidebarCollapsed" class="hidden lg:flex p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors focus:outline-none" :title="sidebarCollapsed ? 'Perluas Sidebar' : 'Minimize Sidebar'">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </button>
+
                 <!-- Mobile close button -->
-                <button @click="sidebarOpen = false" class="lg:hidden text-white/80 hover:text-white">
+                <button @click="sidebarOpen = false" class="lg:hidden text-white/80 hover:text-white p-1">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
 
             <!-- Sidebar Navigation -->
-            <div class="flex-1 overflow-y-auto px-4 py-6 space-y-1.5 bg-white">
-                <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Modul Perpustakaan</p>
+            <div class="flex-1 overflow-y-auto py-6 space-y-1.5 bg-white transition-all duration-300" :class="sidebarCollapsed ? 'px-2' : 'px-4'">
+                <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!sidebarCollapsed" x-transition.opacity>Modul ERP</p>
                 
                 @if($isPerpusRoute)
                     @php
@@ -121,99 +133,114 @@
                     @endphp
 
                     <!-- Menu Dashboard -->
-                    <a href="{{ route('portal-perpustakaan.dashboard') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isDashboard ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ route('portal-perpustakaan.dashboard') }}" 
+                       :title="sidebarCollapsed ? 'Dashboard Perpustakaan' : ''"
+                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboard ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDashboard ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         </div>
-                        <span class="text-sm">Dashboard Perpustakaan</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Dashboard</span>
                     </a>
 
                     <!-- Menu Katalog & Input Buku -->
-                    <a href="{{ route('portal-perpustakaan.buku') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isBuku ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ route('portal-perpustakaan.buku') }}" 
+                       :title="sidebarCollapsed ? 'Katalog & Input Buku' : ''"
+                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isBuku ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isBuku ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         </div>
-                        <span class="text-sm">Katalog & Input Buku</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Katalog & Input Buku</span>
                     </a>
 
                     <!-- Menu Inventaris Buku -->
-                    <a href="{{ route('portal-perpustakaan.inventaris') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isInventaris ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ route('portal-perpustakaan.inventaris') }}" 
+                       :title="sidebarCollapsed ? 'Inventaris Buku' : ''"
+                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isInventaris ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isInventaris ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                         </div>
-                        <span class="text-sm">Inventaris Buku</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Inventaris Buku</span>
                     </a>
 
                     <!-- Menu Sirkulasi Peminjaman -->
-                    <a href="{{ route('portal-perpustakaan.sirkulasi') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isSirkulasi ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ route('portal-perpustakaan.sirkulasi') }}" 
+                       :title="sidebarCollapsed ? 'Sirkulasi & Peminjaman' : ''"
+                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSirkulasi ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isSirkulasi ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                         </div>
-                        <span class="text-sm">Sirkulasi & Peminjaman</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Sirkulasi Peminjaman</span>
                     </a>
 
                     <!-- Menu Presensi Kunjungan -->
-                    <a href="{{ route('portal-perpustakaan.kunjungan') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isKunjungan ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ route('portal-perpustakaan.kunjungan') }}" 
+                       :title="sidebarCollapsed ? 'Riwayat Presensi Kunjungan' : ''"
+                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isKunjungan ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isKunjungan ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <span class="text-sm">Riwayat Presensi Kunjungan</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Riwayat Presensi</span>
                     </a>
                 @elseif($user && $user->hasRole('siswa'))
                     @php
                         $isProfilActive = request()->routeIs('portal-siswa.profil');
                         $isDashboardActive = request()->routeIs('portal-siswa.dashboard');
                     @endphp
-                    <a href="{{ $activeDashboard }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ $activeDashboard }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <span class="text-sm">Presensi & Akademik</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Presensi & Akademik</span>
                     </a>
 
-                    <a href="{{ route('portal-siswa.profil') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                    <a href="{{ route('portal-siswa.profil') }}" :title="sidebarCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         </div>
-                        <span class="text-sm">Profil Saya</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Profil Saya</span>
                     </a>
                 @else
-                    <a href="{{ $activeDashboard }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30 transition-all group">
+                    <a href="{{ $activeDashboard }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30 transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg bg-white/20 text-white group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <span class="text-sm">Presensi & Akademik</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Presensi & Akademik</span>
                     </a>
 
-                    <a href="{{ route('portal-perpustakaan.dashboard') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium transition-all group">
+                    <a href="{{ route('portal-perpustakaan.dashboard') }}" :title="sidebarCollapsed ? 'Portal Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-600 transition-colors">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         </div>
-                        <span class="text-sm">Portal Perpustakaan</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Portal Perpustakaan</span>
                     </a>
                 @endif
             </div>
 
             <!-- Sidebar Footer (User Info & Logout) -->
-            <div class="p-4 border-t border-slate-200/80 bg-slate-50">
-                <div class="flex items-center gap-3 mb-4 px-2">
+            <div class="p-4 border-t border-slate-200/80 bg-slate-50 transition-all duration-300">
+                <div class="flex items-center gap-3 mb-4" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-2'">
                     @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
-                        <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-brand-primary/20 border border-slate-200">
+                        <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-brand-primary/20 border border-slate-200 min-w-10">
                     @else
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold shadow-md shadow-brand-primary/20">
+                        <div class="w-10 h-10 min-w-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold shadow-md shadow-brand-primary/20">
                             {{ substr($userName, 0, 1) }}
                         </div>
                     @endif
-                    <div class="flex flex-col overflow-hidden">
+                    <div class="flex flex-col overflow-hidden" x-show="!sidebarCollapsed" x-transition.opacity>
                         <span class="text-sm font-bold text-slate-900 truncate">{{ $userName }}</span>
-                        <span class="text-xs text-slate-500 truncate">Hak Akses: {{ $userRole }}</span>
+                        <span class="text-xs text-slate-500 truncate">{{ $userRole }}</span>
                     </div>
                 </div>
                 <form action="{{ $logoutRoute }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm">
+                    <button type="submit" :title="sidebarCollapsed ? 'Keluar Portal' : ''" class="w-full flex items-center justify-center gap-2 py-2.5 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm" :class="sidebarCollapsed ? 'px-0' : 'px-4'">
                         <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        Keluar Portal
+                        <span x-show="!sidebarCollapsed" x-transition.opacity>Keluar Portal</span>
                     </button>
                 </form>
             </div>
@@ -222,16 +249,26 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-y-auto">
             
-            <!-- Mobile Topbar -->
-            <div class="lg:hidden flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
+            <!-- Topbar Header with Garis Tiga Toggle Button for Desktop & Mobile -->
+            <div class="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white border-b border-slate-200/80 shadow-xs">
                 <div class="flex items-center gap-3">
-                    <button @click="sidebarOpen = true" class="text-gray-500 hover:text-brand-primary focus:outline-none p-1 rounded-md hover:bg-gray-100 transition-colors">
-                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    <!-- Mobile Hamburger -->
+                    <button @click="sidebarOpen = true" class="lg:hidden text-slate-600 hover:text-brand-primary focus:outline-none p-2 rounded-xl hover:bg-slate-100 transition-colors">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
-                    <span class="font-bold text-gray-800">Menu Portal</span>
+
+                    <!-- Desktop Garis Tiga Toggle Button (shown when sidebar is collapsed or anytime) -->
+                    <button @click="sidebarCollapsed = !sidebarCollapsed" class="hidden lg:flex items-center gap-2 text-slate-600 hover:text-brand-primary p-2 rounded-xl hover:bg-slate-100 transition-colors" title="Toggle Sidebar Navbar">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        <span class="text-xs font-bold text-slate-600 hidden sm:inline" x-text="sidebarCollapsed ? 'Buka Sidebar' : 'Kecilkan Sidebar'"></span>
+                    </button>
                 </div>
-                <div class="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-bold text-sm">
-                    {{ substr($userName, 0, 1) }}
+
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-semibold text-slate-500 hidden sm:inline">User: <strong class="text-slate-800">{{ $userName }}</strong></span>
+                    <div class="w-9 h-9 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary font-bold text-sm shadow-xs">
+                        {{ substr($userName, 0, 1) }}
+                    </div>
                 </div>
             </div>
 
