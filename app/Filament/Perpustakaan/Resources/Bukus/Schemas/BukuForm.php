@@ -83,11 +83,6 @@ class BukuForm
                             ->dehydrateStateUsing(fn ($state) => $state === 'umum' ? null : $state),
                     ])->columns(2)->columnSpanFull(),
 
-                    Placeholder::make('call_number')
-                        ->label('Call Number (Otomatis)')
-                        ->content(fn ($record) => $record ? new \Illuminate\Support\HtmlString(nl2br(e($record->call_number))) : '-')
-                        ->columnSpanFull(),
-
                     Group::make()->schema([
                         TextInput::make('penulis')
                             ->nullable(),
@@ -132,8 +127,9 @@ class BukuForm
                             ->minValue(1)
                             ->required(),
                         TextInput::make('prefix_kode')
-                            ->label('Prefix Kode')
-                            ->default('UMM')
+                            ->label('Prefix Kode/Singkatan Buku')
+                            ->placeholder('Misal: INF, MAT, UMM')
+                            ->helperText('Contoh: INF untuk Informatika, MAT untuk Matematika')
                             ->maxLength(10)
                             ->required(),
                     ])

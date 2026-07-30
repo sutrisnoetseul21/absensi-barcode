@@ -39,7 +39,12 @@ class Peminjaman extends Model
 
     public function eksemplarBuku(): BelongsTo
     {
-        return $this->belongsTo(EksemplarBuku::class, 'eksemplar_id');
+        return $this->belongsTo(EksemplarBuku::class, 'eksemplar_id')->withTrashed();
+    }
+
+    public function eksemplar(): BelongsTo
+    {
+        return $this->belongsTo(EksemplarBuku::class, 'eksemplar_id')->withTrashed();
     }
 
     public function peminjam(): MorphTo

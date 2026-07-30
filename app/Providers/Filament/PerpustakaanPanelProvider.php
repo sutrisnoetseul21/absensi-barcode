@@ -67,7 +67,10 @@ class PerpustakaanPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
             ])
             ->navigationGroups([
-                'Perpustakaan',
+                'Koleksi Buku',
+                'Sirkulasi',
+                'Keanggotaan',
+                'Laporan',
                 'Pengaturan',
             ])
             ->discoverResources(in: app_path('Filament/Perpustakaan/Resources'), for: 'App\Filament\Perpustakaan\Resources')

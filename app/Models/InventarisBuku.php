@@ -24,7 +24,7 @@ class InventarisBuku extends Model
 
     public function buku(): BelongsTo
     {
-        return $this->belongsTo(Buku::class, 'buku_id');
+        return $this->belongsTo(Buku::class, 'buku_id')->withTrashed();
     }
 
     public function eksemplarBukus(): HasMany

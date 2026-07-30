@@ -28,6 +28,10 @@ class KlasifikasiDdcResource extends Resource
 
     protected static ?string $navigationLabel = 'Klasifikasi DDC';
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
+
+    protected static ?int $navigationSort = 3;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'kategori';

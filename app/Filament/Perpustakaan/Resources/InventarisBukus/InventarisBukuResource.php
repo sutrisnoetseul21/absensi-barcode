@@ -24,6 +24,10 @@ class InventarisBukuResource extends Resource
 
     protected static ?string $slug = 'inventaris-buku';
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
+
+    protected static ?int $navigationSort = 4;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function form(Schema $schema): Schema

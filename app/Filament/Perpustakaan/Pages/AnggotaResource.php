@@ -25,8 +25,8 @@ class AnggotaResource extends Page implements HasTable
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'Anggota';
     protected static ?string $title = 'Anggota Perpustakaan';
-    protected static \UnitEnum|string|null $navigationGroup = null;
-    protected static ?int $navigationSort = 2;
+    protected static \UnitEnum|string|null $navigationGroup = 'Keanggotaan';
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.perpustakaan.pages.anggota-resource';
 

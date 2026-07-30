@@ -81,6 +81,35 @@ class InventarisBukusTable
                             ->body('Entri inventaris berhasil dibatalkan dan eksemplar terkait dihapus.')
                             ->send();
                     }),
+                Action::make('pulihkan_entri')
+                    ->label('Pulihkan Entri')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Pulihkan Entri Inventaris')
+                    ->modalDescription('Apakah Anda yakin ingin memulihkan entri inventaris ini? Eksemplar buku yang dibatalkan akan dikembalikan ke status tersedia.')
+                    ->visible(fn ($record) => $record->status === 'dibatalkan')
+                    ->action(function ($record) {
+                        // 1. Restore Master Buku jika sedang dalam kondisi terhapus (soft-deleted)
+                        if ($record->buku && $record->buku->trashed()) {
+                            $record->buku->restore();
+                        }
+
+                        // 2. Restore eksemplar buku yang di soft-delete
+                        $record->eksemplarBukus()->withTrashed()->restore();
+
+                        // 3. Ubah status inventaris menjadi aktif kembali
+                        $record->update([
+                            'status' => 'aktif',
+                            'alasan_pembatalan' => null,
+                        ]);
+
+                        Notification::make()
+                            ->success()
+                            ->title('Berhasil Dipulihkan')
+                            ->body('Entri inventaris, eksemplar, dan katalog buku terkait berhasil dipulihkan secara utuh.')
+                            ->send();
+                    }),
             ])
             ->toolbarActions([]);
     }

@@ -20,35 +20,100 @@ class PeminjamanAktifResource extends Resource
 {
     protected static ?string $model = Peminjaman::class;
 
+    protected static ?string $slug = 'peminjaman';
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     
     protected static string | \UnitEnum | null $navigationGroup = 'Sirkulasi';
     protected static ?int $navigationSort = 1;
-    protected static ?string $modelLabel = 'Peminjaman Aktif';
-    protected static ?string $pluralModelLabel = 'Peminjaman Aktif';
+    protected static ?string $modelLabel = 'Peminjaman';
+    protected static ?string $pluralModelLabel = 'Peminjaman';
     protected static ?string $navigationLabel = 'Peminjaman';
     
-    // Nonaktifkan create button karena peminjaman via kiosk
     public static function canCreate(): bool
     {
-        return false;
+        return true;
     }
 
     public static function form(Schema $schema): Schema
     {
+        $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
+
         return $schema->schema([
+            \Filament\Forms\Components\Select::make('peminjam_type')
+                ->label('Tipe Anggota')
+                ->options([
+                    'siswa' => 'Siswa',
+                    'guru' => 'Guru / Staff',
+                ])
+                ->required()
+                ->live(),
+
+            \Filament\Forms\Components\Select::make('peminjam_id')
+                ->label('Peminjam / Kartu Anggota')
+                ->placeholder('Pindai Barcode Kartu atau Ketik Nama / NISN / NIS / NIP')
+                ->helperText('Klik kolom ini lalu scan Kartu Anggota atau ketik pencarian.')
+                ->options(function ($get) {
+                    $type = $get('peminjam_type');
+                    if ($type === 'guru') {
+                        return \App\Models\Guru::orderBy('name')
+                            ->get()
+                            ->mapWithKeys(fn ($guru) => [$guru->id => $guru->name . ($guru->nip ? " (NIP: {$guru->nip})" : '')]);
+                    }
+                    return \App\Models\Siswa::orderBy('name')
+                        ->get()
+                        ->mapWithKeys(function ($siswa) {
+                            $info = [];
+                            if ($siswa->nisn) $info[] = "NISN: {$siswa->nisn}";
+                            if ($siswa->nis) $info[] = "NIS: {$siswa->nis}";
+                            $extra = count($info) > 0 ? ' (' . implode(' | ', $info) . ')' : '';
+                            return [$siswa->id => "{$siswa->name}{$extra}"];
+                        });
+                })
+                ->searchable()
+                ->preload()
+                ->required()
+                ->disabled(fn ($get) => ! $get('peminjam_type')),
+
+            \Filament\Forms\Components\Select::make('eksemplar_id')
+                ->label('Buku & Eksemplar (Tersedia)')
+                ->placeholder('Pindai Barcode Buku atau Ketik Judul / Kode Eksemplar')
+                ->helperText('Klik kolom ini lalu scan label barcode di fisik buku.')
+                ->options(function () {
+                    return \App\Models\EksemplarBuku::with('buku')
+                        ->where('status', 'tersedia')
+                        ->get()
+                        ->mapWithKeys(function ($item) {
+                            $judul = $item->buku->judul ?? 'Tanpa Judul';
+                            return [$item->id => "{$judul} - [Kode: {$item->kode_eksemplar}]"];
+                        });
+                })
+                ->searchable()
+                ->preload()
+                ->required(),
+
+            \Filament\Forms\Components\DatePicker::make('tanggal_pinjam')
+                ->label('Tanggal Pinjam')
+                ->default(now())
+                ->required(),
+
+            \Filament\Forms\Components\DatePicker::make('tanggal_jatuh_tempo')
+                ->label('Tanggal Jatuh Tempo')
+                ->default(now()->addDays($lamaPinjam))
+                ->required(),
+
             \Filament\Forms\Components\Select::make('status')
                 ->options([
                     'dipinjam' => 'Dipinjam',
                     'dikembalikan' => 'Dikembalikan',
                     'hilang' => 'Hilang',
                 ])
+                ->default('dipinjam')
                 ->required(),
-            \Filament\Forms\Components\DatePicker::make('tanggal_pinjam')
-                ->required(),
-            \Filament\Forms\Components\DatePicker::make('tanggal_jatuh_tempo')
-                ->required(),
-            \Filament\Forms\Components\DatePicker::make('tanggal_kembali'),
+
+            \Filament\Forms\Components\DatePicker::make('tanggal_kembali')
+                ->label('Tanggal Kembali')
+                ->visible(fn ($get) => $get('status') === 'dikembalikan'),
         ]);
     }
 
@@ -151,6 +216,11 @@ class PeminjamanAktifResource extends Resource
                             'status' => 'dikembalikan',
                             'tanggal_kembali' => now(),
                         ]);
+
+                        if ($record->eksemplar_id) {
+                            \App\Models\EksemplarBuku::where('id', $record->eksemplar_id)->update(['status' => 'tersedia']);
+                        }
+
                         \Filament\Notifications\Notification::make()
                             ->title('Buku berhasil dikembalikan')
                             ->success()
@@ -158,19 +228,18 @@ class PeminjamanAktifResource extends Resource
                     })
                     ->visible(fn (Peminjaman $record) => $record->status === 'dipinjam'),
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->after(function ($record) {
+                        if ($record->eksemplar_id) {
+                            \App\Models\EksemplarBuku::where('id', $record->eksemplar_id)->update(['status' => 'tersedia']);
+                        }
+                    }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->whereIn('status', ['dipinjam', 'terlambat']);
     }
 
     public static function getRelations(): array

@@ -26,6 +26,7 @@ class RiwayatPengembalianResource extends Resource
     protected static ?string $modelLabel = 'Riwayat Pengembalian';
     protected static ?string $pluralModelLabel = 'Riwayat Pengembalian';
     protected static ?string $navigationLabel = 'Pengembalian';
+    protected static bool $shouldRegisterNavigation = false;
     
     // Nonaktifkan create button karena peminjaman via kiosk
     public static function canCreate(): bool

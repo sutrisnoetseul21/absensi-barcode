@@ -20,19 +20,19 @@ class KategoriBukuResource extends Resource
 
     protected static ?string $slug = 'klasifikasi-buku';
 
-    protected static ?string $modelLabel = 'Klasifikasi Buku';
+    protected static ?string $modelLabel = 'Koleksi';
 
-    protected static ?string $pluralModelLabel = 'Klasifikasi Buku';
+    protected static ?string $pluralModelLabel = 'Koleksi';
 
-    protected static ?string $navigationLabel = 'Klasifikasi Buku';
+    protected static ?string $navigationLabel = 'Koleksi';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static bool $shouldRegisterNavigation = true;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Pengaturan';
+    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'nama_kategori';
 

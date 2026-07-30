@@ -10,6 +10,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -77,14 +78,39 @@ class BukusTable
                 EditAction::make(),
                 DeleteAction::make()
                     ->before(function (DeleteAction $action, $record) {
+                        // Tolak jika ada eksemplar yang sedang dipinjam
+                        if ($record->eksemplarBukus()->where('status', 'dipinjam')->exists()) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Gagal Menghapus')
+                                ->body('Buku ini tidak dapat dihapus karena ada eksemplar yang sedang dipinjam oleh siswa.')
+                                ->send();
+                            $action->halt();
+                        }
+
+                        // Tolak jika ada eksemplar yang memiliki riwayat peminjaman
                         if ($record->eksemplarBukus()->whereHas('peminjamans')->exists()) {
                             Notification::make()
                                 ->danger()
                                 ->title('Gagal Menghapus')
-                                ->body('Buku ini tidak dapat dihapus karena salah satu eksemplarnya memiliki riwayat peminjaman.')
+                                ->body('Buku ini tidak dapat dihapus karena salah satu eksemplarnya memiliki riwayat peminjaman di masa lalu.')
                                 ->send();
                             $action->halt();
                         }
+                    })
+                    ->after(function ($record) {
+                        // Soft delete eksemplar dan update status inventaris
+                        $record->eksemplarBukus()->delete();
+                        \App\Models\InventarisBuku::where('buku_id', $record->id)->update(['status' => 'dibatalkan']);
+                    }),
+                RestoreAction::make()
+                    ->after(function ($record) {
+                        // Restore eksemplar dan update status inventaris menjadi aktif
+                        $record->eksemplarBukus()->withTrashed()->restore();
+                        \App\Models\InventarisBuku::where('buku_id', $record->id)->update([
+                            'status' => 'aktif',
+                            'alasan_pembatalan' => null,
+                        ]);
                     }),
                 ForceDeleteAction::make()
                     ->before(function (ForceDeleteAction $action, $record) {
@@ -96,6 +122,11 @@ class BukusTable
                                 ->send();
                             $action->halt();
                         }
+                    })
+                    ->after(function ($record) {
+                        // Hapus fisik eksemplar dan inventaris terkait
+                        $record->eksemplarBukus()->withTrashed()->forceDelete();
+                        \App\Models\InventarisBuku::where('buku_id', $record->id)->delete();
                     }),
             ])
             ->toolbarActions([

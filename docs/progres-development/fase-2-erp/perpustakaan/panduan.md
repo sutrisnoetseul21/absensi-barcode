@@ -71,7 +71,11 @@ Halaman Kiosk adalah antarmuka utama Pustakawan untuk melayani transaksi di meja
 ### A. Dashboard Utama
 - Akses halaman depan `/admin-perpustakaan` untuk memantau ringkasan statistik (Buku Sedang Dipinjam, Peringatan Buku Terlambat, Total Stok Tersedia).
 
-### B. Riwayat Transaksi (Peminjaman)
-- Buka Menu **Perpustakaan > Riwayat Peminjaman**.
-- Anda dapat memfilter tabel berdasarkan **Tipe Anggota** (Guru/Siswa), **Rentang Waktu**, maupun **Status** (Terlambat, Dipinjam, Dikembalikan).
-- Tabel ini secara cerdas dan real-time akan menandai buku menjadi "Terlambat" (Badge Merah) apabila sudah melampaui tanggal jatuh tempo (default 7 hari sesuai setelan *Pengaturan Sekolah*).
+### B. Manajemen Sirkulasi & Peminjaman (Admin / Petugas)
+- Buka Menu **Sirkulasi > Peminjaman** (`/admin-perpustakaan/peminjaman`).
+- Terbagi menjadi **3 Tab Navigasi**:
+  1. **Peminjaman Aktif**: Memantau buku yang sedang dipinjam dan secara real-time menandai status "Terlambat" (Badge Merah) bila melampaui tanggal jatuh tempo.
+  2. **Dikembalikan**: Riwayat transaksi pengembalian buku.
+  3. **Semua Transaksi**: Log lengkap seluruh transaksi sirkulasi.
+- **Transaksi Peminjaman Manual**: Klik tombol **"+ New Peminjaman"**, scan/pilih Kartu Anggota (Siswa/Guru) & scan/pilih Barcode Buku.
+- **Pengembalian Buku**: Klik tombol **"Kembalikan"** pada baris peminjaman aktif untuk menyelesaikan pinjaman.
