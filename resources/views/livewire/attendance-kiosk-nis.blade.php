@@ -441,6 +441,10 @@
                         this.candidateCameraCount = 0;
 
                         this.submitScan(cleanCode);
+                        
+                        // Sesuai permintaan: Kamera langsung dimatikan setelah 1x scan, 
+                        // agar user harus membuka kamera lagi untuk siswa berikutnya
+                        this.stopCamera();
                     }
                 },
                 
