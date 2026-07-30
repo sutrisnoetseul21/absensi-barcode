@@ -1,13 +1,13 @@
 <div class="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
     <!-- Header Banner -->
-    <div class="bg-gradient-to-r from-teal-700 via-teal-800 to-indigo-900 rounded-3xl p-6 lg:p-8 text-white shadow-xl relative overflow-hidden">
+    <div class="bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary rounded-3xl p-6 lg:p-8 text-white shadow-xl relative overflow-hidden border border-brand-primary/30">
         <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Modul Perpustakaan ERP</span>
                 <h1 class="text-3xl lg:text-4xl font-extrabold mt-3 tracking-tight">Dashboard Petugas Perpustakaan</h1>
-                <p class="text-teal-100 text-sm mt-1">Selamat datang di sistem manajemen perpustakaan sekolah {{ $settings->school_name ?? 'Digital' }}.</p>
+                <p class="text-indigo-100/90 text-sm mt-1">Selamat datang di sistem manajemen perpustakaan sekolah {{ $settings->school_name ?? 'Digital' }}.</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
@@ -33,7 +33,7 @@
                     <h3 class="text-3xl font-extrabold text-slate-800 mt-1">{{ number_format($totalJudulBuku) }}</h3>
                     <p class="text-xs text-slate-500 mt-1">Judul Buku Terdaftar</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </div>
             </div>
@@ -47,7 +47,7 @@
                     <h3 class="text-3xl font-extrabold text-slate-800 mt-1">{{ number_format($totalEksemplar) }}</h3>
                     <p class="text-xs text-slate-500 mt-1"><span class="text-emerald-600 font-bold">{{ $eksemplarTersedia }} Tersedia</span> &bull; <span class="text-amber-600 font-bold">{{ $eksemplarDipinjam }} Dipinjam</span></p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                     <h3 class="text-base font-bold text-slate-800">Pinjaman Terlambat / Jatuh Tempo</h3>
                     <p class="text-xs text-slate-500">Perlu tindak lanjut atau penagihan ke siswa/guru</p>
                 </div>
-                <a href="{{ route('portal-perpustakaan.sirkulasi') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700">Lihat Semua &rarr;</a>
+                <a href="{{ route('portal-perpustakaan.sirkulasi') }}" class="text-xs font-bold text-brand-primary hover:underline">Lihat Semua &rarr;</a>
             </div>
 
             <div class="flex-1 overflow-x-auto">
@@ -142,7 +142,7 @@
                     <h3 class="text-base font-bold text-slate-800">Pengunjung Terbaru Hari Ini</h3>
                     <p class="text-xs text-slate-500">Hasil pemindaian Kiosk Presensi Kunjungan</p>
                 </div>
-                <a href="{{ route('portal-perpustakaan.kunjungan') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700">Lihat Log &rarr;</a>
+                <a href="{{ route('portal-perpustakaan.kunjungan') }}" class="text-xs font-bold text-brand-primary hover:underline">Lihat Log &rarr;</a>
             </div>
 
             <div class="flex-1 overflow-y-auto space-y-3">
@@ -155,7 +155,7 @@
                     @foreach($recentVisits as $visit)
                         <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs">
+                                <div class="w-10 h-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xs">
                                     {{ strtoupper(substr($visit->pengunjung?->name ?? 'P', 0, 2)) }}
                                 </div>
                                 <div>

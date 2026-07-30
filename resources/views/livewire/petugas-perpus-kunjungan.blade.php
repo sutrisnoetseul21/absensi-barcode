@@ -6,7 +6,7 @@
             <p class="text-slate-500 text-sm mt-1">Log kunjungan harian siswa & guru ke perpustakaan.</p>
         </div>
 
-        <a href="{{ route('perpustakaan.kunjungan') }}" target="_blank" class="px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2">
+        <a href="{{ route('perpustakaan.kunjungan') }}" target="_blank" class="px-5 py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-2xl font-bold text-xs shadow-lg shadow-brand-primary/20 transition-all flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
             Buka Kiosk Kunjungan
         </a>
@@ -16,13 +16,13 @@
     <div class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center gap-4 justify-between">
         <div class="relative w-full md:w-96">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari nama pengunjung..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600">
+            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari nama pengunjung..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
         </div>
 
         <div class="flex items-center gap-3 w-full md:w-auto">
-            <input wire:model.live="filterTanggal" type="date" class="py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600">
+            <input wire:model.live="filterTanggal" type="date" class="py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
             
-            <select wire:model.live="filterType" class="py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600">
+            <select wire:model.live="filterType" class="py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
                 <option value="">Semua Anggota</option>
                 <option value="siswa">Siswa</option>
                 <option value="guru">Guru / Staff</option>
@@ -47,7 +47,7 @@
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="p-4 pl-6">
                                 <span class="font-bold text-slate-900">{{ \Carbon\Carbon::parse($k->tanggal)->format('d M Y') }}</span>
-                                <span class="block text-[11px] font-mono text-teal-600 font-semibold mt-0.5">{{ \Carbon\Carbon::parse($k->waktu_masuk)->format('H:i:s') }}</span>
+                                <span class="block text-[11px] font-mono text-brand-primary font-semibold mt-0.5">{{ \Carbon\Carbon::parse($k->waktu_masuk)->format('H:i:s') }}</span>
                             </td>
                             <td class="p-4">
                                 <h4 class="font-bold text-slate-800 text-xs">{{ $k->pengunjung?->name ?? 'Pengunjung' }}</h4>
