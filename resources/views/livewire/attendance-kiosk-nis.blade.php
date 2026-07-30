@@ -285,6 +285,7 @@
                 selectedCameraId: '',
                 html5QrcodeScanner: null,
                 lastCameraScanTime: 0,
+                lastSuccessfulScanCode: null,
                 candidateCameraCode: null,
                 candidateCameraCount: 0,
                 
@@ -326,6 +327,7 @@
                     // Reset candidate counter
                     this.candidateCameraCode = null;
                     this.candidateCameraCount = 0;
+                    this.lastSuccessfulScanCode = null;
 
                     // 1. Cek ketersediaan navigator.mediaDevices
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -421,8 +423,17 @@
                     if (!cleanCode || cleanCode.length < 3) return;
 
                     const now = Date.now();
-                    // Cooldown 3 detik antar submit
-                    if (now - this.lastCameraScanTime < 3000) return;
+                    
+                    // ANTI-SPAM LOGIC:
+                    // Jika barcode SAMA dengan yang baru saja sukses discan, beri jeda panjang (6 detik)
+                    // agar tidak terus-terusan mengabsen orang yang sama jika kartunya belum dijauhkan.
+                    if (cleanCode === this.lastSuccessfulScanCode) {
+                        if (now - this.lastCameraScanTime < 6000) return;
+                    } else {
+                        // Jika barcode BEDA (siswa lain), cukup jeda 1 detik untuk menghindari request bersamaan
+                        if (now - this.lastCameraScanTime < 1000) return;
+                    }
+
                     if (this.isLoading) return;
 
                     // Konfirmasi Pembacaan Ganda (Double Verification) agar barcode 1D terbaca stabil & utuh
@@ -437,14 +448,12 @@
                     // Hanya kirim ke server setelah terbaca stabil (2 frame berturut-turut persis sama)
                     if (this.candidateCameraCount >= 2) {
                         this.lastCameraScanTime = now;
+                        this.lastSuccessfulScanCode = cleanCode;
                         this.candidateCameraCode = null;
                         this.candidateCameraCount = 0;
 
                         this.submitScan(cleanCode);
-                        
-                        // Sesuai permintaan: Kamera langsung dimatikan setelah 1x scan, 
-                        // agar user harus membuka kamera lagi untuk siswa berikutnya
-                        this.stopCamera();
+                        // Kamera dibiarkan tetap menyala untuk siswa berikutnya!
                     }
                 },
                 
