@@ -24,10 +24,11 @@ class ProcessScanAction
             return ['status' => 'duplicate_request'];
         }
 
-        // 2. Pencarian Siswa (Pencarian Fleksibel: NISN, NIS, atau barcode_code)
+        // 2. Pencarian Siswa (Pencarian Fleksibel: ID (UUID), NISN, NIS, atau barcode_code)
         $siswa = Siswa::with(['enrollmentAktif', 'presensiProfile'])
             ->where(function($query) use ($barcode) {
-                $query->where('nisn', $barcode)
+                $query->where('id', $barcode)
+                      ->orWhere('nisn', $barcode)
                       ->orWhere('nis', $barcode)
                       ->orWhereHas('presensiProfile', function($subQuery) use ($barcode) {
                           $subQuery->where('barcode_code', $barcode);

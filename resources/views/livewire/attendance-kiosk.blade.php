@@ -292,12 +292,6 @@
                     this.refocusInterval = setInterval(() => {
                         this.refocusInput();
                     }, 2000);
-                    
-                    this.$watch('barcode', (val) => {
-                        if (val.length >= 10 && this.isActive && !this.isLoading) {
-                            this.submitScan();
-                        }
-                    });
                 },
 
                 async toggleCamera() {
@@ -446,8 +440,7 @@
                         this.candidateCameraCode = null;
                         this.candidateCameraCount = 0;
 
-                        this.barcode = cleanCode;
-                        this.submitScan();
+                        this.submitScan(cleanCode);
                     }
                 },
                 
@@ -474,8 +467,8 @@
                     }
                 },
                 
-                async submitScan() {
-                    const currentBarcode = this.barcode.trim();
+                async submitScan(overrideBarcode = null) {
+                    const currentBarcode = (overrideBarcode || this.barcode).trim();
                     this.barcode = ''; 
                     
                     if (currentBarcode.length === 0) return;
