@@ -17,8 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->alias([
-            'auth.wali'  => \App\Http\Middleware\EnsureIsWaliKelas::class,
-            'auth.siswa' => \App\Http\Middleware\EnsureIsSiswa::class,
+            'auth.wali'   => \App\Http\Middleware\EnsureIsWaliKelas::class,
+            'auth.siswa'  => \App\Http\Middleware\EnsureIsSiswa::class,
+            'auth.perpus' => \App\Http\Middleware\EnsureIsPetugasPerpustakaan::class,
         ]);
 
         $middleware->redirectUsersTo(function (Request $request) {

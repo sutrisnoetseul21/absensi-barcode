@@ -131,3 +131,23 @@ Route::prefix('portal-siswa')->group(function () {
         })->name('portal-siswa.logout');
     });
 });
+
+// Petugas Perpustakaan Routes (Portal Perpustakaan)
+Route::prefix('portal-perpustakaan')->group(function () {
+    Route::get('/login', \App\Livewire\PetugasPerpusLogin::class)->middleware('guest')->name('portal-perpustakaan.login');
+    
+    Route::middleware('auth.perpus')->group(function () {
+        Route::get('/', \App\Livewire\PetugasPerpusDashboard::class)->name('portal-perpustakaan.dashboard');
+        Route::get('/buku', \App\Livewire\PetugasPerpusBuku::class)->name('portal-perpustakaan.buku');
+        Route::get('/inventaris', \App\Livewire\PetugasPerpusInventaris::class)->name('portal-perpustakaan.inventaris');
+        Route::get('/sirkulasi', \App\Livewire\PetugasPerpusSirkulasi::class)->name('portal-perpustakaan.sirkulasi');
+        Route::get('/kunjungan', \App\Livewire\PetugasPerpusKunjungan::class)->name('portal-perpustakaan.kunjungan');
+        
+        Route::post('/logout', function () {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/');
+        })->name('portal-perpustakaan.logout');
+    });
+});
