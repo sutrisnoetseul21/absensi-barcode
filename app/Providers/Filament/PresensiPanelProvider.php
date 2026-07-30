@@ -69,7 +69,7 @@ class PresensiPanelProvider extends PanelProvider
             ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->profile()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Emerald,
             ])
             ->navigationGroups([
                 'Data Master',

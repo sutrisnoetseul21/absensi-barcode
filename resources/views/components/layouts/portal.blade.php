@@ -108,11 +108,6 @@
                     </div>
                 </div>
 
-                <!-- Desktop Garis Tiga Toggle Button -->
-                <button @click="sidebarCollapsed = !sidebarCollapsed" class="hidden lg:flex p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors focus:outline-none" :title="sidebarCollapsed ? 'Perluas Sidebar' : 'Minimize Sidebar'">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                </button>
-
                 <!-- Mobile close button -->
                 <button @click="sidebarOpen = false" class="lg:hidden text-white/80 hover:text-white p-1">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -249,18 +244,14 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-y-auto">
             
-            <!-- Topbar Header with Garis Tiga Toggle Button for Desktop & Mobile -->
+            <!-- Topbar Header with Single Garis Tiga Toggle Icon -->
             <div class="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white border-b border-slate-200/80 shadow-xs">
                 <div class="flex items-center gap-3">
-                    <!-- Mobile Hamburger -->
-                    <button @click="sidebarOpen = true" class="lg:hidden text-slate-600 hover:text-brand-primary focus:outline-none p-2 rounded-xl hover:bg-slate-100 transition-colors">
+                    <!-- Single Icon Garis Tiga Toggle Button -->
+                    <button @click="if (window.innerWidth < 1024) { sidebarOpen = !sidebarOpen } else { sidebarCollapsed = !sidebarCollapsed }" 
+                            class="text-slate-600 hover:text-brand-primary focus:outline-none p-2 rounded-xl hover:bg-slate-100 transition-colors" 
+                            :title="sidebarCollapsed ? 'Perluas Sidebar' : 'Kecilkan Sidebar'">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                    </button>
-
-                    <!-- Desktop Garis Tiga Toggle Button (shown when sidebar is collapsed or anytime) -->
-                    <button @click="sidebarCollapsed = !sidebarCollapsed" class="hidden lg:flex items-center gap-2 text-slate-600 hover:text-brand-primary p-2 rounded-xl hover:bg-slate-100 transition-colors" title="Toggle Sidebar Navbar">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                        <span class="text-xs font-bold text-slate-600 hidden sm:inline" x-text="sidebarCollapsed ? 'Buka Sidebar' : 'Kecilkan Sidebar'"></span>
                     </button>
                 </div>
 
