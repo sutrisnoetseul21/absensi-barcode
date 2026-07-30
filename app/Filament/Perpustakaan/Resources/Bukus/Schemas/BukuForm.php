@@ -39,11 +39,17 @@ class BukuForm
                             }),
                         Select::make('mapel_id')
                             ->label('Mata Pelajaran')
-                            ->relationship('mataPelajaran', 'nama_mapel')
-                            ->placeholder('— Lainnya / Umum (Bukan Mapel Spesifik) —')
+                            ->options(function () {
+                                $options = \App\Models\MataPelajaran::orderBy('nama_mapel')->pluck('nama_mapel', 'id')->toArray();
+                                $options['lainnya'] = 'Lainnya';
+                                return $options;
+                            })
+                            ->placeholder('Pilih Mata Pelajaran')
                             ->searchable()
                             ->preload()
                             ->nullable()
+                            ->formatStateUsing(fn ($state) => $state ?? 'lainnya')
+                            ->dehydrateStateUsing(fn ($state) => $state === 'lainnya' ? null : $state)
                             ->disabled(function ($get) {
                                 $kategoriId = $get('kategori_id');
                                 if (! $kategoriId) {
