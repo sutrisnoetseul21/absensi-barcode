@@ -104,13 +104,35 @@
             <div class="flex-1 overflow-y-auto px-4 py-6 space-y-1.5 bg-white">
                 <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Modul ERP</p>
                 
-                <!-- Menu Presensi (Active) -->
-                <a href="{{ $activeDashboard }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30 transition-all group">
-                    <div class="p-1.5 rounded-lg bg-white/20 text-white group-hover:scale-105 transition-transform backdrop-blur-sm">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <span class="text-sm">Presensi & Akademik</span>
-                </a>
+                @if($user && $user->hasRole('siswa'))
+                    @php
+                        $isProfilActive = request()->routeIs('portal-siswa.profil');
+                        $isDashboardActive = request()->routeIs('portal-siswa.dashboard');
+                    @endphp
+                    <!-- Menu Presensi (Active if on dashboard) -->
+                    <a href="{{ $activeDashboard }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                        <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <span class="text-sm">Presensi & Akademik</span>
+                    </a>
+
+                    <!-- Menu Profil Saya -->
+                    <a href="{{ route('portal-siswa.profil') }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group">
+                        <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        </div>
+                        <span class="text-sm">Profil Saya</span>
+                    </a>
+                @else
+                    <!-- Menu Presensi (Active) for Guru -->
+                    <a href="{{ $activeDashboard }}" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30 transition-all group">
+                        <div class="p-1.5 rounded-lg bg-white/20 text-white group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <span class="text-sm">Presensi & Akademik</span>
+                    </a>
+                @endif
 
                 <!-- Menu Perpustakaan (Segera) -->
                 <a href="#" class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium transition-all group">
@@ -125,9 +147,13 @@
             <!-- Sidebar Footer (User Info & Logout) -->
             <div class="p-4 border-t border-slate-200/80 bg-slate-50">
                 <div class="flex items-center gap-3 mb-4 px-2">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold shadow-md shadow-brand-primary/20">
-                        {{ substr($userName, 0, 1) }}
-                    </div>
+                    @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
+                        <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-brand-primary/20 border border-slate-200">
+                    @else
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold shadow-md shadow-brand-primary/20">
+                            {{ substr($userName, 0, 1) }}
+                        </div>
+                    @endif
                     <div class="flex flex-col overflow-hidden">
                         <span class="text-sm font-bold text-slate-900 truncate">{{ $userName }}</span>
                         <span class="text-xs text-slate-500 truncate">Hak Akses: {{ $userRole }}</span>

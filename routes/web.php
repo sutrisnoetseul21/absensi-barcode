@@ -6,6 +6,7 @@ use App\Livewire\WaliKelasLogin;
 use App\Livewire\WaliKelasDashboard;
 use App\Livewire\SiswaLogin;
 use App\Livewire\SiswaDashboard;
+use App\Livewire\SiswaProfil;
 use App\Livewire\ForceChangePassword;
 
 use App\Livewire\PublicDashboard;
@@ -68,6 +69,14 @@ Route::middleware('auth')->group(function () {
         return response()->json($action->execute($request->all(), auth()->id()));
     })->name('perpustakaan.sirkulasi.process');
 
+    // Kiosk Kunjungan Perpustakaan Routes
+    Route::get('/perpustakaan/kunjungan', \App\Livewire\KunjunganKiosk::class)->name('perpustakaan.kunjungan');
+    Route::post('/perpustakaan/kunjungan/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessKunjunganAction $action) {
+        $barcode = $request->input('barcode');
+        $tujuan = $request->input('tujuan_kunjungan', 'Membaca / Belajar');
+        return response()->json($action->execute((string) $barcode, auth()->id(), (string) $tujuan));
+    })->middleware('throttle:60,1')->name('perpustakaan.kunjungan.process');
+
     // Download laporan hasil import siswa (PPDB)
     Route::get('/admin/import/download-laporan', function () {
         $reportKey = 'import_laporan_' . auth()->id();
@@ -112,6 +121,7 @@ Route::prefix('portal-siswa')->group(function () {
     
     Route::middleware('auth.siswa')->group(function () {
         Route::get('/', SiswaDashboard::class)->name('portal-siswa.dashboard');
+        Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();

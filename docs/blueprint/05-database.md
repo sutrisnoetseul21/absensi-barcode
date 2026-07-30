@@ -304,10 +304,25 @@
 - timestamps()
 ```
 
+### `inventaris_bukus` ← **NEW ERP**
+```
+- id (uuid, primary)
+- buku_id (foreignUuid → bukus)
+- no_inventaris (string)
+- tanggal_masuk (date)
+- asal (enum: 'pembelian','hibah','tukar','terbitan_sendiri') default 'pembelian'
+- harga (integer) default 0
+- jumlah_eksemplar (integer) default 0
+- status (enum: 'aktif','dibatalkan') default 'aktif'
+- alasan_pembatalan (text, nullable)
+- timestamps()
+```
+
 ### `eksemplar_bukus`
 ```
 - id (uuid, primary)
 - buku_id (foreignUuid → bukus)
+- inventaris_buku_id (foreignUuid, nullable → inventaris_bukus)
 - kode_eksemplar (string, unique)
 - status (enum: 'tersedia','dipinjam','rusak','hilang') default 'tersedia'
 - kondisi_fisik (enum: 'baik','rusak_ringan','rusak_berat') default 'baik'
@@ -319,7 +334,7 @@
 ```
 - id (uuid, primary)
 - eksemplar_id (foreignUuid → eksemplar_bukus)
-- peminjam_type (string) → 'Siswa' atau 'Guru' (Morph Map)
+- peminjam_type (string) → 'siswa' atau 'guru' (Morph Map)
 - peminjam_id (uuid)
 - tanggal_pinjam (date)
 - tanggal_jatuh_tempo (date)
@@ -330,9 +345,22 @@
 - timestamps()
 ```
 
+### `kunjungan_perpustakaans` ← **NEW ERP**
+```
+- id (uuid, primary)
+- pengunjung_type (string) → 'siswa' atau 'guru' (Morph Map)
+- pengunjung_id (uuid)
+- tanggal (date, index)
+- waktu_masuk (time)
+- tujuan_kunjungan (string) default 'Membaca / Belajar'
+- catatan (string, nullable)
+- petugas_id (foreignUuid, nullable → users)
+- timestamps()
+```
+
 ---
 
-> **Catatan Teknis Peminjaman Guru:** Karena adanya anomali Morph Map (`Guru::class` memiliki alias `wali_kelas` & `guru`), DILARANG menggunakan metode `associate()` secara implisit saat pembuatan record peminjaman oleh Guru. Referensi dan detail aturan wajib *set manual* dapat dibaca pada file `docs/progres-development/fase-2-erp/perpustakaan/tahap-1.md`.
+> **Catatan Teknis Peminjaman Guru:** Karena adanya anomali Morph Map (`Guru::class` memiliki alias `wali_kelas` & `guru`), DILARANG menggunakan metode `associate()` secara implisit saat pembuatan record peminjaman oleh Guru. Referensi dan detail aturan wajib *set manual* dapat dibaca pada file `docs/progres-development/fase-2-erp/perpustakaan/README.md`.
 
 ---
 
@@ -358,6 +386,7 @@ students ──< student_enrollments >── classes
 
 [PRESENSI ALAT]
 students ──< student_presensi_profiles > (1-to-1 relasi logis)
+teachers ──< teacher_presensi_profiles > (1-to-1 relasi logis)
 
 [PRESENSI HARIAN]
 student_enrollments <── attendances ──> users (scanned_by)
@@ -370,9 +399,11 @@ promotion_logs ──> users (executed_by)
 
 [PERPUSTAKAAN]
 kategori_bukus ──< bukus >── mata_pelajarans (opsional)
-bukus ──< eksemplar_bukus
+bukus ──< inventaris_bukus ──< eksemplar_bukus
 eksemplar_bukus ──< peminjamans >── users (petugas)
 peminjamans ──> polymorphic (Siswa / Guru)
+kunjungan_perpustakaans ──> polymorphic (Siswa / Guru)
+kunjungan_perpustakaans ──> users (petugas)
 ```
 school_settings ──> academic_years (active)
 holidays ──> classes (nullable, khusus kelas)

@@ -14,6 +14,7 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 9. **[Tahap 10 (29 Juli 2026)]**: Unifikasi UI cetak label spine dan barcode 100% mengikuti standar visual SLiMS (Grid 3x7 ukuran 6x3.5cm, garis tepi guard bar, spasi karakter). Refactor generate kode eksemplar menjadi format 5 digit terpisah per prefix (contoh `UMM00001`). Perbaikan bug formasi cetak massal berbasis eksemplar.
 10. **[Tahap 11 (30 Juli 2026)]**: Penyesuaian nomenklatur dan URL slug (`/buku`, `/klasifikasi-ddc`, serta menyembunyikan navigasi Klasifikasi Buku yang statis 3 item dari seeder). Refactoring penomoran barcode eksemplar menjadi **Global Sequence** yang terlindungi *Pessimistic Locking* (`lockForUpdate()`). Implementasi penuh Modul **Inventaris Buku** (buku induk/audit trail) dengan Foreign Key `inventaris_buku_id` di `eksemplar_bukus`. Otomatisasi pencatatan batch penerimaan saat tambah buku / generate eksemplar. Panel Inventaris di-set *Read-Only* dengan fitur khusus **"Batalkan Entri"** (validasi status eksemplar & histori peminjaman, Soft Deletes, serta penyesuaian agregat `jumlah_eksemplar` berbasis Eloquent Event).
 11. **[Tahap 12 (30 Juli 2026)]**: Unifikasi sirkulasi peminjaman (`/admin-perpustakaan/peminjaman`) dengan 3 Tab Navigasi (*Peminjaman Aktif*, *Dikembalikan*, *Semua Transaksi*) dan menyembunyikan menu terpisah Riwayat Pengembalian. Pengaktifan kembali transaksi peminjaman manual oleh Admin/Petugas lengkap dengan fitur scan barcode NISN/NIS/NIP & Kode Eksemplar. Pemulihan kaskade otomatis (*Cascade Restore*) saat entri inventaris atau buku dipulihkan dari Soft Delete. Penataan ulang struktur navigasi sidebar ke dalam 5 grup utama (*Koleksi Buku*, *Sirkulasi*, *Keanggotaan*, *Laporan*, *Pengaturan*).
+12. **[Tahap 13 (30 Juli 2026)]**: Implementasi modul **Presensi Kunjungan Perpustakaan**. Pembuatan tabel & model `KunjunganPerpustakaan` (`kunjungan_perpustakaans`), Action `ProcessKunjunganAction`, Halaman Kiosk Scanner khusus Kunjungan Perpustakaan (`/perpustakaan/kunjungan`) berbasis barcode reader & kamera browser (Audio & visual feedback, log 10 pengunjung terbaru real-time), serta pendaftaran menu **Riwayat Presensi** di panel Admin Perpustakaan (`/admin-perpustakaan/riwayat-presensi`) lengkap dengan tombol pintas buka Kiosk dan filter tanggal/kelas.
 
 ## Daftar Model & Tabel Inti
 - `KategoriBuku` (`kategori_bukus`) - Klasifikasi standar (Referensi, Fiksi, Non Fiksi).
@@ -22,6 +23,7 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 - `InventarisBuku` (`inventaris_bukus`) - Catatan resmi / *audit trail* penerimaan batch pengadaan buku.
 - `EksemplarBuku` (`eksemplar_bukus`) - Tiap fisik buku, referensi utama sirkulasi (terkoneksi ke `inventaris_buku_id`).
 - `Peminjaman` (`peminjamans`) - Pivot transaksional polymorphic ke user `Guru` atau `Siswa`.
+- `KunjunganPerpustakaan` (`kunjungan_perpustakaans`) - Catatan kehadiran/presensi kunjungan siswa & guru ke perpustakaan.
 - `TeacherPresensiProfile` (`teacher_presensi_profiles`) - Ekstensi profil scanner barcode guru.
 - `PengaturanSekolah` (`school_settings`) - Konfigurasi jatuh tempo peminjaman.
 

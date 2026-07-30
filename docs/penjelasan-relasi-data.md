@@ -221,3 +221,33 @@ erDiagram
 2. **Otomatisasi Batch Inventaris**: Setiap kali dilakukan penambahan buku baru atau generate eksemplar massal, sistem secara otomatis menyimpan 1 baris ke `inventaris_bukus` (sebagai buku induk audit) dan menautkan ID inventaris tersebut ke seluruh eksemplar fisik yang dibuat (`inventaris_buku_id`).
 3. **Audit Trail & Soft Delete**: Panel `InventarisBukuResource` bersifat murni *Read-Only*. Pembatalan penerimaan buku tidak menggunakan perintah `Delete` melainkan Action khusus **"Batalkan Entri"** yang mengubah status menjadi `dibatalkan` dan me-soft-delete eksemplar terkait. Pembatalan akan ditolak jika ada eksemplar yang berstatus tidak 'tersedia' atau pernah memiliki riwayat peminjaman historis.
 4. **Event-Driven Agregasi**: Ketika eksemplar fisik dihapus secara individual, Model `EksemplarBuku` secara otomatis mengurangi (*decrement*) kolom `jumlah_eksemplar` pada baris `inventaris_bukus` induknya lewat Eloquent Event.
+
+---
+
+## 7. Relasi Modul Perpustakaan: Presensi & Kunjungan Perpustakaan
+
+Untuk mencatat kehadiran dan tingkat kunjungan anggota (Siswa maupun Guru) ke perpustakaan secara independen dari sirkulasi buku, sistem menyediakan tabel polymorphic `kunjungan_perpustakaans`.
+
+```mermaid
+erDiagram
+    kunjungan_perpustakaans }|--|| students : "dikunjungi oleh (Siswa)"
+    kunjungan_perpustakaans }|--|| teachers : "dikunjungi oleh (Guru)"
+    kunjungan_perpustakaans }|--o| users : "dicatat oleh (Petugas)"
+
+    kunjungan_perpustakaans {
+        uuid id PK
+        string pengunjung_type "siswa / guru (Morph Map)"
+        uuid pengunjung_id FK
+        date tanggal
+        time waktu_masuk
+        string tujuan_kunjungan "Default: Membaca / Belajar"
+        string catatan
+        uuid petugas_id FK "Users/Admin (nullable jika scan via kiosk)"
+    }
+```
+
+**Alur & Aturan Bisnis:**
+1. **Dukungan Dual-Scanner Kiosk**: Halaman Kiosk Presensi Kunjungan (`/perpustakaan/kunjungan`) menerima pemindaian fisik Hardware Barcode Reader maupun Kamera Web/HP.
+2. **Fleksibilitas Identitas Kartu**: Kiosk secara otomatis mencari kecocokan dari `barcode_code` (Student/Teacher Presensi Profile), `NISN`, `NIS`, maupun `NIP`.
+3. **Proteksi Anti Spam (Debounce)**: Sistem secara otomatis menolak pencatatan berulang untuk pengunjung yang sama jika baru saja mencatat kunjungan dalam interval 3 menit di hari yang sama.
+4. **Integrasi Admin Panel**: Petugas perpustakaan dapat memantau riwayat presensi kunjungan secara real-time via `/admin-perpustakaan/riwayat-presensi` lengkap dengan filter tanggal dan kelas.
