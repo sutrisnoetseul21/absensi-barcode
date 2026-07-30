@@ -23,13 +23,35 @@ class BukuForm
 
                     Group::make()->schema([
                         Select::make('kategori_id')
-                            ->label('Kategori')
+                            ->label('Koleksi')
                             ->relationship('kategoriBuku', 'nama_kategori')
-                            ->required(),
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set) {
+                                if ($state) {
+                                    $kategori = \App\Models\KategoriBuku::find($state);
+                                    if (! $kategori || strtolower(trim($kategori->nama_kategori)) !== 'non fiksi') {
+                                        $set('mapel_id', null);
+                                    }
+                                } else {
+                                    $set('mapel_id', null);
+                                }
+                            }),
                         Select::make('mapel_id')
                             ->label('Mata Pelajaran')
                             ->relationship('mataPelajaran', 'nama_mapel')
-                            ->nullable(),
+                            ->placeholder('— Lainnya / Umum (Bukan Mapel Spesifik) —')
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->disabled(function ($get) {
+                                $kategoriId = $get('kategori_id');
+                                if (! $kategoriId) {
+                                    return true;
+                                }
+                                $kategori = \App\Models\KategoriBuku::find($kategoriId);
+                                return ! $kategori || strtolower(trim($kategori->nama_kategori)) !== 'non fiksi';
+                            }),
                     ])->columns(2)->columnSpanFull(),
 
                     Group::make()->schema([

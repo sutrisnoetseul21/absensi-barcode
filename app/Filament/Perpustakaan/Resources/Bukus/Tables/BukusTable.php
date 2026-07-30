@@ -29,7 +29,7 @@ class BukusTable
                 TextColumn::make('judul')
                     ->searchable(),
                 TextColumn::make('kategoriBuku.nama_kategori')
-                    ->label('Kategori')
+                    ->label('Koleksi')
                     ->sortable(),
                 TextColumn::make('call_number')
                     ->label('Call Number')
