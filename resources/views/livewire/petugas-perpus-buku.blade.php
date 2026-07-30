@@ -64,7 +64,7 @@
                             </td>
                             <td class="p-4">
                                 <span class="px-2.5 py-1 bg-teal-50 text-teal-700 font-bold rounded-lg border border-teal-200/60 inline-block text-[11px]">
-                                    {{ $buku->kategori?->nama_kategori ?? 'Umum' }}
+                                    {{ $buku->kategoriBuku?->nama_kategori ?? 'Umum' }}
                                 </span>
                                 @if($buku->klasifikasiDdc)
                                     <span class="block text-[10px] text-slate-400 mt-1 font-mono">DDC: {{ $buku->klasifikasiDdc->kode_ddc }} - {{ $buku->klasifikasiDdc->nama_klasifikasi }}</span>

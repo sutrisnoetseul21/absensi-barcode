@@ -123,7 +123,7 @@ class PetugasPerpusBuku extends Component
         $kategoriList = KategoriBuku::orderBy('nama_kategori')->get();
         $ddcList = KlasifikasiDdc::orderBy('kode_ddc')->get();
 
-        $query = Buku::with(['kategori', 'klasifikasiDdc', 'eksemplarBukus'])
+        $query = Buku::with(['kategoriBuku', 'klasifikasiDdc', 'eksemplarBukus'])
             ->when($this->search, function ($q) {
                 $q->where(function ($sub) {
                     $sub->where('judul', 'like', "%{$this->search}%")

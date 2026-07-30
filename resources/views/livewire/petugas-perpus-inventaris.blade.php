@@ -45,7 +45,7 @@
                             </td>
                             <td class="p-4">
                                 <h4 class="font-bold text-slate-800 text-xs">{{ $inv->buku?->judul ?? 'Buku' }}</h4>
-                                <span class="text-[10px] text-slate-400">{{ $inv->buku?->kategori?->nama_kategori }} &bull; ISBN: {{ $inv->buku?->isbn ?? '-' }}</span>
+                                <span class="text-[10px] text-slate-400">{{ $inv->buku?->kategoriBuku?->nama_kategori }} &bull; ISBN: {{ $inv->buku?->isbn ?? '-' }}</span>
                             </td>
                             <td class="p-4 font-medium text-slate-600">
                                 {{ \Carbon\Carbon::parse($inv->tanggal_masuk)->format('d M Y') }}

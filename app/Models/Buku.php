@@ -35,6 +35,11 @@ class Buku extends Model
         return $this->belongsTo(KategoriBuku::class, 'kategori_id');
     }
 
+    public function kategori(): BelongsTo
+    {
+        return $this->kategoriBuku();
+    }
+
     public function klasifikasiDdc(): BelongsTo
     {
         return $this->belongsTo(KlasifikasiDdc::class, 'klasifikasi_ddc_id');
