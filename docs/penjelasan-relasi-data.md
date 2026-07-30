@@ -171,3 +171,53 @@ erDiagram
 **Alur Cerita:**
 Kita membuat sebuah entri di tabel `pengajarans` yang mengaitkan Guru Ani (Teacher), Matematika (Mata Pelajaran), dan 7A-2025/2026 (`class_academic_year_id`). 
 Data ini akan menjadi dasar bagi penyusunan *Jadwal Pelajaran* (Timetable) harian dan sistem penginputan nilai/E-Rapor oleh guru tersebut di masa depan. Konsep ini mirip dengan Pendaftaran (Enrollment) pada Siswa, menjamin riwayat mengajar tidak hilang berganti tahun ajaran.
+
+---
+
+## 6. Relasi Modul Perpustakaan: Buku, Inventaris Buku, dan Eksemplar Buku
+
+Untuk menjamin keakuratan audit pencatatan (*audit trail*), Modul Perpustakaan memisahkan antara **Katalog Buku (Judul)**, **Batch Penerimaan/Pengadaan (Inventaris Buku)**, dan **Fisik Buku yang Bersirkulasi (Eksemplar Buku)**.
+
+```mermaid
+erDiagram
+    bukus ||--o{ inventaris_bukus : "memiliki batch penerimaan"
+    bukus ||--o{ eksemplar_bukus : "memiliki fisik koleksi"
+    inventaris_bukus ||--o{ eksemplar_bukus : "menghasilkan batch"
+
+    bukus {
+        uuid id PK
+        string judul
+        string isbn
+        string pengarang
+        string penerbit
+        integer tahun_terbit
+    }
+
+    inventaris_bukus {
+        uuid id PK
+        uuid buku_id FK
+        string no_inventaris "Range: 00001/P/2026 - 00020/P/2026"
+        date tanggal_masuk
+        enum asal "Pembelian, Hibah, Tukar, Terbitan Sendiri"
+        integer harga
+        integer jumlah_eksemplar "Agregat fisik tersisa"
+        enum status "aktif, dibatalkan"
+        text alasan_pembatalan
+    }
+
+    eksemplar_bukus {
+        uuid id PK
+        uuid buku_id FK
+        uuid inventaris_buku_id FK "Menunjuk batch pengadaan"
+        string kode_eksemplar "Global Barcode: PAI00001, TIK00021"
+        enum status "tersedia, dipinjam, rusak, hilang"
+        enum kondisi_fisik "baik, rusak_ringan, rusak_berat"
+        timestamp deleted_at "Soft Deletes"
+    }
+```
+
+**Alur & Aturan Bisnis:**
+1. **Global Sequence Barcode**: Penomoran barcode eksemplar bersifat berurutan secara *global* (`00001`, `00002`, dst.) di seluruh database terlepas dari prefix kategori/mata pelajaran (misal: `PAI00001` - `PAI00020`, dilanjutkan `TIK00021` - `TIK00030`). Penomoran ini dilindungi oleh *Database Transaction* + *Pessimistic Locking* (`lockForUpdate()`).
+2. **Otomatisasi Batch Inventaris**: Setiap kali dilakukan penambahan buku baru atau generate eksemplar massal, sistem secara otomatis menyimpan 1 baris ke `inventaris_bukus` (sebagai buku induk audit) dan menautkan ID inventaris tersebut ke seluruh eksemplar fisik yang dibuat (`inventaris_buku_id`).
+3. **Audit Trail & Soft Delete**: Panel `InventarisBukuResource` bersifat murni *Read-Only*. Pembatalan penerimaan buku tidak menggunakan perintah `Delete` melainkan Action khusus **"Batalkan Entri"** yang mengubah status menjadi `dibatalkan` dan me-soft-delete eksemplar terkait. Pembatalan akan ditolak jika ada eksemplar yang berstatus tidak 'tersedia' atau pernah memiliki riwayat peminjaman historis.
+4. **Event-Driven Agregasi**: Ketika eksemplar fisik dihapus secara individual, Model `EksemplarBuku` secara otomatis mengurangi (*decrement*) kolom `jumlah_eksemplar` pada baris `inventaris_bukus` induknya lewat Eloquent Event.

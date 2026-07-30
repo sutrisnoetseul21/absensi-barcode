@@ -12,12 +12,15 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
 7. **[Tahap 8 (27 Juli 2026)]**: Restrukturisasi navigasi sidebar panel Perpustakaan (grup Koleksi Buku, Sirkulasi, Laporan, Pengaturan). Pemisahan PeminjamanAktifResource dan RiwayatPengembalianResource. Tambah halaman Laporan Sirkulasi dan Pengaturan Perpustakaan.
 8. **[Tahap 9 (28 Juli 2026)]**: Penyempurnaan UI halaman Anggota (kolom Kelas, kolom Pinjaman Aktif interaktif dengan pop-up modal, barcode copyable, filter baru). Revisi Cetak Kartu Siswa: judul diubah dari "KARTU PRESENSI" menjadi "KARTU SISWA", nilai NIS/NISN pada kartu mengikuti setting `barcode_scan_mode`, URL footer kartu dinamis dari env `SCHOOL_EMAIL_DOMAIN`.
 9. **[Tahap 10 (29 Juli 2026)]**: Unifikasi UI cetak label spine dan barcode 100% mengikuti standar visual SLiMS (Grid 3x7 ukuran 6x3.5cm, garis tepi guard bar, spasi karakter). Refactor generate kode eksemplar menjadi format 5 digit terpisah per prefix (contoh `UMM00001`). Perbaikan bug formasi cetak massal berbasis eksemplar.
+10. **[Tahap 11 (30 Juli 2026)]**: Penyesuaian nomenklatur dan URL slug (`/buku`, `/klasifikasi-ddc`, serta menyembunyikan navigasi Klasifikasi Buku yang statis 3 item dari seeder). Refactoring penomoran barcode eksemplar menjadi **Global Sequence** yang terlindungi *Pessimistic Locking* (`lockForUpdate()`). Implementasi penuh Modul **Inventaris Buku** (buku induk/audit trail) dengan Foreign Key `inventaris_buku_id` di `eksemplar_bukus`. Otomatisasi pencatatan batch penerimaan saat tambah buku / generate eksemplar. Panel Inventaris di-set *Read-Only* dengan fitur khusus **"Batalkan Entri"** (validasi status eksemplar & histori peminjaman, Soft Deletes, serta penyesuaian agregat `jumlah_eksemplar` berbasis Eloquent Event).
 
 ## Daftar Model & Tabel Inti
-- `KategoriBuku` (`kategori_bukus`)
-- `Buku` (`bukus`) - Memiliki opsional relasi ke mata pelajaran.
-- `EksemplarBuku` (`eksemplar_bukus`) - Tiap fisik buku, referensi utama sirkulasi.
-- `Peminjaman` (`peminjamans`) - Pivot transaksional polymoprhic ke user `Guru` atau `Siswa`.
+- `KategoriBuku` (`kategori_bukus`) - Klasifikasi standar (Referensi, Fiksi, Non Fiksi).
+- `KlasifikasiDdc` (`klasifikasi_ddcs`) - Klasifikasi DDC perpustakaan.
+- `Buku` (`bukus`) - Katalog buku/judul utama, memiliki opsional relasi ke mata pelajaran.
+- `InventarisBuku` (`inventaris_bukus`) - Catatan resmi / *audit trail* penerimaan batch pengadaan buku.
+- `EksemplarBuku` (`eksemplar_bukus`) - Tiap fisik buku, referensi utama sirkulasi (terkoneksi ke `inventaris_buku_id`).
+- `Peminjaman` (`peminjamans`) - Pivot transaksional polymorphic ke user `Guru` atau `Siswa`.
 - `TeacherPresensiProfile` (`teacher_presensi_profiles`) - Ekstensi profil scanner barcode guru.
 - `PengaturanSekolah` (`school_settings`) - Konfigurasi jatuh tempo peminjaman.
 
@@ -49,3 +52,9 @@ Modul Perpustakaan ini dikembangkan secara komprehensif dalam kerangka Fase 2 ER
    SCHOOL_EMAIL_DOMAIN=smpn1majenang.sch.id
    ```
    Jika tidak diset, sistem akan menggunakan nilai fallback `smpn1majenang.sch.id`. Variabel yang sama berlaku untuk cetak kartu tunggal maupun massal.
+
+8. **Global Sequence Barcode dengan Pessimistic Locking (Tahap 11)**:
+   Penomoran kode eksemplar di `EksemplarBuku::generateKodeEksemplar()` berlanjut secara global (misal `PAI00001` - `PAI00020`, dilanjutkan `TIK00021` - `TIK00030`). Seluruh proses kueri nomor urut maksimal dibungkus dalam `DB::transaction` dan menggunakan `lockForUpdate()` untuk mencegah bentrok/race condition antar pengguna.
+
+9. **Kebijakan Audit Trail Inventaris & Soft Deletes (Tahap 11)**:
+   Tabel `inventaris_bukus` tidak boleh di-delete secara langsung. Pembatalan entri dilakukan via Action **"Batalkan Entri"** di Filament (mengubah status menjadi `dibatalkan` + wajib alasan). Action ini menolak pembatalan jika ada eksemplar yang berstatus bukan `tersedia` ATAU pernah memiliki riwayat peminjaman (`orWhereHas('peminjamans')`). Penghapusan eksemplar bersifat Soft Delete dan secara otomatis mengupdate `jumlah_eksemplar` di tabel inventaris lewat Eloquent Event `deleted` & `restored`.

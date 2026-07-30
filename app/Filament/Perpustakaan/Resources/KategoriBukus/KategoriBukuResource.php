@@ -18,7 +18,17 @@ class KategoriBukuResource extends Resource
 {
     protected static ?string $model = KategoriBuku::class;
 
+    protected static ?string $slug = 'klasifikasi-buku';
+
+    protected static ?string $modelLabel = 'Klasifikasi Buku';
+
+    protected static ?string $pluralModelLabel = 'Klasifikasi Buku';
+
+    protected static ?string $navigationLabel = 'Klasifikasi Buku';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static \UnitEnum|string|null $navigationGroup = 'Pengaturan';
 

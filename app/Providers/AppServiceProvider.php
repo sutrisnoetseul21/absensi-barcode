@@ -41,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
             'guru'       => \App\Models\Guru::class,
         ]);
 
+        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+            return $user->is_super_admin ? true : null;
+        });
+
         // ─────────────────────────────────────────────────────────────
         // Event-Driven Architecture — Modul Siswa (Tahap 2 Refactoring)
         //

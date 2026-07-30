@@ -79,9 +79,23 @@ class BukuForm
                         ->columnSpanFull(),
                 ]),
 
-                Section::make('Generate Eksemplar Awal')
-                    ->description('Isi jumlah eksemplar yang ingin dibuat otomatis setelah buku ini disimpan. (Hanya muncul saat tambah buku baru)')
+                Section::make('Generate Eksemplar Awal & Inventaris')
+                    ->description('Isi data inventaris dan jumlah eksemplar yang ingin dibuat otomatis setelah buku ini disimpan.')
                     ->schema([
+                        Select::make('asal_buku')
+                            ->label('Asal Buku')
+                            ->options([
+                                'Pembelian' => 'Pembelian',
+                                'Hibah' => 'Hibah',
+                                'Tukar' => 'Tukar',
+                                'Terbitan Sendiri' => 'Terbitan Sendiri',
+                            ])
+                            ->default('Pembelian')
+                            ->required(),
+                        TextInput::make('harga_buku')
+                            ->label('Harga Buku (Rp)')
+                            ->numeric()
+                            ->nullable(),
                         TextInput::make('jumlah_eksemplar')
                             ->label('Jumlah Eksemplar')
                             ->numeric()

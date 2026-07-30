@@ -110,6 +110,20 @@ class EksemplarBukusRelationManager extends RelationManager
                             ->label('Input Manual')
                             ->default(false)
                             ->live(),
+                        Forms\Components\Select::make('asal_buku')
+                            ->label('Asal Buku')
+                            ->options([
+                                'Pembelian' => 'Pembelian',
+                                'Hibah' => 'Hibah',
+                                'Tukar' => 'Tukar',
+                                'Terbitan Sendiri' => 'Terbitan Sendiri',
+                            ])
+                            ->default('Pembelian')
+                            ->required(),
+                        TextInput::make('harga_buku')
+                            ->label('Harga Buku (Rp)')
+                            ->numeric()
+                            ->nullable(),
                         TextInput::make('prefix')
                             ->label('Prefix')
                             ->default('UMM')
@@ -136,11 +150,38 @@ class EksemplarBukusRelationManager extends RelationManager
                         $now = now();
                         $inserts = [];
 
+                        $asal = $data['asal_buku'];
+                        $harga = $data['harga_buku'] ?? null;
+                        $tahun = now()->format('Y');
+                        $kodeAsal = match ($asal) {
+                            'Pembelian' => 'P',
+                            'Hibah' => 'H',
+                            'Tukar' => 'T',
+                            'Terbitan Sendiri' => 'TS',
+                            default => 'P'
+                        };
+
                         if ($data['input_manual'] ?? false) {
+                            $code = $data['kode_eksemplar'];
+                            $noInventaris = "MANUAL/{$kodeAsal}/{$tahun}";
+                            $jumlah = 1;
+                            
+                            $inventaris = \App\Models\InventarisBuku::create([
+                                'id' => (string) Str::uuid(),
+                                'buku_id' => $ownerId,
+                                'no_inventaris' => $noInventaris,
+                                'tanggal_masuk' => $now->toDateString(),
+                                'asal' => $asal,
+                                'harga' => $harga,
+                                'jumlah_eksemplar' => $jumlah,
+                                'status' => 'aktif'
+                            ]);
+
                             $inserts[] = [
                                 'id' => (string) Str::uuid(),
                                 'buku_id' => $ownerId,
-                                'kode_eksemplar' => $data['kode_eksemplar'],
+                                'inventaris_buku_id' => $inventaris->id,
+                                'kode_eksemplar' => $code,
                                 'status' => 'tersedia',
                                 'kondisi_fisik' => 'baik',
                                 'created_at' => $now,
@@ -151,7 +192,27 @@ class EksemplarBukusRelationManager extends RelationManager
                             $jumlah = (int) $data['jumlah'];
                             
                             try {
-                                $codes = EksemplarBuku::generateKodeEksemplar($prefix, $jumlah);
+                                $generateResult = EksemplarBuku::generateKodeEksemplar($prefix, $jumlah);
+                                $codes = $generateResult['codes'];
+                                $startNum = $generateResult['start_num'];
+                                $endNum = $generateResult['end_num'];
+                                
+                                $noInventaris = "{$startNum}/{$kodeAsal}/{$tahun} - {$endNum}/{$kodeAsal}/{$tahun}";
+                                if ($startNum === $endNum) {
+                                    $noInventaris = "{$startNum}/{$kodeAsal}/{$tahun}";
+                                }
+
+                                $inventaris = \App\Models\InventarisBuku::create([
+                                    'id' => (string) Str::uuid(),
+                                    'buku_id' => $ownerId,
+                                    'no_inventaris' => $noInventaris,
+                                    'tanggal_masuk' => $now->toDateString(),
+                                    'asal' => $asal,
+                                    'harga' => $harga,
+                                    'jumlah_eksemplar' => $jumlah,
+                                    'status' => 'aktif'
+                                ]);
+
                             } catch (\Exception $e) {
                                 Notification::make()
                                     ->danger()
@@ -165,6 +226,7 @@ class EksemplarBukusRelationManager extends RelationManager
                                 $inserts[] = [
                                     'id' => (string) Str::uuid(),
                                     'buku_id' => $ownerId,
+                                    'inventaris_buku_id' => $inventaris->id,
                                     'kode_eksemplar' => $code,
                                     'status' => 'tersedia',
                                     'kondisi_fisik' => 'baik',

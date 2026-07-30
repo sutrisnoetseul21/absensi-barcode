@@ -20,6 +20,14 @@ class KlasifikasiDdcResource extends Resource
 {
     protected static ?string $model = KlasifikasiDdc::class;
 
+    protected static ?string $slug = 'klasifikasi-ddc';
+
+    protected static ?string $modelLabel = 'Klasifikasi DDC';
+
+    protected static ?string $pluralModelLabel = 'Klasifikasi DDC';
+
+    protected static ?string $navigationLabel = 'Klasifikasi DDC';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'kategori';

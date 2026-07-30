@@ -20,6 +20,14 @@ class BukuResource extends Resource
 {
     protected static ?string $model = Buku::class;
 
+    protected static ?string $slug = 'buku';
+
+    protected static ?string $modelLabel = 'Buku';
+
+    protected static ?string $pluralModelLabel = 'Buku';
+
+    protected static ?string $navigationLabel = 'Buku';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
     protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
