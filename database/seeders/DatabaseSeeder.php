@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             KelasSeeder::class,
             SuperAdminSeeder::class,
             KategoriBukuSeeder::class,
+            KlasifikasiDdcSeeder::class,
         ]);
 
         // Akun Admin Filament
