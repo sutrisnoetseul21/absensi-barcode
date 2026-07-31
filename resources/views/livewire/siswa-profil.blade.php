@@ -265,10 +265,10 @@
                                 Cetak Kartu Siswa
                             </button>
 
-                            <button type="button" onclick="window.print()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/25 transition-all">
+                            <a href="{{ route('portal-siswa.cetak-kartu', ['download' => 1]) }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/25 transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 Simpan Berkas PDF
-                            </button>
+                            </a>
                         </div>
 
                         <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl text-indigo-900 text-xs space-y-1.5">

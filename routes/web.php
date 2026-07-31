@@ -103,7 +103,9 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
     Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('portal-guru.login');
     
     Route::middleware('auth.wali')->group(function () {
-        Route::get('/', WaliKelasDashboard::class)->name('portal-guru.dashboard');
+        Route::get('/', \App\Livewire\GuruMainDashboard::class)->name('portal-guru.dashboard');
+        Route::get('/akademik', WaliKelasDashboard::class)->name('portal-guru.akademik');
+        Route::get('/perpustakaan', \App\Livewire\GuruPerpustakaan::class)->name('portal-guru.perpustakaan');
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
         
         Route::post('/logout', function () {
@@ -120,8 +122,10 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
     Route::get('/login', SiswaLogin::class)->middleware('guest')->name('portal-siswa.login');
     
     Route::middleware('auth.siswa')->group(function () {
-        Route::get('/', SiswaDashboard::class)->name('portal-siswa.dashboard');
+        Route::get('/', \App\Livewire\SiswaMainDashboard::class)->name('portal-siswa.dashboard');
+        Route::get('/akademik', SiswaDashboard::class)->name('portal-siswa.akademik');
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
+        Route::get('/perpustakaan', \App\Livewire\SiswaPerpustakaan::class)->name('portal-siswa.perpustakaan');
         Route::get('/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMandiri'])->name('portal-siswa.cetak-kartu');
         
         Route::post('/logout', function () {

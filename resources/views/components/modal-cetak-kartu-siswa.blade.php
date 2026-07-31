@@ -156,24 +156,32 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button type="button" @click="window.print()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-primary hover:bg-indigo-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-brand-primary/30 transition-all">
+                    <button type="button" @click="window.print()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-primary hover:bg-indigo-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-brand-primary/30 transition-all cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         Cetak Langsung
                     </button>
 
-                    <button type="button" @click="window.print()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/30 transition-all">
+                    <a href="{{ route('portal-siswa.cetak-kartu', ['download' => 1]) }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/30 transition-all cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Simpan PDF
-                    </button>
+                        Download PDF
+                    </a>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <a href="{{ route('portal-siswa.cetak-kartu') }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-indigo-600 font-bold hover:text-indigo-800 hover:underline transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        Buka Halaman Cetak Terpisah
+                    </a>
                 </div>
 
                 <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl text-indigo-900 text-xs space-y-1.5">
                     <h5 class="font-bold flex items-center gap-1.5 text-indigo-900">
                         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Petunjuk Simpan PDF:
+                        Petunjuk Simpan / Cetak:
                     </h5>
                     <p class="text-[11px] text-indigo-700 leading-relaxed">
-                        Saat dialog printer terbuka, pilih <strong>Tujuan / Destination: "Simpan sebagai PDF" (Save as PDF)</strong>. Ukuran kartu disetel 54mm x 86mm (CR80).
+                        - Untuk <strong>Download PDF</strong>: Pilih <em>Destination / Tujuan</em>: <strong>"Save as PDF" (Simpan sebagai PDF)</strong>.<br>
+                        - Untuk <strong>Cetak Langsung</strong>: Pilih mesin printer Anda dan klik <strong>Print</strong>.
                     </p>
                 </div>
             </div>

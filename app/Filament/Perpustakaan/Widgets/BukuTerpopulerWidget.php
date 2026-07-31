@@ -21,14 +21,14 @@ class BukuTerpopulerWidget extends BaseWidget
         return $table
             ->query(
                 Buku::query()
-                    ->select('bukus.*')
-                    ->join('eksemplar_bukus', 'bukus.id', '=', 'eksemplar_bukus.buku_id')
-                    ->join('peminjamans', 'eksemplar_bukus.id', '=', 'peminjamans.eksemplar_id')
-                    ->whereMonth('peminjamans.tanggal_pinjam', now()->month)
-                    ->whereYear('peminjamans.tanggal_pinjam', now()->year)
-                    ->selectRaw('COUNT(peminjamans.id) as total_pinjam')
-                    ->groupBy('bukus.id')
+                    ->addSelect(['total_pinjam' => Peminjaman::selectRaw('count(*)')
+                        ->join('eksemplar_bukus', 'eksemplar_bukus.id', '=', 'peminjamans.eksemplar_id')
+                        ->whereColumn('eksemplar_bukus.buku_id', 'bukus.id')
+                        ->whereMonth('peminjamans.tanggal_pinjam', now()->month)
+                        ->whereYear('peminjamans.tanggal_pinjam', now()->year)
+                    ])
                     ->orderByDesc('total_pinjam')
+                    ->having('total_pinjam', '>', 0)
                     ->limit(10)
             )
             ->columns([

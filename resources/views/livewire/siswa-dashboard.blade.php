@@ -1,6 +1,7 @@
 <div class="min-h-full bg-slate-50 flex flex-col font-jakarta"
     x-data="{
         selectedMonthYear: @entangle('selectedMonthYear').live,
+        showCardModal: false,
         
         get monthName() {
             if (!this.selectedMonthYear) return '';
@@ -93,10 +94,10 @@
                             <div class="inline-flex px-4 py-1.5 bg-white/20 rounded-full text-sm font-semibold backdrop-blur-md border border-white/30 shadow-sm">
                                 Kelas: {{ $enrollment->kelas->name ?? '-' }} | {{ $enrollment->tahunAjaran->name ?? '-' }}
                             </div>
-                            <a href="{{ route('portal-siswa.profil') }}#kartu-digital-siswa" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-sm font-bold shadow-md border border-amber-400/50 transition-all">
+                            <button type="button" @click="showCardModal = true" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-sm font-bold shadow-md border border-amber-400/50 transition-all cursor-pointer">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                 Cetak Kartu Siswa
-                            </a>
+                            </button>
                         </div>
                         @endif
                     </div>
@@ -391,4 +392,7 @@
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
     </style>
+
+    <!-- Modal Cetak Kartu Siswa -->
+    <x-modal-cetak-kartu-siswa :student="$student" />
 </div>

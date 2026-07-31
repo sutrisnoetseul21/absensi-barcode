@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Buku extends Model
@@ -58,5 +59,10 @@ class Buku extends Model
     public function getCallNumberAttribute(): string
     {
         return \App\Services\CallNumberService::generate($this);
+    }
+
+    public function peminjamans(): HasManyThrough
+    {
+        return $this->hasManyThrough(Peminjaman::class, EksemplarBuku::class, 'buku_id', 'eksemplar_id');
     }
 }

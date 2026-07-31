@@ -197,12 +197,29 @@
                     @php
                         $isProfilActive = request()->routeIs('portal-siswa.profil');
                         $isDashboardActive = request()->routeIs('portal-siswa.dashboard');
+                        $isAkademikActive = request()->routeIs('portal-siswa.akademik');
+                        $isPerpustakaanActive = request()->routeIs('portal-siswa.perpustakaan');
                     @endphp
-                    <a href="{{ $activeDashboard }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    
+                    <a href="{{ route('portal-siswa.dashboard') }}" :title="sidebarCollapsed ? 'Dashboard Utama' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                        </div>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Dashboard Utama</span>
+                    </a>
+
+                    <a href="{{ route('portal-siswa.akademik') }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Presensi & Akademik</span>
+                    </a>
+
+                    <a href="{{ route('portal-siswa.perpustakaan') }}" :title="sidebarCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                        </div>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Perpustakaan</span>
                     </a>
 
                     <a href="{{ route('portal-siswa.profil') }}" :title="sidebarCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
@@ -212,18 +229,31 @@
                         <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Profil Saya</span>
                     </a>
                 @else
-                    <a href="{{ $activeDashboard }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30 transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg bg-white/20 text-white group-hover:scale-105 transition-transform backdrop-blur-sm">
+                    @php
+                        $isDashboardActive = request()->routeIs('portal-guru.dashboard');
+                        $isAkademikActive = request()->routeIs('portal-guru.akademik') || request()->routeIs('portal-guru.student-detail');
+                        $isPerpustakaanActive = request()->routeIs('portal-guru.perpustakaan');
+                    @endphp
+                    
+                    <a href="{{ route('portal-guru.dashboard') }}" :title="sidebarCollapsed ? 'Dashboard' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                        </div>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Dashboard Utama</span>
+                    </a>
+
+                    <a href="{{ route('portal-guru.akademik') }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Presensi & Akademik</span>
                     </a>
 
-                    <a href="{{ route('portal-perpustakaan.dashboard') }}" :title="sidebarCollapsed ? 'Portal Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-600 transition-colors">
+                    <a href="{{ route('portal-guru.perpustakaan') }}" :title="sidebarCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Portal Perpustakaan</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Perpustakaan</span>
                     </a>
                 @endif
             </div>
