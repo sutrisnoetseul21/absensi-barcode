@@ -184,9 +184,8 @@
 
     @php
         $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
-        $sekolah = \App\Models\PengaturanSekolah::first();
-        // BUG FIX: kolom database bernama school_name, bukan nama_sekolah!
-        $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'PERPUSTAKAAN SMPN 3 KEDUNGREJA';
+        $sekolah = \App\Models\PengaturanSekolah::current() ?? \App\Models\PengaturanSekolah::first();
+        $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'SMP NEGERI 3 KEDUNGREJA';
     @endphp
 
     <div class="print-controls">

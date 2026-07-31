@@ -124,6 +124,7 @@
                         $isBuku = request()->routeIs('portal-perpustakaan.buku');
                         $isInventaris = request()->routeIs('portal-perpustakaan.inventaris');
                         $isSirkulasi = request()->routeIs('portal-perpustakaan.sirkulasi');
+                        $isPeminjaman = request()->routeIs('portal-perpustakaan.peminjaman');
                         $isKunjungan = request()->routeIs('portal-perpustakaan.kunjungan');
                     @endphp
 
@@ -168,7 +169,18 @@
                         <div class="p-1.5 rounded-lg {{ $isSirkulasi ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Sirkulasi Peminjaman</span>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Sirkulasi</span>
+                    </a>
+
+                    <!-- Menu Peminjaman -->
+                    <a href="{{ route('portal-perpustakaan.peminjaman') }}"
+                       :title="sidebarCollapsed ? 'Data Peminjaman' : ''"
+                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPeminjaman ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isPeminjaman ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                        </div>
+                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Peminjaman</span>
                     </a>
 
                     <!-- Menu Presensi Kunjungan -->

@@ -13,6 +13,6 @@ class SirkulasiKiosk extends Component
 
         return view('livewire.sirkulasi-kiosk', [
             'settings' => $settings,
-        ])->title('Kiosk Sirkulasi Perpustakaan');
+        ])->title('Sirkulasi Perpustakaan');
     }
 }

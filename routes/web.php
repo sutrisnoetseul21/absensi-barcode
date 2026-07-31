@@ -142,7 +142,14 @@ Route::prefix('portal-perpustakaan')->group(function () {
         Route::get('/buku', \App\Livewire\PetugasPerpusBuku::class)->name('portal-perpustakaan.buku');
         Route::get('/inventaris', \App\Livewire\PetugasPerpusInventaris::class)->name('portal-perpustakaan.inventaris');
         Route::get('/sirkulasi', \App\Livewire\PetugasPerpusSirkulasi::class)->name('portal-perpustakaan.sirkulasi');
+        Route::get('/peminjaman', \App\Livewire\PetugasPerpusPeminjaman::class)->name('portal-perpustakaan.peminjaman');
         Route::get('/kunjungan', \App\Livewire\PetugasPerpusKunjungan::class)->name('portal-perpustakaan.kunjungan');
+        
+        // Kiosk Sirkulasi (Mode Layar Penuh) 
+        Route::get('/sirkulasi-kiosk', \App\Livewire\SirkulasiKiosk::class)->name('portal-perpustakaan.sirkulasi-kiosk');
+        Route::post('/sirkulasi-kiosk/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {
+            return response()->json($action->execute($request->all(), auth()->id()));
+        })->name('portal-perpustakaan.sirkulasi-kiosk.process');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();

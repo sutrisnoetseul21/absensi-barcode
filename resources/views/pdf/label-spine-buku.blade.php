@@ -156,8 +156,8 @@
 <body>
 
     @php
-        $sekolah = \App\Models\PengaturanSekolah::first();
-        $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'PERPUSTAKAAN SMPN 3 KEDUNGREJA';
+        $sekolah = \App\Models\PengaturanSekolah::current() ?? \App\Models\PengaturanSekolah::first();
+        $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'SMP NEGERI 3 KEDUNGREJA';
     @endphp
 
     <div class="print-controls">
