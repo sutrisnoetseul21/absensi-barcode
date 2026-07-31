@@ -29,42 +29,59 @@
             <table class="w-full text-left text-xs">
                 <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
                     <tr>
-                        <th class="p-4 pl-6">No. Inventaris</th>
-                        <th class="p-4">Buku & Judul</th>
-                        <th class="p-4">Tanggal Masuk</th>
-                        <th class="p-4">Asal Pengadaan</th>
-                        <th class="p-4">Jumlah Fisik</th>
-                        <th class="p-4 pr-6 text-right">Status Batch</th>
+                        <th class="p-4 pl-6 text-center w-12">No</th>
+                        <th class="p-4">Tanggal</th>
+                        <th class="p-4">No Inventaris</th>
+                        <th class="p-4">Judul</th>
+                        <th class="p-4">Pengarang</th>
+                        <th class="p-4">Penerbit</th>
+                        <th class="p-4 text-center">Tahun Terbit</th>
+                        <th class="p-4">Asal</th>
+                        <th class="p-4">No Klasifikasi</th>
+                        <th class="p-4 text-right">Harga</th>
+                        <th class="p-4 pr-6 text-center">Jumlah Eksemplar</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                     @forelse($inventaris as $inv)
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="p-4 pl-6 font-mono font-bold text-slate-900">
+                            <td class="p-4 pl-6 text-center font-medium">
+                                {{ ($inventaris->currentPage() - 1) * $inventaris->perPage() + $loop->iteration }}
+                            </td>
+                            <td class="p-4 whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($inv->tanggal_masuk)->format('d/m/Y') }}
+                            </td>
+                            <td class="p-4 font-mono font-bold text-slate-900 whitespace-nowrap">
                                 {{ $inv->no_inventaris }}
                             </td>
-                            <td class="p-4">
-                                <h4 class="font-bold text-slate-800 text-xs">{{ $inv->buku?->judul ?? 'Buku' }}</h4>
-                                <span class="text-[10px] text-slate-400">{{ $inv->buku?->kategoriBuku?->nama_kategori }} &bull; ISBN: {{ $inv->buku?->isbn ?? '-' }}</span>
+                            <td class="p-4 font-bold text-slate-800 text-[11px] min-w-[200px]">
+                                {{ $inv->buku?->judul ?? '-' }}
                             </td>
-                            <td class="p-4 font-medium text-slate-600">
-                                {{ \Carbon\Carbon::parse($inv->tanggal_masuk)->format('d M Y') }}
+                            <td class="p-4 text-[11px] text-slate-600">
+                                {{ $inv->buku?->penulis ?? '-' }}
                             </td>
-                            <td class="p-4 font-medium text-slate-600 capitalize">
+                            <td class="p-4 text-[11px] text-slate-600">
+                                {{ $inv->buku?->penerbit ?? '-' }}
+                            </td>
+                            <td class="p-4 text-center text-slate-600">
+                                {{ $inv->buku?->tahun_terbit ?? '-' }}
+                            </td>
+                            <td class="p-4 capitalize text-[11px] text-slate-600">
                                 {{ str_replace('_', ' ', $inv->asal) }}
                             </td>
-                            <td class="p-4 font-bold text-slate-800">
-                                {{ number_format($inv->jumlah_eksemplar) }} Fisik
+                            <td class="p-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                                {{ $inv->buku?->klasifikasiDdc?->kode_ddc ?? '-' }}
                             </td>
-                            <td class="p-4 pr-6 text-right">
-                                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider {{ $inv->status === 'aktif' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200' }}">
-                                    {{ $inv->status }}
-                                </span>
+                            <td class="p-4 text-slate-600 whitespace-nowrap text-right text-[11px]">
+                                {{ $inv->harga > 0 ? 'Rp ' . number_format($inv->harga, 0, ',', '.') : '-' }}
+                            </td>
+                            <td class="p-4 pr-6 text-center font-bold text-slate-800">
+                                {{ number_format($inv->jumlah_eksemplar) }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="p-12 text-center text-slate-400">
+                            <td colspan="11" class="p-12 text-center text-slate-400">
                                 <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                                 <p class="text-xs font-medium">Belum ada data inventaris pengadaan buku.</p>
                             </td>

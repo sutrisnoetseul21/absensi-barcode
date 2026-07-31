@@ -17,13 +17,12 @@ class RolePresensiSeeder extends Seeder
         $customPages = [
             'View:Dashboard',
             'View:AdminAttendanceChart',
-            'View:AdminStatsOverview',
+            'View:PresensiStatusDonutChart',
             'View:CetakLaporanPresensi',
             'View:InputPresensiManual',
             'View:LaporanPresensi',
             'View:ManajemenKartuPresensi',
             'View:PengaturanPresensiPage',
-            'View:ProblematicStudentsTable',
             'View:RekapAbsensiKelas',
             'View:RekapAbsensiSekolah',
         ];

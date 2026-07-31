@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.wali'   => \App\Http\Middleware\EnsureIsWaliKelas::class,
             'auth.siswa'  => \App\Http\Middleware\EnsureIsSiswa::class,
             'auth.perpus' => \App\Http\Middleware\EnsureIsPetugasPerpustakaan::class,
+            'maintenance' => \App\Http\Middleware\CheckPortalMaintenance::class,
         ]);
 
         $middleware->redirectUsersTo(function (Request $request) {

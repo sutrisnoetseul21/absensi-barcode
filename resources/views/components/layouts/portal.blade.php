@@ -275,6 +275,8 @@
                 </div>
             </div>
 
+            @include('components.announcement-banner')
+
             <!-- Page Content -->
             <main class="flex-1 relative">
                 {{ $slot }}

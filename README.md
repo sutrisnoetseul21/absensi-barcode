@@ -1,59 +1,78 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ERP Presensi Digital & Portal Perpustakaan SMP Negeri 3 Kedungreja
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem ERP (Enterprise Resource Planning) berbasis Laravel 12 & Filament untuk pengelolaan presensi digital barcode, manajemen akademik, sirkulasi perpustakaan, serta manajemen portal terpadu SMP Negeri 3 Kedungreja.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🌟 Fitur Utama System
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 1. 📲 Presensi Digital & Kiosk Barcode
+- **Kiosk Scan Barcode**: Scan NISN / NIS cepat untuk presensi harian siswa dengan feedback suara & statistik langsung.
+- **Portal Guru & Wali Kelas (`/portal-guru`)**: Monitoring kehadiran siswa per kelas, penginputan absensi manual, cetak rekapitulasi, dan manajemen profil siswa.
+- **Portal Siswa (`/portal-siswa`)**: Cek riwayat kehadiran pribadi, informasi profil, dan cetak kartu NISN mandiri.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 2. 📚 ERP Portal Perpustakaan (`/portal-perpustakaan`)
+- **Katalog & Inventaris Buku**: Manajemen data buku, kategori, klasifikasi DDC, eksemplar, dan pencetakan barcode / label spine.
+- **Smart Sirkulasi & Kiosk Kunjungan**: Transaksi peminjaman & pengembalian buku cepat berbasis barcode scanner, riwayat denda, serta kiosk presensi pengunjung perpustakaan.
 
-## Learning Laravel
+### 3. ⚙️ Manajemen Admin Portal (`/admin/pengaturan-sekolah`)
+- **Status Maintenance Portal (Siswa, Guru, Perpus)**: Sakelar (*toggle*) terpusat untuk mematikan/menghidupkan akses portal publik dengan pesan *welcome message* dinamis per portal.
+- **Pengumuman Global**: Pita pengumuman (*announcement banner/marquee*) dinamis berbasis Rich Editor yang muncul di bagian atas layar seluruh portal aktif.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 4. 🔑 Manajemen Akses Portal (`/admin/manajemen-akses-portal`)
+- **Akses Portal Guru**:
+  - *Wali Kelas Utama*: Akses terbatas hanya pada 1 kelas binaannya.
+  - *Akses Kelas Pilihan*: Pengaturan multi-select kelas spesifik (misal: 7A, 7B, 7C) pada tahun ajaran aktif.
+  - *Akses Semua Kelas (Bypass Mode)*: Permission `portal_guru:akses_semua_kelas` untuk mengakses seluruh kelas (7A - 9C).
+- **Akses Portal Perpustakaan**:
+  - Penugasan terpusat role `petugas_perpustakaan` untuk pengguna (Guru, Staf TU, atau Petugas Khusus).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🚀 Arsitektur Sistem
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **Framework Core**: Laravel 12.x & PHP 8.4
+- **Admin Panel**: Filament v3/v4 (Multi-Panel Architecture: Super Admin, Master Data, Akademik, Presensi, Perpustakaan)
+- **Frontend Livewire**: Livewire v3, Alpine.js v3, Tailwind CSS v3
+- **Database**: MySQL (Spesifikasi UUID & Multi-Table Relational Schema)
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 📁 Dokumentasi Lengkap
 
-## Contributing
+Dokumentasi arsitektur, panduan seeder, dan log pengembangan dapat ditemukan di folder [`docs/`](docs/):
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- [`docs/README.md`](docs/README.md) - Panduan Utama Dokumentasi System
+- [`docs/pengaturan-admin-seeder/panduan.md`](docs/pengaturan-admin-seeder/panduan.md) - Panduan Seeder & Manajemen Akses Portal
+- [`docs/penjelasan-relasi-data.md`](docs/penjelasan-relasi-data.md) - Penjelasan Struktur Relasi & Skema Database
+- [`docs/progres-development/`](docs/progres-development/) - Catatan Tahapan Development (Fase 1 Presensi & Fase 2 ERP Perpustakaan)
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🛠️ Cara Instalasi & Jalankan Lokal
 
-## Security Vulnerabilities
+1. **Clone repository & Install Dependencies**:
+   ```bash
+   composer install
+   npm install && npm run build
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+2. **Pengaturan Environment**:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## License
+3. **Migrasi Database & Seeders**:
+   ```bash
+   php artisan migrate --seed
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+4. **Jalankan Development Server**:
+   ```bash
+   php artisan serve --port=8001
+   ```
+
+---
+
+*SMP Negeri 3 Kedungreja © 2026 - ERP Presensi Digital & Perpustakaan Sekolah*

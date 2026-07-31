@@ -42,3 +42,15 @@ php artisan db:seed --class=RoleAkademikSeeder
 ## Catatan Penting
 - **Penamaan Role**: Ingat, sistem akan mendeteksi akses panel berdasarkan **awalan nama role**. Role berawalan `admin_akademik_` otomatis bisa masuk ke panel `/admin-akademik`. Jika membuat role kustom di halaman Shield UI, patuhi aturan penamaan ini!
 - **Menu Super Admin**: Menu seperti Pindah Kelas, Siswa Mutasi, dan Siswa Lulus di-lock keras (hardcode) dalam fungsinya hanya untuk Super Admin. Jika ingin dibuka untuk role lain, Anda harus memodifikasi fungsi `canViewAny()` di dalam file resource yang bersangkutan.
+
+## Fitur Khusus: Manajemen Akses Portal (Guru & Perpustakaan)
+Admin dapat mengelola hak akses seluruh pengguna ke masing-masing portal publik secara terpusat melalui menu **`Pengaturan Sistem` -> `Manajemen Akses Portal`** (`/admin/manajemen-akses-portal`).
+
+### 1. Akses Portal Guru (`/portal-guru`)
+- **Akses Wali Kelas Utama**: Hanya dapat melihat dan mengelola 1 kelas binaan utamanya.
+- **Akses Kelas Pilihan (misal: 7A, 7B, 7C)**: Admin bisa memilih beberapa kelas tertentu via *Multi-Select* pada tahun ajaran aktif untuk guru tersebut.
+- **Akses Semua Kelas (Bypass Mode)**: Mengaktifkan permission `portal_guru:akses_semua_kelas` sehingga guru dapat memilih dan mengelola seluruh kelas (7A - 9C) pada tahun ajaran aktif.
+
+### 2. Akses Portal Perpustakaan (`/portal-perpustakaan`)
+- **Staf / Guru / Petugas**: Admin bisa mengaktifkan *Toggle* Akses Portal Perpustakaan. Pengguna akan secara otomatis diberikan role `petugas_perpustakaan` sehingga dapat login ke `/portal-perpustakaan`.
+

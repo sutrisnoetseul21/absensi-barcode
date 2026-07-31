@@ -10,6 +10,7 @@ use App\Models\KategoriBuku;
 use App\Models\KlasifikasiDdc;
 use App\Models\InventarisBuku;
 use App\Models\EksemplarBuku;
+use App\Models\MataPelajaran;
 use Illuminate\Support\Facades\DB;
 
 #[Layout('components.layouts.portal')]
@@ -26,9 +27,14 @@ class PetugasPerpusBuku extends Component
     public $isbn = '';
     public $lokasi_rak = '';
     public $kategori_id = '';
+    public $mapel_id = 'lainnya';
     public $klasifikasi_ddc_id = null;
-    public $jumlah_eksemplar = 1;
-    public $grade_level = null;
+    public $jumlah_eksemplar = null;
+    public $grade_level = 'umum';
+    
+    public $asal_buku = 'Pembelian';
+    public $harga_buku = null;
+    public $prefix_kode = '';
 
     // Search & Filter
     public $search = '';
@@ -37,12 +43,17 @@ class PetugasPerpusBuku extends Component
     protected $rules = [
         'judul' => 'required|string|max:255',
         'kategori_id' => 'required|exists:kategori_bukus,id',
+        'mapel_id' => 'nullable',
         'penulis' => 'nullable|string|max:255',
         'penerbit' => 'nullable|string|max:255',
         'tahun_terbit' => 'nullable|integer|digits:4',
         'isbn' => 'nullable|string|max:50',
         'lokasi_rak' => 'nullable|string|max:100',
         'jumlah_eksemplar' => 'required|integer|min:1|max:200',
+        'grade_level' => 'nullable|string|in:umum,7,8,9',
+        'asal_buku' => 'required|in:Pembelian,Hibah,Tukar,Terbitan Sendiri',
+        'harga_buku' => 'nullable|numeric|min:0',
+        'prefix_kode' => 'required|string|max:10',
     ];
 
     public function mount()
@@ -51,6 +62,18 @@ class PetugasPerpusBuku extends Component
         $firstCat = KategoriBuku::first();
         if ($firstCat) {
             $this->kategori_id = $firstCat->id;
+        }
+    }
+
+    public function updatedKategoriId($value)
+    {
+        if ($value) {
+            $kategori = KategoriBuku::find($value);
+            if (! $kategori || strtolower(trim($kategori->nama_kategori)) !== 'non fiksi') {
+                $this->mapel_id = 'lainnya';
+            }
+        } else {
+            $this->mapel_id = 'lainnya';
         }
     }
 
@@ -66,9 +89,12 @@ class PetugasPerpusBuku extends Component
 
     public function openInputModal()
     {
-        $this->reset(['judul', 'penulis', 'penerbit', 'isbn', 'lokasi_rak', 'klasifikasi_ddc_id', 'grade_level']);
+        $this->reset(['judul', 'penulis', 'penerbit', 'isbn', 'lokasi_rak', 'klasifikasi_ddc_id', 'grade_level', 'mapel_id', 'harga_buku', 'prefix_kode']);
         $this->tahun_terbit = date('Y');
-        $this->jumlah_eksemplar = 1;
+        $this->jumlah_eksemplar = null;
+        $this->asal_buku = 'Pembelian';
+        $this->grade_level = 'umum';
+        $this->mapel_id = 'lainnya';
         $this->showInputModal = true;
     }
 
@@ -81,13 +107,14 @@ class PetugasPerpusBuku extends Component
             $buku = Buku::create([
                 'judul' => $this->judul,
                 'kategori_id' => $this->kategori_id,
+                'mapel_id' => ($this->mapel_id === 'lainnya' || empty($this->mapel_id)) ? null : $this->mapel_id,
                 'klasifikasi_ddc_id' => $this->klasifikasi_ddc_id ?: null,
                 'penulis' => $this->penulis,
                 'penerbit' => $this->penerbit,
                 'tahun_terbit' => $this->tahun_terbit ? (int)$this->tahun_terbit : null,
                 'isbn' => $this->isbn,
                 'lokasi_rak' => $this->lokasi_rak,
-                'grade_level' => $this->grade_level ?: null,
+                'grade_level' => $this->grade_level === 'umum' ? null : ($this->grade_level ?: null),
             ]);
 
             // 2. Buat Record Inventaris Buku Batch
@@ -95,15 +122,15 @@ class PetugasPerpusBuku extends Component
                 'buku_id' => $buku->id,
                 'no_inventaris' => 'INV-' . date('Ymd-His'),
                 'tanggal_masuk' => now()->toDateString(),
-                'asal' => 'pembelian',
-                'harga' => 0,
+                'asal' => $this->asal_buku,
+                'harga' => $this->harga_buku ? (int)$this->harga_buku : 0,
                 'jumlah_eksemplar' => (int)$this->jumlah_eksemplar,
                 'status' => 'aktif',
             ]);
 
             // 3. Generate Eksemplar Fisik
             for ($i = 0; $i < (int)$this->jumlah_eksemplar; $i++) {
-                $kodeBarcode = EksemplarBuku::generateKodeEksemplar('UMM');
+                $kodeBarcode = EksemplarBuku::generateKodeEksemplar($this->prefix_kode);
                 EksemplarBuku::create([
                     'buku_id' => $buku->id,
                     'inventaris_buku_id' => $inventaris->id,
@@ -122,6 +149,7 @@ class PetugasPerpusBuku extends Component
     {
         $kategoriList = KategoriBuku::orderBy('nama_kategori')->get();
         $ddcList = KlasifikasiDdc::orderBy('kode_ddc')->get();
+        $mapelList = MataPelajaran::orderBy('nama_mapel')->get();
 
         $query = Buku::with(['kategoriBuku', 'klasifikasiDdc', 'eksemplarBukus'])
             ->when($this->search, function ($q) {
@@ -141,6 +169,7 @@ class PetugasPerpusBuku extends Component
         return view('livewire.petugas-perpus-buku', [
             'kategoriList' => $kategoriList,
             'ddcList' => $ddcList,
+            'mapelList' => $mapelList,
             'bukus' => $bukus,
         ])->title('Katalog & Input Buku - Portal Perpustakaan');
     }

@@ -140,12 +140,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Koleksi / Kategori *</label>
-                            <select wire:model="kategori_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            <select wire:model.live="kategori_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
                                 @foreach($kategoriList as $kat)
                                     <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
                                 @endforeach
                             </select>
                         </div>
+                        
+                        @php
+                            $selectedKat = $kategoriList->firstWhere('id', $kategori_id);
+                            $isNonFiksi = $selectedKat && strtolower(trim($selectedKat->nama_kategori)) === 'non fiksi';
+                        @endphp
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Mata Pelajaran</label>
+                            <select wire:model="mapel_id" {{ $isNonFiksi ? '' : 'disabled' }} class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary disabled:opacity-50 disabled:bg-slate-100">
+                                <option value="">Pilih Mata Pelajaran</option>
+                                @foreach($mapelList as $mapel)
+                                    <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
+                                @endforeach
+                                <option value="lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Klasifikasi DDC (Opsional)</label>
@@ -154,6 +173,16 @@
                                 @foreach($ddcList as $ddc)
                                     <option value="{{ $ddc->id }}">{{ $ddc->kode_ddc }} - {{ $ddc->nama_klasifikasi }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Jenjang (Grade)</label>
+                            <select wire:model="grade_level" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                                <option value="umum">Semua Jenjang / Umum</option>
+                                <option value="7">Kelas 7</option>
+                                <option value="8">Kelas 8</option>
+                                <option value="9">Kelas 9</option>
                             </select>
                         </div>
                     </div>
@@ -173,7 +202,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">ISBN</label>
                             <input wire:model="isbn" type="text" placeholder="978-xxx-xxx" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
@@ -182,10 +211,36 @@
                             <label class="block text-xs font-bold text-slate-700 mb-1">Lokasi Rak</label>
                             <input wire:model="lokasi_rak" type="text" placeholder="Rak A1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Eksemplar Fisik *</label>
-                            <input wire:model="jumlah_eksemplar" type="number" min="1" max="200" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
-                            @error('jumlah_eksemplar') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100">
+                        <h4 class="text-sm font-bold text-slate-800 mb-1">Generate Eksemplar Awal & Inventaris</h4>
+                        <p class="text-[11px] text-slate-500 mb-4">Isi data inventaris dan jumlah eksemplar yang ingin dibuat otomatis setelah buku ini disimpan.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Asal Buku *</label>
+                                <select wire:model="asal_buku" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                                    <option value="Pembelian">Pembelian</option>
+                                    <option value="Hibah">Hibah</option>
+                                    <option value="Tukar">Tukar</option>
+                                    <option value="Terbitan Sendiri">Terbitan Sendiri</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Harga Buku (Rp)</label>
+                                <input wire:model="harga_buku" type="number" placeholder="Contoh: 50000" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Eksemplar *</label>
+                                <input wire:model="jumlah_eksemplar" type="number" min="1" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                                @error('jumlah_eksemplar') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Prefix Kode/Singkatan Buku *</label>
+                                <input wire:model="prefix_kode" type="text" required placeholder="Misal: INF, MAT" maxlength="10" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                                <p class="text-[10px] text-slate-500 mt-1">Contoh: INF untuk Informatika</p>
+                            </div>
                         </div>
                     </div>
 

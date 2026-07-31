@@ -29,6 +29,9 @@ class BukusTable
             ->columns([
                 TextColumn::make('judul')
                     ->searchable(),
+                TextColumn::make('penulis')
+                    ->label('Pengarang')
+                    ->searchable(),
                 TextColumn::make('kategoriBuku.nama_kategori')
                     ->label('Koleksi')
                     ->sortable(),
@@ -42,9 +45,6 @@ class BukusTable
                 TextColumn::make('jumlah_tersedia')
                     ->label('Tersedia')
                     ->sortable(),
-                TextColumn::make('penulis')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('isbn')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),

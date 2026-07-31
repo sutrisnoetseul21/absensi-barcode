@@ -13,12 +13,17 @@ class RolePerpustakaanSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $resources = ['Buku', 'InventarisBuku', 'KategoriBuku', 'KlasifikasiDdc', 'KunjunganPerpustakaan', 'PeminjamanAktif', 'RiwayatPengembalian'];
+        $resources = ['Buku', 'InventarisBuku', 'KategoriBuku', 'KlasifikasiDdc', 'KunjunganPerpustakaan', 'Peminjaman'];
         $customPages = [
+            'View:Dashboard',
             'View:AnggotaResource',
             'View:LaporanSirkulasi',
             'View:PengaturanPerpustakaan',
             'View:ReservasiSegeraHadir',
+            'View:BukuTerpopulerWidget',
+            'View:PerpustakaanStatsWidget',
+            'View:SirkulasiBulananChart',
+            'View:TerlambatKritisWidget',
         ];
 
         $levels = [

@@ -104,17 +104,23 @@ class WaliKelasDashboard extends Component
             return;
         }
 
-        $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
-        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !$isGuru;
+        if (Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher === null) {
+            abort(403, 'Akses Ditolak: Data profil guru Anda belum ditautkan oleh Admin.');
+        }
 
-        if (!$isAdminMode) {
-            $actor        = Auth::user()->teacher;
+        $isAdminMode = Auth::user()->hasAnyRole(['super_admin', 'admin_presensi']);
+        $hasBypass   = Auth::user()->can('portal_guru:akses_semua_kelas');
+
+        if (!$isAdminMode && !$hasBypass) {
+            $actor = Auth::user()->teacher;
             $this->classes = Kelas::whereHas('kelasAjarans', function ($query) use ($actor) {
                 $query->where('academic_year_id', $this->selectedAcademicYearId)
                       ->where('teacher_id', $actor->id);
             })->get();
         } else {
-            $this->classes = Kelas::orderBy('name', 'asc')->get();
+            $this->classes = Kelas::whereHas('kelasAjarans', function ($query) {
+                $query->where('academic_year_id', $this->selectedAcademicYearId);
+            })->orderBy('name', 'asc')->get();
         }
 
         if ($this->classes->isNotEmpty()) {
@@ -136,11 +142,16 @@ class WaliKelasDashboard extends Component
 
     public function updatedSelectedClassId()
     {
-        $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
-        $isAdminMode = request()->is('admin*') || request()->routeIs('filament.*') || !$isGuru;
-        if (!$isAdminMode) {
+        if (Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher === null) {
+            abort(403, 'Akses Ditolak: Data profil guru tidak lengkap.');
+        }
+
+        $isAdminMode = Auth::user()->hasAnyRole(['super_admin', 'admin_presensi']);
+        $hasBypass   = Auth::user()->can('portal_guru:akses_semua_kelas');
+        
+        if (!$isAdminMode && !$hasBypass) {
             if (!collect($this->classes)->contains('id', $this->selectedClassId)) {
-                abort(403, 'Unauthorized action.');
+                abort(403, 'Unauthorized action. Anda tidak memiliki akses ke kelas ini.');
             }
         }
         $this->loadDashboardData();

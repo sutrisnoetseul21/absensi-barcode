@@ -99,7 +99,7 @@ Route::middleware('auth')->group(function () {
 
 
 // Wali Kelas Routes (Portal Guru)
-Route::prefix('portal-guru')->group(function () {
+Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () {
     Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('portal-guru.login');
     
     Route::middleware('auth.wali')->group(function () {
@@ -116,7 +116,7 @@ Route::prefix('portal-guru')->group(function () {
 });
 
 // Siswa Routes (Portal Siswa)
-Route::prefix('portal-siswa')->group(function () {
+Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function () {
     Route::get('/login', SiswaLogin::class)->middleware('guest')->name('portal-siswa.login');
     
     Route::middleware('auth.siswa')->group(function () {
@@ -134,7 +134,7 @@ Route::prefix('portal-siswa')->group(function () {
 });
 
 // Petugas Perpustakaan Routes (Portal Perpustakaan)
-Route::prefix('portal-perpustakaan')->group(function () {
+Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->group(function () {
     Route::get('/login', \App\Livewire\PetugasPerpusLogin::class)->middleware('guest')->name('portal-perpustakaan.login');
     
     Route::middleware('auth.perpus')->group(function () {

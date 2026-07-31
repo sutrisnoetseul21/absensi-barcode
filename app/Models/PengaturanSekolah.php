@@ -35,14 +35,27 @@ class PengaturanSekolah extends Model
         'theme_warning',
         'theme_danger',
         'theme_info',
+        // Portal Management
+        'maintenance_portal_siswa',
+        'maintenance_portal_guru',
+        'maintenance_portal_perpustakaan',
+        'welcome_message_siswa',
+        'welcome_message_guru',
+        'welcome_message_perpustakaan',
+        'global_announcement_active',
+        'global_announcement',
     ];
 
     protected $casts = [
-        'checkin_time'              => 'string',
-        'late_threshold_minutes'    => 'integer',
-        'enable_promotion_features' => 'boolean',
-        'work_days_history'         => 'array',
-        'lama_pinjam_buku_hari'     => 'integer',
+        'checkin_time'                    => 'string',
+        'late_threshold_minutes'          => 'integer',
+        'enable_promotion_features'       => 'boolean',
+        'work_days_history'               => 'array',
+        'lama_pinjam_buku_hari'           => 'integer',
+        'maintenance_portal_siswa'        => 'boolean',
+        'maintenance_portal_guru'         => 'boolean',
+        'maintenance_portal_perpustakaan' => 'boolean',
+        'global_announcement_active'      => 'boolean',
     ];
 
     // Tahun ajaran yang sedang aktif

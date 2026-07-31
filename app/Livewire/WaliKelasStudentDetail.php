@@ -42,9 +42,16 @@ class WaliKelasStudentDetail extends Component
         }
 
         // Verify if the authenticated teacher is indeed the Wali Kelas for this enrollment
-        $isAdminMode = Auth::guard('web')->check();
+        $user = Auth::user();
+
+        if ($user->hasRole('wali_kelas') && $user->teacher === null) {
+            abort(403, 'Akses Ditolak: Data profil guru tidak lengkap.');
+        }
+
+        $isAdminMode = $user->hasAnyRole(['super_admin', 'admin_presensi']);
+        $hasBypass   = $user->can('portal_guru:akses_semua_kelas');
         
-        if (!$isAdminMode && $actor) {
+        if (!$isAdminMode && !$hasBypass && $actor) {
             $isWaliKelas = KelasAjaran::where('class_id', $this->enrollment->class_id)
                 ->where('academic_year_id', $this->enrollment->academic_year_id)
                 ->where('teacher_id', $actor->id)

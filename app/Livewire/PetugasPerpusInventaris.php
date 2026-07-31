@@ -27,7 +27,7 @@ class PetugasPerpusInventaris extends Component
 
     public function render()
     {
-        $query = InventarisBuku::with(['buku.kategoriBuku'])
+        $query = InventarisBuku::with(['buku.kategoriBuku', 'buku.klasifikasiDdc'])
             ->when($this->search, function ($q) {
                 $q->where('no_inventaris', 'like', "%{$this->search}%")
                   ->orWhereHas('buku', function ($sub) {
