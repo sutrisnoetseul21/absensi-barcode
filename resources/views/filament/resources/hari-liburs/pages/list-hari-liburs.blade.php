@@ -90,7 +90,7 @@
         <script>
             (function() {
                 var EVENTS = @json($this->getEvents());
-                var CREATE_URL = '{{ \App\Filament\Resources\HariLiburs\HariLiburResource::getUrl('create') }}';
+                var CREATE_URL = '{{ \App\Filament\Presensi\Resources\HariLiburs\HariLiburResource::getUrl('create') }}';
 
                 function initCalendar() {
                     if (typeof FullCalendar === 'undefined') return;
