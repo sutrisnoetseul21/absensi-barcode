@@ -31,6 +31,8 @@
                     <span class="text-slate-700">·</span>
                     <a href="{{ url('/portal-guru') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Guru</a>
                     <span class="text-slate-700">·</span>
+                    <a href="{{ url('/portal-perpustakaan') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Portal Perpus</a>
+                    <span class="text-slate-700">·</span>
                     <a href="{{ route('login') }}" class="text-sm text-slate-400 hover:text-white transition-colors">Admin</a>
                     <span class="text-slate-700">·</span>
                     <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="text-sm text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Presensi Digital</a>
