@@ -27,9 +27,11 @@ class PengaturanPresensiPage extends Page implements HasForms
 
     protected string $view = 'filament.pages.school-settings';
 
-    protected static ?string $navigationLabel = 'Pengaturan Waktu Presensi';
+    protected static ?string $navigationLabel = 'Pengaturan Presensi';
 
-    protected static ?string $title = 'Pengaturan Waktu Presensi';
+    protected static ?string $slug = 'pengaturan-presensi';
+
+    protected static ?string $title = 'Pengaturan Presensi';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan';
 
@@ -73,6 +75,16 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->default(15)
                             ->required()
                             ->helperText('Jumlah menit toleransi setelah jam masuk.'),
+
+                        Select::make('barcode_scan_mode')
+                            ->label('Mode Kios Scanner Barcode')
+                            ->options([
+                                'nisn' => 'Gunakan NISN (Default)',
+                                'nis' => 'Gunakan NIS',
+                            ])
+                            ->default('nisn')
+                            ->required()
+                            ->helperText('Menentukan jenis barcode yang akan dipindai oleh mesin presensi.'),
                     ])->columns(2),
             ])
             ->statePath('data');

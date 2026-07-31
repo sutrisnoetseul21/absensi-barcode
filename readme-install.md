@@ -79,10 +79,11 @@ Jalankan migrasi database. Karena Anda berada di mode production, Anda wajib men
 php artisan migrate --force
 ```
 
-Jika ini adalah instalasi pertama (bukan *update*), jalankan *Seeder* untuk mengisi data *default* (seperti admin awal):
+Jika ini adalah instalasi pertama (bukan *update*), jalankan *Seeder* untuk mengisi data *default* (seperti admin awal) beserta seluruh manajemen Role & Permission (menggunakan Filament Shield):
 ```bash
 php artisan db:seed --force
 ```
+> **Catatan Tambahan:** Sistem Role dan Permission dipecah menjadi beberapa seeder modular (`RoleAdminSeeder`, `RoleAkademikSeeder`, dll). Untuk dokumentasi lengkap tentang cara kerjanya jika Anda menambah fitur di kemudian hari, baca [Panduan Role & Permission Seeder](docs/pengaturan-admin-seeder/panduan.md).
 
 ---
 

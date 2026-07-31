@@ -29,6 +29,8 @@ class SchoolSettingsPage extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'Pengaturan Sekolah';
 
+    protected static ?string $slug = 'pengaturan-sekolah';
+
     protected static ?string $title = 'Pengaturan Sekolah';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
@@ -132,54 +134,8 @@ class SchoolSettingsPage extends Page implements HasForms
                             ->helperText('Gambar ini akan digunakan sebagai background halaman Login Siswa dan Wali Kelas (Maksimal 10MB, disarankan format JPG/PNG).'),
                     ])->columns(1),
 
-                Section::make('Pengaturan Sistem')
-                    ->schema([
-                        TimePicker::make('checkin_time')
-                            ->label('Jam Masuk (Check-in)')
-                            ->required()
-                            ->seconds(false)
-                            ->helperText('Jam batas masuk siswa.'),
 
-                        TextInput::make('late_threshold_minutes')
-                            ->label('Batas Toleransi Terlambat (Menit)')
-                            ->numeric()
-                            ->default(15)
-                            ->required()
-                            ->helperText('Jumlah menit toleransi setelah jam masuk.'),
 
-                        Select::make('academic_year_id_active')
-                            ->label('Tahun Ajaran Aktif Saat Ini')
-                            ->options(TahunAjaran::where('status', 'aktif')->pluck('name', 'id'))
-                            ->nullable()
-                            ->helperText('Otomatis diset ketika Tahun Ajaran diubah menjadi "Aktif" di Data Master. Form ini hanya read-only/display.')
-                            ->disabled() // Di-disable karena diset dari TahunAjaranResource
-                            ->dehydrated(false), // Jangan disimpan dari form ini
-
-                        Toggle::make('enable_promotion_features')
-                            ->label('Aktifkan Tombol Kenaikan & Kelulusan Kelas')
-                            ->helperText('Jika diaktifkan, tombol Luluskan dan Naik Kelas akan muncul di tabel Siswa.')
-                            ->default(false),
-                            
-                        Select::make('barcode_scan_mode')
-                            ->label('Mode Kios Scanner Barcode')
-                            ->options([
-                                'nisn' => 'Gunakan NISN (Default)',
-                                'nis' => 'Gunakan NIS',
-                            ])
-                            ->default('nisn')
-                            ->required()
-                            ->helperText('Menentukan jenis barcode yang akan dipindai oleh mesin presensi.'),
-                    ])->columns(2),
-
-                Section::make('Pengaturan Perpustakaan')
-                    ->schema([
-                        TextInput::make('lama_pinjam_buku_hari')
-                            ->label('Batas Lama Pinjam Buku (Hari)')
-                            ->numeric()
-                            ->default(7)
-                            ->required()
-                            ->helperText('Angka ini akan digunakan sebagai patokan jatuh tempo secara otomatis saat eksemplar buku dipinjam.'),
-                    ])->columns(1),
             ])
             ->statePath('data');
     }
