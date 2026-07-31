@@ -122,6 +122,7 @@ Route::prefix('portal-siswa')->group(function () {
     Route::middleware('auth.siswa')->group(function () {
         Route::get('/', SiswaDashboard::class)->name('portal-siswa.dashboard');
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
+        Route::get('/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMandiri'])->name('portal-siswa.cetak-kartu');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();

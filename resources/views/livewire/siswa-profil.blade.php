@@ -1,4 +1,4 @@
-<div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+<div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8" x-data="{ showCardModal: false }">
     
     <!-- Top Hero Banner & Profile Header -->
     <div class="relative bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
@@ -77,6 +77,11 @@
                                     TA {{ $enrollment->tahunAjaran->name }}
                                 </span>
                             @endif
+
+                            <a href="#kartu-digital-siswa" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-amber-500 hover:bg-amber-600 text-white shadow-md transition-all">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                Lihat Kartu Siswa
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -189,11 +194,17 @@
                         </p>
                     </div>
 
-                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
                         <span class="text-slate-400 font-semibold block text-[11px] uppercase tracking-wider">Kode Barcode Presensi</span>
-                        <p class="font-mono font-bold text-brand-primary text-sm tracking-wider">
-                            {{ $student->barcode_code ?? $student->nisn }}
-                        </p>
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="font-mono font-bold text-brand-primary text-sm tracking-wider">
+                                {{ $student->barcode_code ?? $student->nisn }}
+                            </p>
+                            <a href="#kartu-digital-siswa" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-primary hover:bg-indigo-700 text-white shadow-sm transition-all">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                Lihat Kartu
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -203,8 +214,75 @@
             </div>
         </div>
 
-        <!-- Column 2 & 3: Form Edit Alamat & Form Ganti Password -->
+        <!-- Column 2 & 3: Kartu Digital, Form Edit Alamat & Form Ganti Password -->
         <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Card 0: Kartu Presensi Siswa Digital & Cetak Mandiri -->
+            <div id="kartu-digital-siswa" class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/80 p-6 sm:p-8 space-y-6 scroll-mt-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-amber-50 rounded-2xl text-amber-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-extrabold text-slate-900">Kartu Presensi Siswa Digital</h2>
+                            <p class="text-xs font-medium text-slate-500">Pratinjau fisik kartu presensi siswa dan opsi cetak/simpan PDF mandiri.</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        Ukuran ID Card (54x86mm)
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    <!-- Left: Real Physical Card Preview -->
+                    <div class="md:col-span-5 flex flex-col items-center justify-center p-6 bg-slate-900/95 rounded-3xl border border-slate-800 shadow-xl">
+                        <x-kartu-siswa-card :student="$student" />
+                    </div>
+
+                    <!-- Right: Details & Action Controls -->
+                    <div class="md:col-span-7 space-y-5">
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5 text-xs">
+                            <div class="flex justify-between items-center border-b border-slate-200/60 pb-2">
+                                <span class="text-slate-400 font-medium">Nama Siswa</span>
+                                <strong class="text-slate-900 font-bold text-sm">{{ $student->name }}</strong>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-slate-200/60 pb-2">
+                                <span class="text-slate-400 font-medium">Kode Barcode / NISN</span>
+                                <strong class="font-mono font-bold text-brand-primary text-sm">{{ $student->barcode_code ?? $student->nisn }}</strong>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 font-medium">Status Kartu</span>
+                                <span class="inline-flex items-center gap-1 text-emerald-600 font-bold">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Aktif
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button type="button" onclick="window.print()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-primary hover:bg-indigo-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-brand-primary/25 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                Cetak Kartu Siswa
+                            </button>
+
+                            <button type="button" onclick="window.print()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/25 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Simpan Berkas PDF
+                            </button>
+                        </div>
+
+                        <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl text-indigo-900 text-xs space-y-1.5">
+                            <h5 class="font-bold flex items-center gap-1.5 text-indigo-900">
+                                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Petunjuk Cetak / Simpan PDF:
+                            </h5>
+                            <p class="text-[11px] text-indigo-700 leading-relaxed">
+                                Klik <strong>Simpan Berkas PDF</strong> lalu pada dialog printer ubah <em>Destination / Tujuan</em> menjadi <strong>"Save as PDF"</strong>. Ukuran kartu otomatis disetel 54mm x 86mm.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- Card 1: Form Edit Alamat -->
             <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/80 p-6 sm:p-8 space-y-6">

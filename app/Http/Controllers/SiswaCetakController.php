@@ -27,6 +27,23 @@ class SiswaCetakController extends Controller
         ]);
     }
 
+    public function cetakKartuMandiri(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || !$user->student) {
+            abort(403, 'Akses ditolak. Hanya akun siswa yang dapat mencetak kartu mandiri.');
+        }
+
+        $type = $request->query('type', 'kartu-siswa');
+        $view = ($type === 'kartu-presensi') ? 'pdf.kartu-osis' : 'pdf.kartu-login-siswa';
+
+        $settings = PengaturanSekolah::current();
+        return view($view, [
+            'student' => $user->student,
+            'settings' => $settings,
+        ]);
+    }
+
     public function cetakKartuMassal(Request $request)
     {
         $idsString = $request->query('ids', '');
