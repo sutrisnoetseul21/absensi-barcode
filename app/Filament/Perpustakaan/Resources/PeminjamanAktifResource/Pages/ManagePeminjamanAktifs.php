@@ -15,6 +15,65 @@ class ManagePeminjamanAktifs extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('unduhPeminjaman')
+                ->label('Unduh Peminjaman')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->modalHeading('Unduh Data Peminjaman')
+                ->modalDescription('Pilih filter status, tipe anggota, dan format dokumen yang ingin diunduh.')
+                ->modalWidth('md')
+                ->form([
+                    \Filament\Forms\Components\CheckboxList::make('status')
+                        ->label('Filter Status')
+                        ->options([
+                            'dipinjam'     => 'Dipinjam',
+                            'dikembalikan' => 'Dikembalikan',
+                            'hilang'       => 'Hilang',
+                        ])
+                        ->bulkToggleable()
+                        ->helperText('Kosongkan untuk semua status.')
+                        ->columns(2),
+
+                    \Filament\Forms\Components\CheckboxList::make('tipe_anggota')
+                        ->label('Filter Tipe Anggota')
+                        ->options([
+                            'siswa' => 'Siswa',
+                            'guru'  => 'Guru / Staff',
+                        ])
+                        ->bulkToggleable()
+                        ->helperText('Kosongkan untuk semua tipe.')
+                        ->columns(2),
+
+                    \Filament\Forms\Components\Radio::make('format')
+                        ->label('Format Unduhan')
+                        ->options([
+                            'pdf'   => '📄 PDF (A4 Landscape)',
+                            'excel' => '📊 Excel (.xlsx)',
+                        ])
+                        ->default('pdf')
+                        ->inline()
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $format       = $data['format'] ?? 'pdf';
+                    $statusFilter = $data['status'] ?? [];
+                    $tipeFilter   = $data['tipe_anggota'] ?? [];
+
+                    $routeName = $format === 'excel'
+                        ? 'perpustakaan.peminjaman-buku.excel'
+                        : 'perpustakaan.peminjaman-buku.pdf';
+
+                    $params = [];
+                    if (!empty($statusFilter)) {
+                        $params['status'] = $statusFilter;
+                    }
+                    if (!empty($tipeFilter)) {
+                        $params['tipe'] = $tipeFilter;
+                    }
+
+                    return redirect()->to(route($routeName, $params));
+                }),
+
             Actions\CreateAction::make()
                 ->label('New Peminjaman')
                 ->modalHeading('Tambah Transaksi Peminjaman')

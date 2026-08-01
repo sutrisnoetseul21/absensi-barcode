@@ -95,6 +95,30 @@ Route::middleware('auth')->group(function () {
             $filename
         );
     })->name('admin.import.download-laporan');
+
+    // Katalog Buku: Unduh PDF & Excel (dengan filter koleksi & mapel)
+    Route::get('/admin-perpustakaan/katalog-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPdf'])
+        ->name('perpustakaan.katalog-buku.pdf');
+    Route::get('/admin-perpustakaan/katalog-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadExcel'])
+        ->name('perpustakaan.katalog-buku.excel');
+
+    // Inventaris Buku: Unduh PDF & Excel (dengan filter status)
+    Route::get('/admin-perpustakaan/inventaris-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadInventarisPdf'])
+        ->name('perpustakaan.inventaris-buku.pdf');
+    Route::get('/admin-perpustakaan/inventaris-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadInventarisExcel'])
+        ->name('perpustakaan.inventaris-buku.excel');
+
+    // Peminjaman Buku: Unduh PDF & Excel
+    Route::get('/admin-perpustakaan/peminjaman-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanPdf'])
+        ->name('perpustakaan.peminjaman-buku.pdf');
+    Route::get('/admin-perpustakaan/peminjaman-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanExcel'])
+        ->name('perpustakaan.peminjaman-buku.excel');
+
+    // Kunjungan Perpustakaan: Unduh PDF & Excel
+    Route::get('/admin-perpustakaan/kunjungan-perpustakaan/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganPdf'])
+        ->name('perpustakaan.kunjungan.pdf');
+    Route::get('/admin-perpustakaan/kunjungan-perpustakaan/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganExcel'])
+        ->name('perpustakaan.kunjungan.excel');
 });
 
 

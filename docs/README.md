@@ -20,16 +20,22 @@ Arsitektur sistem dibagi menjadi beberapa *layer*:
    - Data di sini *agnostik* (tidak terikat pada proses transaksional tertentu).
 
 2. **Layer Operasional (Transaksional)**
-   - Modul-modul bisnis yang menggunakan entitas dari Master Data (misal: Modul Enrollment, Modul Presensi).
+   - Modul-modul bisnis yang menggunakan entitas dari Master Data (misal: Modul Enrollment, Modul Presensi, Modul Perpustakaan).
    - Setiap modul operasional bersifat *loose coupling* terhadap Master Data. Mereka merespon perubahan pada Master Data menggunakan **Event-Driven Architecture** (Pub/Sub).
 
-3. **Layer UI / Presentasi (Filament)**
-   - Antarmuka *resource* yang secara jelas memisahkan *concern* melalui arsitektur **Multi-Panel**:
+3. **Layer UI / Presentasi (Filament & Livewire)**
+   - Antarmuka *resource* yang secara jelas memisahkan *concern* melalui arsitektur **Multi-Panel** untuk sisi Admin (Filament) dan **Custom Portal** untuk end-user (Livewire).
+   - **Sisi Admin (Filament Panels):**
      - **Portal Super Admin (`/admin`)**: Manajemen Root & Sistem.
      - **Portal Master Data (`/admin-master`)**: Manajemen Tahun Ajaran, Kelas, Siswa & Guru.
-     - **Portal Akademik (`/admin-akademik`)**: Manajemen Pembagian Kelas & Mutasi Siswa.
+     - **Portal Akademik (`/admin-akademik`)**: Manajemen Pembagian Kelas, Jadwal, & Mutasi Siswa.
      - **Portal Presensi (`/admin-presensi`)**: Input Presensi, Rekapitulasi & Libur.
-   - Pintu masuk *Login* disatukan melalui *Portal Selection* (Gerbang Utama) di `/login`.
+     - **Portal Perpustakaan (`/admin-perpustakaan`)**: Manajemen Buku, Inventaris, Peminjaman, & Kunjungan Perpustakaan.
+   - **Sisi End-User & Staff Khusus (Livewire Portals):**
+     - **Portal Siswa (`/portal-siswa`)**: Dashboard khusus siswa melihat kartu identitas, nilai, presensi, dan riwayat sirkulasi pustaka.
+     - **Portal Guru / Wali Kelas (`/portal-guru`)**: Dashboard khusus guru melihat jadwal mengajar dan fitur khusus Wali Kelas.
+     - **Portal Perpustakaan (`/portal-perpustakaan`)**: Portal layanan petugas jaga sirkulasi, inventaris, dan Kiosk (Self-Service) untuk anggota.
+   - Pintu masuk *Login* telah disatukan secara dinamis, sehingga user akan otomatis diarahkan ke portal sesuai *role* mereka setelah masuk.
 
 ---
 

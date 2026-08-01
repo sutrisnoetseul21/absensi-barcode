@@ -12,6 +12,7 @@ use App\Models\InventarisBuku;
 use App\Models\EksemplarBuku;
 use App\Models\MataPelajaran;
 use Illuminate\Support\Facades\DB;
+use App\Models\PengaturanSekolah;
 
 #[Layout('components.layouts.portal')]
 class PetugasPerpusBuku extends Component
@@ -35,6 +36,12 @@ class PetugasPerpusBuku extends Component
     public $asal_buku = 'Pembelian';
     public $harga_buku = null;
     public $prefix_kode = '';
+
+    // Modal Unduh Katalog
+    public bool $showUnduhModal = false;
+    public array $filterKategoriUnduh = [];
+    public array $filterMapelUnduh = [];
+    public string $formatUnduh = 'pdf';
 
     // Search & Filter
     public $search = '';
@@ -85,6 +92,32 @@ class PetugasPerpusBuku extends Component
     public function updatedFilterKategori()
     {
         $this->resetPage();
+    }
+
+    public function openUnduhModal(): void
+    {
+        $this->filterKategoriUnduh = [];
+        $this->filterMapelUnduh    = [];
+        $this->formatUnduh         = 'pdf';
+        $this->showUnduhModal      = true;
+    }
+
+    public function downloadKatalog(): void
+    {
+        $routeName = $this->formatUnduh === 'excel'
+            ? 'perpustakaan.katalog-buku.excel'
+            : 'perpustakaan.katalog-buku.pdf';
+
+        $params = [];
+        if (!empty($this->filterKategoriUnduh)) {
+            $params['kategori_ids'] = $this->filterKategoriUnduh;
+        }
+        if (!empty($this->filterMapelUnduh)) {
+            $params['mapel_ids'] = $this->filterMapelUnduh;
+        }
+
+        $this->showUnduhModal = false;
+        $this->redirect(route($routeName, $params));
     }
 
     public function openInputModal()
@@ -151,6 +184,9 @@ class PetugasPerpusBuku extends Component
         $ddcList = KlasifikasiDdc::orderBy('kode_ddc')->get();
         $mapelList = MataPelajaran::orderBy('nama_mapel')->get();
 
+        // Cari ID kategori Non Fiksi untuk kondisi tampil mapel di modal unduh
+        $nonFiksiKategoriId = KategoriBuku::whereRaw('LOWER(TRIM(nama_kategori)) = ?', ['non fiksi'])->value('id');
+
         $query = Buku::with(['kategoriBuku', 'klasifikasiDdc', 'eksemplarBukus'])
             ->when($this->search, function ($q) {
                 $q->where(function ($sub) {
@@ -167,10 +203,11 @@ class PetugasPerpusBuku extends Component
         $bukus = $query->paginate(10);
 
         return view('livewire.petugas-perpus-buku', [
-            'kategoriList' => $kategoriList,
-            'ddcList' => $ddcList,
-            'mapelList' => $mapelList,
-            'bukus' => $bukus,
+            'kategoriList'       => $kategoriList,
+            'ddcList'            => $ddcList,
+            'mapelList'          => $mapelList,
+            'bukus'              => $bukus,
+            'nonFiksiKategoriId' => $nonFiksiKategoriId,
         ])->title('Katalog & Input Buku - Portal Perpustakaan');
     }
 }

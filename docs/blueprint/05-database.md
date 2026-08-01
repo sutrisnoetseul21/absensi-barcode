@@ -194,6 +194,24 @@
 
 ---
 
+### `activity_log` ← **Audit Log (Spatie Activitylog)**
+```
+- id (bigIncrements)
+- log_name (string, nullable, index)
+- description (text)
+- subject_type (string, nullable)
+- subject_id (string, nullable)
+- event (string, nullable)
+- causer_type (string, nullable)
+- causer_id (string, nullable)
+- attribute_changes (json, nullable)
+- properties (json, nullable)
+- batch_uuid (uuid, nullable)
+- timestamps()
+```
+
+---
+
 ### `promotion_logs`
 ```
 - id (uuid, primary)

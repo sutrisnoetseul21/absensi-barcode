@@ -81,6 +81,8 @@ Silakan klik tautan pada tabel **Status Progres Keseluruhan** di bawah ini untuk
 | 1 | [Skema Database](./tahap-1.md) | ✅ Selesai |
 | 13 | [Manajemen Penghapusan vs Pengarsipan](./tahap-13.md) | ✅ Selesai |
 | 14 | [Perlindungan Data Master Interaktif & Modal Pop-Up Edit](./tahap-14.md) | ✅ Selesai |
+| 15 | [Pengembangan Kamera Kios Presensi dan Anti-Spam](./tahap-15.md) | ✅ Selesai |
+| 16 | [Perbaikan Skema Activity Log (`batch_uuid`)](./tahap-16-activity-log-patch.md) | ✅ Selesai |
 | 2 | [Multi-Guard Authentication](./tahap-2.md) | ✅ Selesai |
 | 3 | [Data Master & Modul Admin](./tahap-3.md) | ✅ Selesai |
 | 4 | [Kios Scanner Absensi](./tahap-4.md) | ✅ Selesai |

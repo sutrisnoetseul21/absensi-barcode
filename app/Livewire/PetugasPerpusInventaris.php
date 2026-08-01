@@ -15,6 +15,11 @@ class PetugasPerpusInventaris extends Component
     public $search = '';
     public $filterStatus = '';
 
+    // Modal Unduh
+    public bool $showUnduhModal = false;
+    public array $filterStatusUnduh = [];
+    public string $formatUnduh = 'pdf';
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -23,6 +28,28 @@ class PetugasPerpusInventaris extends Component
     public function updatedFilterStatus()
     {
         $this->resetPage();
+    }
+
+    public function openUnduhModal(): void
+    {
+        $this->filterStatusUnduh = [];
+        $this->formatUnduh       = 'pdf';
+        $this->showUnduhModal    = true;
+    }
+
+    public function downloadInventaris(): void
+    {
+        $routeName = $this->formatUnduh === 'excel'
+            ? 'perpustakaan.inventaris-buku.excel'
+            : 'perpustakaan.inventaris-buku.pdf';
+
+        $params = [];
+        if (!empty($this->filterStatusUnduh)) {
+            $params['status'] = $this->filterStatusUnduh;
+        }
+
+        $this->showUnduhModal = false;
+        $this->redirect(route($routeName, $params));
     }
 
     public function render()

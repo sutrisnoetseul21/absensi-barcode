@@ -17,6 +17,12 @@ class PetugasPerpusPeminjaman extends Component
     public string $search = '';
     public int $perPage = 15;
 
+    // Modal Unduh
+    public bool $showUnduhModal = false;
+    public array $filterStatusUnduh = [];
+    public array $filterTipeAnggotaUnduh = [];
+    public string $formatUnduh = 'pdf';
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -33,6 +39,32 @@ class PetugasPerpusPeminjaman extends Component
         $this->activeTab = $tab;
         $this->resetPage();
         $this->search = '';
+    }
+
+    public function openUnduhModal(): void
+    {
+        $this->filterStatusUnduh      = [];
+        $this->filterTipeAnggotaUnduh = [];
+        $this->formatUnduh            = 'pdf';
+        $this->showUnduhModal         = true;
+    }
+
+    public function downloadPeminjaman(): void
+    {
+        $routeName = $this->formatUnduh === 'excel'
+            ? 'perpustakaan.peminjaman-buku.excel'
+            : 'perpustakaan.peminjaman-buku.pdf';
+
+        $params = [];
+        if (!empty($this->filterStatusUnduh)) {
+            $params['status'] = $this->filterStatusUnduh;
+        }
+        if (!empty($this->filterTipeAnggotaUnduh)) {
+            $params['tipe'] = $this->filterTipeAnggotaUnduh;
+        }
+
+        $this->showUnduhModal = false;
+        $this->redirect(route($routeName, $params));
     }
 
     public function kembalikanBuku(int $peminjamanId): void

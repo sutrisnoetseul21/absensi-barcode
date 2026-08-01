@@ -11,9 +11,16 @@
     @endif
 
     <!-- Header -->
-    <div>
-        <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight">Data Peminjaman</h1>
-        <p class="text-slate-500 text-sm mt-1">Pantau status pinjaman aktif, keterlambatan, dan riwayat pengembalian buku.</p>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight">Data Peminjaman</h1>
+            <p class="text-slate-500 text-sm mt-1">Pantau status pinjaman aktif, keterlambatan, dan riwayat pengembalian buku.</p>
+        </div>
+        
+        <button @click="$wire.openUnduhModal()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 w-fit">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Unduh Peminjaman
+        </button>
     </div>
 
     <!-- Tab Navigation -->
@@ -173,4 +180,109 @@
             @endif
         </div>
     </div>
+
+    {{-- ===== MODAL UNDUH PEMINJAMAN ===== --}}
+    @if($showUnduhModal ?? false)
+        <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Unduh Data Peminjaman</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Pilih filter dan format dokumen.</p>
+                    </div>
+                    <button type="button" wire:click="$set('showUnduhModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                </div>
+
+                {{-- Filter Status --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Filter Status</label>
+                    <p class="text-[11px] text-slate-400 mb-3">Kosongkan untuk mengunduh semua status.</p>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
+                            {{ in_array('dipinjam', $filterStatusUnduh) ? 'border-amber-400 bg-amber-50' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50' }}">
+                            <input type="checkbox"
+                                wire:model.live="filterStatusUnduh"
+                                value="dipinjam"
+                                class="rounded accent-amber-500 w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700">Dipinjam</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
+                            {{ in_array('dikembalikan', $filterStatusUnduh) ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50' }}">
+                            <input type="checkbox"
+                                wire:model.live="filterStatusUnduh"
+                                value="dikembalikan"
+                                class="rounded accent-emerald-500 w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700">Dikembalikan</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition col-span-2
+                            {{ in_array('hilang', $filterStatusUnduh) ? 'border-rose-400 bg-rose-50' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50' }}">
+                            <input type="checkbox"
+                                wire:model.live="filterStatusUnduh"
+                                value="hilang"
+                                class="rounded accent-rose-500 w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700">Hilang</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Filter Tipe Anggota --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Filter Tipe Anggota</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
+                            {{ in_array('siswa', $filterTipeAnggotaUnduh) ? 'border-brand-primary bg-brand-primary/10' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50' }}">
+                            <input type="checkbox"
+                                wire:model.live="filterTipeAnggotaUnduh"
+                                value="siswa"
+                                class="rounded accent-brand-primary w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700">Siswa</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
+                            {{ in_array('guru', $filterTipeAnggotaUnduh) ? 'border-brand-primary bg-brand-primary/10' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50' }}">
+                            <input type="checkbox"
+                                wire:model.live="filterTipeAnggotaUnduh"
+                                value="guru"
+                                class="rounded accent-brand-primary w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700">Guru / Staff</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Format Unduhan --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Format Unduhan</label>
+                    <div class="flex gap-3">
+                        <label class="flex-1 flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition
+                            {{ $formatUnduh === 'pdf' ? 'border-rose-300 bg-rose-50' : 'border-slate-200 hover:border-slate-300' }}">
+                            <input type="radio" wire:model.live="formatUnduh" value="pdf" class="accent-rose-500 w-4 h-4">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800">📄 PDF</div>
+                                <div class="text-[10px] text-slate-500">A4 Landscape</div>
+                            </div>
+                        </label>
+                        <label class="flex-1 flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition
+                            {{ $formatUnduh === 'excel' ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 hover:border-slate-300' }}">
+                            <input type="radio" wire:model.live="formatUnduh" value="excel" class="accent-emerald-600 w-4 h-4">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800">📊 Excel</div>
+                                <div class="text-[10px] text-slate-500">Format .xlsx</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" wire:click="$set('showUnduhModal', false)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
+                        Batal
+                    </button>
+                    <button type="button" wire:click="downloadPeminjaman" class="px-5 py-2.5 {{ $formatUnduh === 'excel' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' }} text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Unduh {{ strtoupper($formatUnduh) }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

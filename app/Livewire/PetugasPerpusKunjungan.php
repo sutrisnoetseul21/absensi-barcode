@@ -17,9 +17,46 @@ class PetugasPerpusKunjungan extends Component
     public $filterTanggal = '';
     public $filterType = '';
 
+    // Modal Unduh
+    public bool $showUnduhModal = false;
+    public $filterMulaiUnduh = '';
+    public $filterAkhirUnduh = '';
+    public array $filterTipeAnggotaUnduh = [];
+    public string $formatUnduh = 'pdf';
+
     public function mount()
     {
         $this->filterTanggal = Carbon::today('Asia/Jakarta')->toDateString();
+    }
+
+    public function openUnduhModal(): void
+    {
+        $this->filterMulaiUnduh       = '';
+        $this->filterAkhirUnduh       = '';
+        $this->filterTipeAnggotaUnduh = [];
+        $this->formatUnduh            = 'pdf';
+        $this->showUnduhModal         = true;
+    }
+
+    public function downloadKunjungan(): void
+    {
+        $routeName = $this->formatUnduh === 'excel'
+            ? 'perpustakaan.kunjungan.excel'
+            : 'perpustakaan.kunjungan.pdf';
+
+        $params = [];
+        if ($this->filterMulaiUnduh) {
+            $params['start_date'] = $this->filterMulaiUnduh;
+        }
+        if ($this->filterAkhirUnduh) {
+            $params['end_date'] = $this->filterAkhirUnduh;
+        }
+        if (!empty($this->filterTipeAnggotaUnduh)) {
+            $params['tipe'] = $this->filterTipeAnggotaUnduh;
+        }
+
+        $this->showUnduhModal = false;
+        $this->redirect(route($routeName, $params));
     }
 
     public function updatedSearch()
