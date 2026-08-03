@@ -143,9 +143,9 @@
                      :class="{
                          'bg-emerald-50 border-emerald-200 text-emerald-800': feedbackState === 'success',
                          'bg-rose-50 border-rose-200 text-rose-800': feedbackState === 'error',
-                         'bg-amber-50 border-amber-200 text-amber-800': feedbackState === 'network_error'
+                         'bg-amber-50 border-amber-200 text-amber-800': feedbackState === 'network_error' || feedbackState === 'referensi'
                      }">
-                    <div class="p-2 rounded-xl flex-shrink-0" :class="{ 'bg-emerald-100 text-emerald-700': feedbackState === 'success', 'bg-rose-100 text-rose-700': feedbackState === 'error', 'bg-amber-100 text-amber-700': feedbackState === 'network_error' }">
+                    <div class="p-2 rounded-xl flex-shrink-0" :class="{ 'bg-emerald-100 text-emerald-700': feedbackState === 'success', 'bg-rose-100 text-rose-700': feedbackState === 'error', 'bg-amber-100 text-amber-700': feedbackState === 'network_error' || feedbackState === 'referensi' }">
                         <svg x-show="feedbackState === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         <svg x-show="feedbackState !== 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
@@ -453,6 +453,9 @@
                                 });
                                 this.showFeedback('success', 'Buku Masuk Keranjang', `<strong>${data.buku_title}</strong> (${data.action_label})`);
                                 this.playAudio('success');
+                            } else if (data.status === 'referensi') {
+                                this.showFeedback('referensi', '⚠️ Koleksi Referensi', data.message || 'Buku referensi tidak boleh dipinjam.');
+                                this.playAudio('error');
                             } else {
                                 this.showFeedback('error', 'Pengecekan Gagal', data.message || 'Buku tidak dapat diproses.');
                                 this.playAudio('error');

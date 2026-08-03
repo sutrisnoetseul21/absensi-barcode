@@ -118,9 +118,19 @@ class ProcessSirkulasiAction
             return ['status' => 'error', 'message' => 'Data peminjam tidak valid. Silakan scan kartu anggota terlebih dahulu.'];
         }
 
-        $eksemplar = EksemplarBuku::where('kode_eksemplar', $barcodeBuku)->with('buku')->first();
+        $eksemplar = EksemplarBuku::where('kode_eksemplar', $barcodeBuku)->with('buku.kategoriBuku')->first();
         if (!$eksemplar) {
             return ['status' => 'error', 'message' => "Buku dengan kode barcode {$barcodeBuku} tidak ditemukan."];
+        }
+
+        // Cek koleksi referensi — tidak boleh dipinjam
+        $namaKategori = strtolower(trim($eksemplar->buku?->kategoriBuku?->nama_kategori ?? ''));
+        if ($namaKategori === 'referensi') {
+            $judulBuku = $eksemplar->buku->judul ?? 'Buku ini';
+            return [
+                'status' => 'referensi',
+                'message' => "⚠️ <strong>{$judulBuku}</strong> ({$eksemplar->kode_eksemplar}) adalah koleksi <strong>Referensi</strong> yang tidak boleh dipinjam. Koleksi referensi hanya dapat dibaca di tempat.",
+            ];
         }
 
         if ($eksemplar->status === 'tersedia') {
