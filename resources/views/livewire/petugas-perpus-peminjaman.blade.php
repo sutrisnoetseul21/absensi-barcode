@@ -288,6 +288,10 @@
                         Unduh {{ strtoupper($formatUnduh) }}
                     </button>
                 </div>
+            </div>
+        </div>
+    @endif
+
     {{-- ===== MODAL TAMBAH PEMINJAMAN MANUAL ===== --}}
     @if($showTambahModal ?? false)
         <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
