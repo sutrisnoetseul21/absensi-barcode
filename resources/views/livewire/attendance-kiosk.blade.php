@@ -42,9 +42,8 @@
     @if(!$isGlobalHoliday)
     <input type="text" 
            x-ref="barcodeInput" 
-           x-model="barcode"
            @keydown.enter="submitScan()"
-           @keydown.escape="barcode = ''"
+           @keydown.escape="$refs.barcodeInput.value = ''"
            @blur="refocusInput()"
            class="absolute opacity-0 w-0 h-0"
            autofocus
@@ -481,8 +480,9 @@
                 },
                 
                 async submitScan(overrideBarcode = null) {
-                    const currentBarcode = (overrideBarcode || this.barcode).trim();
-                    this.barcode = ''; 
+                    const inputVal = this.$refs.barcodeInput ? this.$refs.barcodeInput.value : '';
+                    const currentBarcode = (overrideBarcode || inputVal).trim();
+                    if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = ''; 
                     
                     if (currentBarcode.length === 0) return;
                     

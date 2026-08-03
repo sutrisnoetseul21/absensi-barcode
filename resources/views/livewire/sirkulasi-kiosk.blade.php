@@ -22,7 +22,6 @@
     <!-- Hidden Input Container -->
     <input type="text" 
            x-ref="barcodeInput" 
-           x-model="barcode"
            @keydown.enter="submitScan()"
            @keydown.escape="resetToPeminjam()"
            @blur="refocusInput()"
@@ -318,6 +317,7 @@
                     this.activeLoans = [];
                     this.draftCart = [];
                     this.showFeedback('idle', '', '');
+                    if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = '';
                     this.barcode = '';
                     this.refocusInput();
                 },
@@ -346,9 +346,10 @@
                     this.refocusInput();
                 },
                 
-                async submitScan() {
-                    const currentBarcode = this.barcode.trim();
-                    this.barcode = '';
+                async submitScan(overrideBarcode = null) {
+                    const inputVal = this.$refs.barcodeInput ? this.$refs.barcodeInput.value : '';
+                    const currentBarcode = (overrideBarcode || inputVal).trim();
+                    if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = ''; 
                     
                     if (currentBarcode.length === 0) return;
                     
