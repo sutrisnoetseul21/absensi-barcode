@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
     
     // Cetak Label Spine Buku Routes
     Route::get('/admin-perpustakaan/buku/{buku}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpine'])->name('perpustakaan.cetak-label-spine');
+    Route::get('/admin-perpustakaan/eksemplar/{eksemplar}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineEksemplar'])->name('perpustakaan.cetak-label-spine-eksemplar');
     Route::get('/admin-perpustakaan/buku/cetak/label-spine-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineMassal'])->name('perpustakaan.cetak-label-spine-massal');
     
     // Kiosk Sirkulasi Perpustakaan Routes

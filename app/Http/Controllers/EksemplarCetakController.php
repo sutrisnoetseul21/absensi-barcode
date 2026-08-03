@@ -60,10 +60,12 @@ class EksemplarCetakController extends Controller
 
     public function cetakLabelSpine(Buku $buku, Request $request)
     {
-        $jumlah = $request->query('jumlah', 1);
-        $jumlah = max((int) $jumlah, 1);
-        
-        $eksemplars = $buku->eksemplarBukus()->orderBy('kode_eksemplar')->limit($jumlah)->get();
+        $query = $buku->eksemplarBukus()->orderBy('kode_eksemplar');
+        if ($request->has('jumlah')) {
+            $jumlah = max((int) $request->query('jumlah'), 1);
+            $query->limit($jumlah);
+        }
+        $eksemplars = $query->get();
         
         if ($eksemplars->isEmpty()) {
             abort(404, 'Buku ini belum memiliki eksemplar.');
@@ -72,6 +74,14 @@ class EksemplarCetakController extends Controller
         return view('pdf.label-spine-buku', [
             'eksemplars' => $eksemplars,
             'buku' => $buku,
+        ]);
+    }
+
+    public function cetakLabelSpineEksemplar(EksemplarBuku $eksemplar)
+    {
+        return view('pdf.label-spine-buku', [
+            'eksemplars' => collect([$eksemplar]),
+            'buku' => $eksemplar->buku,
         ]);
     }
 

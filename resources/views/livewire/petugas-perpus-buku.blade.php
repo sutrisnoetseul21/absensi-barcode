@@ -102,10 +102,10 @@
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                                         Barcode
                                     </a>
-                                    <button type="button" wire:click="openLabelSpineModal('{{ $buku->id }}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-slate-200 transition-all shadow-2xs" title="Cetak Label Spine / Punggung Buku">
+                                    <a href="{{ route('perpustakaan.cetak-label-spine', $buku->id) }}" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-slate-200 transition-all shadow-2xs" title="Cetak Label Spine / Punggung Buku">
                                         <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"></path></svg>
                                         Label Spine
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -389,63 +389,15 @@
         </div>
     @endif
 
-    {{-- ===== MODAL CETAK LABEL SPINE ===== --}}
-    @if($showLabelSpineModal ?? false)
-        <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 space-y-6">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800">Cetak Label Spine</h3>
-                        <p class="text-xs text-slate-500 mt-0.5 font-medium line-clamp-1" title="{{ $selectedBukuJudulForSpine }}">
-                            {{ $selectedBukuJudulForSpine }}
-                        </p>
-                    </div>
-                    <button type="button" wire:click="$set('showLabelSpineModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">
-                            Jumlah Label yang Dicetak *
-                        </label>
-                        <input type="number" 
-                               wire:model="jumlahCetakSpine" 
-                               min="1" 
-                               max="{{ $maxEksemplarSpine }}" 
-                               required 
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
-                        <p class="text-[11px] text-slate-500 mt-1">
-                            Jumlah eksemplar tersedia: <span class="font-bold text-slate-700">{{ $maxEksemplarSpine }}</span> label.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button type="button" wire:click="$set('showLabelSpineModal', false)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
-                        Batal
-                    </button>
-                    <a href="{{ route('perpustakaan.cetak-label-spine', ['buku' => $selectedBukuIdForSpine, 'jumlah' => max(1, (int)$jumlahCetakSpine)]) }}" 
-                       target="_blank" 
-                       wire:click="$set('showLabelSpineModal', false)"
-                       class="px-5 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/20 inline-flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Cetak PDF
-                    </a>
-                </div>
-            </div>
-        </div>
-    @endif
-
     {{-- ===== MODAL DETAIL EKSEMPLAR BUKU ===== --}}
     @if($showDetailEksemplarModal ?? false)
         <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 lg:p-8 space-y-6 max-h-[90vh] flex flex-col">
-                {{-- Header --}}
+            <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 lg:p-8 space-y-6 max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div>
-                        <h3 class="text-xl font-bold text-slate-800">Eksemplar Buku</h3>
-                        <p class="text-xs text-slate-500 mt-0.5 font-medium line-clamp-1">
-                            {{ $selectedBukuDetail?->judul ?? '' }}
+                        <h3 class="text-lg font-bold text-slate-800">Detail Eksemplar Buku</h3>
+                        <p class="text-xs text-slate-500 mt-0.5 font-medium">
+                            Daftar fisik eksemplar terdaftar untuk buku ini.
                         </p>
                     </div>
                     <button type="button" wire:click="$set('showDetailEksemplarModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
@@ -453,11 +405,15 @@
 
                 {{-- Action Buttons & Search Bar --}}
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         @if($selectedBukuDetail)
                             <a href="{{ route('perpustakaan.cetak-barcode', $selectedBukuDetail->id) }}" target="_blank" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 border border-indigo-200 transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                                 Cetak Barcode (Semua)
+                            </a>
+                            <a href="{{ route('perpustakaan.cetak-label-spine', $selectedBukuDetail->id) }}" target="_blank" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 border border-slate-200 transition-all">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"></path></svg>
+                                Cetak Label Spine (Semua)
                             </a>
                         @endif
                     </div>
@@ -476,7 +432,7 @@
                                 <th class="p-3 pl-4">Kode eksemplar</th>
                                 <th class="p-3">Status</th>
                                 <th class="p-3">Kondisi fisik</th>
-                                <th class="p-3 pr-4 text-right">Opsi</th>
+                                <th class="p-3 pr-4 text-left">Opsi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -500,11 +456,21 @@
                                     <td class="p-3 capitalize text-slate-600">
                                         {{ str_replace('_', ' ', $eks->kondisi_fisik) }}
                                     </td>
-                                    <td class="p-3 pr-4 text-right">
-                                        <a href="{{ route('perpustakaan.cetak-barcode-eksemplar', $eks->id) }}" target="_blank" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-[10px] inline-flex items-center gap-1 border border-indigo-200 transition-all shadow-2xs" title="Cetak Barcode Eksemplar Ini">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                                            Cetak Barcode
-                                        </a>
+                                    <td class="p-3 pr-4 text-left">
+                                        <div class="flex items-center justify-start gap-1.5 flex-wrap">
+                                            <button type="button" wire:click="openEditEksemplarModal('{{ $eks->id }}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg text-[10px] inline-flex items-center gap-1 border border-amber-200 transition-all shadow-2xs" title="Edit Eksemplar">
+                                                <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                Edit
+                                            </button>
+                                            <a href="{{ route('perpustakaan.cetak-barcode-eksemplar', $eks->id) }}" target="_blank" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-[10px] inline-flex items-center gap-1 border border-indigo-200 transition-all shadow-2xs" title="Cetak Barcode Eksemplar Ini">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                                                Cetak Barcode
+                                            </a>
+                                            <a href="{{ route('perpustakaan.cetak-label-spine-eksemplar', $eks->id) }}" target="_blank" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-[10px] inline-flex items-center gap-1 border border-slate-200 transition-all shadow-2xs" title="Cetak Spine Eksemplar Ini">
+                                                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"></path></svg>
+                                                Cetak Spine
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -527,6 +493,55 @@
                         Tutup
                     </button>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ===== MODAL EDIT EKSEMPLAR ===== --}}
+    @if($showEditEksemplarModal ?? false)
+        <div class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Edit Eksemplar Buku</h3>
+                        <p class="text-xs font-mono font-bold text-brand-primary mt-0.5">
+                            {{ $editingEksemplarKode }}
+                        </p>
+                    </div>
+                    <button type="button" wire:click="$set('showEditEksemplarModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                </div>
+
+                <form wire:submit.prevent="simpanEditEksemplar" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Status *</label>
+                        <select wire:model="editingEksemplarStatus" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            <option value="tersedia">Tersedia</option>
+                            <option value="dipinjam">Dipinjam</option>
+                            <option value="rusak">Rusak</option>
+                            <option value="hilang">Hilang</option>
+                        </select>
+                        @error('editingEksemplarStatus') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kondisi Fisik *</label>
+                        <select wire:model="editingEksemplarKondisiFisik" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            <option value="baik">Baik</option>
+                            <option value="rusak_ringan">Rusak Ringan</option>
+                            <option value="rusak_berat">Rusak Berat</option>
+                        </select>
+                        @error('editingEksemplarKondisiFisik') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" wire:click="$set('showEditEksemplarModal', false)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/20">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif

@@ -44,17 +44,17 @@ class PetugasPerpusBuku extends Component
     public array $filterMapelUnduh = [];
     public string $formatUnduh = 'pdf';
 
-    // Modal Cetak Label Spine
-    public bool $showLabelSpineModal = false;
-    public ?string $selectedBukuIdForSpine = null;
-    public string $selectedBukuJudulForSpine = '';
-    public int $jumlahCetakSpine = 1;
-    public int $maxEksemplarSpine = 1;
-
     // Modal Detail Eksemplar Buku
     public bool $showDetailEksemplarModal = false;
     public ?string $selectedBukuIdForDetail = null;
     public string $searchEksemplar = '';
+
+    // Modal Edit Eksemplar Buku
+    public bool $showEditEksemplarModal = false;
+    public ?string $editingEksemplarId = null;
+    public string $editingEksemplarKode = '';
+    public string $editingEksemplarStatus = 'tersedia';
+    public string $editingEksemplarKondisiFisik = 'baik';
 
     // Search & Filter
     public $search = '';
@@ -111,24 +111,44 @@ class PetugasPerpusBuku extends Component
         $this->showUnduhModal      = true;
     }
 
-    public function openLabelSpineModal($bukuId): void
-    {
-        $buku = Buku::withCount('eksemplarBukus')->find($bukuId);
-        if (! $buku) return;
-
-        $count = max($buku->eksemplar_bukus_count, 1);
-        $this->selectedBukuIdForSpine = $buku->id;
-        $this->selectedBukuJudulForSpine = $buku->judul;
-        $this->maxEksemplarSpine = $count;
-        $this->jumlahCetakSpine = $count;
-        $this->showLabelSpineModal = true;
-    }
-
     public function openDetailEksemplarModal($bukuId): void
     {
         $this->selectedBukuIdForDetail = $bukuId;
         $this->searchEksemplar = '';
         $this->showDetailEksemplarModal = true;
+    }
+
+    public function openEditEksemplarModal($eksemplarId): void
+    {
+        $eksemplar = EksemplarBuku::find($eksemplarId);
+        if (! $eksemplar) return;
+
+        $this->editingEksemplarId = $eksemplar->id;
+        $this->editingEksemplarKode = $eksemplar->kode_eksemplar;
+        $this->editingEksemplarStatus = $eksemplar->status;
+        $this->editingEksemplarKondisiFisik = $eksemplar->kondisi_fisik;
+        $this->showEditEksemplarModal = true;
+    }
+
+    public function simpanEditEksemplar(): void
+    {
+        if (! $this->editingEksemplarId) return;
+
+        $this->validate([
+            'editingEksemplarStatus' => 'required|in:tersedia,dipinjam,rusak,hilang',
+            'editingEksemplarKondisiFisik' => 'required|in:baik,rusak_ringan,rusak_berat',
+        ]);
+
+        $eksemplar = EksemplarBuku::find($this->editingEksemplarId);
+        if ($eksemplar) {
+            $eksemplar->update([
+                'status' => $this->editingEksemplarStatus,
+                'kondisi_fisik' => $this->editingEksemplarKondisiFisik,
+            ]);
+        }
+
+        $this->showEditEksemplarModal = false;
+        session()->flash('message', 'Data eksemplar ' . $this->editingEksemplarKode . ' berhasil diperbarui!');
     }
 
     public function downloadKatalog(): void
