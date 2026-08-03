@@ -16,11 +16,17 @@
             <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight">Data Peminjaman</h1>
             <p class="text-slate-500 text-sm mt-1">Pantau status pinjaman aktif, keterlambatan, dan riwayat pengembalian buku.</p>
         </div>
-        
-        <button @click="$wire.openUnduhModal()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 w-fit">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            Unduh Peminjaman
-        </button>
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <button @click="$wire.openTambahModal()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 w-fit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tambah Peminjaman Manual
+            </button>
+            <button @click="$wire.openUnduhModal()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 w-fit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Unduh Peminjaman
+            </button>
+        </div>
     </div>
 
     <!-- Tab Navigation -->
@@ -280,6 +286,98 @@
                     <button type="button" wire:click="downloadPeminjaman" class="px-5 py-2.5 {{ $formatUnduh === 'excel' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' }} text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Unduh {{ strtoupper($formatUnduh) }}
+                    </button>
+                </div>
+    {{-- ===== MODAL TAMBAH PEMINJAMAN MANUAL ===== --}}
+    @if($showTambahModal ?? false)
+        <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 lg:p-8 space-y-5 max-h-[90vh] flex flex-col">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Tambah Peminjaman Manual</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Catat peminjaman buku tanpa scan barcode.</p>
+                    </div>
+                    <button type="button" wire:click="$set('showTambahModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                </div>
+
+                <div class="overflow-y-auto space-y-4 pr-1 flex-grow">
+                    {{-- Tipe Anggota --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">1. Tipe Anggota</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
+                                {{ $form_peminjam_type === 'siswa' ? 'border-indigo-500 bg-indigo-50/70 text-indigo-900' : 'border-slate-200 hover:bg-slate-50 text-slate-700' }}">
+                                <input type="radio" wire:model.live="form_peminjam_type" value="siswa" class="accent-indigo-600 w-4 h-4">
+                                <span class="text-xs font-bold">Siswa</span>
+                            </label>
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
+                                {{ $form_peminjam_type === 'guru' ? 'border-indigo-500 bg-indigo-50/70 text-indigo-900' : 'border-slate-200 hover:bg-slate-50 text-slate-700' }}">
+                                <input type="radio" wire:model.live="form_peminjam_type" value="guru" class="accent-indigo-600 w-4 h-4">
+                                <span class="text-xs font-bold">Guru / Staff</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Pilih Peminjam --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">2. Pilih Peminjam / Anggota</label>
+                        <div class="space-y-2">
+                            <input type="text" wire:model.live.debounce.250ms="searchMemberModal" placeholder="Cari nama / NIS / NISN / NIP..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            
+                            <select wire:model.live="form_peminjam_id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                                <option value="">-- Pilih {{ $form_peminjam_type === 'guru' ? 'Guru' : 'Siswa' }} --</option>
+                                @foreach($availableMembers as $m)
+                                    <option value="{{ $m->id }}">
+                                        {{ $m->name }} {{ isset($m->nisn) && $m->nisn ? '(NISN: '.$m->nisn.')' : (isset($m->nip) && $m->nip ? '(NIP: '.$m->nip.')' : '') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('form_peminjam_id') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- Pilih Buku & Eksemplar --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">3. Buku &amp; Eksemplar (Tersedia)</label>
+                        <div class="space-y-2">
+                            <input type="text" wire:model.live.debounce.250ms="searchEksemplarModal" placeholder="Cari judul buku / kode eksemplar..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+
+                            <select wire:model.live="form_eksemplar_id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                                <option value="">-- Pilih Buku &amp; Eksemplar --</option>
+                                @foreach($availableEksemplars as $eks)
+                                    <option value="{{ $eks->id }}">
+                                        {{ $eks->buku?->judul ?? 'Tanpa Judul' }} - [Kode: {{ $eks->kode_eksemplar }}]
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Koleksi Referensi otomatis difilter dan tidak dapat dipinjam.</p>
+                        @error('form_eksemplar_id') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- Tanggal Pinjam & Jatuh Tempo --}}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Tanggal Pinjam</label>
+                            <input type="date" wire:model.live="form_tanggal_pinjam" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            @error('form_tanggal_pinjam') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Tanggal Jatuh Tempo</label>
+                            <input type="date" wire:model.live="form_tanggal_jatuh_tempo" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                            @error('form_tanggal_jatuh_tempo') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 flex-shrink-0">
+                    <button type="button" wire:click="$set('showTambahModal', false)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
+                        Batal
+                    </button>
+                    <button type="button" wire:click="simpanPeminjaman" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Simpan Peminjaman
                     </button>
                 </div>
             </div>

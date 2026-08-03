@@ -86,6 +86,92 @@ class PetugasPerpusPeminjaman extends Component
         $this->resetPage();
     }
 
+    // Modal Tambah Peminjaman Manual
+    public bool $showTambahModal = false;
+    public string $form_peminjam_type = 'siswa'; // 'siswa' | 'guru'
+    public string $form_peminjam_id = '';
+    public string $form_eksemplar_id = '';
+    public string $form_tanggal_pinjam = '';
+    public string $form_tanggal_jatuh_tempo = '';
+    public string $searchMemberModal = '';
+    public string $searchEksemplarModal = '';
+
+    public function updatedFormPeminjamType(): void
+    {
+        $this->form_peminjam_id = '';
+        $this->searchMemberModal = '';
+    }
+
+    public function openTambahModal(): void
+    {
+        $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
+
+        $this->form_peminjam_type = 'siswa';
+        $this->form_peminjam_id = '';
+        $this->form_eksemplar_id = '';
+        $this->form_tanggal_pinjam = now()->toDateString();
+        $this->form_tanggal_jatuh_tempo = now()->addDays($lamaPinjam)->toDateString();
+        $this->searchMemberModal = '';
+        $this->searchEksemplarModal = '';
+        $this->showTambahModal = true;
+    }
+
+    public function updatedFormTanggalPinjam($value): void
+    {
+        if ($value) {
+            $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
+            $this->form_tanggal_jatuh_tempo = Carbon::parse($value)->addDays($lamaPinjam)->toDateString();
+        }
+    }
+
+    public function simpanPeminjaman(): void
+    {
+        $this->validate([
+            'form_peminjam_type' => 'required|in:siswa,guru',
+            'form_peminjam_id' => 'required',
+            'form_eksemplar_id' => 'required|exists:eksemplar_bukus,id',
+            'form_tanggal_pinjam' => 'required|date',
+            'form_tanggal_jatuh_tempo' => 'required|date|after_or_equal:form_tanggal_pinjam',
+        ], [
+            'form_peminjam_id.required' => 'Peminjam harus dipilih.',
+            'form_eksemplar_id.required' => 'Buku/Eksemplar harus dipilih.',
+            'form_tanggal_pinjam.required' => 'Tanggal pinjam harus diisi.',
+            'form_tanggal_jatuh_tempo.required' => 'Tanggal jatuh tempo harus diisi.',
+            'form_tanggal_jatuh_tempo.after_or_equal' => 'Tanggal jatuh tempo harus sama atau setelah tanggal pinjam.',
+        ]);
+
+        $eksemplar = \App\Models\EksemplarBuku::with('buku.kategoriBuku')->find($this->form_eksemplar_id);
+
+        if (!$eksemplar || $eksemplar->status !== 'tersedia') {
+            $this->addError('form_eksemplar_id', 'Eksemplar buku ini sudah tidak tersedia.');
+            return;
+        }
+
+        $namaKategori = strtolower(trim($eksemplar->buku?->kategoriBuku?->nama_kategori ?? ''));
+        if ($namaKategori === 'referensi') {
+            $this->addError('form_eksemplar_id', 'Buku Referensi tidak dapat dipinjam (hanya dibaca di tempat).');
+            return;
+        }
+
+        $user = auth()->user();
+
+        Peminjaman::create([
+            'eksemplar_id' => $eksemplar->id,
+            'peminjam_type' => $this->form_peminjam_type,
+            'peminjam_id' => $this->form_peminjam_id,
+            'tanggal_pinjam' => $this->form_tanggal_pinjam,
+            'tanggal_jatuh_tempo' => $this->form_tanggal_jatuh_tempo,
+            'status' => 'dipinjam',
+            'petugas_id' => $user?->id,
+        ]);
+
+        $eksemplar->update(['status' => 'dipinjam']);
+
+        $this->showTambahModal = false;
+        session()->flash('flash_success', 'Peminjaman buku "' . ($eksemplar->buku?->judul ?? '') . '" berhasil ditambahkan!');
+        $this->resetPage();
+    }
+
     public function render()
     {
         $today = Carbon::today('Asia/Jakarta');
@@ -116,12 +202,50 @@ class PetugasPerpusPeminjaman extends Component
 
         $peminjamans = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
 
+        $availableMembers = collect();
+        $availableEksemplars = collect();
+
+        if ($this->showTambahModal) {
+            if ($this->form_peminjam_type === 'guru') {
+                $availableMembers = \App\Models\Guru::when($this->searchMemberModal, function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                            ->orWhere('nip', 'like', "%{$this->searchMemberModal}%");
+                    });
+                })->orderBy('name')->get();
+            } else {
+                $availableMembers = \App\Models\Siswa::when($this->searchMemberModal, function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                            ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
+                            ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
+                    });
+                })->orderBy('name')->get();
+            }
+
+            $availableEksemplars = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
+                ->where('status', 'tersedia')
+                ->when($this->searchEksemplarModal, function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->where('kode_eksemplar', 'like', "%{$this->searchEksemplarModal}%")
+                            ->orWhereHas('buku', fn ($b) => $b->where('judul', 'like', "%{$this->searchEksemplarModal}%"));
+                    });
+                })
+                ->get()
+                ->filter(function ($item) {
+                    $kategori = strtolower(trim($item->buku?->kategoriBuku?->nama_kategori ?? ''));
+                    return $kategori !== 'referensi';
+                });
+        }
+
         return view('livewire.petugas-perpus-peminjaman', [
-            'peminjamans'       => $peminjamans,
-            'today'             => $today,
-            'countDipinjam'     => $countDipinjam,
-            'countTerlambat'    => $countTerlambat,
-            'countDikembalikan' => $countDikembalikan,
+            'peminjamans'         => $peminjamans,
+            'today'               => $today,
+            'countDipinjam'       => $countDipinjam,
+            'countTerlambat'      => $countTerlambat,
+            'countDikembalikan'   => $countDikembalikan,
+            'availableMembers'    => $availableMembers,
+            'availableEksemplars' => $availableEksemplars,
         ])->title('Data Peminjaman - Portal Perpustakaan');
     }
 }
