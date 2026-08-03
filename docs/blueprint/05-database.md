@@ -321,6 +321,7 @@
 - tahun_terbit (integer, nullable)
 - isbn (string, nullable)
 - lokasi_rak (string, nullable)
+- sampul_buku (string, nullable)
 - deleted_at (softDeletes)
 - timestamps()
 ```

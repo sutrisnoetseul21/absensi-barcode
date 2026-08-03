@@ -82,6 +82,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         @foreach($bukus as $buku)
                             <div class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-brand-primary/30 transition-all duration-300 group">
+                                <div class="h-40 bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
+                                    @if($buku->sampul_buku)
+                                        <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="{{ $buku->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    @else
+                                        <svg class="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                    @endif
+                                </div>
                                 <div class="p-6 flex-1 flex flex-col">
                                     <div class="flex justify-between items-start mb-4">
                                         <div class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $buku->dipinjam_oleh_saya ? 'bg-amber-100 text-amber-700' : ($buku->eksemplar_tersedia_count > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700') }}">

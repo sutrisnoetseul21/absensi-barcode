@@ -14,6 +14,8 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -27,6 +29,20 @@ class BukusTable
                 'eksemplarBukus as jumlah_tersedia' => fn ($q) => $q->where('status', 'tersedia')
             ]))
             ->columns([
+                ImageColumn::make('sampul_buku')
+                    ->label('Sampul')
+                    ->disk('public')
+                    ->square()
+                    ->size(48)
+                    ->defaultImageUrl(url('images/book-placeholder.png')),
+                IconColumn::make('file_pdf')
+                    ->label('E-Book')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-document-text')
+                    ->falseIcon('heroicon-o-minus')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->getStateUsing(fn ($record) => !empty($record->file_pdf)),
                 TextColumn::make('judul')
                     ->searchable(),
                 TextColumn::make('penulis')
@@ -53,6 +69,20 @@ class BukusTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                Action::make('bacaPdfModal')
+                    ->label('Baca E-Book')
+                    ->icon('heroicon-o-book-open')
+                    ->color('success')
+                    ->modalHeading(fn ($record) => "Baca E-Book: {$record->judul}")
+                    ->modalWidth('6xl')
+                    ->modalContent(fn ($record) => new \Illuminate\Support\HtmlString('
+                        <div class="w-full h-[70vh] min-h-[500px] bg-slate-950 rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+                            <iframe src="' . route('perpustakaan.baca-buku', $record) . '" class="w-full h-full border-0"></iframe>
+                        </div>
+                    '))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->visible(fn ($record) => !empty($record->file_pdf)),
                 Action::make('cetakLabelSpine')
                     ->label('Cetak Label Spine')
                     ->icon('heroicon-o-printer')

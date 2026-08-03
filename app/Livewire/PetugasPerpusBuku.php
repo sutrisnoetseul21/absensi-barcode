@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use App\Models\Buku;
 use App\Models\KategoriBuku;
@@ -18,7 +19,7 @@ use App\Models\PengaturanSekolah;
 #[Layout('components.layouts.portal')]
 class PetugasPerpusBuku extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     // Form Input Buku Baru
     public $showInputModal = false;
@@ -33,10 +34,30 @@ class PetugasPerpusBuku extends Component
     public $klasifikasi_ddc_id = null;
     public $jumlah_eksemplar = null;
     public $grade_level = '';
+    public $sampul_buku;
+    public $file_pdf;
     
     public $asal_buku = '';
     public $harga_buku = null;
     public $prefix_kode = '';
+
+    // Form Edit Buku
+    public bool $showEditBukuModal = false;
+    public ?string $editingBukuId = null;
+    public string $edit_judul = '';
+    public string $edit_penulis = '';
+    public string $edit_penerbit = '';
+    public string $edit_tahun_terbit = '';
+    public string $edit_isbn = '';
+    public string $edit_lokasi_rak = '';
+    public string $edit_kategori_id = '';
+    public string $edit_mapel_id = 'lainnya';
+    public $edit_klasifikasi_ddc_id = null;
+    public string $edit_grade_level = '';
+    public $edit_sampul_buku;
+    public ?string $edit_existing_sampul = null;
+    public $edit_file_pdf;
+    public ?string $edit_existing_pdf = null;
 
     // Modal Unduh Katalog
     public bool $showUnduhModal = false;
@@ -74,6 +95,7 @@ class PetugasPerpusBuku extends Component
         'asal_buku' => 'required|in:Pembelian,Hibah,Tukar,Terbitan Sendiri',
         'harga_buku' => 'nullable|numeric|min:0',
         'prefix_kode' => 'required|string|max:10',
+        'sampul_buku' => 'nullable|image|max:2048',
     ];
 
     public function mount()
@@ -171,7 +193,7 @@ class PetugasPerpusBuku extends Component
 
     public function openInputModal()
     {
-        $this->reset(['judul', 'penulis', 'penerbit', 'isbn', 'lokasi_rak', 'klasifikasi_ddc_id', 'harga_buku', 'prefix_kode']);
+        $this->reset(['judul', 'penulis', 'penerbit', 'isbn', 'lokasi_rak', 'klasifikasi_ddc_id', 'harga_buku', 'prefix_kode', 'sampul_buku']);
         $this->kategori_id = '';
         $this->asal_buku = '';
         $this->grade_level = '';
@@ -185,7 +207,27 @@ class PetugasPerpusBuku extends Component
     {
         $this->validate();
 
-        DB::transaction(function () {
+        $sampulPath = null;
+        if ($this->sampul_buku) {
+            try {
+                $imageManager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                $image = $imageManager->decode($this->sampul_buku->getRealPath());
+                $image->scaleDown(width: 800, height: 1000);
+
+                $filename = \Illuminate\Support\Str::random(40) . '.jpg';
+                $directoryPath = storage_path('app/public/sampul-buku');
+                if (!file_exists($directoryPath)) {
+                    mkdir($directoryPath, 0755, true);
+                }
+
+                $image->save($directoryPath . '/' . $filename, 75);
+                $sampulPath = 'sampul-buku/' . $filename;
+            } catch (\Throwable $e) {
+                $sampulPath = $this->sampul_buku->store('sampul-buku', 'public');
+            }
+        }
+
+        DB::transaction(function () use ($sampulPath) {
             // 1. Simpan Buku Katalog
             $buku = Buku::create([
                 'judul' => $this->judul,
@@ -198,6 +240,7 @@ class PetugasPerpusBuku extends Component
                 'isbn' => $this->isbn,
                 'lokasi_rak' => $this->lokasi_rak,
                 'grade_level' => $this->grade_level === 'umum' ? null : ($this->grade_level ?: null),
+                'sampul_buku' => $sampulPath,
             ]);
 
             // 2. Buat Record Inventaris Buku Batch
@@ -227,6 +270,134 @@ class PetugasPerpusBuku extends Component
 
         $this->showInputModal = false;
         session()->flash('message', 'Buku baru dan eksemplar berhasil ditambahkan!');
+    }
+
+    public function updatedEditKategoriId($value)
+    {
+        if ($value) {
+            $kategori = KategoriBuku::find($value);
+            if (! $kategori || strtolower(trim($kategori->nama_kategori)) !== 'non fiksi') {
+                $this->edit_mapel_id = 'lainnya';
+            }
+        } else {
+            $this->edit_mapel_id = 'lainnya';
+        }
+    }
+
+    public function openEditBukuModal($bukuId): void
+    {
+        $buku = Buku::find($bukuId);
+        if (! $buku) return;
+
+        $this->editingBukuId = $buku->id;
+        $this->edit_judul = $buku->judul;
+        $this->edit_kategori_id = (string)$buku->kategori_id;
+        $this->edit_mapel_id = $buku->mapel_id ? (string)$buku->mapel_id : 'lainnya';
+        $this->edit_klasifikasi_ddc_id = $buku->klasifikasi_ddc_id;
+        $this->edit_grade_level = $buku->grade_level ? (string)$buku->grade_level : '';
+        $this->edit_penulis = $buku->penulis ?? '';
+        $this->edit_penerbit = $buku->penerbit ?? '';
+        $this->edit_tahun_terbit = $buku->tahun_terbit ? (string)$buku->tahun_terbit : '';
+        $this->edit_isbn = $buku->isbn ?? '';
+        $this->edit_lokasi_rak = $buku->lokasi_rak ?? '';
+        $this->edit_existing_sampul = $buku->sampul_buku;
+        $this->edit_existing_pdf = $buku->file_pdf;
+        $this->edit_sampul_buku = null;
+        $this->edit_file_pdf = null;
+
+        $this->showEditBukuModal = true;
+    }
+
+    public function simpanEditBuku(): void
+    {
+        if (! $this->editingBukuId) return;
+
+        $this->validate([
+            'edit_judul' => 'required|string|max:255',
+            'edit_kategori_id' => 'required|exists:kategori_bukus,id',
+            'edit_mapel_id' => 'nullable',
+            'edit_penulis' => 'nullable|string|max:255',
+            'edit_penerbit' => 'nullable|string|max:255',
+            'edit_tahun_terbit' => 'nullable|integer|digits:4',
+            'edit_isbn' => 'nullable|string|max:50',
+            'edit_lokasi_rak' => 'nullable|string|max:100',
+            'edit_grade_level' => 'nullable',
+            'edit_sampul_buku' => 'nullable|image|max:5120',
+            'edit_file_pdf' => 'nullable|mimes:pdf|max:51200',
+        ]);
+
+        $buku = Buku::find($this->editingBukuId);
+        if (! $buku) return;
+
+        // Process Sampul Baru jika ada
+        $sampulPath = $buku->sampul_buku;
+        if ($this->edit_sampul_buku) {
+            try {
+                $imageManager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                $image = $imageManager->decode($this->edit_sampul_buku->getRealPath());
+                $image->scaleDown(width: 800, height: 1000);
+
+                $filename = \Illuminate\Support\Str::random(40) . '.jpg';
+                $directoryPath = storage_path('app/public/sampul-buku');
+                if (!file_exists($directoryPath)) {
+                    mkdir($directoryPath, 0755, true);
+                }
+
+                $image->save($directoryPath . '/' . $filename, 75);
+                @chmod($directoryPath . '/' . $filename, 0644);
+                $sampulPath = 'sampul-buku/' . $filename;
+            } catch (\Throwable $e) {
+                $sampulPath = $this->edit_sampul_buku->store('sampul-buku', 'public');
+                $fullPath = storage_path('app/public/' . $sampulPath);
+                if (file_exists($fullPath)) @chmod($fullPath, 0644);
+            }
+        }
+
+        // Process PDF Baru jika ada
+        $pdfPath = $buku->file_pdf;
+        if ($this->edit_file_pdf) {
+            $pdfPath = $this->edit_file_pdf->store('buku-pdf', 'public');
+            $fullPath = storage_path('app/public/' . $pdfPath);
+            if (file_exists($fullPath)) @chmod($fullPath, 0644);
+        }
+
+        $buku->update([
+            'judul' => $this->edit_judul,
+            'kategori_id' => $this->edit_kategori_id,
+            'mapel_id' => ($this->edit_mapel_id === 'lainnya' || empty($this->edit_mapel_id)) ? null : $this->edit_mapel_id,
+            'klasifikasi_ddc_id' => $this->edit_klasifikasi_ddc_id ?: null,
+            'penulis' => $this->edit_penulis,
+            'penerbit' => $this->edit_penerbit,
+            'tahun_terbit' => $this->edit_tahun_terbit ? (int)$this->edit_tahun_terbit : null,
+            'isbn' => $this->edit_isbn,
+            'lokasi_rak' => $this->edit_lokasi_rak,
+            'grade_level' => $this->edit_grade_level === 'umum' ? null : ($this->edit_grade_level ?: null),
+            'sampul_buku' => $sampulPath,
+            'file_pdf' => $pdfPath,
+        ]);
+
+        $this->showEditBukuModal = false;
+        session()->flash('message', 'Data buku "' . $buku->judul . '" berhasil diperbarui!');
+    }
+
+    public function hapusBuku($bukuId): void
+    {
+        $buku = Buku::find($bukuId);
+        if (! $buku) return;
+
+        // Check if any exemplar is currently borrowed
+        if ($buku->eksemplarBukus()->where('status', 'dipinjam')->exists()) {
+            session()->flash('error', 'Buku "' . $buku->judul . '" tidak dapat dihapus karena ada eksemplar yang sedang dipinjam!');
+            return;
+        }
+
+        DB::transaction(function () use ($buku) {
+            $buku->eksemplarBukus()->delete();
+            InventarisBuku::where('buku_id', $buku->id)->update(['status' => 'dibatalkan']);
+            $buku->delete();
+        });
+
+        session()->flash('message', 'Buku "' . $buku->judul . '" berhasil dihapus.');
     }
 
     public function render()

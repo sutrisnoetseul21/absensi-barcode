@@ -25,6 +25,14 @@ Route::get('/presensi/display', PublicDashboard::class)->name('public.display');
 Route::get('/perpustakaan', KatalogPerpustakaan::class)
     ->middleware('throttle:60,1')
     ->name('perpustakaan.dashboard');
+
+// E-Library: Baca Buku Online
+Route::get('/perpustakaan/buku/{buku}/baca', function (\App\Models\Buku $buku) {
+    if (!$buku->file_pdf) {
+        abort(404, 'Buku ini tidak memiliki file PDF untuk dibaca online.');
+    }
+    return view('baca-buku', compact('buku'));
+})->name('perpustakaan.baca-buku');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
 Route::get('/login', fn() => view('auth.portal-selection'))->name('login');
 

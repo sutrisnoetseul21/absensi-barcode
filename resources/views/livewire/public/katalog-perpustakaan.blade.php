@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 flex flex-col font-jakarta">
+<div class="min-h-screen bg-slate-50 flex flex-col font-jakarta" x-data="{ showPdfModal: false, pdfTitle: '', pdfUrl: '', readerUrl: '' }">
 
     <!-- ====================== HEADER / NAVBAR MODERN ====================== -->
     <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
@@ -365,9 +365,14 @@
 
                     @forelse($bukus as $buku)
                         <div class="group bg-white border border-slate-100 rounded-2xl hover:border-brand-primary/30 hover:shadow-xl hover:shadow-brand-primary/5 transition-all duration-300 flex flex-col h-full overflow-hidden">
-                            <!-- Cover area (placeholder) -->
-                            <div class="h-32 bg-slate-50 flex items-center justify-center text-slate-300 relative">
-                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            <!-- Cover area -->
+                            <div class="h-40 bg-slate-50 flex items-center justify-center text-slate-300 relative overflow-hidden border-b border-slate-100">
+                                @if($buku->sampul_buku)
+                                    <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="{{ $buku->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                                @else
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                @endif
                                 
                                 @if($buku->kategoriBuku)
                                     <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-1 rounded-md text-slate-600 shadow-sm border border-slate-200">
@@ -379,23 +384,42 @@
                                         Kelas {{ $buku->grade_level }}
                                     </span>
                                 @endif
+
+                                {{-- Badge E-Book jika ada PDF --}}
+                                @if($buku->file_pdf)
+                                    <span class="absolute bottom-3 right-3 inline-flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        E-Book
+                                    </span>
+                                @endif
                             </div>
                             <div class="p-5 flex-1 flex flex-col">
                                 <h4 class="font-bold text-slate-800 leading-tight mb-1 group-hover:text-brand-primary transition-colors">{{ $buku->judul }}</h4>
                                 <p class="text-xs text-slate-500 mb-4 line-clamp-1">{{ $buku->penulis ?? 'Penulis tidak diketahui' }} &bull; {{ $buku->penerbit ?? 'Penerbit tidak diketahui' }}</p>
                                 
-                                <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                    <div class="flex items-center gap-1.5">
-                                        @if($buku->eksemplar_tersedia_count > 0)
-                                            <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
-                                            <span class="text-xs font-bold text-brand-accent-dark">{{ $buku->eksemplar_tersedia_count }} Tersedia</span>
-                                        @else
-                                            <span class="w-2 h-2 rounded-full bg-brand-danger"></span>
-                                            <span class="text-xs font-bold text-brand-danger-dark">Dipinjam Semua</span>
+                                <div class="mt-auto pt-3 border-t border-slate-50 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            @if($buku->eksemplar_tersedia_count > 0)
+                                                <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
+                                                <span class="text-xs font-bold text-brand-accent-dark">{{ $buku->eksemplar_tersedia_count }} Tersedia</span>
+                                            @else
+                                                <span class="w-2 h-2 rounded-full bg-brand-danger"></span>
+                                                <span class="text-xs font-bold text-brand-danger-dark">Dipinjam Semua</span>
+                                            @endif
+                                        </div>
+                                        @if($buku->isbn)
+                                            <span class="text-[10px] font-mono text-slate-400">{{ $buku->isbn }}</span>
                                         @endif
                                     </div>
-                                    @if($buku->isbn)
-                                        <span class="text-[10px] font-mono text-slate-400">{{ $buku->isbn }}</span>
+
+                                    {{-- Tombol Baca Online (Pop-up Modal) --}}
+                                    @if($buku->file_pdf)
+                                        <button @click="pdfTitle = '{{ addslashes($buku->judul) }}'; pdfUrl = '{{ asset('storage/' . $buku->file_pdf) }}'; readerUrl = '{{ route('perpustakaan.baca-buku', $buku) }}'; showPdfModal = true"
+                                                class="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-colors duration-200 shadow-sm hover:shadow cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                            Baca Online (Pop-up)
+                                        </button>
                                     @endif
                                 </div>
                             </div>
@@ -471,4 +495,48 @@
             <p class="mt-2 text-slate-500 text-xs">Sistem Informasi Perpustakaan Terpadu</p>
         </div>
     </footer>
+
+    <!-- ====================== MODAL POPUP BACA PDF ====================== -->
+    <template x-teleport="body">
+        <div x-show="showPdfModal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md"
+             x-cloak>
+            <div @click.away="showPdfModal = false"
+                 class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-5 py-4 bg-slate-900 border-b border-slate-800 text-white">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-base truncate text-white" x-text="pdfTitle"></h3>
+                            <p class="text-xs text-slate-400">Pratinjau E-Book / Baca Online</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a :href="readerUrl" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            Layar Penuh
+                        </a>
+                        <button @click="showPdfModal = false" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Modal Body (Embed PDF) -->
+                <div class="flex-1 bg-slate-950 relative">
+                    <template x-if="showPdfModal">
+                        <iframe :src="pdfUrl" class="w-full h-full border-0"></iframe>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>

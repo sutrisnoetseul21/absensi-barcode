@@ -24,6 +24,8 @@ class Buku extends Model
         'tahun_terbit',
         'isbn',
         'lokasi_rak',
+        'sampul_buku',
+        'file_pdf',
     ];
 
     protected $casts = [
