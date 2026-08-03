@@ -245,18 +245,19 @@ class PeminjamanAktifResource extends Resource
                     })
                     ->visible(fn (Peminjaman $record) => $record->status === 'dipinjam'),
                 EditAction::make(),
-                DeleteAction::make()
-                    ->after(function ($record) {
-                        if ($record->eksemplar_id) {
-                            \App\Models\EksemplarBuku::where('id', $record->eksemplar_id)->update(['status' => 'tersedia']);
-                        }
-                    }),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 
     public static function getRelations(): array
