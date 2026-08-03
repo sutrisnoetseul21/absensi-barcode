@@ -174,18 +174,36 @@
         @foreach ($pageEksemplars as $eks)
             @php
                 $bukuTerkait = $eks->buku;
+                $kategori = strtolower(trim($bukuTerkait?->kategoriBuku?->nama_kategori ?? ''));
+                $defaultPrefix = ($kategori === 'referensi') ? 'RF' : 'SR';
+
                 $callNumber = $bukuTerkait ? $bukuTerkait->call_number : '';
-                $lines = explode("\n", str_replace("\r", "", $callNumber));
-                $line1 = $lines[0] ?? '';
-                $line2 = $lines[1] ?? '';
-                $line3 = $lines[2] ?? '';
+                $rawLines = array_values(array_filter(explode("\n", str_replace("\r", "", $callNumber)), fn($l) => trim($l) !== ''));
+
+                if (count($rawLines) >= 4) {
+                    $prefixLine = $rawLines[0];
+                    $ddcLine = $rawLines[1];
+                    $authorLine = $rawLines[2];
+                    $titleLine = $rawLines[3];
+                } elseif (count($rawLines) === 3 && in_array(strtoupper(trim($rawLines[0])), ['SR', 'RF', 'R'])) {
+                    $prefixLine = strtoupper(trim($rawLines[0]));
+                    $ddcLine = $rawLines[1];
+                    $authorLine = $rawLines[2];
+                    $titleLine = '';
+                } else {
+                    $prefixLine = $defaultPrefix;
+                    $ddcLine = $rawLines[0] ?? '';
+                    $authorLine = $rawLines[1] ?? '';
+                    $titleLine = $rawLines[2] ?? '';
+                }
             @endphp
             <div class="label-container">
                 <div class="label-header">{{ Str::limit($namaSekolah, 40) }}</div>
                 <div class="call-number-container">
-                    <div class="call-number-line">{{ $line1 }}</div>
-                    <div class="call-number-line">{{ $line2 }}</div>
-                    <div class="call-number-line">{{ $line3 }}</div>
+                    <div class="call-number-line" style="font-weight: bold;">{{ $prefixLine }}</div>
+                    <div class="call-number-line">{{ $ddcLine }}</div>
+                    <div class="call-number-line">{{ $authorLine }}</div>
+                    <div class="call-number-line">{{ $titleLine }}</div>
                 </div>
             </div>
         @endforeach

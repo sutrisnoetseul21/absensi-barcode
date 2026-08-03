@@ -18,10 +18,14 @@ class CallNumberService
 
     public static function generate(Buku $buku): string
     {
-        // Baris 1: Kode DDC
+        // Baris 1: Kode Koleksi (SR = Sirkulasi, RF = Referensi)
+        $kategori = strtolower(trim($buku->kategoriBuku?->nama_kategori ?? ''));
+        $baris0 = ($kategori === 'referensi') ? 'RF' : 'SR';
+
+        // Baris 2: Kode DDC
         $baris1 = $buku->klasifikasiDdc ? $buku->klasifikasiDdc->kode_ddc : 'XXX';
 
-        // Baris 2: 3 huruf awal kata pertama penulis, uppercase
+        // Baris 3: 3 huruf awal kata pertama penulis, uppercase
         $penulis = trim($buku->penulis ?? '');
         $baris2 = 'XXX';
         if ($penulis !== '') {
@@ -36,7 +40,7 @@ class CallNumberService
             }
         }
 
-        // Baris 3: 1 huruf pertama kata bermakna pertama dari judul, lowercase
+        // Baris 4: 1 huruf pertama kata bermakna pertama dari judul, lowercase
         $judul = trim($buku->judul ?? '');
         $baris3 = 'x';
         if ($judul !== '') {
@@ -50,6 +54,6 @@ class CallNumberService
             }
         }
 
-        return $baris1 . "\n" . $baris2 . "\n" . $baris3;
+        return $baris0 . "\n" . $baris1 . "\n" . $baris2 . "\n" . $baris3;
     }
 }
