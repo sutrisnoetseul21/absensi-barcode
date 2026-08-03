@@ -305,26 +305,9 @@
                 </div>
 
                 <div class="overflow-y-auto space-y-4 pr-1 flex-grow">
-                    {{-- Tipe Anggota --}}
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2">1. Tipe Anggota</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
-                                {{ $form_peminjam_type === 'siswa' ? 'border-indigo-500 bg-indigo-50/70 text-indigo-900' : 'border-slate-200 hover:bg-slate-50 text-slate-700' }}">
-                                <input type="radio" wire:model.live="form_peminjam_type" value="siswa" class="accent-indigo-600 w-4 h-4">
-                                <span class="text-xs font-bold">Siswa</span>
-                            </label>
-                            <label class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition
-                                {{ $form_peminjam_type === 'guru' ? 'border-indigo-500 bg-indigo-50/70 text-indigo-900' : 'border-slate-200 hover:bg-slate-50 text-slate-700' }}">
-                                <input type="radio" wire:model.live="form_peminjam_type" value="guru" class="accent-indigo-600 w-4 h-4">
-                                <span class="text-xs font-bold">Guru / Staff</span>
-                            </label>
-                        </div>
-                    </div>
-
                     {{-- Pilih Peminjam --}}
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">2. Pilih Peminjam / Anggota</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">1. Pilih Peminjam / Anggota</label>
                         <div x-data="{ open: false }" class="relative">
                             <div class="relative">
                                 <input type="text" 
@@ -347,7 +330,7 @@
                                         $isSelected = $form_peminjam_id === $m->id;
                                     @endphp
                                     <button type="button"
-                                            wire:click="$set('form_peminjam_id', '{{ $m->id }}'); $set('searchMemberModal', '{{ addslashes($m->name) }}')"
+                                            wire:click="$set('form_peminjam_id', '{{ $m->id }}'); $set('form_peminjam_type', '{{ $m->model_type }}'); $set('searchMemberModal', '{{ addslashes($m->name) }}')"
                                             @click="open = false"
                                             class="w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-indigo-50 transition-colors {{ $isSelected ? 'bg-indigo-50 font-bold text-indigo-700' : 'text-slate-700' }}">
                                         <div>
@@ -355,6 +338,7 @@
                                             @if($extra)
                                                 <span class="text-[11px] text-slate-400 ml-1">{{ $extra }}</span>
                                             @endif
+                                            <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md ml-2 {{ $m->model_type === 'guru' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700' }}">{{ $m->model_type }}</span>
                                         </div>
                                         @if($isSelected)
                                             <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -368,11 +352,12 @@
                             </div>
                         </div>
                         @error('form_peminjam_id') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        @error('form_peminjam_type') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Pilih Buku & Eksemplar --}}
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">3. Buku &amp; Eksemplar (Tersedia)</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">2. Buku &amp; Eksemplar (Tersedia)</label>
                         <div x-data="{ open: false }" class="relative">
                             <div class="relative">
                                 <input type="text" 

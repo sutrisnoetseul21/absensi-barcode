@@ -106,7 +106,7 @@ class PetugasPerpusPeminjaman extends Component
     {
         $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
 
-        $this->form_peminjam_type = 'siswa';
+        $this->form_peminjam_type = '';
         $this->form_peminjam_id = '';
         $this->form_eksemplar_id = '';
         $this->form_tanggal_pinjam = now()->toDateString();
@@ -206,22 +206,28 @@ class PetugasPerpusPeminjaman extends Component
         $availableEksemplars = collect();
 
         if ($this->showTambahModal) {
-            if ($this->form_peminjam_type === 'guru') {
-                $availableMembers = \App\Models\Guru::when($this->searchMemberModal, function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
-                            ->orWhere('nip', 'like', "%{$this->searchMemberModal}%");
-                    });
-                })->orderBy('name')->get();
-            } else {
-                $availableMembers = \App\Models\Siswa::when($this->searchMemberModal, function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
-                            ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
-                            ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
-                    });
-                })->orderBy('name')->get();
-            }
+            $siswa = \App\Models\Siswa::when($this->searchMemberModal, function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                        ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
+                        ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
+                });
+            })->select('id', 'name', 'nisn', 'nis')->get()->map(function($item) {
+                $item->model_type = 'siswa';
+                return $item;
+            });
+
+            $guru = \App\Models\Guru::when($this->searchMemberModal, function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                        ->orWhere('nip', 'like', "%{$this->searchMemberModal}%");
+                });
+            })->select('id', 'name', 'nip')->get()->map(function($item) {
+                $item->model_type = 'guru';
+                return $item;
+            });
+
+            $availableMembers = $siswa->concat($guru)->sortBy('name')->take(20);
 
             $availableEksemplars = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
                 ->where('status', 'tersedia')
