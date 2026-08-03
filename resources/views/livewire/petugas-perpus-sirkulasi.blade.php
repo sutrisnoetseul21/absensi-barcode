@@ -39,11 +39,7 @@
         <div class="flex flex-col md:flex-row min-h-[560px]">
 
             <!-- Left Panel -->
-            <div class="w-full md:w-5/12 text-white p-6 lg:p-8 flex flex-col relative transition-all duration-300"
-                 :class="{
-                    'bg-indigo-700': scanState === 'PEMINJAM',
-                    'bg-slate-900': scanState === 'BUKU'
-                 }">
+            <div class="w-full md:w-5/12 bg-gradient-to-b from-indigo-700 to-indigo-900 text-white p-6 lg:p-8 flex flex-col relative transition-all duration-300">
                 <div class="mb-6">
                     @if($settings && $settings->school_logo_path)
                         <img src="{{ asset('storage/'.$settings->school_logo_path) }}" alt="Logo" class="w-12 h-12 mb-3 object-contain drop-shadow-md">

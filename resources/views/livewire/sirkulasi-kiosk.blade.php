@@ -48,11 +48,7 @@
         <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white overflow-hidden flex flex-col md:flex-row min-h-[540px]">
             
             <!-- Left Side: State Info & Member Active Loans -->
-            <div class="w-full md:w-5/12 bg-indigo-700 text-white p-6 lg:p-8 flex flex-col relative transition-all duration-300"
-                 :class="{
-                    'bg-indigo-700': scanState === 'PEMINJAM',
-                    'bg-slate-900': scanState === 'BUKU'
-                 }">
+            <div class="w-full md:w-5/12 bg-gradient-to-b from-indigo-700 to-indigo-900 text-white p-6 lg:p-8 flex flex-col relative transition-all duration-300">
                 <div class="mb-6">
                     @if($settings && $settings->school_logo_path)
                         <img src="{{ asset('storage/'.$settings->school_logo_path) }}" alt="Logo" class="w-14 h-14 mb-3 object-contain drop-shadow-md">
