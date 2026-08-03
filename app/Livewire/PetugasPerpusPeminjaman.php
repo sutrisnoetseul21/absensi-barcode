@@ -67,7 +67,7 @@ class PetugasPerpusPeminjaman extends Component
         $this->redirect(route($routeName, $params));
     }
 
-    public function kembalikanBuku(int $peminjamanId): void
+    public function kembalikanBuku(string $peminjamanId): void
     {
         $peminjaman = Peminjaman::find($peminjamanId);
         if (!$peminjaman || $peminjaman->status !== 'dipinjam') return;
