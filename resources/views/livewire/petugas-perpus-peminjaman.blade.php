@@ -20,7 +20,7 @@
         <div class="flex items-center gap-3 flex-wrap">
             <button @click="$wire.openTambahModal()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 w-fit">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Tambah Peminjaman Manual
+                Tambah Peminjaman
             </button>
             <button @click="$wire.openUnduhModal()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 w-fit">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -298,7 +298,7 @@
             <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 lg:p-8 space-y-5 max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div>
-                        <h3 class="text-xl font-bold text-slate-800">Tambah Peminjaman Manual</h3>
+                        <h3 class="text-xl font-bold text-slate-800">Tambah Peminjaman</h3>
                         <p class="text-xs text-slate-500 mt-0.5">Catat peminjaman buku tanpa scan barcode.</p>
                     </div>
                     <button type="button" wire:click="$set('showTambahModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
