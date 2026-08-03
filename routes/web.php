@@ -37,25 +37,39 @@ Route::get('/perpustakaan/buku/{buku}/baca', function (\App\Models\Buku $buku) {
 Route::get('/login', fn() => view('auth.portal-selection'))->name('login');
 
 
-// Kiosk Absensi Routes - Protected by 'auth' middleware so only Admin can access
-Route::middleware('auth')->group(function () {
-    Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
-    Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
-        $barcode = $request->input('barcode');
-        if (!$barcode) {
-            return response()->json(['status' => 'not_found']);
-        }
-        return response()->json($action->execute($barcode, $request->ip(), 'nisn'));
-    })->middleware('throttle:60,1')->name('kiosk.process');
+// Kiosk Absensi Routes - Portal Presensi Kiosk
+Route::prefix('portal-presensi')->group(function () {
+    Route::get('/login', \App\Livewire\PetugasPresensiLogin::class)->middleware('guest')->name('portal-presensi.login');
+    
+    Route::middleware('auth.presensi')->group(function () {
+        Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
+        Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
+            $barcode = $request->input('barcode');
+            if (!$barcode) {
+                return response()->json(['status' => 'not_found']);
+            }
+            return response()->json($action->execute($barcode, $request->ip(), 'nisn'));
+        })->middleware('throttle:60,1')->name('kiosk.process');
 
-    Route::get('/scan-nis', \App\Livewire\AttendanceKioskNis::class)->name('kiosk.scan-nis');
-    Route::post('/scan-nis', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
-        $barcode = $request->input('barcode');
-        if (!$barcode) {
-            return response()->json(['status' => 'not_found']);
-        }
-        return response()->json($action->execute($barcode, $request->ip(), 'nis'));
-    })->middleware('throttle:60,1')->name('kiosk.process-nis');
+        Route::get('/scan-nis', \App\Livewire\AttendanceKioskNis::class)->name('kiosk.scan-nis');
+        Route::post('/scan-nis', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
+            $barcode = $request->input('barcode');
+            if (!$barcode) {
+                return response()->json(['status' => 'not_found']);
+            }
+            return response()->json($action->execute($barcode, $request->ip(), 'nis'));
+        })->middleware('throttle:60,1')->name('kiosk.process-nis');
+        
+        Route::post('/logout', function () {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/');
+        })->name('portal-presensi.logout');
+    });
+});
+
+Route::middleware('auth')->group(function () {
 
     // Cetak Kartu Routes
     Route::get('/admin/siswa/{siswa}/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartu'])->name('siswa.cetak-kartu');

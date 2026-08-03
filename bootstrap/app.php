@@ -17,10 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->alias([
-            'auth.wali'   => \App\Http\Middleware\EnsureIsWaliKelas::class,
-            'auth.siswa'  => \App\Http\Middleware\EnsureIsSiswa::class,
-            'auth.perpus' => \App\Http\Middleware\EnsureIsPetugasPerpustakaan::class,
-            'maintenance' => \App\Http\Middleware\CheckPortalMaintenance::class,
+            'auth.wali'     => \App\Http\Middleware\EnsureIsWaliKelas::class,
+            'auth.siswa'    => \App\Http\Middleware\EnsureIsSiswa::class,
+            'auth.perpus'   => \App\Http\Middleware\EnsureIsPetugasPerpustakaan::class,
+            'auth.presensi' => \App\Http\Middleware\EnsureIsPetugasPresensi::class,
+            'maintenance'   => \App\Http\Middleware\CheckPortalMaintenance::class,
         ]);
 
         $middleware->redirectUsersTo(function (Request $request) {
@@ -33,6 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             if ($user && ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan'))) {
                 return '/portal-perpustakaan';
+            }
+            if ($user && $user->hasRole('petugas_presensi')) {
+                return '/portal-presensi/scan';
             }
             return '/admin';
         });

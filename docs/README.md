@@ -35,6 +35,7 @@ Arsitektur sistem dibagi menjadi beberapa *layer*:
      - **Portal Siswa (`/portal-siswa`)**: Dashboard khusus siswa melihat kartu identitas, nilai, presensi, dan riwayat sirkulasi pustaka.
      - **Portal Guru / Wali Kelas (`/portal-guru`)**: Dashboard khusus guru melihat jadwal mengajar dan fitur khusus Wali Kelas.
      - **Portal Perpustakaan (`/portal-perpustakaan`)**: Portal layanan petugas jaga sirkulasi, inventaris, dan Kiosk (Self-Service) untuk anggota.
+     - **Portal Presensi Kiosk (`/portal-presensi`)**: Portal khusus perangkat pemindai barcode mandiri (Kiosk) yang diamankan untuk admin/petugas piket.
    - Pintu masuk *Login* telah disatukan secara dinamis, sehingga user akan otomatis diarahkan ke portal sesuai *role* mereka setelah masuk.
 
 ---

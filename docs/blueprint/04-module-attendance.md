@@ -27,6 +27,14 @@ Mengelola data hari libur sekolah (nasional, cuti bersama, khusus).
 
 ---
 
+## 4. Akses Portal Kiosk (`/portal-presensi`)
+Akses menuju perangkat pemindai (Kiosk) telah dipisahkan menjadi rute khusus yang dilindungi (*protected route*):
+- **URL Login Kiosk:** `/portal-presensi/login`
+- **URL Scanner:** `/portal-presensi/scan` (Untuk NISN) dan `/portal-presensi/scan-nis` (Untuk NIS)
+- **Role Kiosk:** Hanya pengguna yang memiliki *role* `petugas_presensi` (atau `super_admin`) yang bisa mengakses halaman Kiosk ini. Izin diberikan melalui menu Manajemen Akses Portal di panel Admin.
+
+---
+
 ## 4. Pencatatan Kehadiran Harian (`attendances`)
 Tabel utama penyimpan log absensi harian yang dirancang dengan **Denormalisasi** untuk optimasi kueri yang berat pada penyajian *dashboard* statistik.
 
