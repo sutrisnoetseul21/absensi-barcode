@@ -13,4 +13,9 @@ class KlasifikasiDdc extends Model
         'kode_ddc',
         'kategori',
     ];
+
+    public function getNamaKlasifikasiAttribute(): ?string
+    {
+        return $this->kategori;
+    }
 }

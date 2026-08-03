@@ -22,6 +22,14 @@ class EksemplarCetakController extends Controller
         ]);
     }
 
+    public function cetakBarcodeEksemplar(EksemplarBuku $eksemplar)
+    {
+        return view('pdf.label-barcode-eksemplar', [
+            'eksemplars' => collect([$eksemplar]),
+            'buku' => $eksemplar->buku,
+        ]);
+    }
+
     public function cetakBarcodeMassal(Request $request)
     {
         $sessionKey = $request->query('session_key');

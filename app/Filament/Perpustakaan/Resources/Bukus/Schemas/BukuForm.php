@@ -25,6 +25,7 @@ class BukuForm
                         Select::make('kategori_id')
                             ->label('Koleksi')
                             ->relationship('kategoriBuku', 'nama_kategori')
+                            ->placeholder('Pilih Koleksi / Kategori')
                             ->required()
                             ->live()
                             ->afterStateUpdated(function ($state, $set) {
@@ -78,9 +79,7 @@ class BukuForm
                                 '9' => 'Kelas 9',
                             ])
                             ->placeholder('Pilih Jenjang')
-                            ->nullable()
-                            ->formatStateUsing(fn ($state) => $state !== null ? (string)$state : 'umum')
-                            ->dehydrateStateUsing(fn ($state) => $state === 'umum' ? null : $state),
+                            ->nullable(),
                     ])->columns(2)->columnSpanFull(),
 
                     Group::make()->schema([
@@ -114,7 +113,7 @@ class BukuForm
                                 'Tukar' => 'Tukar',
                                 'Terbitan Sendiri' => 'Terbitan Sendiri',
                             ])
-                            ->default('Pembelian')
+                            ->placeholder('Pilih Asal Buku')
                             ->required(),
                         TextInput::make('harga_buku')
                             ->label('Harga Buku (Rp)')

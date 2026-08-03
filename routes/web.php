@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
 
     // Cetak Barcode Perpustakaan Routes
     Route::get('/admin-perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');
+    Route::get('/admin-perpustakaan/eksemplar/{eksemplar}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeEksemplar'])->name('perpustakaan.cetak-barcode-eksemplar');
     Route::get('/admin-perpustakaan/eksemplar/cetak-barcode-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeMassal'])->name('perpustakaan.cetak-barcode-massal');
     
     // Cetak Label Spine Buku Routes

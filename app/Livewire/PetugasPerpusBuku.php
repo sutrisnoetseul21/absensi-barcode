@@ -12,6 +12,7 @@ use App\Models\InventarisBuku;
 use App\Models\EksemplarBuku;
 use App\Models\MataPelajaran;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\PengaturanSekolah;
 
 #[Layout('components.layouts.portal')]
@@ -31,9 +32,9 @@ class PetugasPerpusBuku extends Component
     public $mapel_id = 'lainnya';
     public $klasifikasi_ddc_id = null;
     public $jumlah_eksemplar = null;
-    public $grade_level = 'umum';
+    public $grade_level = '';
     
-    public $asal_buku = 'Pembelian';
+    public $asal_buku = '';
     public $harga_buku = null;
     public $prefix_kode = '';
 
@@ -42,6 +43,18 @@ class PetugasPerpusBuku extends Component
     public array $filterKategoriUnduh = [];
     public array $filterMapelUnduh = [];
     public string $formatUnduh = 'pdf';
+
+    // Modal Cetak Label Spine
+    public bool $showLabelSpineModal = false;
+    public ?string $selectedBukuIdForSpine = null;
+    public string $selectedBukuJudulForSpine = '';
+    public int $jumlahCetakSpine = 1;
+    public int $maxEksemplarSpine = 1;
+
+    // Modal Detail Eksemplar Buku
+    public bool $showDetailEksemplarModal = false;
+    public ?string $selectedBukuIdForDetail = null;
+    public string $searchEksemplar = '';
 
     // Search & Filter
     public $search = '';
@@ -57,7 +70,7 @@ class PetugasPerpusBuku extends Component
         'isbn' => 'nullable|string|max:50',
         'lokasi_rak' => 'nullable|string|max:100',
         'jumlah_eksemplar' => 'required|integer|min:1|max:200',
-        'grade_level' => 'nullable|string|in:umum,7,8,9',
+        'grade_level' => 'nullable',
         'asal_buku' => 'required|in:Pembelian,Hibah,Tukar,Terbitan Sendiri',
         'harga_buku' => 'nullable|numeric|min:0',
         'prefix_kode' => 'required|string|max:10',
@@ -66,10 +79,6 @@ class PetugasPerpusBuku extends Component
     public function mount()
     {
         $this->tahun_terbit = date('Y');
-        $firstCat = KategoriBuku::first();
-        if ($firstCat) {
-            $this->kategori_id = $firstCat->id;
-        }
     }
 
     public function updatedKategoriId($value)
@@ -102,6 +111,26 @@ class PetugasPerpusBuku extends Component
         $this->showUnduhModal      = true;
     }
 
+    public function openLabelSpineModal($bukuId): void
+    {
+        $buku = Buku::withCount('eksemplarBukus')->find($bukuId);
+        if (! $buku) return;
+
+        $count = max($buku->eksemplar_bukus_count, 1);
+        $this->selectedBukuIdForSpine = $buku->id;
+        $this->selectedBukuJudulForSpine = $buku->judul;
+        $this->maxEksemplarSpine = $count;
+        $this->jumlahCetakSpine = $count;
+        $this->showLabelSpineModal = true;
+    }
+
+    public function openDetailEksemplarModal($bukuId): void
+    {
+        $this->selectedBukuIdForDetail = $bukuId;
+        $this->searchEksemplar = '';
+        $this->showDetailEksemplarModal = true;
+    }
+
     public function downloadKatalog(): void
     {
         $routeName = $this->formatUnduh === 'excel'
@@ -122,11 +151,12 @@ class PetugasPerpusBuku extends Component
 
     public function openInputModal()
     {
-        $this->reset(['judul', 'penulis', 'penerbit', 'isbn', 'lokasi_rak', 'klasifikasi_ddc_id', 'grade_level', 'mapel_id', 'harga_buku', 'prefix_kode']);
+        $this->reset(['judul', 'penulis', 'penerbit', 'isbn', 'lokasi_rak', 'klasifikasi_ddc_id', 'harga_buku', 'prefix_kode']);
+        $this->kategori_id = '';
+        $this->asal_buku = '';
+        $this->grade_level = '';
         $this->tahun_terbit = date('Y');
         $this->jumlah_eksemplar = null;
-        $this->asal_buku = 'Pembelian';
-        $this->grade_level = 'umum';
         $this->mapel_id = 'lainnya';
         $this->showInputModal = true;
     }
@@ -162,8 +192,9 @@ class PetugasPerpusBuku extends Component
             ]);
 
             // 3. Generate Eksemplar Fisik
-            for ($i = 0; $i < (int)$this->jumlah_eksemplar; $i++) {
-                $kodeBarcode = EksemplarBuku::generateKodeEksemplar($this->prefix_kode);
+            $jumlah = (int)$this->jumlah_eksemplar;
+            $generateResult = EksemplarBuku::generateKodeEksemplar($this->prefix_kode, $jumlah);
+            foreach ($generateResult['codes'] as $kodeBarcode) {
                 EksemplarBuku::create([
                     'buku_id' => $buku->id,
                     'inventaris_buku_id' => $inventaris->id,
@@ -202,12 +233,33 @@ class PetugasPerpusBuku extends Component
 
         $bukus = $query->paginate(10);
 
+        $selectedBukuDetail = null;
+        $eksemplarDetailList = collect();
+
+        if ($this->showDetailEksemplarModal && $this->selectedBukuIdForDetail) {
+            $selectedBukuDetail = Buku::find($this->selectedBukuIdForDetail);
+            if ($selectedBukuDetail) {
+                $eksemplarDetailList = EksemplarBuku::where('buku_id', $this->selectedBukuIdForDetail)
+                    ->when($this->searchEksemplar, function ($q) {
+                        $q->where(function ($sub) {
+                            $sub->where('kode_eksemplar', 'like', "%{$this->searchEksemplar}%")
+                                ->orWhere('status', 'like', "%{$this->searchEksemplar}%")
+                                ->orWhere('kondisi_fisik', 'like', "%{$this->searchEksemplar}%");
+                        });
+                    })
+                    ->orderBy('kode_eksemplar', 'asc')
+                    ->get();
+            }
+        }
+
         return view('livewire.petugas-perpus-buku', [
-            'kategoriList'       => $kategoriList,
-            'ddcList'            => $ddcList,
-            'mapelList'          => $mapelList,
-            'bukus'              => $bukus,
-            'nonFiksiKategoriId' => $nonFiksiKategoriId,
+            'kategoriList'        => $kategoriList,
+            'ddcList'             => $ddcList,
+            'mapelList'           => $mapelList,
+            'bukus'               => $bukus,
+            'nonFiksiKategoriId'  => $nonFiksiKategoriId,
+            'selectedBukuDetail'  => $selectedBukuDetail,
+            'eksemplarDetailList' => $eksemplarDetailList,
         ])->title('Katalog & Input Buku - Portal Perpustakaan');
     }
 }
