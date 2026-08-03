@@ -42,12 +42,16 @@
     @if(!$isGlobalHoliday)
     <input type="text" 
            x-ref="barcodeInput" 
+           @input="barcode = $event.target.value"
            @keydown.enter="submitScan()"
-           @keydown.escape="$refs.barcodeInput.value = ''"
+           @keydown.escape="barcode = ''; $event.target.value = ''"
            @blur="refocusInput()"
-           class="absolute opacity-0 w-0 h-0"
+           class="fixed top-0 left-0 opacity-0 w-px h-px"
            autofocus
-           autocomplete="off">
+           autocomplete="off"
+           autocorrect="off"
+           autocapitalize="off"
+           spellcheck="false">
     @endif
 
     <!-- Main Container: Wider to accommodate history -->
@@ -480,9 +484,9 @@
                 },
                 
                 async submitScan(overrideBarcode = null) {
-                    const inputVal = this.$refs.barcodeInput ? this.$refs.barcodeInput.value : '';
-                    const currentBarcode = (overrideBarcode || inputVal).trim();
-                    if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = ''; 
+                    const currentBarcode = (overrideBarcode || this.barcode).trim();
+                    this.barcode = '';
+                    if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = '';
                     
                     if (currentBarcode.length === 0) return;
                     
