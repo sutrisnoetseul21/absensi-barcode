@@ -21,15 +21,19 @@ class CallNumberService
         // Baris 1: Kode DDC
         $baris1 = $buku->klasifikasiDdc ? $buku->klasifikasiDdc->kode_ddc : 'XXX';
 
-        // Baris 2: 3 huruf awal kata terakhir penulis, uppercase
+        // Baris 2: 3 huruf awal kata pertama penulis, uppercase
         $penulis = trim($buku->penulis ?? '');
         $baris2 = 'XXX';
         if ($penulis !== '') {
-            $words = preg_split('/\s+/', $penulis);
-            $lastWord = end($words);
-            // Ambil 3 huruf pertama
-            $baris2 = strtoupper(substr($lastWord, 0, 3));
-            // Jika kurang dari 3 huruf, ya biarkan saja sesuai panjangnya
+            $cleanPenulis = preg_replace('/^(dr|drs|dra|prof|ir|h|hj)\.?\s+/i', '', $penulis);
+            $words = preg_split('/\s+/', $cleanPenulis);
+            $firstWord = preg_replace('/[^a-zA-Z]/', '', $words[0] ?? '');
+            if ($firstWord === '' && isset($words[1])) {
+                $firstWord = preg_replace('/[^a-zA-Z]/', '', $words[1]);
+            }
+            if ($firstWord !== '') {
+                $baris2 = strtoupper(substr($firstWord, 0, 3));
+            }
         }
 
         // Baris 3: 1 huruf pertama kata bermakna pertama dari judul, lowercase
