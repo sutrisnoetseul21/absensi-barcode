@@ -147,9 +147,9 @@ class PetugasPerpusPeminjaman extends Component
             return;
         }
 
-        $namaKategori = strtolower(trim($eksemplar->buku?->kategoriBuku?->nama_kategori ?? ''));
-        if ($namaKategori === 'referensi') {
-            $this->addError('form_eksemplar_id', 'Buku Referensi tidak dapat dipinjam (hanya dibaca di tempat).');
+        $isBisaDipinjam = $eksemplar->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
+        if (!$isBisaDipinjam) {
+            $this->addError('form_eksemplar_id', 'Koleksi ini tidak dapat dipinjam (hanya dibaca di tempat).');
             return;
         }
 
@@ -233,8 +233,7 @@ class PetugasPerpusPeminjaman extends Component
                 })
                 ->get()
                 ->filter(function ($item) {
-                    $kategori = strtolower(trim($item->buku?->kategoriBuku?->nama_kategori ?? ''));
-                    return $kategori !== 'referensi';
+                    return $item->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
                 });
         }
 

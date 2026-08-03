@@ -303,6 +303,9 @@
 ```
 - id (uuid, primary)
 - nama_kategori (string)
+- is_bisa_dipinjam (boolean) default true   → Penanda koleksi bisa dipinjam/dibawa pulang (false untuk referensi)
+- is_buku_pelajaran (boolean) default false → Penanda koleksi ini adalah buku pelajaran/teks wajib
+- kode_prefix (string, 10, nullable)        → Prefix spine label/nomor panggil (misal: SR, RF)
 - timestamps()
 ```
 

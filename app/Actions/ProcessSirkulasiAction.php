@@ -123,13 +123,14 @@ class ProcessSirkulasiAction
             return ['status' => 'error', 'message' => "Buku dengan kode barcode {$barcodeBuku} tidak ditemukan."];
         }
 
-        // Cek koleksi referensi — tidak boleh dipinjam
-        $namaKategori = strtolower(trim($eksemplar->buku?->kategoriBuku?->nama_kategori ?? ''));
-        if ($namaKategori === 'referensi') {
+        // Cek apakah kategori buku boleh dipinjam
+        $isBisaDipinjam = $eksemplar->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
+        if (!$isBisaDipinjam) {
             $judulBuku = $eksemplar->buku->judul ?? 'Buku ini';
+            $kategoriNama = $eksemplar->buku?->kategoriBuku?->nama_kategori ?? 'Koleksi Khusus';
             return [
                 'status' => 'referensi',
-                'message' => "⚠️ <strong>{$judulBuku}</strong> ({$eksemplar->kode_eksemplar}) adalah koleksi <strong>Referensi</strong> yang tidak boleh dipinjam. Koleksi referensi hanya dapat dibaca di tempat.",
+                'message' => "⚠️ <strong>{$judulBuku}</strong> ({$eksemplar->kode_eksemplar}) adalah <strong>{$kategoriNama}</strong> yang tidak boleh dipinjam dan hanya dapat dibaca di tempat.",
             ];
         }
 

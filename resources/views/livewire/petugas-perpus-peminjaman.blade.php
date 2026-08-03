@@ -413,7 +413,7 @@
                                 @endforelse
                             </div>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Koleksi Referensi otomatis difilter dan tidak dapat dipinjam.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Koleksi yang tidak bisa dipinjam otomatis disembunyikan.</p>
                         @error('form_eksemplar_id') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 

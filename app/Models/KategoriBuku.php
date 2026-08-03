@@ -12,6 +12,14 @@ class KategoriBuku extends Model
 
     protected $fillable = [
         'nama_kategori',
+        'is_bisa_dipinjam',
+        'is_buku_pelajaran',
+        'kode_prefix',
+    ];
+
+    protected $casts = [
+        'is_bisa_dipinjam' => 'boolean',
+        'is_buku_pelajaran' => 'boolean',
     ];
 
     public function bukus(): HasMany

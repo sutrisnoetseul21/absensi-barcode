@@ -16,7 +16,19 @@ class KategoriBukusTable
             ->columns([
 
                 TextColumn::make('nama_kategori')
+                    ->label('Nama Klasifikasi')
                     ->searchable(),
+                TextColumn::make('kode_prefix')
+                    ->label('Kode Prefix')
+                    ->badge()
+                    ->color('info')
+                    ->searchable(),
+                \Filament\Tables\Columns\IconColumn::make('is_bisa_dipinjam')
+                    ->label('Bisa Dipinjam')
+                    ->boolean(),
+                \Filament\Tables\Columns\IconColumn::make('is_buku_pelajaran')
+                    ->label('Buku Pelajaran')
+                    ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -78,14 +78,13 @@ class PeminjamanAktifResource extends Resource
             \Filament\Forms\Components\Select::make('eksemplar_id')
                 ->label('Buku & Eksemplar (Tersedia)')
                 ->placeholder('Pindai Barcode Buku atau Ketik Judul / Kode Eksemplar')
-                ->helperText('Klik kolom ini lalu scan label barcode di fisik buku. Koleksi Referensi tidak dapat dipinjam.')
+                ->helperText('Klik kolom ini lalu scan label barcode di fisik buku. Koleksi yang tidak bisa dipinjam otomatis disembunyikan.')
                 ->options(function () {
                     return \App\Models\EksemplarBuku::with('buku.kategoriBuku')
                         ->where('status', 'tersedia')
                         ->get()
                         ->filter(function ($item) {
-                            $kategori = strtolower(trim($item->buku?->kategoriBuku?->nama_kategori ?? ''));
-                            return $kategori !== 'referensi';
+                            return $item->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
                         })
                         ->mapWithKeys(function ($item) {
                             $judul = $item->buku->judul ?? 'Tanpa Judul';
@@ -100,9 +99,9 @@ class PeminjamanAktifResource extends Resource
                         return function (string $attribute, $value, \Closure $fail) {
                             $eksemplar = \App\Models\EksemplarBuku::with('buku.kategoriBuku')->find($value);
                             if ($eksemplar) {
-                                $kategori = strtolower(trim($eksemplar->buku?->kategoriBuku?->nama_kategori ?? ''));
-                                if ($kategori === 'referensi') {
-                                    $fail('Koleksi Referensi tidak dapat dipinjam. Buku referensi hanya tersedia untuk dibaca di tempat.');
+                                $isBisaDipinjam = $eksemplar->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
+                                if (!$isBisaDipinjam) {
+                                    $fail('Koleksi ini tidak dapat dipinjam. Koleksi khusus/referensi hanya tersedia untuk dibaca di tempat.');
                                 }
                             }
                         };

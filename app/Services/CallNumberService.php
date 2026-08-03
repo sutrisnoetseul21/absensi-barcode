@@ -18,9 +18,9 @@ class CallNumberService
 
     public static function generate(Buku $buku): string
     {
-        // Baris 1: Kode Koleksi (SR = Sirkulasi, RF = Referensi)
-        $kategori = strtolower(trim($buku->kategoriBuku?->nama_kategori ?? ''));
-        $baris0 = ($kategori === 'referensi') ? 'RF' : 'SR';
+        // Baris 1: Kode Koleksi (Prefix dari Kategori Buku)
+        $kategoriBuku = $buku->kategoriBuku;
+        $baris0 = $kategoriBuku?->kode_prefix ?? ($kategoriBuku?->is_bisa_dipinjam ? 'SR' : 'RF');
 
         // Baris 2: Kode DDC
         $baris1 = $buku->klasifikasiDdc ? $buku->klasifikasiDdc->kode_ddc : 'XXX';
