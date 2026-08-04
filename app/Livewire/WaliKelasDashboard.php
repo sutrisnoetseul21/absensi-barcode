@@ -162,6 +162,19 @@ class WaliKelasDashboard extends Component
         $this->loadDashboardData();
     }
 
+    public function updated($property, $value)
+    {
+        if (str_starts_with($property, 'inputStudents.')) {
+            $parts = explode('.', $property);
+            if (count($parts) === 3 && $parts[2] === 'status') {
+                $index = (int)$parts[1];
+                if (in_array($value, ['izin', 'sakit', 'alpa'])) {
+                    $this->inputStudents[$index]['status_pulang'] = $value;
+                }
+            }
+        }
+    }
+
     public function loadDashboardData()
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->selectedMonthYear) {
@@ -225,7 +238,7 @@ class WaliKelasDashboard extends Component
         $list = [];
         foreach ($this->students as $student) {
             $att            = $attendances->get($student->id);
-            $list[$student->id] = [
+            $list[] = [
                 'id'          => $student->id,
                 'name'        => $student->name,
                 'status'      => $att ? $att->status : '',
@@ -249,8 +262,10 @@ class WaliKelasDashboard extends Component
             return;
         }
 
-        foreach ($this->inputStudents as $studentId => $data) {
-            if (empty($data['status'])) continue;
+        foreach ($this->inputStudents as $index => $data) {
+            if (empty($data['status']) || empty($data['id'])) continue;
+            
+            $studentId = $data['id'];
 
 
             // Cari enrollment_id

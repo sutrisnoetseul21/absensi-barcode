@@ -40,9 +40,9 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 bg-white">
-                                @foreach($inputStudents as $id => $data)
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="py-3 px-4 font-bold text-slate-800">{{ $data['name'] }}</td>
+                                @foreach($inputStudents as $index => $data)
+                                    <tr class="hover:bg-slate-50 transition-colors" wire:key="student-{{ $data['id'] }}">
+                                        <td class="py-3 px-4 font-bold text-slate-800">{{ $data['name'] ?? 'Data tidak valid' }}</td>
                                         <td class="py-3 px-4">
                                             @if(isset($data['is_manual_input']) && $data['is_manual_input'] === false)
                                                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
@@ -50,12 +50,12 @@
                                                     Sudah Absen Otomatis
                                                 </span>
                                             @else
-                                                <select wire:model.live="inputStudents.{{ $id }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
-                                                    {{ $data['status'] === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
-                                                    {{ $data['status'] === 'telat' ? 'text-amber-700 bg-amber-50 border-amber-200' : '' }}
-                                                    {{ $data['status'] === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
-                                                    {{ $data['status'] === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}
-                                                    {{ $data['status'] === 'alpa' ? 'text-red-700 bg-red-50 border-red-200' : '' }}
+                                                <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
+                                                    {{ ($data['status'] ?? '') === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'telat' ? 'text-amber-700 bg-amber-50 border-amber-200' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'alpa' ? 'text-red-700 bg-red-50 border-red-200' : '' }}
                                                 ">
                                                     <option value="">-- Pilih --</option>
                                                     <option value="hadir">Hadir</option>
@@ -67,9 +67,9 @@
                                             @endif
                                         </td>
                                         <td class="py-3 px-4">
-                                            @if($data['status'] === 'telat')
+                                            @if(($data['status'] ?? '') === 'telat')
                                                 <div class="relative">
-                                                    <input type="number" wire:model="inputStudents.{{ $id }}.late_minutes" min="1" placeholder="0" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold text-amber-700 bg-amber-50 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 shadow-sm">
+                                                    <input type="number" wire:model="inputStudents.{{ $index }}.late_minutes" min="1" placeholder="0" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold text-amber-700 bg-amber-50 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 shadow-sm">
                                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                                         <span class="text-amber-500 text-xs font-bold">mnt</span>
                                                     </div>
@@ -84,10 +84,10 @@
                                             @endphp
                                             @if($isNonAttendance)
                                                 <div class="block w-full text-center pl-3 pr-3 py-1.5 text-sm font-bold rounded-lg border-slate-200 cursor-not-allowed shadow-sm bg-slate-100 text-slate-500 italic">
-                                                    {{ ucfirst($data['status']) }}
+                                                    {{ ucfirst($data['status'] ?? '') }}
                                                 </div>
                                             @else
-                                                <select wire:model.live="inputStudents.{{ $id }}.status_pulang" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
+                                                <select wire:model.live="inputStudents.{{ $index }}.status_pulang" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
                                                     {{ ($data['status_pulang'] ?? '') === 'pulang' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
                                                     {{ ($data['status_pulang'] ?? '') === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
                                                     {{ ($data['status_pulang'] ?? '') === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}

@@ -70,10 +70,10 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @foreach($inputStudents as $studentId => $sData)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        @foreach($inputStudents as $index => $sData)
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" wire:key="student-{{ $sData['id'] }}">
                             <td class="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">
-                                {{ $sData['name'] }}
+                                {{ $sData['name'] ?? 'Data tidak valid' }}
                                 @if(isset($sData['is_manual_input']) && $sData['is_manual_input'] === false)
                                     <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                                         Scan Otomatis
@@ -81,7 +81,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center w-48">
-                                <select wire:model.live="inputStudents.{{ $studentId }}.status"
+                                <select wire:model.live="inputStudents.{{ $index }}.status"
                                     class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-2 py-1.5 shadow-sm focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer">
                                     <option value="">-- Pilih --</option>
                                     <option value="hadir">Hadir</option>
@@ -92,9 +92,9 @@
                                 </select>
                             </td>
                             <td class="px-4 py-3 text-center w-32">
-                                @if(($inputStudents[$studentId]['status'] ?? '') === 'telat')
+                                @if(($inputStudents[$index]['status'] ?? '') === 'telat')
                                 <div class="flex items-center justify-center">
-                                    <input type="number" min="1" wire:model.lazy="inputStudents.{{ $studentId }}.late_minutes"
+                                    <input type="number" min="1" wire:model.lazy="inputStudents.{{ $index }}.late_minutes"
                                         placeholder="0"
                                         class="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-2 py-1.5 shadow-sm focus:ring-2 focus:ring-primary-500 outline-none text-center">
                                     <span class="ml-2 text-xs text-gray-500">mnt</span>
@@ -105,14 +105,14 @@
                             </td>
                             <td class="px-4 py-3 text-center w-48">
                                 @php
-                                    $isNonAttendance = in_array($inputStudents[$studentId]['status'] ?? '', ['izin', 'sakit', 'alpa']);
+                                    $isNonAttendance = in_array($inputStudents[$index]['status'] ?? '', ['izin', 'sakit', 'alpa']);
                                 @endphp
                                 @if($isNonAttendance)
                                     <div class="w-full text-center py-1.5 px-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 text-sm italic cursor-not-allowed">
-                                        {{ ucfirst($inputStudents[$studentId]['status']) }}
+                                        {{ ucfirst($inputStudents[$index]['status'] ?? '') }}
                                     </div>
                                 @else
-                                    <select wire:model.live="inputStudents.{{ $studentId }}.status_pulang"
+                                    <select wire:model.live="inputStudents.{{ $index }}.status_pulang"
                                         class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-2 py-1.5 shadow-sm focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer">
                                         <option value="">-- Pilih --</option>
                                         <option value="pulang">Pulang</option>

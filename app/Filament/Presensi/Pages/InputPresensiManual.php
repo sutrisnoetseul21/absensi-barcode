@@ -81,6 +81,19 @@ class InputPresensiManual extends Page
         $this->loadStudentsForInput();
     }
 
+    public function updated($property, $value): void
+    {
+        if (str_starts_with($property, 'inputStudents.')) {
+            $parts = explode('.', $property);
+            if (count($parts) === 3 && $parts[2] === 'status') {
+                $index = (int)$parts[1];
+                if (in_array($value, ['izin', 'sakit', 'alpa'])) {
+                    $this->inputStudents[$index]['status_pulang'] = $value;
+                }
+            }
+        }
+    }
+
     public function loadStudentsForInput(): void
     {
         if (!$this->selectedClassId || !$this->selectedAcademicYearId || !$this->inputDate) {
@@ -108,7 +121,7 @@ class InputPresensiManual extends Page
         $list = [];
         foreach ($this->students as $student) {
             $att = $attendances->get($student->id);
-            $list[$student->id] = [
+            $list[] = [
                 'id'           => $student->id,
                 'name'         => $student->name,
                 'status'       => $att ? $att->status : '',
@@ -134,8 +147,10 @@ class InputPresensiManual extends Page
         }
 
         $savedCount = 0;
-        foreach ($this->inputStudents as $studentId => $data) {
-            if (empty($data['status'])) continue;
+        foreach ($this->inputStudents as $index => $data) {
+            if (empty($data['status']) || empty($data['id'])) continue;
+            
+            $studentId = $data['id'];
 
             $enrollment = EnrollmentSiswa::where('student_id', $studentId)
                 ->where('academic_year_id', $this->selectedAcademicYearId)
