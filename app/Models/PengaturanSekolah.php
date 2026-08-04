@@ -22,6 +22,8 @@ class PengaturanSekolah extends Model
         'principal_name',
         'principal_signature_path',
         'checkin_time',
+        'batas_scan_datang_time',
+        'start_scan_out_time',
         'work_days_type',
         'work_days_history',
         'late_threshold_minutes',

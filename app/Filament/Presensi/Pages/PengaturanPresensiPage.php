@@ -67,7 +67,7 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->label('Jam Masuk (Check-in)')
                             ->required()
                             ->seconds(false)
-                            ->helperText('Jam batas masuk siswa.'),
+                            ->helperText('Jam normal siswa masuk sekolah.'),
 
                         TextInput::make('late_threshold_minutes')
                             ->label('Batas Toleransi Terlambat (Menit)')
@@ -75,6 +75,18 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->default(15)
                             ->required()
                             ->helperText('Jumlah menit toleransi setelah jam masuk.'),
+
+                        TimePicker::make('batas_scan_datang_time')
+                            ->label('Batas Jam Absen Datang (Kiosk)')
+                            ->required()
+                            ->seconds(false)
+                            ->helperText('Maksimal jam siswa bisa absen datang lewat mesin scanner. Lewat dari ini ditolak otomatis.'),
+
+                        TimePicker::make('start_scan_out_time')
+                            ->label('Jam Mulai Absen Pulang (Kiosk)')
+                            ->required()
+                            ->seconds(false)
+                            ->helperText('Mesin scanner akan menganggap tap kartu setelah jam ini sebagai absen pulang.'),
 
                         Select::make('barcode_scan_mode')
                             ->label('Mode Kios Scanner Barcode')

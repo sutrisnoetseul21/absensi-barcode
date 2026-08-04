@@ -47,7 +47,13 @@
                 $tooltip = '';
                 
                 if ($data) {
-                    $scanTimeStr = isset($data['scan_time']) && $data['scan_time'] ? ' pada ' . $data['scan_time'] : '';
+                    $scanTimeStr = '';
+                    if (isset($data['scan_time']) && $data['scan_time']) {
+                        $scanTimeStr .= ' Datang: ' . $data['scan_time'];
+                    }
+                    if (isset($data['scan_out_time']) && $data['scan_out_time']) {
+                        $scanTimeStr .= ' | Pulang: ' . $data['scan_out_time'];
+                    }
                     
                     if ($data['status'] === 'hadir') { 
                         $bgColor = 'bg-emerald-100 border border-emerald-200 hover:bg-emerald-200'; 
@@ -107,8 +113,13 @@
                             </span>
                         @elseif(isset($data['scan_time']) && $data['scan_time'])
                             <span class="text-[9px] sm:text-[10px] mt-0.5 font-bold tracking-tight opacity-80 {{ $textColor }}">
-                                {{ substr($data['scan_time'], 0, 5) }}
+                                In: {{ substr($data['scan_time'], 0, 5) }}
                             </span>
+                            @if(isset($data['scan_out_time']) && $data['scan_out_time'])
+                            <span class="text-[9px] sm:text-[10px] font-bold tracking-tight opacity-80 {{ $textColor }}">
+                                Out: {{ substr($data['scan_out_time'], 0, 5) }}
+                            </span>
+                            @endif
                         @endif
                     </div>
                 @endif

@@ -255,11 +255,11 @@
                             <div class="flex-shrink-0">
                                 <span class="px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider"
                                       :class="{
-                                          'bg-emerald-100 text-emerald-700': scan.status === 'success_on_time',
+                                          'bg-emerald-100 text-emerald-700': scan.status === 'success_on_time' || scan.status === 'success_out',
                                           'bg-amber-100 text-amber-700': scan.status === 'success_late',
                                           'bg-slate-100 text-slate-600': scan.status === 'already_scanned' || scan.status === 'holiday',
                                           'bg-red-100 text-red-700': scan.status === 'error'
-                                      }" x-text="scan.status === 'success_on_time' ? 'Hadir' : (scan.status === 'success_late' ? 'Telat' : (scan.status === 'already_scanned' ? 'Sudah Absen' : 'Libur'))">
+                                      }" x-text="scan.status === 'success_on_time' ? 'Datang' : (scan.status === 'success_out' ? 'Pulang' : (scan.status === 'success_late' ? 'Telat' : (scan.status === 'already_scanned' ? 'Sudah Absen' : 'Libur')))">
                                 </span>
                             </div>
                         </div>
@@ -545,7 +545,7 @@
                     this.lateMinutes = data.late_minutes || 0;
                     
                     // Push to history for specific statuses
-                    if (['success_on_time', 'success_late', 'already_scanned'].includes(status) && data.name) {
+                    if (['success_on_time', 'success_late', 'already_scanned', 'success_out'].includes(status) && data.name) {
                         this.addToHistory({
                             id: Date.now() + Math.random(), // unique key
                             name: data.name,
@@ -580,6 +580,18 @@
                         case 'holiday':
                             this.showFeedback('holiday', data.name || 'Informasi', data.photo_url, 'Hari Ini Libur');
                             this.playAudio('holiday');
+                            break;
+                        case 'success_out':
+                            this.showFeedback('success', data.name, data.photo_url, data.message || 'Berhasil Absen Pulang');
+                            this.playAudio('success');
+                            break;
+                        case 'blocked_status':
+                        case 'already_scanned_out':
+                        case 'too_early_out':
+                        case 'rejected_no_scan_in':
+                        case 'rejected_late_in':
+                            this.showFeedback('error', data.name || 'Ditolak', data.photo_url, data.message || 'Presensi ditolak');
+                            this.playAudio('error');
                             break;
                         default:
                             this.showFeedback('error', 'Error Sistem', null, 'Status tidak dikenali.');

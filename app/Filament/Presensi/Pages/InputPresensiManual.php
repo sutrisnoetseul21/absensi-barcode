@@ -179,6 +179,7 @@ class InputPresensiManual extends Page
                     'manual_input_by_id'   => Auth::id(),
                     'manual_input_by_type' => \App\Models\User::class,
                     'note'                 => $note,
+                    'scan_time'            => $existing && $existing->scan_time ? $existing->scan_time : now()->toTimeString(),
                 ]
             );
             $savedCount++;

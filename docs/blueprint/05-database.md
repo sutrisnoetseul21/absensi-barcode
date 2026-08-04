@@ -22,6 +22,8 @@
 - principal_name (string, nullable)          → nama kepala sekolah untuk TTD
 - checkin_time (time)                        → jam batas "Hadir" global, misal "07:00"
 - late_threshold_minutes (unsignedInteger)   → menit toleransi sebelum dianggap telat
+- batas_scan_datang_time (time)              → jam batas mutlak absen datang (misal "09:00")
+- start_scan_out_time (time)                 → jam mulai absen pulang (misal "13:00")
 - academic_year_id_active (foreignUuid, nullable → academic_years)
 - enable_promotion_features (boolean)
 - barcode_scan_mode (string) default 'nisn'  → mode kios presensi ('nisn' atau 'nis')
@@ -167,8 +169,10 @@
 - class_id (foreignUuid → classes)               → DENORMALIZED — disalin saat insert
 - academic_year_id (foreignUuid → academic_years) → DENORMALIZED — disalin saat insert
 - date (date)
-- scan_time (time, nullable)
-- status (enum: 'hadir','telat','alpa','sakit','izin')
+- scan_time (time, nullable)                 → jam absen datang
+- scan_out_time (time, nullable)             → jam absen pulang
+- status (varchar)                           → string status datang (hadir, telat, alpa, sakit, izin)
+- status_pulang (varchar, nullable)          → string status pulang (pulang, alpa, dsb)
 - late_minutes (unsignedInteger) default 0
 - note (string, nullable)                         → alasan Izin/Sakit dari wali kelas
 - is_manual_input (boolean) default false

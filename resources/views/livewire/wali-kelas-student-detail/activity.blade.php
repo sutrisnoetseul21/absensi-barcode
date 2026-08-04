@@ -48,7 +48,10 @@
                         @if($activity->is_manual_input)
                             <span class="text-orange-600 font-bold border border-orange-200 bg-orange-50 px-2 py-0.5 rounded-md shadow-sm">Input Manual</span>
                         @elseif($activity->scan_time)
-                            <span class="text-indigo-600 font-bold border border-indigo-200 bg-indigo-50 px-2 py-0.5 rounded-md shadow-sm flex items-center"><svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>{{ substr($activity->scan_time, 0, 5) }}</span>
+                            <span class="text-indigo-600 font-bold border border-indigo-200 bg-indigo-50 px-2 py-0.5 rounded-md shadow-sm flex items-center"><svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Datang: {{ substr($activity->scan_time, 0, 5) }}</span>
+                            @if($activity->scan_out_time)
+                                <span class="text-teal-600 font-bold border border-teal-200 bg-teal-50 px-2 py-0.5 rounded-md shadow-sm flex items-center ml-2"><svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Pulang: {{ substr($activity->scan_out_time, 0, 5) }}</span>
+                            @endif
                         @endif
                     </div>
                 </div>

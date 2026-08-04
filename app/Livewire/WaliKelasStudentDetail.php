@@ -148,6 +148,7 @@ class WaliKelasStudentDetail extends Component
                 'status' => strtolower($p->status),
                 'late_minutes' => $p->late_minutes,
                 'scan_time' => $p->scan_time ? substr($p->scan_time, 0, 5) : null,
+                'scan_out_time' => $p->scan_out_time ? substr($p->scan_out_time, 0, 5) : null,
                 'date' => $p->date->format('Y-m-d'),
                 'is_manual_input' => $p->is_manual_input,
             ];

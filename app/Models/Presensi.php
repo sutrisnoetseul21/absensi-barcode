@@ -13,6 +13,8 @@ class Presensi extends Model
 
     protected $table = 'attendances';
 
+    public const BLOCKED_OUT_STATUSES = ['alpa', 'izin', 'sakit'];
+
     protected $fillable = [
         'student_id',
         'enrollment_id',
@@ -20,7 +22,9 @@ class Presensi extends Model
         'academic_year_id',
         'date',
         'scan_time',
+        'scan_out_time',
         'status',
+        'status_pulang',
         'late_minutes',
         'note',
         'is_manual_input',

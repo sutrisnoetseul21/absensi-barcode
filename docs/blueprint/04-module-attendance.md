@@ -16,6 +16,8 @@ Memisahkan data Master (Siswa murni) dengan data Operasional (Alat presensi).
 Tabel referensi murni berisi satu baris data (*Singleton Pattern* via Filament Settings) untuk mendikte aturan universal sekolah:
 - `checkin_time` (jam batas "Hadir" global).
 - `late_threshold_minutes` (toleransi menit sebelum dianggap telat).
+- `batas_scan_datang_time` (batas maksimal waktu scan kedatangan).
+- `start_scan_out_time` (batas minimal waktu scan kepulangan).
 - Digunakan untuk kalkulasi dinamis dan otomatis oleh algoritma absensi saat siswa melakukan scan.
 
 ---
@@ -51,14 +53,24 @@ erDiagram
         uuid class_id FK "Disalin (Denormalisasi)"
         date date
         time scan_time
-        string status "hadir/telat/alpa/izin/sakit"
+        time scan_out_time
+        varchar status "hadir/telat/alpa/izin/sakit"
+        varchar status_pulang "pulang/alpa"
     }
 ```
 
-### Algoritma Rekam Absensi Kios Scanner
+### Algoritma Rekam Absensi Kios Scanner (State-Based)
+Pencatatan menggunakan logika berbasis-state transaksi (*Database Transaction Lock*):
 1. Membaca string Barcode.
 2. Mencari kecocokan `barcode_code` di `student_presensi_profiles`.
 3. Memastikan siswa terkait memiliki Pendaftaran Kelas (Enrollment) aktif pada Tahun Ajaran yang saat ini Aktif (ter-set di `school_settings`).
 4. Memvalidasi status Hari Libur (`holidays`). Jika hari libur, *scan* ditolak dengan notifikasi libur.
-5. Membandingkan `scan_time` dengan `checkin_time` + `late_threshold_minutes` di `school_settings` untuk menentukan status "hadir" atau "telat".
-6. Mencatat ke `attendances`.
+5. Memeriksa keberadaan catatan kehadiran hari ini secara atomik (dengan `lockForUpdate`):
+   - **Jika belum absen hari ini (Scan Datang)**:
+     - Divalidasi dengan `batas_scan_datang_time`. Jika melewati batas, ditolak.
+     - Membandingkan `scan_time` dengan `checkin_time` + `late_threshold_minutes` di `school_settings` untuk menentukan status "hadir" atau "telat".
+     - Mencatat kedatangan baru ke `attendances`.
+   - **Jika sudah absen hari ini (Scan Pulang)**:
+     - Jika status kedatangan adalah "alpa", "sakit", atau "izin" -> Ditolak.
+     - Jika belum mencapai waktu `start_scan_out_time` -> Ditolak.
+     - Mengisi atribut `scan_out_time` pada rekam yang sama dan memperbarui status pulang.
