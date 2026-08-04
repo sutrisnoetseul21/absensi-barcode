@@ -34,8 +34,9 @@
                             <thead>
                                 <tr class="bg-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     <th class="py-3 px-4 w-1/3">Nama Siswa</th>
-                                    <th class="py-3 px-4 text-center">Status Kehadiran</th>
-                                    <th class="py-3 px-4 w-1/4">Telat (Menit)</th>
+                                    <th class="py-3 px-4 text-center">Datang</th>
+                                    <th class="py-3 px-4 w-1/5">Telat (Menit)</th>
+                                    <th class="py-3 px-4 text-center">Pulang</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 bg-white">
@@ -75,6 +76,29 @@
                                                 </div>
                                             @else
                                                 <span class="text-slate-300 text-sm font-medium italic">Tidak relevan</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            @php
+                                                $isNonAttendance = in_array($data['status'] ?? '', ['izin', 'sakit', 'alpa']);
+                                            @endphp
+                                            @if($isNonAttendance)
+                                                <div class="block w-full text-center pl-3 pr-3 py-1.5 text-sm font-bold rounded-lg border-slate-200 cursor-not-allowed shadow-sm bg-slate-100 text-slate-500 italic">
+                                                    {{ ucfirst($data['status']) }}
+                                                </div>
+                                            @else
+                                                <select wire:model.live="inputStudents.{{ $id }}.status_pulang" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
+                                                    {{ ($data['status_pulang'] ?? '') === 'pulang' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
+                                                    {{ ($data['status_pulang'] ?? '') === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
+                                                    {{ ($data['status_pulang'] ?? '') === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}
+                                                    {{ ($data['status_pulang'] ?? '') === 'alpa' ? 'text-red-700 bg-red-50 border-red-200' : '' }}
+                                                ">
+                                                    <option value="">-- Pilih --</option>
+                                                    <option value="pulang">Pulang</option>
+                                                    <option value="izin">Izin</option>
+                                                    <option value="sakit">Sakit</option>
+                                                    <option value="alpa">Alpa</option>
+                                                </select>
                                             @endif
                                         </td>
                                     </tr>

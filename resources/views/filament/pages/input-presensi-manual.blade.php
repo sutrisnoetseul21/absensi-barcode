@@ -64,8 +64,9 @@
                     <thead class="bg-gray-50 dark:bg-gray-900/50">
                         <tr class="border-b border-gray-200 dark:border-gray-700">
                             <th class="px-6 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama Siswa</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status Kehadiran</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Datang</th>
                             <th class="px-4 py-3 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Menit Telat</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pulang</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -100,6 +101,25 @@
                                 </div>
                                 @else
                                 <span class="text-gray-300 dark:text-gray-700">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center w-48">
+                                @php
+                                    $isNonAttendance = in_array($inputStudents[$studentId]['status'] ?? '', ['izin', 'sakit', 'alpa']);
+                                @endphp
+                                @if($isNonAttendance)
+                                    <div class="w-full text-center py-1.5 px-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 text-sm italic cursor-not-allowed">
+                                        {{ ucfirst($inputStudents[$studentId]['status']) }}
+                                    </div>
+                                @else
+                                    <select wire:model.live="inputStudents.{{ $studentId }}.status_pulang"
+                                        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-2 py-1.5 shadow-sm focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="pulang">Pulang</option>
+                                        <option value="alpa">Alpa</option>
+                                        <option value="izin">Izin</option>
+                                        <option value="sakit">Sakit</option>
+                                    </select>
                                 @endif
                             </td>
                         </tr>

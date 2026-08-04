@@ -112,6 +112,7 @@ class InputPresensiManual extends Page
                 'id'           => $student->id,
                 'name'         => $student->name,
                 'status'       => $att ? $att->status : '',
+                'status_pulang'=> $att ? $att->status_pulang : '',
                 'late_minutes' => $att ? $att->late_minutes : null,
                 'is_manual_input' => $att ? $att->is_manual_input : null,
             ];
@@ -146,9 +147,15 @@ class InputPresensiManual extends Page
                 ->first();
 
             $newLate = ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0;
+            $newStatusPulang = empty($data['status_pulang']) ? null : $data['status_pulang'];
+
+            // Jika status datang adalah izin, sakit, atau alpa, maka status pulang mengikuti
+            if (in_array($data['status'], ['izin', 'sakit', 'alpa'])) {
+                $newStatusPulang = $data['status'];
+            }
 
             // Jika tidak ada perubahan data, lewati
-            if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate) {
+            if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate && $existing->status_pulang === $newStatusPulang) {
                 continue;
             }
 
@@ -158,7 +165,9 @@ class InputPresensiManual extends Page
             if ($existing) {
                 $strLama = $existing->status === 'telat' ? "Telat ({$existing->late_minutes} mnt)" : ucfirst($existing->status);
                 $strBaru = $data['status'] === 'telat' ? "Telat ({$newLate} mnt)" : ucfirst($data['status']);
-                $appendNote = "Diedit oleh Admin: " . ($actor ? $actor->name : 'Sistem') . " (Perubahan {$strLama} ke {$strBaru})";
+                $strPulangLama = $existing->status_pulang ? ucfirst($existing->status_pulang) : 'Kosong';
+                $strPulangBaru = $newStatusPulang ? ucfirst($newStatusPulang) : 'Kosong';
+                $appendNote = "Diedit oleh Admin: " . ($actor ? $actor->name : 'Sistem') . " (Datang: {$strLama}->{$strBaru}, Pulang: {$strPulangLama}->{$strPulangBaru})";
                 $note = $existing->note ? $existing->note . ' | ' . $appendNote : $appendNote;
             } else {
                 $note = "Diinput Manual oleh Admin: " . ($actor ? $actor->name : 'Sistem');
@@ -174,12 +183,14 @@ class InputPresensiManual extends Page
                 [
                     'enrollment_id'        => $enrollment?->id,
                     'status'               => $data['status'],
+                    'status_pulang'        => $newStatusPulang,
                     'late_minutes'         => $newLate,
                     'is_manual_input'      => true,
                     'manual_input_by_id'   => Auth::id(),
                     'manual_input_by_type' => \App\Models\User::class,
                     'note'                 => $note,
                     'scan_time'            => $existing && $existing->scan_time ? $existing->scan_time : now()->toTimeString(),
+                    'scan_out_time'        => ($newStatusPulang && (!$existing || !$existing->scan_out_time)) ? now()->toTimeString() : ($existing ? $existing->scan_out_time : null),
                 ]
             );
             $savedCount++;

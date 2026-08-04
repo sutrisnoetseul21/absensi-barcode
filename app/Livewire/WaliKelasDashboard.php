@@ -229,6 +229,7 @@ class WaliKelasDashboard extends Component
                 'id'          => $student->id,
                 'name'        => $student->name,
                 'status'      => $att ? $att->status : '',
+                'status_pulang' => $att ? $att->status_pulang : '',
                 'late_minutes' => $att ? $att->late_minutes : null,
                 'is_manual_input' => $att ? $att->is_manual_input : null,
             ];
@@ -263,21 +264,30 @@ class WaliKelasDashboard extends Component
                 ->first();
 
             $newLate = ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0;
+            $newStatusPulang = empty($data['status_pulang']) ? null : $data['status_pulang'];
+
+            // Jika status datang adalah izin, sakit, atau alpa, maka status pulang mengikuti
+            if (in_array($data['status'], ['izin', 'sakit', 'alpa'])) {
+                $newStatusPulang = $data['status'];
+            }
 
             // Jika data sudah ada dan tidak ada perubahan sama sekali, lewati penyimpanan agar tidak merusak data otomatis
-            if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate) {
+            if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate && $existing->status_pulang === $newStatusPulang) {
                 continue;
             }
 
             $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
             
-            // Blokir Guru jika mengedit data scan otomatis (hanya Admin yang boleh)
+            // Blokir Guru jika mengedit data kedatangan otomatis (hanya Admin yang boleh)
+            // Tapi Bolehkan guru mengisi/mengubah status pulang
             if ($existing && $existing->is_manual_input === false && $isGuru) {
-                $this->dispatch('notify', [
-                    'type'    => 'error',
-                    'message' => "Gagal mengubah: Sebagian siswa sudah absen otomatis. Hanya Admin yang bisa mengubahnya.",
-                ]);
-                continue;
+                if ($existing->status !== $data['status'] || $existing->late_minutes != $newLate) {
+                    $this->dispatch('notify', [
+                        'type'    => 'error',
+                        'message' => "Gagal mengubah: Status kedatangan sudah terekam otomatis. Hubungi Admin untuk mengubah kehadiran datang.",
+                    ]);
+                    continue;
+                }
             }
 
             $actor = $isGuru ? Auth::user()->teacher : Auth::user();
@@ -287,7 +297,9 @@ class WaliKelasDashboard extends Component
             if ($existing) {
                 $strLama = $existing->status === 'telat' ? "Telat ({$existing->late_minutes} mnt)" : ucfirst($existing->status);
                 $strBaru = $data['status'] === 'telat' ? "Telat ({$newLate} mnt)" : ucfirst($data['status']);
-                $appendNote = "Diedit oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem') . " (Perubahan {$strLama} ke {$strBaru})";
+                $strPulangLama = $existing->status_pulang ? ucfirst($existing->status_pulang) : 'Kosong';
+                $strPulangBaru = $newStatusPulang ? ucfirst($newStatusPulang) : 'Kosong';
+                $appendNote = "Diedit oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem') . " (Datang: {$strLama}->{$strBaru}, Pulang: {$strPulangLama}->{$strPulangBaru})";
                 $note = $existing->note ? $existing->note . ' | ' . $appendNote : $appendNote;
             } else {
                 $note = "Diinput Manual oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem');
@@ -303,11 +315,18 @@ class WaliKelasDashboard extends Component
                 [
                     'enrollment_id'   => $enrollment?->id,
                     'status'          => $data['status'],
+                    'status_pulang'   => $newStatusPulang,
                     'late_minutes'    => $newLate,
-                    'is_manual_input' => true,
+                    // Jika data asli adalah scan otomatis dan guru hanya mengubah status_pulang, tetap pertahankan is_manual_input = false untuk kedatangan?
+                    // Karena is_manual_input lebih ke arah record keseluruhan. Kita ubah jadi true agar menandakan ada sentuhan manual,
+                    // tapi wait, kalau diubah true, besok-besok guru bisa ubah kedatangannya?
+                    // Betul! Kalau diubah true, maka guru punya akses edit kedatangan. Kita biarkan is_manual_input = false jika asalnya false.
+                    'is_manual_input' => $existing ? $existing->is_manual_input : true,
                     'manual_input_by_id'   => $actor->id,
                     'manual_input_by_type' => $isGuru ? \App\Models\Guru::class : \App\Models\User::class,
                     'note'            => $note,
+                    'scan_time'       => $existing && $existing->scan_time ? $existing->scan_time : now()->toTimeString(),
+                    'scan_out_time'   => ($newStatusPulang && (!$existing || !$existing->scan_out_time)) ? now()->toTimeString() : ($existing ? $existing->scan_out_time : null),
                 ]
             );
         }

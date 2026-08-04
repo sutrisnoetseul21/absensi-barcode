@@ -22,5 +22,10 @@ Pada desain tahap awal, sistem hanya melayani presensi kedatangan (satu kali sca
    - Livewire Portal Kiosk: Mendukung dan memetakan kode respons baru (error/ditolak, berhasil datang, berhasil pulang) di log aktivitas.
    - Livewire Dashboard Siswa & Detail Siswa (Wali Kelas): Menambahkan badge tampilan data **Datang/In** vs **Pulang/Out** di kalender bulanan dan log riwayat aktivitas agar lebih terperinci.
 
+4. **Pembaruan UI Input Presensi Manual (Admin & Guru)**
+   - Menambahkan kolom `Pulang` pada form input massal untuk Admin (`InputPresensiManual.php`) dan Wali Kelas (`WaliKelasDashboard.php`).
+   - Menyempurnakan logika otorisasi *(authorization)* agar Guru tetap dapat menginput absensi pulang meskipun kedatangan siswa sudah tercatat otomatis oleh alat (scanner).
+   - Menambahkan sinkronisasi otomatis: Jika status kedatangan dipilih sebagai *Izin*, *Sakit*, atau *Alpa*, maka form absensi pulang akan otomatis terkunci (disabled) secara visual, dan datanya akan di-sinkronisasikan menjadi Izin/Sakit/Alpa secara atomik saat disimpan.
+
 ## Catatan
 Perubahan ini dilakukan tanpa menyebabkan perusakan (*breaking changes*) pada data presensi yang sudah lama berjalan, karena constraint unik (siswa, tanggal) di database tidak dicabut, dan nilai absensi pulang yang kosong diperbolehkan (nullable) bagi record yang tidak memiliki histori pulang sebelumnya.
