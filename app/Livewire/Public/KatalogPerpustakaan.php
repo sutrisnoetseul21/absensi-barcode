@@ -124,6 +124,6 @@ class KatalogPerpustakaan extends Component
             'kategoriPopuler' => $kategoriPopuler,
             'pengaturanSekolah' => $pengaturanSekolah,
             'activeLoans' => $this->activeLoans,
-        ]);
+        ])->title('Perpustakaan Digital ' . ($pengaturanSekolah->school_name ?? ''));
     }
 }
