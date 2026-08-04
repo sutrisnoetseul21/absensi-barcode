@@ -102,6 +102,19 @@ class PetugasPerpusPeminjaman extends Component
         $this->searchMemberModal = '';
     }
 
+    public function selectMember(string $id, string $type, string $name): void
+    {
+        $this->form_peminjam_id = $id;
+        $this->form_peminjam_type = $type;
+        $this->searchMemberModal = $name;
+    }
+
+    public function selectEksemplar(string $id, string $display): void
+    {
+        $this->form_eksemplar_id = $id;
+        $this->searchEksemplarModal = $display;
+    }
+
     public function openTambahModal(): void
     {
         $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;

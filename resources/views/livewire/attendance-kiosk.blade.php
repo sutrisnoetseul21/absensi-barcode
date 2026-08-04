@@ -506,7 +506,7 @@
                     
                     try {
                         const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
-                        const response = await fetch('/scan', { // Changed to /scan
+                        const response = await fetch('{{ route('kiosk.process') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

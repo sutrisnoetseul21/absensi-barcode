@@ -502,7 +502,7 @@
                     
                     try {
                         const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
-                        const response = await fetch('/scan-nis', {
+                        const response = await fetch('{{ route('kiosk.process-nis') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

@@ -330,7 +330,7 @@
                                         $isSelected = $form_peminjam_id === $m->id;
                                     @endphp
                                     <button type="button"
-                                            wire:click="$set('form_peminjam_id', '{{ $m->id }}'); $set('form_peminjam_type', '{{ $m->model_type }}'); $set('searchMemberModal', '{{ addslashes($m->name) }}')"
+                                            wire:click="selectMember('{{ $m->id }}', '{{ $m->model_type }}', '{{ addslashes($m->name) }}')"
                                             @click="open = false"
                                             class="w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-indigo-50 transition-colors {{ $isSelected ? 'bg-indigo-50 font-bold text-indigo-700' : 'text-slate-700' }}">
                                         <div>
@@ -380,7 +380,7 @@
                                         $isSelected = $form_eksemplar_id === $eks->id;
                                     @endphp
                                     <button type="button"
-                                            wire:click="$set('form_eksemplar_id', '{{ $eks->id }}'); $set('searchEksemplarModal', '{{ addslashes($judul) }} - [Kode: {{ $eks->kode_eksemplar }}]')"
+                                            wire:click="selectEksemplar('{{ $eks->id }}', '{{ addslashes($judul) }} - [Kode: {{ $eks->kode_eksemplar }}]')"
                                             @click="open = false"
                                             class="w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-indigo-50 transition-colors {{ $isSelected ? 'bg-indigo-50 font-bold text-indigo-700' : 'text-slate-700' }}">
                                         <div>
