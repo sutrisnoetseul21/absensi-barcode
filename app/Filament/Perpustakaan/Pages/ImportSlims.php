@@ -91,7 +91,8 @@ class ImportSlims extends Page implements HasForms
                             ->label('Password Database')
                             ->password()
                             ->revealable()
-                            ->placeholder('••••••••'),
+                            ->placeholder('••••••••')
+                            ->extraAttributes(['autocomplete' => 'new-password']),
                     ])
                     ->columns(2),
             ])
@@ -241,6 +242,7 @@ class ImportSlims extends Page implements HasForms
 
     public function jalanImportDdc(): void
     {
+        set_time_limit(300); // 5 menit
         try {
             $svc    = new SlimsMigrationService(app(SlimsConnectionService::class));
             $result = $svc->importDdc();
@@ -259,6 +261,7 @@ class ImportSlims extends Page implements HasForms
 
     public function jalanImportBuku(): void
     {
+        set_time_limit(600); // 10 menit
         try {
             $svc    = new SlimsMigrationService(app(SlimsConnectionService::class));
             $result = $svc->importBuku();
@@ -277,6 +280,7 @@ class ImportSlims extends Page implements HasForms
 
     public function jalanImportEksemplar(): void
     {
+        set_time_limit(1800); // 30 menit untuk 33k eksemplar
         try {
             $svc    = new SlimsMigrationService(app(SlimsConnectionService::class));
             $result = $svc->importEksemplar();
@@ -295,6 +299,7 @@ class ImportSlims extends Page implements HasForms
 
     public function jalanImportSemua(): void
     {
+        set_time_limit(3600); // 1 jam
         try {
             $svc    = new SlimsMigrationService(app(SlimsConnectionService::class));
             $result = $svc->importSemua();

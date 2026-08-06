@@ -143,69 +143,66 @@ class SlimsMigrationService
                     ->unique('biblio_id')
                     ->pluck('coll_type_id', 'biblio_id');
 
-                DB::transaction(function () use ($biblios, $authorsMap, $collTypeMap, &$result, $kategoriMap) {
-                    foreach ($biblios as $biblio) {
-                        try {
-                            $isbn        = trim($biblio->isbn_issn ?? '');
-                            $judul       = trim($biblio->title ?? '');
-                            $penerbit    = trim($biblio->publisher_name ?? '');
-                            $penulis     = $authorsMap[$biblio->biblio_id] ?? null;
-                            $collTypeId  = $collTypeMap[$biblio->biblio_id] ?? null;
-                            $kategoriId  = $this->mapKategoriId($collTypeId, $kategoriMap);
-                            $tahunTerbit = is_numeric($biblio->publish_year) ? (int) $biblio->publish_year : null;
-                            $lokasiRak   = ($biblio->classification && strtoupper($biblio->classification) !== 'NONE')
-                                ? trim($biblio->classification)
-                                : null;
+                // Proses setiap buku SATU PER SATU tanpa nested transaction
+                // agar satu error tidak rollback seluruh chunk
+                foreach ($biblios as $biblio) {
+                    try {
+                        $isbn        = trim($biblio->isbn_issn ?? '');
+                        $judul       = trim($biblio->title ?? '');
+                        $penerbit    = trim($biblio->publisher_name ?? '');
+                        $penulis     = $authorsMap[$biblio->biblio_id] ?? null;
+                        $collTypeId  = $collTypeMap[$biblio->biblio_id] ?? null;
+                        $kategoriId  = $this->mapKategoriId($collTypeId, $kategoriMap);
+                        $tahunTerbit = is_numeric($biblio->publish_year) ? (int) $biblio->publish_year : null;
+                        $lokasiRak   = ($biblio->classification && strtoupper($biblio->classification) !== 'NONE')
+                            ? trim($biblio->classification)
+                            : null;
 
-                            // Tentukan kondisi pencarian duplikat
-                            if ($isbn !== '') {
-                                $cariKey  = ['isbn' => $isbn];
-                                $existing = Buku::withTrashed()->where('isbn', $isbn)->first();
-                            } else {
-                                $cariKey  = ['judul' => $judul, 'penerbit' => ($penerbit ?: null)];
-                                $existing = Buku::withTrashed()
-                                    ->where('judul', $judul)
-                                    ->where('penerbit', $penerbit ?: null)
-                                    ->first();
-                            }
-
-                            $data = [
-                                'kategori_id'  => $kategoriId,
-                                'judul'        => $judul,
-                                'penulis'      => $penulis,
-                                'penerbit'     => $penerbit ?: null,
-                                'tahun_terbit' => $tahunTerbit,
-                                'isbn'         => $isbn ?: null,
-                                'lokasi_rak'   => $lokasiRak,
-                                'mapel_id'     => null,
-                                'grade_level'  => null,
-                                'updated_at'   => now(),
-                            ];
-
-                            if ($existing) {
-                                // Restore jika soft-deleted
-                                if ($existing->trashed()) {
-                                    $existing->restore();
-                                }
-                                $existing->update($data);
-                                // Simpan mapping biblio_id → buku uuid di cache
-                                cache()->put("slims_biblio_{$biblio->biblio_id}", $existing->id, now()->addHours(2));
-                                $result['diupdate']++;
-                            } else {
-                                $bukuId = Str::uuid()->toString();
-                                Buku::create(array_merge($data, [
-                                    'id'         => $bukuId,
-                                    'created_at' => now(),
-                                ]));
-                                cache()->put("slims_biblio_{$biblio->biblio_id}", $bukuId, now()->addHours(2));
-                                $result['baru']++;
-                            }
-                        } catch (\Exception $e) {
-                            $result['error']++;
-                            $result['pesan_error'][] = "biblio_id={$biblio->biblio_id}: " . $e->getMessage();
+                        // Tentukan kondisi pencarian duplikat
+                        if ($isbn !== '') {
+                            $existing = Buku::withTrashed()->where('isbn', $isbn)->first();
+                        } else {
+                            $existing = Buku::withTrashed()
+                                ->where('judul', $judul)
+                                ->where('penerbit', $penerbit ?: null)
+                                ->first();
                         }
+
+                        $data = [
+                            'kategori_id'  => $kategoriId,
+                            'judul'        => $judul,
+                            'penulis'      => $penulis,
+                            'penerbit'     => $penerbit ?: null,
+                            'tahun_terbit' => $tahunTerbit,
+                            'isbn'         => $isbn ?: null,
+                            'lokasi_rak'   => $lokasiRak,
+                            'mapel_id'     => null,
+                            'grade_level'  => null,
+                            'updated_at'   => now(),
+                        ];
+
+                        if ($existing) {
+                            if ($existing->trashed()) {
+                                $existing->restore();
+                            }
+                            $existing->update($data);
+                            // Simpan mapping biblio_id → buku uuid di cache
+                            cache()->put("slims_biblio_{$biblio->biblio_id}", $existing->id, now()->addHours(6));
+                            $result['diupdate']++;
+                        } else {
+                            $bukuId = Str::uuid()->toString();
+                            Buku::create(array_merge($data, [
+                                'id'         => $bukuId,
+                                'created_at' => now(),
+                            ]));
+                            cache()->put("slims_biblio_{$biblio->biblio_id}", $bukuId, now()->addHours(6));
+                            $result['baru']++;
+                        }
+                    } catch (\Exception $e) {
+                        $result['error']++;
+                        $result['pesan_error'][] = "biblio_id={$biblio->biblio_id}: " . $e->getMessage();
                     }
-                });
+                }
             });
 
         return $result;
@@ -236,68 +233,72 @@ class SlimsMigrationService
             ->orderBy('biblio_id')
             ->orderBy('item_id')
             ->chunk(500, function ($items) use (&$result, &$inventarisDibuat) {
-                DB::transaction(function () use ($items, &$result, &$inventarisDibuat) {
-                    foreach ($items as $item) {
-                        try {
-                            // Ambil buku_id dari cache (di-set oleh importBuku())
-                            // atau cari langsung di DB jika tidak ada di cache
-                            $bukuId = cache()->get("slims_biblio_{$item->biblio_id}");
+                foreach ($items as $item) {
+                    try {
+                        // Ambil buku_id dari cache, VERIFIKASI keberadaannya di DB
+                        $bukuId = cache()->get("slims_biblio_{$item->biblio_id}");
 
-                            if (!$bukuId) {
-                                // Fallback: tidak ada cache → buku belum diimport → lewati
-                                $result['dilewati']++;
-                                continue;
-                            }
-
-                            $status   = $this->mapItemStatus($item->item_status_id);
-                            $existing = EksemplarBuku::withTrashed()
-                                ->where('kode_eksemplar', $item->item_code)
-                                ->first();
-
-                            $dataEksemplar = [
-                                'buku_id'      => $bukuId,
-                                'kode_eksemplar' => $item->item_code,
-                                'status'       => $status,
-                                'kondisi_fisik' => 'baik',
-                                'updated_at'   => now(),
-                            ];
-
-                            if ($existing) {
-                                if ($existing->trashed()) {
-                                    $existing->restore();
-                                }
-                                $existing->update($dataEksemplar);
-                                $inventariBukuId = $existing->inventaris_buku_id;
-                                $result['diupdate']++;
-                            } else {
-                                $eksemplarId = Str::uuid()->toString();
-
-                                // Cari/buat inventaris untuk buku ini
-                                $inventariBukuId = $this->getOrCreateInventaris(
-                                    $bukuId,
-                                    $item,
-                                    $inventarisDibuat,
-                                    $result
-                                );
-
-                                EksemplarBuku::create(array_merge($dataEksemplar, [
-                                    'id'                => $eksemplarId,
-                                    'inventaris_buku_id' => $inventariBukuId,
-                                    'created_at'        => now(),
-                                ]));
-                                $result['baru']++;
-                            }
-
-                            // Update jumlah_eksemplar di inventaris
-                            if ($inventariBukuId) {
-                                InventarisBuku::where('id', $inventariBukuId)->increment('jumlah_eksemplar');
-                            }
-                        } catch (\Exception $e) {
-                            $result['error']++;
-                            $result['pesan_error'][] = "item_id={$item->item_id} (kode={$item->item_code}): " . $e->getMessage();
+                        if (!$bukuId) {
+                            // Cache kosong — cari di DB berdasarkan biblio_id yang sempat diimport
+                            // (tidak ada cara langsung, lewati saja)
+                            $result['dilewati']++;
+                            continue;
                         }
+
+                        // Verifikasi buku_id BENAR-BENAR ada di DB (bukan orphan cache)
+                        if (!Buku::withTrashed()->where('id', $bukuId)->exists()) {
+                            $result['dilewati']++;
+                            continue;
+                        }
+
+                        $status   = $this->mapItemStatus($item->item_status_id);
+                        $existing = EksemplarBuku::withTrashed()
+                            ->where('kode_eksemplar', $item->item_code)
+                            ->first();
+
+                        $dataEksemplar = [
+                            'buku_id'        => $bukuId,
+                            'kode_eksemplar' => $item->item_code,
+                            'status'         => $status,
+                            'kondisi_fisik'  => 'baik',
+                            'updated_at'     => now(),
+                        ];
+
+                        if ($existing) {
+                            if ($existing->trashed()) {
+                                $existing->restore();
+                            }
+                            $existing->update($dataEksemplar);
+                            $inventariBukuId = $existing->inventaris_buku_id;
+                            $result['diupdate']++;
+                        } else {
+                            $eksemplarId = Str::uuid()->toString();
+
+                            // Cari/buat inventaris untuk buku ini
+                            $inventariBukuId = $this->getOrCreateInventaris(
+                                $bukuId,
+                                $item,
+                                $inventarisDibuat,
+                                $result
+                            );
+
+                            EksemplarBuku::create(array_merge($dataEksemplar, [
+                                'id'                 => $eksemplarId,
+                                'inventaris_buku_id' => $inventariBukuId,
+                                'created_at'         => now(),
+                            ]));
+                            $result['baru']++;
+                        }
+
+                        // Update jumlah_eksemplar di inventaris
+                        if ($inventariBukuId) {
+                            InventarisBuku::where('id', $inventariBukuId)->increment('jumlah_eksemplar');
+                        }
+                    } catch (\Exception $e) {
+                        $result['error']++;
+                        $result['pesan_error'][] = "item_id={$item->item_id} (kode={$item->item_code}): " . $e->getMessage();
                     }
-                });
+                }
             });
 
         return $result;
