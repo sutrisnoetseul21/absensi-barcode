@@ -195,14 +195,18 @@ class SlimsMigrationService
                                 'id'         => $bukuId,
                                 'created_at' => now(),
                             ]));
-                            cache()->put("slims_biblio_{$biblio->biblio_id}", $bukuId, now()->addHours(6));
+                            Cache::put("slims_biblio_{$biblio->biblio_id}", $bukuId, now()->addHours(6));
                             $result['baru']++;
                         }
                     } catch (\Exception $e) {
+                        Log::error("SLiMS Import Buku Error (biblio_id={$biblio->biblio_id}): " . $e->getMessage());
                         $result['error']++;
                         $result['pesan_error'][] = "biblio_id={$biblio->biblio_id}: " . $e->getMessage();
                     }
                 }
+                
+                // Simpan progress sementara ke cache agar tidak hilang jika terjadi 504 Timeout
+                Cache::put('slims_last_report', ['jenis' => 'Buku (Progres)', 'hasil' => $result], now()->addHours(2));
             });
 
         return $result;
@@ -236,7 +240,7 @@ class SlimsMigrationService
                 foreach ($items as $item) {
                     try {
                         // Ambil buku_id dari cache, VERIFIKASI keberadaannya di DB
-                        $bukuId = cache()->get("slims_biblio_{$item->biblio_id}");
+                        $bukuId = Cache::get("slims_biblio_{$item->biblio_id}");
 
                         if (!$bukuId) {
                             // Cache kosong — cari di DB berdasarkan biblio_id yang sempat diimport
@@ -295,10 +299,14 @@ class SlimsMigrationService
                             InventarisBuku::where('id', $inventariBukuId)->increment('jumlah_eksemplar');
                         }
                     } catch (\Exception $e) {
+                        Log::error("SLiMS Import Eksemplar Error (item_id={$item->item_id}): " . $e->getMessage());
                         $result['error']++;
                         $result['pesan_error'][] = "item_id={$item->item_id} (kode={$item->item_code}): " . $e->getMessage();
                     }
                 }
+                
+                // Simpan progress sementara ke cache
+                Cache::put('slims_last_report', ['jenis' => 'Eksemplar (Progres)', 'hasil' => $result], now()->addHours(2));
             });
 
         return $result;
@@ -310,15 +318,23 @@ class SlimsMigrationService
 
     public function importSemua(): array
     {
-        $ddcResult        = $this->importDdc();
-        $bukuResult       = $this->importBuku();
-        $eksemplarResult  = $this->importEksemplar();
+        $result = [];
+        $result['ddc']       = $this->importDdc();
+        $result['buku']      = $this->importBuku();
+        $result['eksemplar'] = $this->importEksemplar();
 
-        return [
-            'ddc'       => $ddcResult,
-            'buku'      => $bukuResult,
-            'eksemplar' => $eksemplarResult,
-        ];
+        // Gabungkan total error
+        $totalError = $result['ddc']['error'] + $result['buku']['error'] + $result['eksemplar']['error'];
+        $pesanError = array_merge(
+            $result['ddc']['pesan_error'],
+            $result['buku']['pesan_error'],
+            $result['eksemplar']['pesan_error']
+        );
+        
+        $finalReport = ['jenis' => 'Semua', 'hasil' => $result, 'total_error' => $totalError, 'pesan_error' => $pesanError];
+        Cache::put('slims_last_report', $finalReport, now()->addHours(12));
+
+        return $result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

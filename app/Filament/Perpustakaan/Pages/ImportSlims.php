@@ -46,6 +46,9 @@ class ImportSlims extends Page implements HasForms
             $this->slimsStats     = $conn->getStats();
         }
 
+        // Muat laporan terakhir dari cache (berguna jika sebelumnya terkena 504 Timeout)
+        $this->lastReport = \Illuminate\Support\Facades\Cache::get('slims_last_report');
+
         $this->form->fill([
             'host'     => '127.0.0.1',
             'port'     => '3306',
