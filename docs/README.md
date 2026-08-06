@@ -61,6 +61,13 @@ Berisi referensi, *guidelines*, dan panduan integrasi teknologi yang kita gunaka
 - Panduan integrasi Alpine & Tailwind
 - Persiapan database (MySQL)
 
+### 📂 `export-slims-erp/`
+Dokumentasi lengkap fitur **sinkronisasi data dari SLiMS ke ERP**. Baca folder ini sebelum mengerjakan atau melanjutkan fitur import SLiMS — agar tidak perlu scan ulang database SLiMS.
+- `implementation-plan.md` — Plan implementasi final (status, alur UI, file yang dibuat, verifikasi)
+- `slims-database-reference.md` — Struktur tabel SLiMS, kredensial, statistik data, dan query SQL siap pakai
+- `mapping-data-slims-erp.md` — Pemetaan lengkap field-per-field dari SLiMS ke ERP (termasuk mapping kategori & status)
+- `perencanaan-migrasi.md` — Dokumen perencanaan awal (arsip, untuk referensi sejarah)
+
 ### 📂 `archive/`
 Menyimpan dokumen bersejarah (seperti catatan *refactoring* Tahap 1-4). Dokumen di sini sengaja disimpan untuk referensi perjalanan *development*, namun tidak lagi menjadi sumber rujukan utama untuk sistem berjalan.
 
