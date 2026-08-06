@@ -189,12 +189,22 @@
             </div>
 
             {{-- ── Laporan Hasil Terakhir ── --}}
-            @if ($lastReport)
-                <div class="rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-700 dark:bg-green-950/30">
-                    <h3 class="mb-3 text-sm font-bold text-green-800 dark:text-green-300">
-                        ✅ Laporan Import Terakhir — {{ $lastReport['jenis'] }}
+            <div class="rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-700 dark:bg-green-950/30">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-green-800 dark:text-green-300">
+                        @if ($lastReport)
+                            ✅ Laporan Import Terakhir — {{ $lastReport['jenis'] }}
+                        @else
+                            ℹ️ Status Import Terakhir
+                        @endif
                     </h3>
+                    <x-filament::button wire:click="refreshLaporan" icon="heroicon-o-arrow-path" color="success" size="sm" wire:loading.attr="disabled" wire:target="refreshLaporan">
+                        <span wire:loading.remove wire:target="refreshLaporan">Refresh Status</span>
+                        <span wire:loading wire:target="refreshLaporan">Memuat...</span>
+                    </x-filament::button>
+                </div>
 
+                @if ($lastReport)
                     @if ($lastReport['jenis'] === 'Semua')
                         @foreach (['ddc' => 'DDC', 'buku' => 'Buku', 'eksemplar' => 'Eksemplar'] as $key => $label)
                             <div class="mb-3">
@@ -226,18 +236,24 @@
                         </div>
                     @endif
 
-                    @if (!empty($lastReport['hasil']['pesan_error'] ?? []))
+                    @if (!empty($lastReport['hasil']['pesan_error'] ?? []) || !empty($lastReport['pesan_error'] ?? []))
                         <details class="mt-3">
-                            <summary class="cursor-pointer text-xs font-semibold text-red-700 dark:text-red-400">Lihat detail error ({{ count($lastReport['hasil']['pesan_error']) }})</summary>
+                            <summary class="cursor-pointer text-xs font-semibold text-red-700 dark:text-red-400">Lihat detail error</summary>
                             <ul class="mt-2 space-y-1">
-                                @foreach (array_slice($lastReport['hasil']['pesan_error'], 0, 20) as $err)
+                                @php
+                                    $errors = $lastReport['pesan_error'] ?? $lastReport['hasil']['pesan_error'] ?? [];
+                                    $slicedErrors = array_slice($errors, 0, 20);
+                                @endphp
+                                @foreach ($slicedErrors as $err)
                                     <li class="font-mono text-xs text-red-600 dark:text-red-400">{{ $err }}</li>
                                 @endforeach
                             </ul>
                         </details>
                     @endif
-                </div>
-            @endif
+                @else
+                    <p class="text-sm text-green-700 dark:text-green-400">Belum ada proses import yang berjalan, atau silahkan klik tombol <strong>Refresh Status</strong> jika Anda baru saja menjalankan import.</p>
+                @endif
+            </div>
 
         </div>
 

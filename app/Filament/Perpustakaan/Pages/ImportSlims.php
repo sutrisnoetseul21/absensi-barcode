@@ -306,7 +306,7 @@ class ImportSlims extends Page implements HasForms
         try {
             $svc    = new SlimsMigrationService(app(SlimsConnectionService::class));
             $result = $svc->importSemua();
-            $this->lastReport = ['jenis' => 'Semua', 'hasil' => $result];
+            $this->lastReport = \Illuminate\Support\Facades\Cache::get('slims_last_report');
 
             $ddcMsg  = "DDC — Baru: {$result['ddc']['baru']} | Update: {$result['ddc']['diupdate']}";
             $bukuMsg = "Buku — Baru: {$result['buku']['baru']} | Update: {$result['buku']['diupdate']}";
@@ -320,6 +320,16 @@ class ImportSlims extends Page implements HasForms
                 ->send();
         } catch (\Exception $e) {
             Notification::make()->title('Import gagal')->body($e->getMessage())->danger()->persistent()->send();
+        }
+    }
+
+    public function refreshLaporan(): void
+    {
+        $this->lastReport = \Illuminate\Support\Facades\Cache::get('slims_last_report');
+        if ($this->lastReport) {
+            Notification::make()->title('Laporan diperbarui')->success()->send();
+        } else {
+            Notification::make()->title('Belum ada laporan terbaru')->info()->send();
         }
     }
 
