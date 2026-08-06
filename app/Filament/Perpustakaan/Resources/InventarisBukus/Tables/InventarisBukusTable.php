@@ -15,18 +15,50 @@ class InventarisBukusTable
         return $table
             ->columns([
                 TextColumn::make('tanggal_masuk')
-                    ->date('d M Y')
+                    ->label('Tanggal')
+                    ->date('d/m/Y')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('no_inventaris')
+                    ->label('No Inventaris')
+                    ->fontFamily('mono')
+                    ->weight('bold')
                     ->searchable(),
                 TextColumn::make('buku.judul')
-                    ->label('Judul Buku')
+                    ->label('Judul')
+                    ->weight('bold')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('asal'),
+                TextColumn::make('buku.penulis')
+                    ->label('Pengarang')
+                    ->searchable(),
+                TextColumn::make('buku.penerbit')
+                    ->label('Penerbit')
+                    ->searchable(),
+                TextColumn::make('buku.tahun_terbit')
+                    ->label('Tahun Terbit')
+                    ->alignCenter()
+                    ->sortable(),
+                TextColumn::make('asal')
+                    ->label('Asal')
+                    ->formatStateUsing(fn (string $state): string => ucwords(str_replace('_', ' ', $state))),
+                TextColumn::make('buku.klasifikasiDdc.kode_ddc')
+                    ->label('No Klasifikasi')
+                    ->fontFamily('mono')
+                    ->searchable(),
+                TextColumn::make('harga')
+                    ->label('Harga')
+                    ->alignRight()
+                    ->formatStateUsing(fn ($state) => $state > 0 ? 'Rp ' . number_format($state, 0, ',', '.') : '-')
+                    ->sortable(),
                 TextColumn::make('jumlah_eksemplar')
-                    ->label('Jumlah'),
+                    ->label('Jumlah Eksemplar')
+                    ->alignCenter()
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('buku.isbn')
+                    ->searchable()
+                    ->hidden(),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -36,7 +68,12 @@ class InventarisBukusTable
                     }),
             ])
             ->filters([
-                //
+                \Filament\Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'aktif' => 'Aktif',
+                        'dibatalkan' => 'Dibatalkan',
+                    ])
+                    ->label('Filter Status'),
             ])
             ->recordActions([
                 Action::make('batalkan_entri')

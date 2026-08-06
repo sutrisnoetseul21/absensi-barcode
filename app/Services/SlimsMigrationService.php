@@ -372,10 +372,39 @@ class SlimsMigrationService
             return $existing->id;
         }
 
-        // Buat baru
-        $noInventaris = ($item->inventory_code && trim($item->inventory_code) !== '')
-            ? trim($item->inventory_code)
-            : 'SLIMS-' . $item->biblio_id;
+        // Ambil semua item SLiMS untuk biblio ini guna mengetahui rentang (range) kode inventaris
+        $slims = $this->slimsConn->getConnection();
+        $items = $slims->table('item')->where('biblio_id', $item->biblio_id)->orderBy('item_id')->get(['item_code', 'inventory_code']);
+        
+        $first = $items->first();
+        $last = $items->last();
+
+        $firstNo = ($first && isset($first->inventory_code) && trim($first->inventory_code) !== '') 
+            ? trim($first->inventory_code) 
+            : ($first ? trim($first->item_code) : 'SLIMS-' . $item->biblio_id);
+            
+        $lastNo = ($last && isset($last->inventory_code) && trim($last->inventory_code) !== '') 
+            ? trim($last->inventory_code) 
+            : ($last ? trim($last->item_code) : 'SLIMS-' . $item->biblio_id);
+
+        if ($firstNo === $lastNo) {
+            $noInventaris = $firstNo;
+        } else {
+            $noInventaris = "{$firstNo} - {$lastNo}";
+        }
+
+        // Deteksi Asal Buku berdasarkan kode di SLiMS (jika menggunakan standar /P/, /H/, dll)
+        $asal = 'Pembelian';
+        $upperFirst = strtoupper($firstNo);
+        if (str_contains($upperFirst, '/H/')) {
+            $asal = 'Hibah';
+        } elseif (str_contains($upperFirst, '/T/')) {
+            $asal = 'Tukar';
+        } elseif (str_contains($upperFirst, '/TS/')) {
+            $asal = 'Terbitan Sendiri';
+        } elseif (str_contains($upperFirst, '/P/')) {
+            $asal = 'Pembelian';
+        }
 
         $tanggalMasuk = $item->received_date ?? now()->toDateString();
         $harga        = $item->price ?? 0;
@@ -385,7 +414,7 @@ class SlimsMigrationService
             'buku_id'          => $bukuId,
             'no_inventaris'    => $noInventaris,
             'tanggal_masuk'    => $tanggalMasuk,
-            'asal'             => 'pembelian',
+            'asal'             => $asal,
             'harga'            => $harga,
             'jumlah_eksemplar' => 0, // akan di-increment per eksemplar
             'status'           => 'aktif',
