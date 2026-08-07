@@ -1,6 +1,6 @@
 <!-- Data Table Grid -->
 <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/40 overflow-hidden relative z-20">
-    <div class="overflow-x-auto custom-scrollbar">
+    <div class="overflow-x-auto custom-scrollbar [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200/60 text-xs font-black text-slate-500 uppercase tracking-wider">

@@ -35,6 +35,12 @@ Route::get('/perpustakaan/buku/{buku}/baca', function (\App\Models\Buku $buku) {
 })->name('perpustakaan.baca-buku');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
 Route::get('/login', fn() => view('auth.portal-selection'))->name('login');
+Route::post('/logout', function () {
+    Auth::guard('web')->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
 
 
 // Kiosk Absensi Routes - Portal Presensi Kiosk

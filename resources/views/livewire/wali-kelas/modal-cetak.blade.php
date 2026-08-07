@@ -23,7 +23,7 @@
                 </button>
             </div>
 
-            <div class="px-6 py-8 max-h-[60vh] overflow-y-auto">
+            <div class="px-6 py-8 max-h-[60vh] overflow-y-auto [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
                 <div class="space-y-8">
                     <!-- Jenis Laporan -->
                     <div>

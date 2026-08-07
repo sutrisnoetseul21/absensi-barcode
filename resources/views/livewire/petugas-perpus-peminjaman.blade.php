@@ -87,7 +87,7 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <div class="overflow-x-auto rounded-xl border border-slate-200 [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-slate-500 font-extrabold uppercase tracking-wide border-b border-slate-200">
                         <tr>

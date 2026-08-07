@@ -41,7 +41,7 @@
             </style>
         @endif
     </head>
-    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex h-screen overflow-hidden" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('portal_sidebar_collapsed') === 'true' }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val))">
+    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex h-screen overflow-hidden [touch-action:pan-y]" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('portal_sidebar_collapsed') === 'true' }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val))">
         
         @php
             $user = Auth::guard('web')->user();
@@ -83,8 +83,8 @@
         <!-- Sidebar -->
         <aside class="fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200/80 flex flex-col transform transition-all duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none"
                :class="{
-                   'translate-x-0': sidebarOpen, 
-                   '-translate-x-full': !sidebarOpen,
+                   'translate-x-0 pointer-events-auto': sidebarOpen, 
+                   '-translate-x-full pointer-events-none lg:pointer-events-auto': !sidebarOpen,
                    'w-72 lg:w-72': !sidebarCollapsed,
                    'w-72 lg:w-20': sidebarCollapsed
                }">
@@ -284,7 +284,7 @@
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-y-auto">
+        <div class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-y-auto min-h-0 [touch-action:pan-y] [-webkit-overflow-scrolling:touch] overscroll-y-auto">
             
             <!-- Topbar Header with Single Garis Tiga Toggle Icon -->
             <div class="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white border-b border-slate-200/80 shadow-xs">
@@ -297,10 +297,94 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-slate-500 hidden sm:inline">User: <strong class="text-slate-800">{{ $userName }}</strong></span>
-                    <div class="w-9 h-9 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary font-bold text-sm shadow-xs">
-                        {{ substr($userName, 0, 1) }}
+                <!-- User Profile & Logout Dropdown -->
+                <div class="relative" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
+                    <button @click="userMenuOpen = !userMenuOpen" 
+                            class="flex items-center gap-3 py-1.5 px-3 rounded-2xl border border-slate-200/80 hover:border-brand-primary/40 hover:bg-slate-50 transition-all focus:outline-none shadow-xs group">
+                        @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
+                            <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs">
+                        @else
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                                {{ strtoupper(substr($userName, 0, 1)) }}
+                            </div>
+                        @endif
+                        <div class="hidden sm:flex flex-col text-left">
+                            <span class="text-xs font-bold text-slate-800 leading-snug group-hover:text-brand-primary transition-colors">{{ $userName }}</span>
+                            <span class="text-[10px] text-slate-500 font-medium leading-none">{{ $userRole }}</span>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="userMenuOpen" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                         class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-2 z-50 overflow-hidden" 
+                         style="display: none;">
+                        
+                        <!-- User Info Header -->
+                        <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center gap-3">
+                            @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
+                                <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs">
+                            @else
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                                    {{ strtoupper(substr($userName, 0, 1)) }}
+                                </div>
+                            @endif
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-sm font-bold text-slate-900 truncate">{{ $userName }}</span>
+                                <span class="text-xs text-slate-500 font-medium truncate">{{ $userRole }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Menu Navigation Items -->
+                        <div class="py-1 px-1.5 space-y-0.5">
+                            @if($user && $user->hasRole('siswa'))
+                                <a href="{{ route('portal-siswa.profil') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                    Profil Saya
+                                </a>
+                                <a href="{{ route('portal-siswa.dashboard') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                    Dashboard
+                                </a>
+                            @elseif($user && $user->hasRole('wali_kelas') && !$isPerpusRoute)
+                                <a href="{{ route('portal-guru.dashboard') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                    Dashboard Utama
+                                </a>
+                                <a href="{{ route('portal-guru.akademik') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Presensi & Akademik
+                                </a>
+                                <a href="{{ route('portal-guru.perpustakaan') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                    Perpustakaan
+                                </a>
+                            @elseif($isPerpusRoute || ($user && ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan'))))
+                                <a href="{{ route('portal-perpustakaan.dashboard') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                    Dashboard Perpustakaan
+                                </a>
+                            @endif
+                        </div>
+
+                        <!-- Logout Section -->
+                        <div class="pt-1 mt-1 border-t border-slate-100 px-1.5">
+                            <form action="{{ $logoutRoute }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
+                                    <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                    Keluar Portal
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

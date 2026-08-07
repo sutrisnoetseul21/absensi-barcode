@@ -7,7 +7,7 @@
         Riwayat Bulan Ini
     </h2>
     
-    <div class="flex-1 space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+    <div class="flex-1 space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
         @forelse($recentActivity as $activity)
             @php
                 $status = strtolower($activity->status);

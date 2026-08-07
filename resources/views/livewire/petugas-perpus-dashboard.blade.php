@@ -96,7 +96,7 @@
                 <a href="{{ route('portal-perpustakaan.sirkulasi') }}" class="text-xs font-bold text-brand-primary hover:underline">Lihat Semua &rarr;</a>
             </div>
 
-            <div class="flex-1 overflow-x-auto">
+            <div class="flex-1 overflow-x-auto [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                 @if($overdueLoans->isEmpty())
                     <div class="py-12 text-center text-slate-400">
                         <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

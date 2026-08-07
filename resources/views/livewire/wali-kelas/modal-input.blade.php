@@ -21,7 +21,7 @@
                 </button>
             </div>
 
-            <div class="px-6 py-6 max-h-[60vh] overflow-y-auto">
+            <div class="px-6 py-6 max-h-[60vh] overflow-y-auto [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
                 <!-- Date Picker -->
                 <div class="mb-6 flex items-center gap-4 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
                     <label class="font-bold text-indigo-900 whitespace-nowrap">Pilih Tanggal:</label>

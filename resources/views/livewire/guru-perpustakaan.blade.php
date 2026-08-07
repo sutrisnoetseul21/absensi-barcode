@@ -166,7 +166,7 @@
                     <p class="text-sm text-slate-500 mt-1">Daftar buku perpustakaan yang saat ini masih Anda pinjam.</p>
                 </div>
                 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
@@ -247,7 +247,7 @@
                     <p class="text-sm text-slate-500 mt-1">Daftar buku yang sudah pernah Anda pinjam dan kembalikan sebelumnya.</p>
                 </div>
                 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
@@ -318,7 +318,7 @@
                     <p class="text-sm text-slate-500 mt-1">Daftar riwayat kunjungan fisik Anda ke perpustakaan.</p>
                 </div>
                 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
@@ -399,7 +399,7 @@
                 </div>
                 
                 @if(count($kelasAmpu) > 0)
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200">
