@@ -84,7 +84,7 @@
         <aside class="fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200/80 flex flex-col transform transition-all duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none"
                :class="{
                    'translate-x-0 pointer-events-auto': sidebarOpen, 
-                   '-translate-x-full pointer-events-none lg:pointer-events-auto': !sidebarOpen,
+                   '-translate-x-full max-lg:pointer-events-none': !sidebarOpen,
                    'w-72 lg:w-72': !sidebarCollapsed,
                    'w-72 lg:w-20': sidebarCollapsed
                }">
