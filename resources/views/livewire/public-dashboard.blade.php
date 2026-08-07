@@ -294,23 +294,9 @@
                     @auth
                         @php
                             $authUser = Auth::user();
-                            $authName = $authUser->teacher?->nama ?? $authUser->student?->nama ?? $authUser->name;
-                            $authRole = 'Pengguna';
-                            $authPortalUrl = '/';
-
-                            if ($authUser->hasRole('siswa')) {
-                                $authRole = 'Siswa';
-                                $authPortalUrl = '/portal-siswa';
-                            } elseif ($authUser->hasRole('wali_kelas') || $authUser->hasRole('guru')) {
-                                $authRole = 'Guru';
-                                $authPortalUrl = '/portal-guru';
-                            } elseif ($authUser->hasRole('petugas_perpustakaan') || $authUser->hasRole('admin_perpustakaan')) {
-                                $authRole = 'Petugas Perpus';
-                                $authPortalUrl = '/portal-perpustakaan';
-                            } elseif ($authUser->hasRole('admin') || $authUser->hasRole('super_admin')) {
-                                $authRole = 'Administrator';
-                                $authPortalUrl = '/admin';
-                            }
+                            $authName = $authUser->display_name;
+                            $authRole = $authUser->role_badge;
+                            $accessiblePortals = $authUser->getAccessiblePortals();
                         @endphp
 
                         <!-- User Profile & Logout Dropdown -->
@@ -337,22 +323,35 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                  x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                                 class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 overflow-hidden text-slate-800"
+                                 class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 overflow-hidden text-slate-800"
                                  style="display: none;">
                                 
-                                <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
+                                <div class="px-4 py-3 bg-slate-50 border-b border-slate-100">
                                     <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Login Sebagai:</p>
                                     <p class="text-sm font-bold text-slate-900 truncate">{{ $authName }}</p>
-                                    <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary-50 text-brand-primary border border-brand-primary-100">
-                                        {{ $authRole }}
-                                    </span>
+                                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary-50 text-brand-primary border border-brand-primary-100">
+                                            {{ $authRole }}
+                                        </span>
+                                        @if($authUser->email)
+                                            <span class="text-[10px] text-slate-400 truncate max-w-[130px]">{{ $authUser->email }}</span>
+                                        @endif
+                                    </div>
                                 </div>
 
-                                <div class="py-1 px-1.5 space-y-0.5">
-                                    <a href="{{ $authPortalUrl }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary transition-colors">
-                                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                                        Buka Portal Saya
-                                    </a>
+                                <div class="px-3 py-2">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1.5 px-1">Akses Portal Saya ({{ count($accessiblePortals) }})</p>
+                                    <div class="max-h-52 overflow-y-auto space-y-1.5 pr-0.5">
+                                        @foreach($accessiblePortals as $p)
+                                            <a href="{{ $p['url'] }}" class="flex items-start justify-between p-2 rounded-xl border text-xs font-semibold transition-all {{ $p['bg'] }}">
+                                                <div class="flex flex-col">
+                                                    <span class="font-bold text-slate-900 leading-tight">{{ $p['name'] }}</span>
+                                                    <span class="text-[10px] opacity-75 font-normal mt-0.5">{{ $p['desc'] }}</span>
+                                                </div>
+                                                <svg class="w-3.5 h-3.5 shrink-0 mt-0.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                            </a>
+                                        @endforeach
+                                    </div>
                                 </div>
 
                                 <div class="pt-1 mt-1 border-t border-slate-100 px-1.5">
@@ -420,34 +419,29 @@
                 @auth
                     @php
                         $authUser = Auth::user();
-                        $authName = $authUser->teacher?->nama ?? $authUser->student?->nama ?? $authUser->name;
-                        $authRole = 'Pengguna';
-                        $authPortalUrl = '/';
-
-                        if ($authUser->hasRole('siswa')) {
-                            $authRole = 'Siswa';
-                            $authPortalUrl = '/portal-siswa';
-                        } elseif ($authUser->hasRole('wali_kelas') || $authUser->hasRole('guru')) {
-                            $authRole = 'Guru';
-                            $authPortalUrl = '/portal-guru';
-                        } elseif ($authUser->hasRole('petugas_perpustakaan') || $authUser->hasRole('admin_perpustakaan')) {
-                            $authRole = 'Petugas Perpus';
-                            $authPortalUrl = '/portal-perpustakaan';
-                        } elseif ($authUser->hasRole('admin') || $authUser->hasRole('super_admin')) {
-                            $authRole = 'Administrator';
-                            $authPortalUrl = '/admin';
-                        }
+                        $authName = $authUser->display_name;
+                        $authRole = $authUser->role_badge;
+                        $accessiblePortals = $authUser->getAccessiblePortals();
                     @endphp
 
-                    <div class="pt-2 border-t border-slate-200/40">
-                        <div class="px-4 py-2 rounded-xl bg-brand-primary/10 mb-2">
+                    <div class="pt-3 border-t border-slate-200/40 space-y-2">
+                        <div class="px-4 py-2.5 rounded-xl bg-brand-primary/10">
                             <p class="text-[10px] text-slate-400 uppercase font-bold">Login Sebagai:</p>
-                            <p class="text-sm font-bold text-slate-800 dark:text-white">{{ $authName }} ({{ $authRole }})</p>
+                            <p class="text-sm font-bold text-slate-800 dark:text-white">{{ $authName }}</p>
+                            <span class="inline-block mt-0.5 text-xs font-semibold text-brand-primary">{{ $authRole }}</span>
                         </div>
-                        <a href="{{ $authPortalUrl }}" class="block px-4 py-3 rounded-xl font-semibold text-brand-primary bg-brand-primary/10">
-                            Buka Portal Saya
-                        </a>
-                        <form action="{{ route('logout') }}" method="POST" class="mt-2">
+
+                        <p class="text-[10px] font-bold uppercase text-slate-400 px-1 mt-2">Daftar Portal Yang Dapat Diakses:</p>
+                        <div class="space-y-1.5">
+                            @foreach($accessiblePortals as $p)
+                                <a href="{{ $p['url'] }}" class="flex items-center justify-between px-4 py-2.5 rounded-xl border text-xs font-bold transition-all {{ $p['bg'] }}">
+                                    <span>{{ $p['name'] }}</span>
+                                    <svg class="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                </a>
+                            @endforeach
+                        </div>
+
+                        <form action="{{ route('logout') }}" method="POST" class="mt-3">
                             @csrf
                             <button type="submit" class="w-full text-left px-4 py-3 rounded-xl font-bold text-rose-600 bg-rose-50 flex items-center justify-between">
                                 Keluar (Logout)
