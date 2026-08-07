@@ -2,24 +2,31 @@
 
 namespace App\Services;
 
+use App\Models\Buku;
 use App\Models\EksemplarBuku;
 use App\Models\InventarisBuku;
 use App\Models\KategoriBuku;
 use App\Models\KlasifikasiDdc;
-use App\Models\Buku;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
- * SlimsMigrationService
+ * SlimsMigrationService v2
  *
- * Menangani proses import data dari database SLiMS ke database ERP.
- * Kebijakan: OVERWRITE (updateOrInsert) — bukan skip.
- * Semua operasi dalam DB::transaction() untuk keamanan rollback.
+ * Versi yang sudah direvisi berdasarkan analisis masalah di:
+ * docs/export-slims-erp/rencana-redesign-import-v2.md
  *
- * Urutan import yang benar: importDdc() → importBuku() → importEksemplar()
+ * Perubahan utama dari v1:
+ * - importDdc(): sumber dari biblio.classification (bukan mst_topic), nama auto-mapping DDC standar
+ * - importBuku(): simpan slims_biblio_id di tabel bukus ERP
+ * - importEksemplar(): lookup via DB::table('bukus') bukan Cache Laravel
+ * - importBukuDanEksemplar(): method baru, jalankan buku+eksemplar sekaligus
+ * - Progress disimpan ke Cache setiap chunk untuk ditampilkan di halaman proses
  *
- * Referensi mapping: docs/export-slims-erp/mapping-data-slims-erp.md
+ * Kebijakan: OVERWRITE (updateOrCreate) — bukan skip.
+ * Urutan import: importDdc() → importBukuDanEksemplar()
  */
 class SlimsMigrationService
 {
@@ -28,237 +35,245 @@ class SlimsMigrationService
     ) {}
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 1. IMPORT DDC (mst_topic → klasifikasi_ddcs)
+    // 1. IMPORT DDC (biblio.classification → klasifikasi_ddcs)
     // ─────────────────────────────────────────────────────────────────────────
 
     public function importDdc(): array
     {
+        set_time_limit(300);
         $slims  = $this->slimsConn->getConnection();
         $result = ['baru' => 0, 'diupdate' => 0, 'error' => 0, 'pesan_error' => []];
 
-        $topics = $slims->table('mst_topic')
-            ->whereNotNull('topic')
-            ->where('topic', '!=', '')
-            ->orderBy('topic_id')
+        // Ambil distinct classification dari biblio (bukan mst_topic!)
+        $ddcList = $slims->table('biblio')
+            ->select('classification')
+            ->whereNotNull('classification')
+            ->where('classification', '!=', '')
+            ->whereRaw("UPPER(classification) != 'NONE'")
+            ->distinct()
+            ->orderBy('classification')
             ->get();
 
-        DB::transaction(function () use ($topics, &$result) {
-            foreach ($topics as $topic) {
-                try {
-                    // Jika classification kosong, pakai "T{topic_id}" sebagai fallback
-                    $kodeDdc = (isset($topic->classification) && trim($topic->classification) !== '')
-                        ? trim($topic->classification)
-                        : 'T' . $topic->topic_id;
+        $total = $ddcList->count();
+        $this->simpanProgress('ddc', 0, $total, 0, 0, 0, 0, 'berjalan');
 
-                    $existing = KlasifikasiDdc::where('kode_ddc', $kodeDdc)->first();
+        foreach ($ddcList as $i => $row) {
+            try {
+                $kodeDdc = trim($row->classification);
+                $namaDdc = self::getNamaDdc($kodeDdc);
 
-                    if ($existing) {
-                        $existing->update(['kategori' => trim($topic->topic)]);
-                        $result['diupdate']++;
-                    } else {
-                        KlasifikasiDdc::create([
-                            'id'       => Str::uuid(),
-                            'kode_ddc' => $kodeDdc,
-                            'kategori' => trim($topic->topic),
-                        ]);
-                        $result['baru']++;
-                    }
-                } catch (\Exception $e) {
-                    $result['error']++;
-                    $result['pesan_error'][] = "topic_id={$topic->topic_id}: " . $e->getMessage();
+                $existing = KlasifikasiDdc::where('kode_ddc', $kodeDdc)->first();
+
+                if ($existing) {
+                    $existing->update(['kategori' => $namaDdc]);
+                    $result['diupdate']++;
+                } else {
+                    KlasifikasiDdc::create([
+                        'id'       => Str::uuid(),
+                        'kode_ddc' => $kodeDdc,
+                        'kategori' => $namaDdc,
+                    ]);
+                    $result['baru']++;
                 }
-            }
-        });
 
+                // Update progress setiap 50 item
+                if (($i + 1) % 50 === 0 || ($i + 1) === $total) {
+                    $this->simpanProgress('ddc', $i + 1, $total, 0, 0, $result['error'], 0, 'berjalan');
+                }
+            } catch (\Exception $e) {
+                Log::error("SLiMS Import DDC Error (kode={$row->classification}): " . $e->getMessage());
+                $result['error']++;
+                $result['pesan_error'][] = "kode={$row->classification}: " . $e->getMessage();
+            }
+        }
+
+        $this->simpanProgress('ddc', $total, $total, 0, 0, $result['error'], 0, 'selesai');
         return $result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 2. IMPORT BUKU (biblio → bukus)
+    // 2. IMPORT BUKU + EKSEMPLAR (biblio+item → bukus+eksemplar_bukus)
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function importBuku(): array
+    public function importBukuDanEksemplar(): array
     {
+        set_time_limit(3600);
         $slims  = $this->slimsConn->getConnection();
-        $result = ['baru' => 0, 'diupdate' => 0, 'error' => 0, 'pesan_error' => []];
 
-        // Pre-load kategori map dari ERP
+        $result = [
+            'buku'  => ['baru' => 0, 'diupdate' => 0, 'error' => 0, 'pesan_error' => []],
+            'eksemplar' => ['baru' => 0, 'diupdate' => 0, 'dilewati' => 0, 'inventaris_dibuat' => 0, 'error' => 0, 'pesan_error' => []],
+        ];
+
+        // === TAHAP 1: IMPORT BUKU ===
+
+        $totalBuku = $slims->table('biblio')->count();
+        $this->simpanProgress('buku', 0, $totalBuku, 0, 0, 0, 0, 'berjalan_buku');
+
+        // Pre-load kategori map
         $kategoriMap = KategoriBuku::pluck('id', 'nama_kategori')->toArray();
-
-        // Pastikan kategori default ada
-        if (!isset($kategoriMap['Non Fiksi'])) {
-            $kat = KategoriBuku::create([
-                'id'             => Str::uuid(),
-                'nama_kategori'  => 'Non Fiksi',
-                'is_bisa_dipinjam' => true,
-                'is_buku_pelajaran' => false,
-                'kode_prefix'    => 'SR',
-            ]);
-            $kategoriMap['Non Fiksi'] = $kat->id;
-        }
-        if (!isset($kategoriMap['Fiksi'])) {
-            $kat = KategoriBuku::create([
-                'id'             => Str::uuid(),
-                'nama_kategori'  => 'Fiksi',
-                'is_bisa_dipinjam' => true,
-                'is_buku_pelajaran' => false,
-                'kode_prefix'    => 'SR',
-            ]);
-            $kategoriMap['Fiksi'] = $kat->id;
-        }
-        if (!isset($kategoriMap['Referensi'])) {
-            $kat = KategoriBuku::create([
-                'id'             => Str::uuid(),
-                'nama_kategori'  => 'Referensi',
-                'is_bisa_dipinjam' => false,
-                'is_buku_pelajaran' => false,
-                'kode_prefix'    => 'RF',
-            ]);
-            $kategoriMap['Referensi'] = $kat->id;
+        foreach (['Non Fiksi', 'Fiksi', 'Referensi'] as $namaKat) {
+            if (!isset($kategoriMap[$namaKat])) {
+                $kat = KategoriBuku::create([
+                    'id'                => Str::uuid(),
+                    'nama_kategori'     => $namaKat,
+                    'is_bisa_dipinjam'  => true,
+                    'is_buku_pelajaran' => $namaKat === 'Non Fiksi',
+                    'kode_prefix'       => match($namaKat) {
+                        'Fiksi'    => 'F',
+                        'Referensi'=> 'R',
+                        default    => 'SR',
+                    },
+                ]);
+                $kategoriMap[$namaKat] = $kat->id;
+            }
         }
 
-        // Ambil semua biblio dengan join penerbit dan author (batch 200)
+        // Pre-load map author per biblio
+        $authorsMap = $slims->table('biblio_author')
+            ->join('mst_author', 'biblio_author.author_id', '=', 'mst_author.author_id')
+            ->select('biblio_author.biblio_id', DB::raw('GROUP_CONCAT(mst_author.author_name ORDER BY biblio_author.level SEPARATOR ", ") as penulis'))
+            ->groupBy('biblio_author.biblio_id')
+            ->get()
+            ->pluck('penulis', 'biblio_id')
+            ->toArray();
+
+        // Pre-load coll_type per biblio (dari item pertama)
+        $collTypeMap = $slims->table('item')
+            ->select('biblio_id', DB::raw('MIN(coll_type_id) as coll_type_id'))
+            ->whereNotNull('coll_type_id')
+            ->groupBy('biblio_id')
+            ->get()
+            ->pluck('coll_type_id', 'biblio_id')
+            ->toArray();
+
+        $bukuSelesai = 0;
+
         $slims->table('biblio')
             ->leftJoin('mst_publisher', 'biblio.publisher_id', '=', 'mst_publisher.publisher_id')
-            ->select('biblio.*', 'mst_publisher.publisher_name')
+            ->select('biblio.biblio_id', 'biblio.title', 'biblio.isbn_issn', 'biblio.publish_year',
+                     'biblio.classification', 'mst_publisher.publisher_name')
             ->orderBy('biblio.biblio_id')
-            ->chunk(200, function ($biblios) use ($slims, &$result, $kategoriMap) {
-                // Ambil authors untuk batch ini sekaligus
-                $biblioIds = $biblios->pluck('biblio_id')->toArray();
-                $authorsMap = $slims->table('biblio_author')
-                    ->join('mst_author', 'biblio_author.author_id', '=', 'mst_author.author_id')
-                    ->whereIn('biblio_author.biblio_id', $biblioIds)
-                    ->orderBy('biblio_author.biblio_id')
-                    ->orderBy('biblio_author.level')
-                    ->get(['biblio_author.biblio_id', 'mst_author.author_name'])
-                    ->groupBy('biblio_id')
-                    ->map(fn($group) => $group->pluck('author_name')->implode(', '));
-
-                // Ambil coll_type_id per biblio (pakai item pertama)
-                $collTypeMap = $slims->table('item')
-                    ->whereIn('biblio_id', $biblioIds)
-                    ->whereNotNull('coll_type_id')
-                    ->select('biblio_id', 'coll_type_id')
-                    ->get()
-                    ->unique('biblio_id')
-                    ->pluck('coll_type_id', 'biblio_id');
-
-                // Proses setiap buku SATU PER SATU tanpa nested transaction
-                // agar satu error tidak rollback seluruh chunk
-                foreach ($biblios as $biblio) {
+            ->chunk(200, function ($biblioBatch) use (
+                &$result, &$bukuSelesai, $totalBuku,
+                $kategoriMap, $authorsMap, $collTypeMap
+            ) {
+                foreach ($biblioBatch as $biblio) {
                     try {
-                        $isbn        = trim($biblio->isbn_issn ?? '');
-                        $judul       = trim($biblio->title ?? '');
-                        $penerbit    = trim($biblio->publisher_name ?? '');
-                        $penulis     = $authorsMap[$biblio->biblio_id] ?? null;
-                        $collTypeId  = $collTypeMap[$biblio->biblio_id] ?? null;
-                        $kategoriId  = $this->mapKategoriId($collTypeId, $kategoriMap);
-                        $tahunTerbit = is_numeric($biblio->publish_year) ? (int) $biblio->publish_year : null;
-                        $lokasiRak   = ($biblio->classification && strtoupper($biblio->classification) !== 'NONE')
-                            ? trim($biblio->classification)
-                            : null;
+                        $penulis    = $authorsMap[$biblio->biblio_id] ?? null;
+                        $collTypeId = $collTypeMap[$biblio->biblio_id] ?? null;
+                        $kategoriId = $this->mapKategoriId($collTypeId, $kategoriMap);
 
-                        // Tentukan kondisi pencarian duplikat
-                        if ($isbn !== '') {
-                            $existing = Buku::withTrashed()->where('isbn', $isbn)->first();
-                        } else {
-                            $existing = Buku::withTrashed()
-                                ->where('judul', $judul)
-                                ->where('penerbit', $penerbit ?: null)
-                                ->first();
+                        $rawTahun    = trim($biblio->publish_year ?? '');
+                        $tahunTerbit = (is_numeric($rawTahun) && (int)$rawTahun >= 1000 && (int)$rawTahun <= 2099)
+                            ? (int) $rawTahun : null;
+
+                        $lokasiRak = ($biblio->classification && strtoupper($biblio->classification) !== 'NONE')
+                            ? trim($biblio->classification) : null;
+
+                        $isbn = $biblio->isbn_issn ? trim($biblio->isbn_issn) : null;
+
+                        // Cari DDC yang cocok
+                        $ddcId = null;
+                        if ($lokasiRak) {
+                            $ddc = KlasifikasiDdc::where('kode_ddc', $lokasiRak)->first();
+                            $ddcId = $ddc?->id;
                         }
 
-                        $data = [
-                            'kategori_id'  => $kategoriId,
-                            'judul'        => $judul,
-                            'penulis'      => $penulis,
-                            'penerbit'     => $penerbit ?: null,
-                            'tahun_terbit' => $tahunTerbit,
-                            'isbn'         => $isbn ?: null,
-                            'lokasi_rak'   => $lokasiRak,
-                            'mapel_id'     => null,
-                            'grade_level'  => null,
-                            'updated_at'   => now(),
+                        $dataBuku = [
+                            'kategori_id'     => $kategoriId,
+                            'judul'           => trim($biblio->title),
+                            'penulis'         => $penulis,
+                            'penerbit'        => $biblio->publisher_name ? trim($biblio->publisher_name) : null,
+                            'tahun_terbit'    => $tahunTerbit,
+                            'isbn'            => $isbn,
+                            'lokasi_rak'      => $lokasiRak,
+                            'klasifikasi_ddc_id' => $ddcId,
+                            'slims_biblio_id' => $biblio->biblio_id,
+                            'updated_at'      => now(),
                         ];
 
+                        // Cari berdasarkan slims_biblio_id (paling akurat)
+                        $existing = Buku::withTrashed()->where('slims_biblio_id', $biblio->biblio_id)->first();
+
                         if ($existing) {
-                            if ($existing->trashed()) {
-                                $existing->restore();
-                            }
-                            $existing->update($data);
-                            // Simpan mapping biblio_id → buku uuid di cache
-                            cache()->put("slims_biblio_{$biblio->biblio_id}", $existing->id, now()->addHours(6));
-                            $result['diupdate']++;
+                            $existing->restore();
+                            $existing->update($dataBuku);
+                            $result['buku']['diupdate']++;
                         } else {
-                            $bukuId = Str::uuid()->toString();
-                            Buku::create(array_merge($data, [
-                                'id'         => $bukuId,
-                                'created_at' => now(),
-                            ]));
-                            Cache::put("slims_biblio_{$biblio->biblio_id}", $bukuId, now()->addHours(6));
-                            $result['baru']++;
+                            // Fallback: cari via ISBN atau judul+penerbit
+                            if ($isbn) {
+                                $existing = Buku::withTrashed()->where('isbn', $isbn)->first();
+                            }
+                            if (!$existing) {
+                                $existing = Buku::withTrashed()
+                                    ->where('judul', trim($biblio->title))
+                                    ->where('penerbit', $biblio->publisher_name ? trim($biblio->publisher_name) : null)
+                                    ->first();
+                            }
+
+                            if ($existing) {
+                                $existing->restore();
+                                $existing->update($dataBuku);
+                                $result['buku']['diupdate']++;
+                            } else {
+                                Buku::create(array_merge($dataBuku, [
+                                    'id'         => Str::uuid(),
+                                    'created_at' => now(),
+                                ]));
+                                $result['buku']['baru']++;
+                            }
                         }
                     } catch (\Exception $e) {
                         Log::error("SLiMS Import Buku Error (biblio_id={$biblio->biblio_id}): " . $e->getMessage());
-                        $result['error']++;
-                        $result['pesan_error'][] = "biblio_id={$biblio->biblio_id}: " . $e->getMessage();
+                        $result['buku']['error']++;
+                        $result['buku']['pesan_error'][] = "biblio_id={$biblio->biblio_id}: " . $e->getMessage();
                     }
+
+                    $bukuSelesai++;
                 }
-                
-                // Simpan progress sementara ke cache agar tidak hilang jika terjadi 504 Timeout
-                Cache::put('slims_last_report', ['jenis' => 'Buku (Progres)', 'hasil' => $result], now()->addHours(2));
+
+                // Simpan progress setiap chunk
+                $this->simpanProgress('buku', $bukuSelesai, $totalBuku, 0, 0, $result['buku']['error'], 0, 'berjalan_buku');
             });
 
-        return $result;
-    }
+        $this->simpanProgress('buku', $totalBuku, $totalBuku, 0, 0, $result['buku']['error'], 0, 'berjalan_eksemplar');
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 3. IMPORT EKSEMPLAR (item → eksemplar_bukus + inventaris_bukus)
-    // ─────────────────────────────────────────────────────────────────────────
+        // === TAHAP 2: IMPORT EKSEMPLAR ===
+        // Lookup mapping dari tabel bukus langsung — TANPA Cache!
 
-    public function importEksemplar(): array
-    {
-        $slims  = $this->slimsConn->getConnection();
-        $result = [
-            'baru'              => 0,
-            'diupdate'          => 0,
-            'error'             => 0,
-            'dilewati'          => 0,
-            'inventaris_dibuat' => 0,
-            'pesan_error'       => [],
-        ];
+        $biblioToBukuId = DB::table('bukus')
+            ->whereNotNull('slims_biblio_id')
+            ->pluck('id', 'slims_biblio_id')
+            ->toArray();
 
-        // Tracker inventaris yang sudah dibuat per buku_id di sesi ini
+        $totalEks   = $slims->table('item')->whereNotNull('item_code')->where('item_code', '!=', '')->count();
+        $eksSelesai = 0;
         $inventarisDibuat = [];
+
+        $this->simpanProgress('buku', $totalBuku, $totalBuku, $eksSelesai, $totalEks, $result['buku']['error'], 0, 'berjalan_eksemplar');
 
         $slims->table('item')
             ->whereNotNull('item_code')
             ->where('item_code', '!=', '')
             ->orderBy('biblio_id')
             ->orderBy('item_id')
-            ->chunk(500, function ($items) use (&$result, &$inventarisDibuat) {
+            ->chunk(500, function ($items) use (
+                &$result, &$eksSelesai, &$inventarisDibuat,
+                $totalBuku, $totalEks, $biblioToBukuId
+            ) {
                 foreach ($items as $item) {
                     try {
-                        // Ambil buku_id dari cache, VERIFIKASI keberadaannya di DB
-                        $bukuId = Cache::get("slims_biblio_{$item->biblio_id}");
+                        $bukuId = $biblioToBukuId[$item->biblio_id] ?? null;
 
                         if (!$bukuId) {
-                            // Cache kosong — cari di DB berdasarkan biblio_id yang sempat diimport
-                            // (tidak ada cara langsung, lewati saja)
-                            $result['dilewati']++;
+                            $result['eksemplar']['dilewati']++;
+                            $eksSelesai++;
                             continue;
                         }
 
-                        // Verifikasi buku_id BENAR-BENAR ada di DB (bukan orphan cache)
-                        if (!Buku::withTrashed()->where('id', $bukuId)->exists()) {
-                            $result['dilewati']++;
-                            continue;
-                        }
-
-                        $status   = $this->mapItemStatus($item->item_status_id);
-                        $existing = EksemplarBuku::withTrashed()
-                            ->where('kode_eksemplar', $item->item_code)
-                            ->first();
+                        $status       = $this->mapItemStatus($item->item_status_id);
+                        $existing     = EksemplarBuku::withTrashed()->where('kode_eksemplar', $item->item_code)->first();
 
                         $dataEksemplar = [
                             'buku_id'        => $bukuId,
@@ -269,176 +284,359 @@ class SlimsMigrationService
                         ];
 
                         if ($existing) {
-                            if ($existing->trashed()) {
-                                $existing->restore();
-                            }
-                            $existing->update($dataEksemplar);
-                            $inventariBukuId = $existing->inventaris_buku_id;
-                            $result['diupdate']++;
-                        } else {
-                            $eksemplarId = Str::uuid()->toString();
+                            $existing->restore();
 
-                            // Cari/buat inventaris untuk buku ini
-                            $inventariBukuId = $this->getOrCreateInventaris(
-                                $bukuId,
-                                $item,
-                                $inventarisDibuat,
-                                $result
-                            );
+                            // Jika pindah inventaris, hapus dulu dari inventaris lama
+                            $inventariBukuId = $this->getOrCreateInventaris($bukuId, $item, $inventarisDibuat, $result);
+                            $existing->update(array_merge($dataEksemplar, ['inventaris_buku_id' => $inventariBukuId]));
+                            $result['eksemplar']['diupdate']++;
+                        } else {
+                            $inventariBukuId = $this->getOrCreateInventaris($bukuId, $item, $inventarisDibuat, $result);
 
                             EksemplarBuku::create(array_merge($dataEksemplar, [
-                                'id'                 => $eksemplarId,
+                                'id'                 => Str::uuid(),
                                 'inventaris_buku_id' => $inventariBukuId,
                                 'created_at'         => now(),
                             ]));
-                            $result['baru']++;
+                            $result['eksemplar']['baru']++;
                         }
 
-                        // Update jumlah_eksemplar di inventaris
                         if ($inventariBukuId) {
                             InventarisBuku::where('id', $inventariBukuId)->increment('jumlah_eksemplar');
                         }
                     } catch (\Exception $e) {
                         Log::error("SLiMS Import Eksemplar Error (item_id={$item->item_id}): " . $e->getMessage());
-                        $result['error']++;
-                        $result['pesan_error'][] = "item_id={$item->item_id} (kode={$item->item_code}): " . $e->getMessage();
+                        $result['eksemplar']['error']++;
+                        $result['eksemplar']['pesan_error'][] = "item_id={$item->item_id} (kode={$item->item_code}): " . $e->getMessage();
                     }
+
+                    $eksSelesai++;
                 }
-                
-                // Simpan progress sementara ke cache
-                Cache::put('slims_last_report', ['jenis' => 'Eksemplar (Progres)', 'hasil' => $result], now()->addHours(2));
+
+                $this->simpanProgress('buku', $totalBuku, $totalBuku, $eksSelesai, $totalEks, $result['buku']['error'], $result['eksemplar']['error'], 'berjalan_eksemplar');
             });
+
+        // Rekap jumlah_eksemplar dari COUNT aktual (memastikan akurat)
+        DB::statement('
+            UPDATE inventaris_bukus iv
+            SET jumlah_eksemplar = (
+                SELECT COUNT(*) FROM eksemplar_bukus eb WHERE eb.inventaris_buku_id = iv.id AND eb.deleted_at IS NULL
+            )
+        ');
+
+        $this->simpanProgress('buku', $totalBuku, $totalBuku, $totalEks, $totalEks, $result['buku']['error'], $result['eksemplar']['error'], 'selesai');
 
         return $result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 4. IMPORT SEMUA (DDC → Buku → Eksemplar)
+    // 3. IMPORT SEMUA (DDC → Buku+Eksemplar)
     // ─────────────────────────────────────────────────────────────────────────
 
     public function importSemua(): array
     {
-        $result = [];
-        $result['ddc']       = $this->importDdc();
-        $result['buku']      = $this->importBuku();
-        $result['eksemplar'] = $this->importEksemplar();
+        set_time_limit(3600);
 
-        // Gabungkan total error
-        $totalError = $result['ddc']['error'] + $result['buku']['error'] + $result['eksemplar']['error'];
-        $pesanError = array_merge(
-            $result['ddc']['pesan_error'],
-            $result['buku']['pesan_error'],
-            $result['eksemplar']['pesan_error']
-        );
-        
-        $finalReport = ['jenis' => 'Semua', 'hasil' => $result, 'total_error' => $totalError, 'pesan_error' => $pesanError];
+        $result = [];
+        $result['ddc']  = $this->importDdc();
+        $result['buku'] = $this->importBukuDanEksemplar();
+
+        $finalReport = [
+            'jenis'  => 'Semua',
+            'hasil'  => $result,
+            'selesai_pada' => now()->toDateTimeString(),
+        ];
         Cache::put('slims_last_report', $finalReport, now()->addHours(12));
 
         return $result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // HELPER METHODS
+    // PROGRESS TRACKING
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Mapping coll_type_id SLiMS → UUID kategori_bukus ERP.
-     * Lihat: docs/export-slims-erp/mapping-data-slims-erp.md
-     */
-    private function mapKategoriId(int|null $collTypeId, array $kategoriMap): string
+    public function simpanProgress(
+        string $fase,
+        int $bukuSelesai, int $bukuTotal,
+        int $eksSelesai, int $eksTotal,
+        int $errorBuku, int $errorEks,
+        string $status = 'berjalan'
+    ): void {
+        Cache::put('slims_import_progress', [
+            'fase'          => $fase,
+            'status'        => $status,
+            'buku_selesai'  => $bukuSelesai,
+            'buku_total'    => $bukuTotal,
+            'eks_selesai'   => $eksSelesai,
+            'eks_total'     => $eksTotal,
+            'error_buku'    => $errorBuku,
+            'error_eks'     => $errorEks,
+            'updated_at'    => now()->toDateTimeString(),
+        ], now()->addHours(2));
+    }
+
+    public function getProgress(): ?array
     {
-        return match ($collTypeId) {
-            1, 4    => $kategoriMap['Referensi'],   // Reference & Ensiklopedia
-            3       => $kategoriMap['Fiksi'],        // Fiction
-            default => $kategoriMap['Non Fiksi'],   // Textbook (2) & NULL
+        return Cache::get('slims_import_progress');
+    }
+
+    public function resetProgress(): void
+    {
+        Cache::forget('slims_import_progress');
+        Cache::forget('slims_last_report');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PREVIEW DATA (untuk halaman preview sebelum import)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function getPreviewDdc(): array
+    {
+        $slims = $this->slimsConn->getConnection();
+        $total = $slims->table('biblio')
+            ->select('classification')
+            ->whereNotNull('classification')
+            ->where('classification', '!=', '')
+            ->whereRaw("UPPER(classification) != 'NONE'")
+            ->distinct()
+            ->count();
+
+        $samples = $slims->table('biblio')
+            ->select('classification')
+            ->whereNotNull('classification')
+            ->where('classification', '!=', '')
+            ->whereRaw("UPPER(classification) != 'NONE'")
+            ->distinct()
+            ->orderBy('classification')
+            ->limit(15)
+            ->get()
+            ->map(fn($r) => [
+                'kode_ddc' => $r->classification,
+                'kategori' => self::getNamaDdc($r->classification),
+            ])
+            ->toArray();
+
+        return ['total' => $total, 'samples' => $samples];
+    }
+
+    public function getPreviewBuku(): array
+    {
+        $slims     = $this->slimsConn->getConnection();
+        $totalBuku = $slims->table('biblio')->count();
+        $totalEks  = $slims->table('item')->whereNotNull('item_code')->where('item_code', '!=', '')->count();
+
+        $samples = $slims->table('biblio')
+            ->leftJoin('mst_publisher', 'biblio.publisher_id', '=', 'mst_publisher.publisher_id')
+            ->select('biblio.biblio_id', 'biblio.title', 'biblio.isbn_issn', 'biblio.classification', 'mst_publisher.publisher_name')
+            ->orderBy('biblio.biblio_id')
+            ->limit(10)
+            ->get()
+            ->map(function ($b) use ($slims) {
+                $jumlahEks = $slims->table('item')->where('biblio_id', $b->biblio_id)->count();
+                return [
+                    'biblio_id'      => $b->biblio_id,
+                    'judul'          => $b->title,
+                    'isbn'           => $b->isbn_issn ?? '-',
+                    'penerbit'       => $b->publisher_name ?? '-',
+                    'ddc'            => $b->classification ?? '-',
+                    'jumlah_eksemplar' => $jumlahEks,
+                ];
+            })
+            ->toArray();
+
+        return [
+            'total_buku'       => $totalBuku,
+            'total_eksemplar'  => $totalEks,
+            'samples'          => $samples,
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPER: Mapping DDC Code → Nama Kategori
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public static function getNamaDdc(string $kode): string
+    {
+        $bersih = trim($kode);
+        // Ambil hanya angkanya (hilangkan suffix seperti "2x5", "SR 300 SUW s", dll)
+        preg_match('/^(\d+\.?\d*)/', $bersih, $matches);
+        if (empty($matches[1])) {
+            return 'Lain-lain';
+        }
+
+        $angka = (float) $matches[1];
+
+        // Sub-kelas spesifik berdasarkan data SLiMS perpustakaan ini
+        $spesifik = [
+            297  => 'Agama Islam',
+            300  => 'Ilmu Sosial Umum',
+            323  => 'Kewarganegaraan',
+            370  => 'Pendidikan',
+            398  => 'Folklore & Cerita Rakyat',
+            410  => 'Bahasa Indonesia',
+            413  => 'Kamus & Ensiklopedia Bahasa',
+            420  => 'Bahasa Inggris',
+            500  => 'Ilmu Pengetahuan Alam',
+            507  => 'Prakarya & Sains Terapan',
+            510  => 'Matematika',
+            520  => 'Astronomi',
+            530  => 'Fisika',
+            540  => 'Kimia',
+            550  => 'Ilmu Bumi & Geologi',
+            570  => 'Biologi',
+            580  => 'Botani & Tumbuhan',
+            590  => 'Zoologi & Hewan',
+            610  => 'Kedokteran & Kesehatan',
+            613  => 'Kesehatan & Olahraga',
+            620  => 'Teknik & Rekayasa',
+            630  => 'Pertanian',
+            640  => 'Kerumahtanggaan',
+            650  => 'Manajemen & Bisnis',
+            700  => 'Seni & Hiburan',
+            707  => 'Kesenian & Seni Budaya',
+            780  => 'Musik',
+            790  => 'Olahraga & Rekreasi',
+            796  => 'Pendidikan Jasmani & Olahraga',
+            800  => 'Kesusastraan',
+            810  => 'Sastra Indonesia',
+            811  => 'Puisi Indonesia',
+            813  => 'Fiksi & Novel',
+            820  => 'Sastra Inggris',
+            900  => 'Sejarah & Geografi',
+            920  => 'Biografi',
+        ];
+
+        // Cari kecocokan spesifik terdekat (urut dari yang paling spesifik)
+        $intAngka = (int) $angka;
+        if (isset($spesifik[$intAngka])) {
+            return $spesifik[$intAngka];
+        }
+
+        // Fallback ke kelas utama (kelipatan 100)
+        $kelas = intdiv($intAngka, 100) * 100;
+        return match(true) {
+            $kelas === 0   => 'Karya Umum & Komputer',
+            $kelas === 100 => 'Filsafat & Psikologi',
+            $kelas === 200 => 'Agama',
+            $kelas === 300 => 'Ilmu Sosial',
+            $kelas === 400 => 'Bahasa & Linguistik',
+            $kelas === 500 => 'Ilmu Pengetahuan Murni',
+            $kelas === 600 => 'Ilmu Terapan & Teknologi',
+            $kelas === 700 => 'Kesenian & Olahraga',
+            $kelas === 800 => 'Kesusastraan',
+            $kelas === 900 => 'Sejarah, Geografi & Biografi',
+            default        => 'Lain-lain',
         };
     }
 
-    /**
-     * Mapping item_status_id SLiMS → status enum ERP.
-     * Lihat: docs/export-slims-erp/mapping-data-slims-erp.md
-     */
-    private function mapItemStatus(string|null $statusId): string
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPER: Mapping Status Item SLiMS → Status ERP
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function mapItemStatus(?string $statusId): string
     {
-        return match ($statusId) {
-            'R'     => 'rusak',
-            'MIS'   => 'hilang',
-            default => 'tersedia',  // NULL, '0', 'NL', dll
+        return match($statusId) {
+            'R'   => 'rusak',
+            'MIS' => 'hilang',
+            default => 'tersedia',
         };
     }
 
-    /**
-     * Dapatkan inventaris_buku_id yang ada, atau buat yang baru (1 per buku_id).
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPER: Mapping coll_type_id → kategori_id ERP
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function mapKategoriId(?int $collTypeId, array $kategoriMap): ?string
+    {
+        return match($collTypeId) {
+            1, 4    => $kategoriMap['Referensi'] ?? $kategoriMap['Non Fiksi'] ?? null,
+            3       => $kategoriMap['Fiksi'] ?? null,
+            default => $kategoriMap['Non Fiksi'] ?? null,
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPER: Get or Create Inventaris per Buku
+    // ─────────────────────────────────────────────────────────────────────────
+
     private function getOrCreateInventaris(
         string $bukuId,
         object $item,
-        array  &$inventarisDibuat,
-        array  &$result
-    ): string {
-        // Sudah dibuat di sesi ini?
+        array &$inventarisDibuat,
+        array &$result
+    ): ?string {
+        // Sudah dibuat dalam sesi ini? Return langsung
         if (isset($inventarisDibuat[$bukuId])) {
             return $inventarisDibuat[$bukuId];
         }
 
-        // Sudah ada di database?
+        // Cek di DB
         $existing = InventarisBuku::where('buku_id', $bukuId)->first();
         if ($existing) {
             $inventarisDibuat[$bukuId] = $existing->id;
             return $existing->id;
         }
 
-        // Ambil semua item SLiMS untuk biblio ini guna mengetahui rentang (range) kode inventaris
+        // Buat baru — hitung nomor inventaris dari rentang item_code
         $slims = $this->slimsConn->getConnection();
-        $items = $slims->table('item')->where('biblio_id', $item->biblio_id)->orderBy('item_id')->get(['item_code', 'inventory_code']);
-        
+        $items = $slims->table('item')
+            ->where('biblio_id', $item->biblio_id)
+            ->orderBy('item_id')
+            ->get(['item_code', 'inventory_code']);
+
         $first = $items->first();
-        $last = $items->last();
+        $last  = $items->last();
 
-        $firstNo = ($first && isset($first->inventory_code) && trim($first->inventory_code) !== '') 
-            ? trim($first->inventory_code) 
-            : ($first ? trim($first->item_code) : 'SLIMS-' . $item->biblio_id);
-            
-        $lastNo = ($last && isset($last->inventory_code) && trim($last->inventory_code) !== '') 
-            ? trim($last->inventory_code) 
-            : ($last ? trim($last->item_code) : 'SLIMS-' . $item->biblio_id);
+        $getKode = fn($row) => ($row && !empty(trim($row->inventory_code)))
+            ? trim($row->inventory_code)
+            : ($row ? trim($row->item_code) : null);
 
-        if ($firstNo === $lastNo) {
-            $noInventaris = $firstNo;
-        } else {
-            $noInventaris = "{$firstNo} - {$lastNo}";
-        }
-
-        // Deteksi Asal Buku berdasarkan kode di SLiMS (jika menggunakan standar /P/, /H/, dll)
-        $asal = 'Pembelian';
-        $upperFirst = strtoupper($firstNo);
-        if (str_contains($upperFirst, '/H/')) {
-            $asal = 'Hibah';
-        } elseif (str_contains($upperFirst, '/T/')) {
-            $asal = 'Tukar';
-        } elseif (str_contains($upperFirst, '/TS/')) {
-            $asal = 'Terbitan Sendiri';
-        } elseif (str_contains($upperFirst, '/P/')) {
-            $asal = 'Pembelian';
-        }
+        $firstKode = $getKode($first);
+        $lastKode  = $getKode($last);
 
         $tanggalMasuk = $item->received_date ?? now()->toDateString();
-        $harga        = $item->price ?? 0;
+        $tahun        = date('Y', strtotime($tanggalMasuk));
 
-        $inventaris = InventarisBuku::create([
-            'id'               => Str::uuid(),
-            'buku_id'          => $bukuId,
-            'no_inventaris'    => $noInventaris,
-            'tanggal_masuk'    => $tanggalMasuk,
-            'asal'             => $asal,
-            'harga'            => $harga,
-            'jumlah_eksemplar' => 0, // akan di-increment per eksemplar
-            'status'           => 'aktif',
-        ]);
+        $asal = 'Pembelian';
 
-        $inventarisDibuat[$bukuId] = $inventaris->id;
-        $result['inventaris_dibuat']++;
+        // Format kode inventaris: tambahkan /P/YEAR jika belum berformat
+        $formatKode = function (?string $kode) use ($tahun, &$asal): string {
+            if (!$kode) return 'SLIMS-' . $tahun;
+            if (str_contains($kode, '/')) {
+                $upper = strtoupper($kode);
+                if (str_contains($upper, '/H/')) $asal = 'Hibah';
+                elseif (str_contains($upper, '/T/')) $asal = 'Tukar';
+                elseif (str_contains($upper, '/TS/')) $asal = 'Terbitan Sendiri';
+                return $kode;
+            }
+            return "{$kode}/P/{$tahun}";
+        };
 
-        return $inventaris->id;
+        $firstFormatted = $formatKode($firstKode);
+        $lastFormatted  = $formatKode($lastKode);
+
+        $noInventaris = ($firstKode === $lastKode || $firstKode === null)
+            ? $firstFormatted
+            : "{$firstFormatted} - {$lastFormatted}";
+
+        try {
+            $inventaris = InventarisBuku::create([
+                'id'               => Str::uuid(),
+                'buku_id'          => $bukuId,
+                'no_inventaris'    => $noInventaris,
+                'tanggal_masuk'    => $tanggalMasuk,
+                'asal'             => $asal,
+                'harga'            => $item->price ?? 0,
+                'jumlah_eksemplar' => 0,
+                'status'           => 'aktif',
+            ]);
+
+            $inventarisDibuat[$bukuId] = $inventaris->id;
+            $result['eksemplar']['inventaris_dibuat']++;
+            return $inventaris->id;
+        } catch (\Exception $e) {
+            Log::error("SLiMS Create Inventaris Error (buku_id={$bukuId}): " . $e->getMessage());
+            return null;
+        }
     }
 }

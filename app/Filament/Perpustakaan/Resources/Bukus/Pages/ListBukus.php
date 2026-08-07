@@ -20,6 +20,40 @@ class ListBukus extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('importXls')
+                ->label('Import Buku dari XLS')
+                ->icon('heroicon-o-arrow-up-tray')
+                ->color('primary')
+                ->form([
+                    \Filament\Forms\Components\FileUpload::make('file_xls')
+                        ->label('Pilih File Katalog Buku (Excel)')
+                        ->helperText('Upload file .xlsx yang berisi 2 sheet (Buku & Eksemplar). Proses import akan memakan waktu dan berjalan di latar belakang.')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])
+                        ->disk('local')
+                        ->directory('imports')
+                        ->required(),
+                ])
+                ->action(function (array $data, Action $action) {
+                    $filePath = \Illuminate\Support\Facades\Storage::disk('local')->path($data['file_xls']);
+
+                    if (!file_exists($filePath)) {
+                        \Filament\Notifications\Notification::make()
+                            ->danger()
+                            ->title('File Tidak Ditemukan')
+                            ->send();
+                        $action->halt();
+                    }
+
+                    // Dispatch Job Background
+                    \App\Jobs\ImportSlimsBukuJob::dispatch($filePath, auth()->id());
+
+                    \Filament\Notifications\Notification::make()
+                        ->success()
+                        ->title('Import Diproses')
+                        ->body('File Anda sedang diproses di latar belakang. Anda akan menerima notifikasi di pojok kanan atas setelah proses import Buku & Eksemplar selesai (±1-3 menit).')
+                        ->send();
+                }),
+
             Action::make('unduhKatalog')
                 ->label('Unduh Katalog')
                 ->icon('heroicon-o-arrow-down-tray')

@@ -1,76 +1,48 @@
-# Task & Progres: Fitur Import SLiMS ke ERP
+# Task & Progres: Fitur Import SLiMS ke ERP (Redesign v2)
 
 > **Cara baca dokumen ini:**
 > - `[ ]` = Belum dikerjakan
 > - `[/]` = Sedang dikerjakan
 > - `[x]` = Selesai
->
-> **Jika token habis / sesi terputus:** Baca dokumen ini + `implementation-plan.md` + `mapping-data-slims-erp.md` + `slims-database-reference.md` sebelum melanjutkan. Tidak perlu scan ulang database SLiMS.
 
 ---
 
-## File yang Akan Dibuat
+## File & Komponen Sistem
 
-### Layer 1: Service (Business Logic)
+### Layer 0: Database & Migration
+- `[x]` `database/migrations/2026_08_07_002254_add_slims_biblio_id_to_bukus_table.php` ✅ Selesai & Run
+
+### Layer 1: Service (Business Logic v2)
 - `[x]` `app/Services/SlimsConnectionService.php` ✅ Selesai
-- `[x]` `app/Services/SlimsMigrationService.php` ✅ Selesai
-- `[ ]` `app/Services/SlimsExportService.php` ← digabung langsung ke Filament Page
+- `[x]` `app/Services/SlimsMigrationService.php` ✅ Selesai (v2: DDC dari biblio.classification, auto-name DDC, lookup slims_biblio_id, progress cache tracking)
 
 ### Layer 2: Export (Maatwebsite Excel)
 - `[x]` `app/Exports/SlimsDdcExport.php` ✅ Selesai
 - `[x]` `app/Exports/SlimsBukuExport.php` ✅ Selesai
 - `[x]` `app/Exports/SlimsEksemplarExport.php` ✅ Selesai
 
-### Layer 3: Filament Page (UI)
-- `[x]` `app/Filament/Perpustakaan/Pages/ImportSlims.php` ✅ Selesai
+### Layer 3: Filament Pages & Blade Views (Redesign v2 - No Modal/Popup)
+- `[x]` `app/Filament/Perpustakaan/Pages/ImportSlims.php` ✅ Selesai (Main connection & selection page)
+- `[x]` `app/Filament/Perpustakaan/Pages/ImportSlimsPreview.php` ✅ Selesai (Preview page before execution)
+- `[x]` `app/Filament/Perpustakaan/Pages/ImportSlimsProses.php` ✅ Selesai (Execution page with progress bar & polling)
 - `[x]` `resources/views/filament/perpustakaan/pages/import-slims.blade.php` ✅ Selesai
-
-### Layer 4: Route Export (Download XLS/CSV)
-- `[ ]` Tambah route di `routes/web.php` untuk download XLS/CSV ← BELUM (opsional, download sudah handle di Filament Page)
+- `[x]` `resources/views/filament/perpustakaan/pages/import-slims-preview.blade.php` ✅ Selesai
+- `[x]` `resources/views/filament/perpustakaan/pages/import-slims-proses.blade.php` ✅ Selesai
 
 ---
 
-## Progres Detail
+## Progres Detail v2
 
-### `SlimsConnectionService.php` ✅ SELESAI
-- `[x]` Method `testConnection(array $config): true|string`
-- `[x]` Method `getConnection(): \Illuminate\Database\Connection`
-- `[x]` Method `getStats(): array`
-- `[x]` Method `forgetConnection(): void`
+### 1. DDC dari `biblio.classification` ✅ SELESAI
+- Disimpan di `klasifikasi_ddcs` dengan nama kategori otomatis berdasarkan DDC standar (500=Sains, 420=B.Inggris, dst).
 
-### `SlimsMigrationService.php` ✅ SELESAI
-- `[x]` Method `importDdc(): array`
-- `[x]` Method `importBuku(): array`
-- `[x]` Method `importEksemplar(): array` (termasuk auto-create `inventaris_bukus`)
-- `[x]` Method `importSemua(): array`
+### 2. Buku + Eksemplar Gabung ✅ SELESAI
+- Disimpan dengan kolom `slims_biblio_id` di tabel `bukus` ERP.
+- Eksemplar di-lookup via database `bukus` langsung (100% akurat, tanpa cache dependency).
 
-### Export Classes ✅ SELESAI
-- `[x]` `SlimsDdcExport.php` — export DDC ke XLS
-- `[x]` `SlimsBukuExport.php` — export katalog buku ke XLS
-- `[x]` `SlimsEksemplarExport.php` — export eksemplar ke XLS
-
-### `ImportSlims.php` (Filament Page) ✅ SELESAI
-- `[x]` Step 1: Form koneksi + action `testKoneksi()`
-- `[x]` Step 2: Statistik SLiMS + tombol-tombol aksi
-- `[x]` Action `importDdc()` dengan modal konfirmasi + warning
-- `[x]` Action `importBuku()` dengan modal konfirmasi + warning
-- `[x]` Action `importEksemplar()` dengan modal konfirmasi + warning
-- `[x]` Action `importSemua()` dengan modal konfirmasi + warning
-- `[x]` Action `downloadDdcXls()`, `downloadBukuXls()`, `downloadEksemplarXls()`
-- `[x]` Action `putusKoneksi()`
-- `[x]` Register ke panel (NavigationGroup, sort)
-
-### `import-slims.blade.php` (View) ✅ SELESAI
-- `[x]` Card Step 1: Form koneksi DB
-- `[x]` Card Step 2: Badge terhubung + statistik
-- `[x]` Grid tombol aksi Import (DDC, Buku, Eksemplar, Semua)
-- `[x]` Grid tombol Download XLS/CSV
-- `[x]` Warning banner merah
-- `[x]` Panel laporan hasil import terakhir
-- `[x]` Modal konfirmasi per tombol import
-
-### `routes/web.php` ← Tidak Diperlukan
-- `[x]` Download XLS sudah di-handle langsung dari Filament Page (`wire:click="downloadXxx"`)
+### 3. Halaman Baru & Progress Bar ✅ SELESAI
+- Navigasi berbasis URL (bukan modal/popup).
+- Progress bar visual dengan auto-refresh 5 detik (`wire:poll`).
 
 ---
 

@@ -32,21 +32,21 @@ class ManageKlasifikasiDdcs extends ManageRecords
                         'Content-Type' => 'text/csv; charset=UTF-8',
                     ]);
                 }),
-            Action::make('importCsv')
-                ->label('Import CSV / Excel')
+            Action::make('importXls')
+                ->label('Import DDC dari XLS')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->form([
-                    FileUpload::make('file_csv')
-                        ->label('Pilih File CSV / Excel')
-                        ->helperText('Upload file berformat .csv dengan kolom header: kode_ddc, kategori. Anda bisa mengunduh template terlebih dahulu.')
-                        ->acceptedFileTypes(['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'])
+                    FileUpload::make('file_xls')
+                        ->label('Pilih File Excel DDC dari SLiMS')
+                        ->helperText('Gunakan file .xlsx yang didownload dari menu Import SLiMS.')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])
                         ->disk('local')
                         ->directory('imports')
                         ->required(),
                 ])
                 ->action(function (array $data, Action $action) {
-                    $filePath = Storage::disk('local')->path($data['file_csv']);
+                    $filePath = Storage::disk('local')->path($data['file_xls']);
 
                     if (!file_exists($filePath)) {
                         Notification::make()
@@ -56,64 +56,29 @@ class ManageKlasifikasiDdcs extends ManageRecords
                         $action->halt();
                     }
 
-                    $inserted = 0;
-                    $updated = 0;
-                    $handle = fopen($filePath, 'r');
-
-                    if ($handle !== false) {
-                        $header = fgetcsv($handle, 1000, ',');
-                        
-                        // Normalisasi header
-                        $kodeIndex = false;
-                        $kategoriIndex = false;
-
-                        if ($header) {
-                            foreach ($header as $idx => $col) {
-                                $cleanCol = strtolower(trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $col)));
-                                if (in_array($cleanCol, ['kode_ddc', 'kode', 'kode ddc'])) {
-                                    $kodeIndex = $idx;
-                                } elseif (in_array($cleanCol, ['kategori', 'nama_kategori', 'subjek', 'nama'])) {
-                                    $kategoriIndex = $idx;
-                                }
-                            }
-                        }
-
-                        // Fallback jika tidak ada header
-                        if ($kodeIndex === false && $kategoriIndex === false) {
-                            $kodeIndex = 0;
-                            $kategoriIndex = 1;
-                        }
-
-                        while (($row = fgetcsv($handle, 1000, ',')) !== false) {
-                            if (count($row) < 2) continue;
-                            
-                            $kodeDdc = trim($row[$kodeIndex] ?? '');
-                            $kategori = trim($row[$kategoriIndex] ?? '');
-
-                            if (!empty($kodeDdc) && !empty($kategori)) {
-                                $record = KlasifikasiDdc::updateOrCreate(
-                                    ['kode_ddc' => $kodeDdc],
-                                    ['kategori' => $kategori]
-                                );
-
-                                if ($record->wasRecentlyCreated) {
-                                    $inserted++;
-                                } else {
-                                    $updated++;
-                                }
-                            }
-                        }
-                        fclose($handle);
-                    }
+                    $import = new \App\Imports\SlimsDdcImport();
+                    \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);
 
                     // Hapus file temporary import
                     @unlink($filePath);
 
-                    Notification::make()
+                    $msg = "✅ Baru: {$import->baru} | 🔄 Update: {$import->update} | ⏭️ Skipped: {$import->skipped} | ❌ Error: {$import->errors}";
+
+                    $notif = Notification::make()
                         ->success()
-                        ->title('Import Berhasil')
-                        ->body("Berhasil memproses data DDC: {$inserted} data baru ditambahkan, {$updated} data diperbarui.")
-                        ->send();
+                        ->title('Import DDC Selesai')
+                        ->body($msg);
+                        
+                    // Tambahkan keterangan baris yang diskip (maksimal 10 baris agar tidak kepanjangan)
+                    if ($import->skipped > 0 && !empty($import->skippedRows)) {
+                        $skippedDetail = implode('<br>', array_slice($import->skippedRows, 0, 10));
+                        if (count($import->skippedRows) > 10) {
+                            $skippedDetail .= '<br>...dan lainnya';
+                        }
+                        $notif->body($msg . '<br><br><b>Detail baris di-skip:</b><br>' . $skippedDetail);
+                    }
+                    
+                    $notif->send();
                 }),
         ];
     }
