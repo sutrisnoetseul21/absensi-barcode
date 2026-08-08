@@ -1,5 +1,16 @@
 <?php
 
+// Bypass cPanel disabled pcntl functions for Laravel Queue Worker
+if (!function_exists('pcntl_signal')) {
+    function pcntl_signal($signo, $handler, $restart_syscalls = true) { return true; }
+}
+if (!function_exists('pcntl_async_signals')) {
+    function pcntl_async_signals($on = null) { return false; }
+}
+if (!function_exists('pcntl_alarm')) {
+    function pcntl_alarm($seconds) { return 0; }
+}
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
