@@ -46,6 +46,7 @@ Dokumentasi arsitektur, panduan seeder, dan log pengembangan dapat ditemukan di 
 - [`docs/pengaturan-admin-seeder/panduan.md`](docs/pengaturan-admin-seeder/panduan.md) - Panduan Seeder & Manajemen Akses Portal
 - [`docs/penjelasan-relasi-data.md`](docs/penjelasan-relasi-data.md) - Penjelasan Struktur Relasi & Skema Database
 - [`docs/progres-development/`](docs/progres-development/) - Catatan Tahapan Development (Fase 1 Presensi & Fase 2 ERP Perpustakaan)
+- [`docs/production-readiness-checklist-scan.md`](docs/production-readiness-checklist-scan.md) - Checklist Persiapan Production & Penanganan Konkurensi Kiosk Scan Barcode
 
 ---
 

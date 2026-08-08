@@ -9,6 +9,7 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Schema;
 
 class BukuForm
@@ -63,14 +64,9 @@ class BukuForm
                     ])->columns(2)->columnSpanFull(),
 
                     Group::make()->schema([
-                        Select::make('klasifikasi_ddc_id')
-                            ->label('Klasifikasi DDC')
-                            ->relationship('klasifikasiDdc', 'kode_ddc')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->kode_ddc} - {$record->kategori}")
-                            ->searchable(['kode_ddc', 'kategori'])
-                            ->preload()
-                            ->nullable()
-                            ->live(),
+                        ViewField::make('klasifikasi_ddc_id')
+                            ->label('Klasifikasi DDC (Opsional)')
+                            ->view('filament.perpustakaan.components.autocomplete-ddc-field'),
                         Select::make('grade_level')
                             ->label('Jenjang (Grade)')
                             ->options([
@@ -86,10 +82,18 @@ class BukuForm
                     ])->columns(2)->columnSpanFull(),
 
                     Group::make()->schema([
-                        TextInput::make('penulis')
-                            ->nullable(),
-                        TextInput::make('penerbit')
-                            ->nullable(),
+                        ViewField::make('penulis')
+                            ->label('Penulis')
+                            ->view('filament.perpustakaan.components.autocomplete-field', [
+                                'column' => 'penulis',
+                                'placeholder' => 'Nama Penulis (min. 3 huruf)',
+                            ]),
+                        ViewField::make('penerbit')
+                            ->label('Penerbit')
+                            ->view('filament.perpustakaan.components.autocomplete-field', [
+                                'column' => 'penerbit',
+                                'placeholder' => 'Nama Penerbit (min. 3 huruf)',
+                            ]),
                     ])->columns(2)->columnSpanFull(),
 
                     Group::make()->schema([

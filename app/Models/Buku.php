@@ -67,4 +67,19 @@ class Buku extends Model
     {
         return $this->hasManyThrough(Peminjaman::class, EksemplarBuku::class, 'buku_id', 'eksemplar_id');
     }
+
+    protected function penulis(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $value ? \Illuminate\Support\Str::title(trim($value)) : null,
+        );
+    }
+
+    protected function penerbit(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $value ? \Illuminate\Support\Str::title(trim($value)) : null,
+        );
+    }
 }
+

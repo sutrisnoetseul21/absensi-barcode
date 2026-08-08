@@ -444,6 +444,9 @@ class PetugasPerpusBuku extends Component
             }
         }
 
+        $listPenulis = Buku::whereNotNull('penulis')->where('penulis', '!=', '')->distinct()->orderBy('penulis')->pluck('penulis');
+        $listPenerbit = Buku::whereNotNull('penerbit')->where('penerbit', '!=', '')->distinct()->orderBy('penerbit')->pluck('penerbit');
+
         return view('livewire.petugas-perpus-buku', [
             'kategoriList'        => $kategoriList,
             'ddcList'             => $ddcList,
@@ -452,6 +455,8 @@ class PetugasPerpusBuku extends Component
             'nonFiksiKategoriId'  => $nonFiksiKategoriId,
             'selectedBukuDetail'  => $selectedBukuDetail,
             'eksemplarDetailList' => $eksemplarDetailList,
+            'listPenulis'         => $listPenulis,
+            'listPenerbit'        => $listPenerbit,
         ])->title('Katalog & Input Buku - Portal Perpustakaan');
     }
 }
