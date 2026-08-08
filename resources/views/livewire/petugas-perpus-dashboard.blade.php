@@ -1,13 +1,13 @@
-<div class="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+<div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header Banner -->
-    <div class="bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary rounded-3xl p-6 lg:p-8 text-white shadow-xl relative overflow-hidden border border-brand-primary/30">
+    <div class="bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-brand-primary/30">
         <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Modul Perpustakaan ERP</span>
-                <h1 class="text-3xl lg:text-4xl font-extrabold mt-3 tracking-tight">Dashboard Petugas Perpustakaan</h1>
-                <p class="text-indigo-100/90 text-sm mt-1">Selamat datang di sistem manajemen perpustakaan sekolah {{ $settings->school_name ?? 'Digital' }}.</p>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mt-3 tracking-tight leading-snug">Dashboard Petugas Perpustakaan</h1>
+                <p class="text-indigo-100/90 text-sm sm:text-base mt-1">Selamat datang di sistem manajemen perpustakaan sekolah {{ $settings->school_name ?? 'Digital' }}.</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">

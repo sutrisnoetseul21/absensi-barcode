@@ -40,8 +40,19 @@
                 }
             </style>
         @endif
+        <!-- Reset sidebar default for tablet/small screen: always collapse on screens < 1280px unless user explicitly expanded -->
+        <script>
+            (function() {
+                // Force collapse on tablet screens (< 1280px) if sidebar is currently expanded (false) or unset
+                var s = localStorage.getItem('portal_sidebar_collapsed');
+                var w = window.innerWidth;
+                if (w < 1280 && (s === null || s === 'false')) {
+                    localStorage.setItem('portal_sidebar_collapsed', 'true');
+                }
+            })();
+        </script>
     </head>
-    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex h-screen overflow-hidden [touch-action:pan-y]" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('portal_sidebar_collapsed') === 'true' }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val))">
+    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex overflow-hidden" style="height: 100dvh; max-height: 100dvh;" x-data="{ sidebarOpen: false, sidebarCollapsed: (() => { const s = localStorage.getItem('portal_sidebar_collapsed'); return s === null ? window.innerWidth < 1280 : s === 'true'; })() }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val))">
         
         @php
             $user = Auth::guard('web')->user();
@@ -81,7 +92,7 @@
              @click="sidebarOpen = false" style="display: none;"></div>
 
         <!-- Sidebar -->
-        <aside class="fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200/80 flex flex-col transform transition-all duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none"
+        <aside class="fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200/80 flex flex-col transform transition-all duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none h-full"
                :class="{
                    'translate-x-0 pointer-events-auto': sidebarOpen, 
                    '-translate-x-full max-lg:pointer-events-none': !sidebarOpen,
@@ -259,24 +270,24 @@
             </div>
 
             <!-- Sidebar Footer (User Info & Logout) -->
-            <div class="p-4 border-t border-slate-200/80 bg-slate-50 transition-all duration-300">
-                <div class="flex items-center gap-3 mb-4" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-2'">
+            <div class="p-4 border-t border-slate-200/80 bg-slate-50 transition-all duration-300 flex-shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
+                <div class="flex items-center gap-3 mb-3" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-1'">
                     @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
-                        <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-brand-primary/20 border border-slate-200 min-w-10">
+                        <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-9 h-9 rounded-xl object-cover shadow-md shadow-brand-primary/20 border border-slate-200 min-w-9 flex-shrink-0">
                     @else
-                        <div class="w-10 h-10 min-w-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold shadow-md shadow-brand-primary/20">
-                            {{ substr($userName, 0, 1) }}
+                        <div class="w-9 h-9 min-w-9 flex-shrink-0 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold shadow-md shadow-brand-primary/20 text-sm">
+                            {{ strtoupper(substr($userName, 0, 1)) }}
                         </div>
                     @endif
-                    <div class="flex flex-col overflow-hidden" x-show="!sidebarCollapsed" x-transition.opacity>
-                        <span class="text-sm font-bold text-slate-900 truncate">{{ $userName }}</span>
-                        <span class="text-xs text-slate-500 truncate">{{ $userRole }}</span>
+                    <div class="flex flex-col overflow-hidden min-w-0" x-show="!sidebarCollapsed" x-transition.opacity>
+                        <span class="text-sm font-bold text-slate-900 truncate leading-tight">{{ $userName }}</span>
+                        <span class="text-xs text-slate-500 truncate leading-tight">{{ $userRole }}</span>
                     </div>
                 </div>
                 <form action="{{ $logoutRoute }}" method="POST">
                     @csrf
-                    <button type="submit" :title="sidebarCollapsed ? 'Keluar Portal' : ''" class="w-full flex items-center justify-center gap-2 py-2.5 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm" :class="sidebarCollapsed ? 'px-0' : 'px-4'">
-                        <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    <button type="submit" :title="sidebarCollapsed ? 'Keluar Portal' : ''" class="w-full flex items-center justify-center gap-2 py-2 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm" :class="sidebarCollapsed ? 'px-0' : 'px-3'">
+                        <svg class="w-4 h-4 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                         <span x-show="!sidebarCollapsed" x-transition.opacity>Keluar Portal</span>
                     </button>
                 </form>
@@ -284,7 +295,7 @@
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-y-auto min-h-0 [touch-action:pan-y] [-webkit-overflow-scrolling:touch] overscroll-y-auto">
+        <div class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-y-auto" style="min-height: 0; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;">
             
             <!-- Topbar Header with Single Garis Tiga Toggle Icon -->
             <div class="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white border-b border-slate-200/80 shadow-xs">
@@ -378,7 +389,7 @@
             @include('components.announcement-banner')
 
             <!-- Page Content -->
-            <main class="flex-1 relative">
+            <main class="flex-1 relative p-4 sm:p-6 pb-12 sm:pb-16">
                 {{ $slot }}
             </main>
         </div>

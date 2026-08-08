@@ -1,9 +1,9 @@
 <div class="p-4 lg:p-8 space-y-6 max-w-7xl mx-auto pb-12">
     <!-- Header / Welcome -->
-    <div class="bg-gradient-to-r from-brand-primary to-indigo-600 rounded-3xl p-8 text-white shadow-lg shadow-brand-primary/20 relative overflow-hidden">
+    <div class="bg-gradient-to-r from-brand-primary to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-brand-primary/20 relative overflow-hidden">
         <div class="relative z-10">
-            <h1 class="text-3xl font-extrabold mb-2">Selamat Datang, {{ $student?->nama_lengkap ?? 'Siswa' }}!</h1>
-            <p class="text-indigo-100 max-w-2xl text-lg">Ini adalah halaman utama Portal Siswa. Anda dapat memantau presensi dan melihat status peminjaman buku perpustakaan dari sini.</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold mb-2 leading-snug">Selamat Datang, {{ $student?->nama_lengkap ?? 'Siswa' }}!</h1>
+            <p class="text-indigo-100 max-w-3xl text-sm sm:text-base md:text-lg leading-relaxed">Ini adalah halaman utama Portal Siswa. Anda dapat memantau presensi dan melihat status peminjaman buku perpustakaan dari sini.</p>
         </div>
         
         <!-- Decorative shapes -->
