@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="p-4 lg:p-8 space-y-6 max-w-7xl mx-auto pb-12">
     <!-- Header / Welcome -->
     <div class="bg-gradient-to-r from-brand-primary to-indigo-600 rounded-3xl p-8 text-white shadow-lg shadow-brand-primary/20 relative overflow-hidden">
         <div class="relative z-10">
