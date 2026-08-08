@@ -463,7 +463,9 @@
                             <option value="7">Kelas 7</option>
                             <option value="8">Kelas 8</option>
                             <option value="9">Kelas 9</option>
-                            <!-- Jika SMA, ubah ke 10,11,12 -->
+                            <option value="10">Kelas 10</option>
+                            <option value="11">Kelas 11</option>
+                            <option value="12">Kelas 12</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -472,7 +474,7 @@
                 </div>
 
                 <!-- Grid Hasil -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative min-h-[300px]">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 xl:gap-5 relative min-h-[300px]">
                     <div wire:loading.delay wire:target="search, kategori_id, grade_level" class="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl">
                         <div class="flex flex-col items-center">
                             <svg class="animate-spin h-8 w-8 text-brand-primary mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -483,7 +485,7 @@
                     @forelse($bukus as $buku)
                         <div class="group bg-white border border-slate-100 rounded-2xl hover:border-brand-primary/30 hover:shadow-xl hover:shadow-brand-primary/5 transition-all duration-300 flex flex-col h-full overflow-hidden">
                             <!-- Cover area -->
-                            <div class="h-40 bg-slate-50 flex items-center justify-center text-slate-300 relative overflow-hidden border-b border-slate-100">
+                            <div class="h-44 sm:h-52 bg-slate-50 flex items-center justify-center text-slate-300 relative overflow-hidden border-b border-slate-100">
                                 @if($buku->sampul_buku)
                                     <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="{{ $buku->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
@@ -553,7 +555,7 @@
                 </div>
 
                 <div class="mt-8">
-                    {{ $bukus->links('pagination::tailwind') }}
+                    {{ $bukus->links('vendor.livewire.custom-pagination') }}
                 </div>
             </div>
         </div>

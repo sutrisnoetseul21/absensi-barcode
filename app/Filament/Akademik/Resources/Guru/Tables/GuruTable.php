@@ -34,6 +34,11 @@ class GuruTable
                     ->searchable()
                     ->default('—'),
 
+                TextColumn::make('no_hp')
+                    ->label('No. HP')
+                    ->searchable()
+                    ->copyable(),
+
                 TextColumn::make('presensiProfile.barcode_code')
                     ->label('Barcode')
                     ->searchable()
@@ -97,7 +102,8 @@ class GuruTable
                 Action::make('download_template')
                     ->label('Download Template')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->action(fn () => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\GuruTemplateExport, 'template_guru.xlsx')),
+                    ->url(route('admin.guru.download-template'))
+                    ->openUrlInNewTab(),
 
                 Action::make('import_guru')
                     ->label('Import Excel')
@@ -187,7 +193,8 @@ class GuruTable
                                         
                                         $nameVal = trim((string) ($row[0] ?? ''));
                                         $nipVal = trim((string) ($row[1] ?? ''));
-                                        $passVal = trim((string) ($row[2] ?? ''));
+                                        $noHpVal = trim((string) ($row[2] ?? ''));
+                                        $passVal = trim((string) ($row[3] ?? ''));
 
                                         // Column 0: Nama Guru
                                         $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($nameVal) . '</td>';
@@ -211,7 +218,11 @@ class GuruTable
                                         }
                                         $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $nipHtml . '</td>';
 
-                                        // Column 2: Password
+                                        // Column 2: No. HP
+                                        $noHpHtml = $noHpVal !== '' ? htmlspecialchars($noHpVal) : '<span style="color: #9ca3af;">—</span>';
+                                        $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $noHpHtml . '</td>';
+
+                                        // Column 3: Password
                                         $passHtml = htmlspecialchars($passVal === '' ? 'password (default)' : $passVal);
                                         $html .= '<td style="display: table-cell; padding: 10px 12px; color: #6b7280; border-right: 1px solid #e5e7eb;">' . $passHtml . '</td>';
 

@@ -17,6 +17,7 @@ class GuruTemplateExport implements WithHeadings, WithTitle, WithEvents
         return [
             'Nama Guru',
             'NIP (Opsional)',
+            'No. HP (Opsional)',
             'Password (Opsional - Default: password)',
         ];
     }
@@ -35,7 +36,8 @@ class GuruTemplateExport implements WithHeadings, WithTitle, WithEvents
                 // Set Column Widths
                 $sheet->getColumnDimension('A')->setWidth(30);
                 $sheet->getColumnDimension('B')->setWidth(25);
-                $sheet->getColumnDimension('C')->setWidth(35);
+                $sheet->getColumnDimension('C')->setWidth(25);
+                $sheet->getColumnDimension('D')->setWidth(35);
             },
         ];
     }

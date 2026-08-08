@@ -31,10 +31,14 @@ class InputPresensiManual extends Page
     // Data
     public $students        = [];
     public $inputStudents   = [];
+    public $bulkStatusDatang = '';
+    public $bulkStatusPulang = '';
+    public bool $hasSubmittedFilter = false;
 
     public function mount(): void
     {
-        $this->inputDate      = Carbon::now('Asia/Jakarta')->toDateString();
+        $this->inputDate      = null;
+        $this->selectedClassId = null;
         $this->academicYears  = TahunAjaran::orderBy('start_year', 'desc')->get();
 
         $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();
@@ -54,31 +58,37 @@ class InputPresensiManual extends Page
         }
 
         $this->classes = Kelas::orderBy('name', 'asc')->get();
+    }
 
-        if ($this->classes->isNotEmpty()) {
-            if (!$this->classes->contains('id', $this->selectedClassId)) {
-                $this->selectedClassId = $this->classes->first()->id;
-            }
-        } else {
-            $this->selectedClassId = null;
+    public function filterData(): void
+    {
+        if (!$this->selectedClassId || !$this->inputDate) {
+            Notification::make()
+                ->title('Pilih Filter Presensi')
+                ->body('Silakan pilih Kelas dan Tanggal terlebih dahulu sebelum memproses.')
+                ->warning()
+                ->send();
+            return;
         }
 
+        $this->hasSubmittedFilter = true;
         $this->loadStudentsForInput();
     }
 
     public function updatedSelectedAcademicYearId(): void
     {
+        $this->hasSubmittedFilter = false;
         $this->loadClasses();
     }
 
     public function updatedSelectedClassId(): void
     {
-        $this->loadStudentsForInput();
+        $this->hasSubmittedFilter = false;
     }
 
     public function updatedInputDate(): void
     {
-        $this->loadStudentsForInput();
+        $this->hasSubmittedFilter = false;
     }
 
     public function updated($property, $value): void
@@ -130,7 +140,46 @@ class InputPresensiManual extends Page
                 'is_manual_input' => $att ? $att->is_manual_input : null,
             ];
         }
+        $this->bulkStatusDatang = '';
+        $this->bulkStatusPulang = '';
         $this->inputStudents = $list;
+    }
+
+    public function updatedBulkStatusDatang($value): void
+    {
+        $this->applyBulkStatusDatang($value);
+    }
+
+    public function applyBulkStatusDatang($status): void
+    {
+        if (empty($status)) return;
+
+        foreach ($this->inputStudents as $index => $student) {
+            // Untuk Admin Presensi, jika ada data yang terekam otomatis, tetap izinkan override/edit jika perlu, tetapi aksi massal mengupdate siswa
+            $this->inputStudents[$index]['status'] = $status;
+            if (in_array($status, ['izin', 'sakit', 'alpa'])) {
+                $this->inputStudents[$index]['status_pulang'] = $status;
+            }
+        }
+    }
+
+    public function updatedBulkStatusPulang($value): void
+    {
+        $this->applyBulkStatusPulang($value);
+    }
+
+    public function applyBulkStatusPulang($status): void
+    {
+        if (empty($status)) return;
+
+        foreach ($this->inputStudents as $index => $student) {
+            $currentStatus = $student['status'] ?? '';
+            if (in_array($currentStatus, ['izin', 'sakit', 'alpa'])) {
+                continue;
+            }
+
+            $this->inputStudents[$index]['status_pulang'] = $status;
+        }
     }
 
     public function saveManualInput(): void

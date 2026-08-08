@@ -8,8 +8,6 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\DatePicker;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\BulkActionGroup;
@@ -59,11 +57,86 @@ class LaporanPresensi extends Page implements HasTable
 
     protected string $view = 'filament.pages.laporan-presensi';
 
+    // Filters
+    public $academicYears          = [];
+    public $selectedAcademicYearId;
+    public $classes                = [];
+    public $selectedClassId        = null;
+    public $inputDate              = null;
+    public bool $hasSubmittedFilter = false;
+
+    public function mount(): void
+    {
+        $this->selectedClassId = null;
+        $this->inputDate       = null;
+        $this->academicYears   = TahunAjaran::orderBy('start_year', 'desc')->get();
+
+        $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();
+        if ($activeYear) {
+            $this->selectedAcademicYearId = $activeYear->id;
+        }
+
+        $this->loadClasses();
+    }
+
+    public function loadClasses(): void
+    {
+        if (!$this->selectedAcademicYearId) {
+            $this->classes        = collect();
+            $this->selectedClassId = null;
+            return;
+        }
+
+        $this->classes         = Kelas::orderBy('name', 'asc')->get();
+        $this->selectedClassId = null;
+    }
+
+    public function updatedSelectedAcademicYearId(): void
+    {
+        $this->hasSubmittedFilter = false;
+        $this->loadClasses();
+    }
+
+    public function updatedSelectedClassId(): void
+    {
+        $this->hasSubmittedFilter = false;
+    }
+
+    public function updatedInputDate(): void
+    {
+        $this->hasSubmittedFilter = false;
+    }
+
+    public function filterData(): void
+    {
+        if (!$this->selectedClassId || !$this->inputDate) {
+            Notification::make()
+                ->title('Pilih Filter Presensi')
+                ->body('Silakan pilih Kelas dan Tanggal terlebih dahulu sebelum memproses.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $this->hasSubmittedFilter = true;
+        $this->resetTable();
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->query(
-                Presensi::query()->with(['siswa', 'kelas', 'inputManualOleh'])
+                function () {
+                    if (!$this->hasSubmittedFilter || !$this->selectedClassId || !$this->inputDate) {
+                        return Presensi::query()->whereRaw('1 = 0');
+                    }
+
+                    return Presensi::query()
+                        ->with(['siswa', 'kelas', 'inputManualOleh'])
+                        ->where('academic_year_id', $this->selectedAcademicYearId)
+                        ->where('class_id', $this->selectedClassId)
+                        ->whereDate('date', $this->inputDate);
+                }
             )
             ->columns([
                 TextColumn::make('updated_at')
@@ -111,36 +184,8 @@ class LaporanPresensi extends Page implements HasTable
                     }),
             ])
             ->filters([
-                SelectFilter::make('academic_year_id')
-                    ->label('Tahun Ajaran')
-                    ->options(TahunAjaran::pluck('name', 'id'))
-                    ->default(fn () => TahunAjaran::where('status', 'aktif')->value('id')),
-                SelectFilter::make('class_id')
-                    ->label('Kelas')
-                    ->options(Kelas::pluck('name', 'id')),
-                SelectFilter::make('month')
-                    ->label('Bulan')
-                    ->options([
-                        '1' => 'Januari',
-                        '2' => 'Februari',
-                        '3' => 'Maret',
-                        '4' => 'April',
-                        '5' => 'Mei',
-                        '6' => 'Juni',
-                        '7' => 'Juli',
-                        '8' => 'Agustus',
-                        '9' => 'September',
-                        '10' => 'Oktober',
-                        '11' => 'November',
-                        '12' => 'Desember',
-                    ])
-                    ->query(function (Builder $query, array $data) {
-                        if (!empty($data['value'])) {
-                            $query->whereMonth('date', $data['value']);
-                        }
-                    }),
                 SelectFilter::make('status')
-                    ->label('Status')
+                    ->label('Status Presensi')
                     ->options([
                         'hadir' => 'Hadir',
                         'telat' => 'Terlambat',
@@ -148,26 +193,6 @@ class LaporanPresensi extends Page implements HasTable
                         'sakit' => 'Sakit',
                         'alpa' => 'Alpa',
                     ]),
-                Filter::make('filter_date')
-                    ->form([
-                        DatePicker::make('date')->label('Tgl Absensi'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['date'],
-                            fn (Builder $query, $date): Builder => $query->whereDate('date', $date),
-                        );
-                    }),
-                Filter::make('filter_updated_at')
-                    ->form([
-                        DatePicker::make('updated_at')->label('Tgl Edit/Input'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['updated_at'],
-                            fn (Builder $query, $date): Builder => $query->whereDate('updated_at', $date),
-                        );
-                    })
             ])
             ->defaultSort('date', 'desc')
             ->recordActions([
@@ -211,7 +236,7 @@ class LaporanPresensi extends Page implements HasTable
                     if ($count > 1000) {
                         Notification::make()
                             ->title('Export PDF Ditolak')
-                            ->body("Data terlalu besar untuk diexport ke PDF ({$count} baris). Maksimal 1000 baris. Silakan gunakan Export Excel atau persempit filter Anda (misalnya pilih kelas tertentu).")
+                            ->body("Data terlalu besar untuk diexport ke PDF ({$count} baris). Maksimal 1000 baris.")
                             ->danger()
                             ->send();
                         return;
@@ -219,27 +244,13 @@ class LaporanPresensi extends Page implements HasTable
 
                     $records = $query->orderBy('date')->get();
                     
-                    $tableFilters = $this->getTableFilterState();
-                    
-                    $month = $tableFilters['month']['value'] ?? null;
-                    $classId = $tableFilters['class_id']['value'] ?? null;
-                    $academicYearId = $tableFilters['academic_year_id']['value'] ?? null;
-                    
-                    $monthNames = [
-                        '1' => 'Januari', '2' => 'Februari', '3' => 'Maret', '4' => 'April',
-                        '5' => 'Mei', '6' => 'Juni', '7' => 'Juli', '8' => 'Agustus',
-                        '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
-                    ];
-                    
-                    $monthName = $month ? ($monthNames[$month] ?? $month) : 'Semua Bulan';
-                    $yearName = now('Asia/Jakarta')->year; 
-                    $className = $classId ? Kelas::find($classId)?->name : 'Semua Kelas';
-                    $ayName = $academicYearId ? TahunAjaran::find($academicYearId)?->name : 'Semua Tahun Ajaran';
+                    $className = $this->selectedClassId ? Kelas::find($this->selectedClassId)?->name : 'Semua Kelas';
+                    $ayName = $this->selectedAcademicYearId ? TahunAjaran::find($this->selectedAcademicYearId)?->name : 'Semua Tahun Ajaran';
 
                     $pdf = Pdf::loadView('exports.laporan-presensi-pdf', [
                         'records' => $records,
-                        'monthName' => $monthName,
-                        'year' => $yearName,
+                        'monthName' => $this->inputDate ? \Carbon\Carbon::parse($this->inputDate)->isoFormat('D MMMM Y') : 'Semua Tanggal',
+                        'year' => now('Asia/Jakarta')->year,
                         'className' => $className,
                         'academicYearName' => $ayName
                     ]);

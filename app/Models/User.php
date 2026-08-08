@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -29,6 +30,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'is_super_admin',
         'teacher_id',
+        'no_hp',
     ];
 
     /**
@@ -288,5 +290,21 @@ class User extends Authenticatable implements FilamentUser
         }
 
         return $portals;
+    }
+
+    protected function noHp(): Attribute
+    {
+        return Attribute::make(
+            set: function (?string $value) {
+                if (!$value) return null;
+                $digits = preg_replace('/\D/', '', $value);
+                if (str_starts_with($digits, '0')) {
+                    $digits = '62' . substr($digits, 1);
+                } elseif (!str_starts_with($digits, '62')) {
+                    $digits = '62' . $digits;
+                }
+                return $digits;
+            }
+        );
     }
 }

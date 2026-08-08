@@ -85,7 +85,76 @@ class RombonganBelajarsTable
                     ->label('Pembelajaran')
                     ->icon('heroicon-o-book-open')
                     ->color('info')
-                    ->url(fn (Kelas $record): string => \App\Filament\Akademik\Resources\Kelas\Pages\ManagePembelajaranKelas::getUrl(['record' => $record->id]))
+                    ->modalHeading(fn (Kelas $record): string => "Kelola Pembelajaran - Kelas {$record->name}")
+                    ->modalDescription('Tentukan guru pengajar untuk setiap mata pelajaran pada kelas ini untuk tahun ajaran aktif.')
+                    ->modalWidth('2xl')
+                    ->form(function (Kelas $record): array {
+                        $mapels = \App\Models\MataPelajaran::orderBy('nama_mapel')->get();
+                        $gurus = Guru::pluck('name', 'id')->toArray();
+                        
+                        $fields = [];
+                        foreach ($mapels as $mapel) {
+                            $fields[] = \Filament\Forms\Components\Select::make("assignments.{$mapel->id}")
+                                ->label($mapel->nama_mapel)
+                                ->options($gurus)
+                                ->searchable()
+                                ->preload()
+                                ->placeholder('— Belum Ditentukan —');
+                        }
+                        
+                        return [
+                            \Filament\Schemas\Components\Grid::make(2)
+                                ->schema($fields),
+                        ];
+                    })
+                    ->fillForm(function (Kelas $record): array {
+                        $activeTahunAjaranId = PengaturanSekolah::current()?->academic_year_id_active ?? \App\Models\TahunAjaran::aktif()->first()?->id;
+                        $kelasAjaran = $activeTahunAjaranId ? KelasAjaran::where('class_id', $record->id)->where('academic_year_id', $activeTahunAjaranId)->first() : null;
+
+                        $existingAssignments = [];
+                        if ($kelasAjaran) {
+                            $existingAssignments = \App\Models\Pengajaran::where('class_academic_year_id', $kelasAjaran->id)
+                                ->pluck('teacher_id', 'mata_pelajaran_id')
+                                ->toArray();
+                        }
+
+                        return [
+                            'assignments' => $existingAssignments,
+                        ];
+                    })
+                    ->action(function (Kelas $record, array $data): void {
+                        $activeTahunAjaranId = PengaturanSekolah::current()?->academic_year_id_active ?? \App\Models\TahunAjaran::aktif()->first()?->id;
+                        if (!$activeTahunAjaranId) {
+                            Notification::make()->title('Gagal')->body('Tidak ada tahun ajaran aktif.')->danger()->send();
+                            return;
+                        }
+
+                        $kelasAjaran = KelasAjaran::firstOrCreate(
+                            ['class_id' => $record->id, 'academic_year_id' => $activeTahunAjaranId],
+                            ['teacher_id' => null]
+                        );
+
+                        $assignments = $data['assignments'] ?? [];
+                        foreach ($assignments as $mapelId => $teacherId) {
+                            if (empty($teacherId)) {
+                                \App\Models\Pengajaran::where('class_academic_year_id', $kelasAjaran->id)
+                                    ->where('mata_pelajaran_id', $mapelId)
+                                    ->delete();
+                            } else {
+                                \App\Models\Pengajaran::updateOrCreate(
+                                    [
+                                        'class_academic_year_id' => $kelasAjaran->id,
+                                        'mata_pelajaran_id' => $mapelId,
+                                    ],
+                                    [
+                                        'teacher_id' => $teacherId,
+                                    ]
+                                );
+                            }
+                        }
+
+                        Notification::make()->title('Pembelajaran kelas berhasil disimpan')->success()->send();
+                    })
                     ->visible(fn (): bool => auth()->user()?->isSuperAdmin() ?? false),
 
                 Action::make('assign_ekstrakurikuler')

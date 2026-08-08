@@ -230,99 +230,101 @@ class PresensiRekapService
      */
     public function getYearlySchoolData(string $academicYearId): array
     {
-        $ay = TahunAjaran::find($academicYearId);
-        if (!$ay) return ['classesData' => [], 'monthsList' => []];
+        $cacheKey = "rekap_sekolah_data_{$academicYearId}";
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($academicYearId) {
+            $ay = TahunAjaran::find($academicYearId);
+            if (!$ay) return ['classesData' => [], 'monthsList' => []];
 
-        $startYear = $ay->start_year ?? (date('Y') - 1);
-        $endYear   = $ay->end_year ?? date('Y');
+            $startYear = $ay->start_year ?? (date('Y') - 1);
+            $endYear   = $ay->end_year ?? date('Y');
 
-        $monthNames = [
-            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
-            '04' => 'April',   '05' => 'Mei',       '06' => 'Juni',
-            '07' => 'Juli',    '08' => 'Agustus',   '09' => 'September',
-            '10' => 'Oktober', '11' => 'November',  '12' => 'Desember',
-        ];
+            $monthNames = [
+                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
+                '04' => 'April',   '05' => 'Mei',       '06' => 'Juni',
+                '07' => 'Juli',    '08' => 'Agustus',   '09' => 'September',
+                '10' => 'Oktober', '11' => 'November',  '12' => 'Desember',
+            ];
 
-        // Generate bulan dari Juli startYear hingga Juni endYear,
-        // diperpanjang ke bulan data presensi terbaru jika melebihi batas normal.
-        $academicStart = Carbon::create($startYear, 7, 1)->startOfMonth();
-        $academicEnd   = Carbon::create($endYear, 6, 30)->endOfMonth();
+            $academicStart = Carbon::create($startYear, 7, 1)->startOfMonth();
+            $academicEnd   = Carbon::create($endYear, 6, 30)->endOfMonth();
 
-        $maxDate = Presensi::where('academic_year_id', $academicYearId)->max('date');
-        if ($maxDate) {
-            $maxCarbon = Carbon::parse($maxDate)->endOfMonth();
-            if ($maxCarbon->greaterThan($academicEnd)) {
-                $academicEnd = $maxCarbon;
+            $maxDate = Presensi::where('academic_year_id', $academicYearId)->max('date');
+            if ($maxDate) {
+                $maxCarbon = Carbon::parse($maxDate)->endOfMonth();
+                if ($maxCarbon->greaterThan($academicEnd)) {
+                    $academicEnd = $maxCarbon;
+                }
             }
-        }
 
-        $kalenderService = app(\App\Services\KalenderSekolahService::class);
-        $monthsStructure = [];
-        $cursor = $academicStart->copy();
-        while ($cursor->lte($academicEnd)) {
-            $mKey = $cursor->format('m');
-            $year = (int)$cursor->format('Y');
-            
-            $monthStart = $cursor->copy()->startOfMonth();
-            $monthEnd = $cursor->copy()->endOfMonth();
-            $effectiveDays = $kalenderService->getEffectiveDays($monthStart, $monthEnd);
+            $kalenderService = app(\App\Services\KalenderSekolahService::class);
+            $monthsStructure = [];
+            $cursor = $academicStart->copy();
+            while ($cursor->lte($academicEnd)) {
+                $mKey = $cursor->format('m');
+                $year = (int)$cursor->format('Y');
+                
+                $monthStart = $cursor->copy()->startOfMonth();
+                $monthEnd = $cursor->copy()->endOfMonth();
+                $effectiveDays = $kalenderService->getEffectiveDays($monthStart, $monthEnd);
 
-            $monthsStructure[] = [
-                'month' => $mKey,
-                'year'  => $year,
-                'label' => $monthNames[$mKey] . ' ' . $year,
-                'effective_days' => $effectiveDays,
-            ];
-            $cursor->addMonth();
-        }
-
-        // Hitung siswa aktif per kelas
-        $studentCounts = EnrollmentSiswa::where('academic_year_id', $academicYearId)
-            ->where('status', 'aktif')
-            ->select('class_id', DB::raw('count(*) as total'))
-            ->groupBy('class_id')
-            ->pluck('total', 'class_id')
-            ->toArray();
-
-        $classes = Kelas::orderBy('name', 'asc')->get();
-
-        // Ambil rekap agregat bulanan
-        $attendances = Presensi::where('academic_year_id', $academicYearId)
-            ->selectRaw('class_id, YEAR(date) as year, MONTH(date) as month, status, count(*) as count')
-            ->groupBy('class_id', 'year', 'month', 'status')
-            ->get();
-
-        $classesData = [];
-        foreach ($classes as $kelas) {
-            $classReport = [
-                'id'            => $kelas->id,
-                'name'          => $kelas->name,
-                'student_count' => $studentCounts[$kelas->id] ?? 0,
-                'months'        => [],
-            ];
-
-            foreach ($monthsStructure as $m) {
-                $monthNum = (int)$m['month'];
-                $yearNum  = (int)$m['year'];
-
-                $monthAtts = $attendances
-                    ->where('class_id', $kelas->id)
-                    ->where('year', $yearNum)
-                    ->where('month', $monthNum);
-
-                $key = "{$yearNum}-{$m['month']}";
-                $classReport['months'][$key] = [
-                    'hadir' => $monthAtts->whereIn('status', ['hadir', 'telat'])->sum('count'),
-                    'sakit' => $monthAtts->where('status', 'sakit')->sum('count'),
-                    'izin'  => $monthAtts->where('status', 'izin')->sum('count'),
-                    'alpa'  => $monthAtts->where('status', 'alpa')->sum('count'),
+                $monthsStructure[] = [
+                    'month' => $mKey,
+                    'year'  => $year,
+                    'label' => $monthNames[$mKey] . ' ' . $year,
+                    'effective_days' => $effectiveDays,
                 ];
+                $cursor->addMonth();
             }
 
-            $classesData[] = $classReport;
-        }
+            // Hitung siswa aktif per kelas
+            $studentCounts = EnrollmentSiswa::where('academic_year_id', $academicYearId)
+                ->where('status', 'aktif')
+                ->select('class_id', DB::raw('count(*) as total'))
+                ->groupBy('class_id')
+                ->pluck('total', 'class_id')
+                ->toArray();
 
-        return ['classesData' => $classesData, 'monthsList' => $monthsStructure];
+            $classes = Kelas::orderBy('name', 'asc')->get();
+
+            // Ambil rekap agregat bulanan dengan O(1) Array Lookup
+            $attendances = Presensi::where('academic_year_id', $academicYearId)
+                ->selectRaw('class_id, YEAR(date) as year, MONTH(date) as month, status, count(*) as count')
+                ->groupBy('class_id', 'year', 'month', 'status')
+                ->get();
+
+            $attsLookup = [];
+            foreach ($attendances as $att) {
+                $mKey = str_pad($att->month, 2, '0', STR_PAD_LEFT);
+                $key  = "{$att->year}-{$mKey}";
+                $attsLookup[$att->class_id][$key][$att->status] = (int)$att->count;
+            }
+
+            $classesData = [];
+            foreach ($classes as $kelas) {
+                $classReport = [
+                    'id'            => $kelas->id,
+                    'name'          => $kelas->name,
+                    'student_count' => $studentCounts[$kelas->id] ?? 0,
+                    'months'        => [],
+                ];
+
+                foreach ($monthsStructure as $m) {
+                    $key   = "{$m['year']}-{$m['month']}";
+                    $stats = $attsLookup[$kelas->id][$key] ?? [];
+
+                    $classReport['months'][$key] = [
+                        'hadir' => ($stats['hadir'] ?? 0) + ($stats['telat'] ?? 0),
+                        'sakit' => $stats['sakit'] ?? 0,
+                        'izin'  => $stats['izin'] ?? 0,
+                        'alpa'  => $stats['alpa'] ?? 0,
+                    ];
+                }
+
+                $classesData[] = $classReport;
+            }
+
+            return ['classesData' => $classesData, 'monthsList' => $monthsStructure];
+        });
     }
 
     /**

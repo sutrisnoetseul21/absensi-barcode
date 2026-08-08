@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Siswa extends Authenticatable
 {
@@ -35,6 +36,7 @@ class Siswa extends Authenticatable
         'address',
         'photo_path',
         'status',
+        'no_hp',
     ];
 
     protected $casts = [
@@ -84,5 +86,21 @@ class Siswa extends Authenticatable
     public function presensiProfile(): HasOne
     {
         return $this->hasOne(StudentPresensiProfile::class, 'student_id');
+    }
+
+    protected function noHp(): Attribute
+    {
+        return Attribute::make(
+            set: function (?string $value) {
+                if (!$value) return null;
+                $digits = preg_replace('/\D/', '', $value);
+                if (str_starts_with($digits, '0')) {
+                    $digits = '62' . substr($digits, 1);
+                } elseif (!str_starts_with($digits, '62')) {
+                    $digits = '62' . $digits;
+                }
+                return $digits;
+            }
+        );
     }
 }

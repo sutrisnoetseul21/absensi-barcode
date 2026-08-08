@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Guru extends Authenticatable
 {
@@ -19,6 +20,7 @@ class Guru extends Authenticatable
         'user_id',
         'name',
         'nip',
+        'no_hp',
     ];
 
     public function user()
@@ -104,5 +106,21 @@ class Guru extends Authenticatable
                 return "{$mapel} ({$kelas})";
             })
             ->toArray();
+    }
+
+    protected function noHp(): Attribute
+    {
+        return Attribute::make(
+            set: function (?string $value) {
+                if (!$value) return null;
+                $digits = preg_replace('/\D/', '', $value);
+                if (str_starts_with($digits, '0')) {
+                    $digits = '62' . substr($digits, 1);
+                } elseif (!str_starts_with($digits, '62')) {
+                    $digits = '62' . $digits;
+                }
+                return $digits;
+            }
+        );
     }
 }

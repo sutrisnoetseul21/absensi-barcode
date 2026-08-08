@@ -11,14 +11,37 @@
                     </p>
                 </div>
 
-                <div class="flex flex-col gap-1 min-w-[200px]">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Tahun Ajaran</label>
-                    <select wire:model.change="selectedAcademicYearId"
-                        class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none cursor-pointer">
-                        @foreach($academicYears as $year)
-                            <option value="{{ $year->id }}">{{ $year->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="flex flex-wrap sm:flex-nowrap items-end gap-3">
+                    <div class="flex flex-col gap-1 min-w-[200px]">
+                        <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Tahun Ajaran</label>
+                        <select wire:model.change="selectedAcademicYearId"
+                            class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none cursor-pointer">
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}">{{ $year->name }} {{ $year->status === 'aktif' ? '(Aktif)' : '' }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @if($selectedAcademicYearId)
+                    <div class="flex gap-2">
+                        <x-filament::button
+                            wire:click="exportExcel"
+                            wire:loading.attr="disabled"
+                            icon="heroicon-o-arrow-down-tray"
+                            color="success">
+                            <span wire:loading.remove wire:target="exportExcel">Export Excel</span>
+                            <span wire:loading wire:target="exportExcel">Memproses...</span>
+                        </x-filament::button>
+                        <x-filament::button
+                            wire:click="exportPdf"
+                            wire:loading.attr="disabled"
+                            icon="heroicon-o-printer"
+                            color="danger">
+                            <span wire:loading.remove wire:target="exportPdf">Cetak PDF</span>
+                            <span wire:loading wire:target="exportPdf">Memproses...</span>
+                        </x-filament::button>
+                    </div>
+                    @endif
                 </div>
             </div>
 

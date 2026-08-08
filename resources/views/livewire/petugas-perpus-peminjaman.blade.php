@@ -181,7 +181,7 @@
             <!-- Pagination -->
             @if($peminjamans->hasPages())
                 <div class="pt-2 border-t border-slate-100">
-                    {{ $peminjamans->links() }}
+                    {{ $peminjamans->links('vendor.livewire.custom-pagination') }}
                 </div>
             @endif
         </div>

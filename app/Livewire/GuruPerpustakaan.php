@@ -156,7 +156,7 @@ class GuruPerpustakaan extends Component
                 $query->orderBy('created_at', 'desc');
             }
 
-            $bukus = $query->paginate(12);
+            $bukus = $query->paginate(15);
 
             foreach ($bukus as $buku) {
                 $peminjamanSaya = null;

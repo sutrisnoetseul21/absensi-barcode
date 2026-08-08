@@ -12,9 +12,9 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 /**
  * Import Siswa Baru (PPDB) — mengisi tabel students + opsional student_enrollments.
  *
- * Kolom template (8 kolom):
+ * Kolom template (9 kolom):
  *   A: NISN  |  B: NIS  |  C: Nama Siswa  |  D: Tempat Lahir
- *   E: Tanggal Lahir  |  F: Alamat  |  G: Password  |  H: Kelas (Opsional)
+ *   E: Tanggal Lahir  |  F: Alamat  |  G: No. HP  | H: Password  |  I: Kelas (Opsional)
  *
  * Aturan:
  *   - NISN atau NIS sudah ada di DB                  → SKIP + catat di laporan (status: skip)
@@ -66,8 +66,9 @@ class SiswaBaruImport implements ToCollection
             $birth_place  = trim((string)($row[3] ?? ''));
             $birth_date   = $this->parseBirthDate(trim((string)($row[4] ?? '')));
             $address      = trim((string)($row[5] ?? ''));
-            $passwordVal  = trim((string)($row[6] ?? ''));
-            $kelasName    = trim((string)($row[7] ?? ''));
+            $no_hp        = trim((string)($row[6] ?? ''));
+            $passwordVal  = trim((string)($row[7] ?? ''));
+            $kelasName    = trim((string)($row[8] ?? ''));
 
             // Baris kosong (NISN dan Nama kosong) → lewati tanpa laporan
             if ($nisn === '' && $name === '') {
@@ -78,6 +79,7 @@ class SiswaBaruImport implements ToCollection
                 'nisn'    => $nisn,
                 'nis'     => $nis,
                 'name'    => $name,
+                'no_hp'   => $no_hp,
                 'kelas'   => $kelasName,
             ];
 
@@ -147,6 +149,7 @@ class SiswaBaruImport implements ToCollection
                 'nisn'        => $nisn,
                 'nis'         => $nis ?: null,
                 'name'        => $name,
+                'no_hp'       => $no_hp ?: null,
                 'birth_place' => $birth_place ?: null,
                 'birth_date'  => $birth_date,
                 'address'     => $address ?: null,

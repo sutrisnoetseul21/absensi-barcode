@@ -66,6 +66,7 @@
 - id (uuid, primary)
 - name (string)
 - nip (string, nullable, unique)
+- no_hp (string, 20, nullable)     → Dinormalisasi 62xxx (tanpa +/0)
 - username (string, unique)
 - password (string)
 - must_change_password (boolean) default true
@@ -81,6 +82,7 @@
 - id (uuid, primary)
 - nisn (string, unique)          → INDEX wajib
 - name (string)
+- no_hp (string, 20, nullable)     → Dinormalisasi 62xxx (tanpa +/0)
 - birth_place (string, nullable)
 - birth_date (date, nullable)
 - address (text, nullable)
@@ -434,5 +436,8 @@ kunjungan_perpustakaans ──> users (petugas)
 school_settings ──> academic_years (active)
 holidays ──> classes (nullable, khusus kelas)
 invalid_scan_logs (standalone)
+
+> **Catatan no_hp:**
+> `no_hp` untuk akun dengan profil Guru/Siswa diambil dari tabel `teachers`/`students` (single source of truth). `users.no_hp` hanya dipakai untuk akun staff murni tanpa profil akademik. Disimpan dalam format normalisasi 62xxx (tanpa + atau 0 di depan) via model mutator, untuk kesiapan integrasi WA Gateway.
 
 **Index wajib:** `students.barcode_code` (unique), `students.nisn` (unique), `attendances.[class_id, academic_year_id, date]`

@@ -25,6 +25,12 @@ class UserTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('no_hp')
+                    ->label('No. HP')
+                    ->state(fn (\App\Models\User $record) =>
+                        $record->no_hp ?? $record->teacher?->no_hp ?? $record->student?->no_hp
+                    ),
+
                 TextColumn::make('guru.name')
                     ->label('Terkait Guru')
                     ->searchable()

@@ -59,9 +59,7 @@ class CetakLaporanPresensi extends Page
         }
 
         $this->classes = Kelas::orderBy('name', 'asc')->get();
-        if ($this->classes->isNotEmpty()) {
-            $this->selectedClassId = $this->classes->first()->id;
-        }
+        $this->selectedClassId = null;
 
         // Default bulanan = bulan ini
         $this->bulan = date('m');

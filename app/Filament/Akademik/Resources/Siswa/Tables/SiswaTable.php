@@ -58,6 +58,11 @@ class SiswaTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('no_hp')
+                    ->label('No. HP')
+                    ->searchable()
+                    ->copyable(),
+
                 TextColumn::make('kelas_aktif')
                     ->label('Kelas')
                     ->getStateUsing(function (Siswa $record, $livewire) {
@@ -119,7 +124,8 @@ class SiswaTable
                     ->label('Template Siswa Baru')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
-                    ->action(fn () => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\SiswaBaruTemplateExport, 'template_siswa_baru.xlsx')),
+                    ->url(route('admin.siswa.download-template'))
+                    ->openUrlInNewTab(),
 
                 \App\Filament\Akademik\Resources\Siswa\Actions\ImportSiswaBaruAction::make(),
             ])

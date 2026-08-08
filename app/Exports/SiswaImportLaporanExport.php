@@ -41,6 +41,7 @@ class SiswaImportLaporanExport implements FromArray, WithHeadings, WithTitle, Wi
                 $row['nisn']       ?? '',
                 $row['nis']        ?? '',
                 $row['name']       ?? '',
+                $row['no_hp']      ?? '',
                 $row['kelas']      ?? '',
                 $row['status_label'] ?? '',
                 $row['keterangan'] ?? '',
@@ -51,7 +52,7 @@ class SiswaImportLaporanExport implements FromArray, WithHeadings, WithTitle, Wi
 
     public function headings(): array
     {
-        return ['No', 'NISN', 'NIS', 'Nama Siswa', 'Kelas', 'Status', 'Keterangan'];
+        return ['No', 'NISN', 'NIS', 'Nama Siswa', 'No. HP', 'Kelas', 'Status', 'Keterangan'];
     }
 
     public function title(): string
@@ -66,9 +67,10 @@ class SiswaImportLaporanExport implements FromArray, WithHeadings, WithTitle, Wi
             'B' => 20,
             'C' => 20,
             'D' => 35,
-            'E' => 12,
-            'F' => 30,
-            'G' => 55,
+            'E' => 20,
+            'F' => 12,
+            'G' => 30,
+            'H' => 55,
         ];
     }
 
@@ -95,7 +97,7 @@ class SiswaImportLaporanExport implements FromArray, WithHeadings, WithTitle, Wi
                 default              => 'FFFFFFFF',
             };
 
-            $sheet->getStyle("A{$excelRow}:G{$excelRow}")->applyFromArray([
+            $sheet->getStyle("A{$excelRow}:H{$excelRow}")->applyFromArray([
                 'fill' => [
                     'fillType'   => Fill::FILL_SOLID,
                     'startColor' => ['argb' => $bgColor],

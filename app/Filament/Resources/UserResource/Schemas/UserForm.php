@@ -48,6 +48,37 @@ class UserForm
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
 
+                TextInput::make('no_hp')
+                    ->label('Nomor WhatsApp')
+                    ->tel()
+                    ->rule(function () {
+                        return function (string $attribute, $value, \Closure $fail) {
+                            $digits = preg_replace('/\D/', '', $value ?? '');
+                            if ($digits) {
+                                $normalized = $digits;
+                                if (str_starts_with($normalized, '0')) {
+                                    $normalized = '62' . substr($normalized, 1);
+                                } elseif (!str_starts_with($normalized, '62')) {
+                                    $normalized = '62' . $normalized;
+                                }
+                                if (!preg_match('/^628[0-9]{7,12}$/', $normalized)) {
+                                    $fail('Format nomor HP tidak valid. Contoh: 081234567890');
+                                }
+                            }
+                        };
+                    })
+                    ->visible(fn (?\App\Models\User $record) =>
+                        $record === null || (!$record->teacher && !$record->student)
+                    )
+                    ->helperText('Isi untuk akun staff tanpa profil Guru/Siswa.'),
+
+                \Filament\Forms\Components\Placeholder::make('no_hp_info')
+                    ->label('Nomor WhatsApp')
+                    ->content('Nomor HP dikelola dari profil Guru/Siswa terkait, lihat menu Akademik.')
+                    ->visible(fn (?\App\Models\User $record) =>
+                        $record && ($record->teacher || $record->student)
+                    ),
+
                 TextInput::make('password')
                     ->label('Password')
                     ->password()

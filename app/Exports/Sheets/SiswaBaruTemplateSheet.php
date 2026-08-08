@@ -31,6 +31,7 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
             'Tempat Lahir',
             'Tanggal Lahir (YYYY-MM-DD)',
             'Alamat',
+            'No. HP (Contoh: 08123...)',
             'Password (Kosongkan untuk default: NISN)',
             'Kelas (Opsional, contoh: 7A)',
         ];
@@ -54,11 +55,12 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
                 $sheet->getColumnDimension('D')->setWidth(20);
                 $sheet->getColumnDimension('E')->setWidth(28);
                 $sheet->getColumnDimension('F')->setWidth(40);
-                $sheet->getColumnDimension('G')->setWidth(42);
-                $sheet->getColumnDimension('H')->setWidth(28);
+                $sheet->getColumnDimension('G')->setWidth(25);
+                $sheet->getColumnDimension('H')->setWidth(42);
+                $sheet->getColumnDimension('I')->setWidth(28);
 
                 // Style header baris 1
-                $sheet->getStyle('A1:H1')->applyFromArray([
+                $sheet->getStyle('A1:I1')->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                     'fill' => [
                         'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -66,8 +68,8 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
                     ],
                 ]);
 
-                // Kolom Kelas (H) beri warna latar berbeda agar menonjol sebagai opsional
-                $sheet->getStyle('H1')->applyFromArray([
+                // Kolom Kelas (I) beri warna latar berbeda agar menonjol sebagai opsional
+                $sheet->getStyle('I1')->applyFromArray([
                     'fill' => [
                         'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                         'startColor' => ['argb' => 'FF2563EB'],
@@ -78,13 +80,13 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
                 $exampleData = [
                     '1234567890', '2024001', 'Budi Santoso',
                     'Jakarta', '2012-05-15', 'Jl. Merdeka No. 1',
-                    '', '7A',
+                    '081234567890', '', '7A',
                 ];
                 foreach ($exampleData as $col => $val) {
                     $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '2';
                     $sheet->setCellValue($cell, $val);
                 }
-                $sheet->getStyle('A2:H2')->applyFromArray([
+                $sheet->getStyle('A2:I2')->applyFromArray([
                     'font' => ['italic' => true, 'color' => ['argb' => 'FF9CA3AF']],
                     'fill' => [
                         'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -94,7 +96,7 @@ class SiswaBaruTemplateSheet implements WithHeadings, WithTitle, WithEvents
 
                 // Catatan di baris 4
                 $sheet->setCellValue('A4', '⚠ CATATAN: Baris ke-2 adalah contoh, hapus sebelum import.');
-                $sheet->setCellValue('A5', '⚠ Kolom Kelas (H) opsional. Isi nama kelas persis seperti di sistem (contoh: 7A, 8B, 9C).');
+                $sheet->setCellValue('A5', '⚠ Kolom Kelas (I) opsional. Isi nama kelas persis seperti di sistem (contoh: 7A, 8B, 9C).');
                 $sheet->setCellValue('A6', '⚠ Jika NISN atau NIS sudah ada di database, baris tersebut akan dilewati (skip).');
                 $sheet->getStyle('A4:A6')->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['argb' => 'FFB45309']],

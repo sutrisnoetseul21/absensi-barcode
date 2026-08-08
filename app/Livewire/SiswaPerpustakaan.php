@@ -91,7 +91,7 @@ class SiswaPerpustakaan extends Component
 
             // We need to fetch the closest return date for books that have 0 available exemplars
             // To be efficient, we can do this only for the paginated items that have 0 availability
-            $bukus = $query->paginate(12);
+            $bukus = $query->paginate(15);
 
             // Fetch return dates and check if student is currently borrowing this book
             foreach ($bukus as $buku) {

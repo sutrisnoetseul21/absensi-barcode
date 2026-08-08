@@ -55,6 +55,28 @@ class SiswaForm
                     ->nullable()
                     ->columnSpanFull(),
 
+                TextInput::make('no_hp')
+                    ->label('Nomor WhatsApp')
+                    ->tel()
+                    ->rule(function () {
+                        return function (string $attribute, $value, \Closure $fail) {
+                            $digits = preg_replace('/\D/', '', $value ?? '');
+                            if ($digits) {
+                                $normalized = $digits;
+                                if (str_starts_with($normalized, '0')) {
+                                    $normalized = '62' . substr($normalized, 1);
+                                } elseif (!str_starts_with($normalized, '62')) {
+                                    $normalized = '62' . $normalized;
+                                }
+                                if (!preg_match('/^628[0-9]{7,12}$/', $normalized)) {
+                                    $fail('Format nomor HP tidak valid. Contoh: 081234567890');
+                                }
+                            }
+                        };
+                    })
+                    ->helperText('Format bebas, otomatis dinormalisasi ke 62xxx.')
+                    ->nullable(),
+
                 FileUpload::make('photo_path')
                     ->label('Foto Siswa')
                     ->image()

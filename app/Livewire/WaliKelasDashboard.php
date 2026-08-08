@@ -39,6 +39,8 @@ class WaliKelasDashboard extends Component
     public $showInputModal = false;
     public $inputDate;
     public $inputStudents = [];
+    public $bulkStatusDatang = '';
+    public $bulkStatusPulang = '';
 
     // Cetak Laporan Modals
     public $showCetakModal = false;
@@ -213,6 +215,8 @@ class WaliKelasDashboard extends Component
 
     public function openInputModal()
     {
+        $this->bulkStatusDatang = '';
+        $this->bulkStatusPulang = '';
         $this->inputDate = $this->todayDate ?? Carbon::now('Asia/Jakarta')->toDateString();
         $this->loadStudentsForInput();
         $this->showInputModal = true;
@@ -247,7 +251,51 @@ class WaliKelasDashboard extends Component
                 'is_manual_input' => $att ? $att->is_manual_input : null,
             ];
         }
+        $this->bulkStatusDatang = '';
+        $this->bulkStatusPulang = '';
         $this->inputStudents = $list;
+    }
+
+    public function updatedBulkStatusDatang($value)
+    {
+        $this->applyBulkStatusDatang($value);
+    }
+
+    public function applyBulkStatusDatang($status)
+    {
+        if (empty($status)) return;
+
+        foreach ($this->inputStudents as $index => $student) {
+            // Lewati siswa yang sudah absen otomatis (is_manual_input === false)
+            if (isset($student['is_manual_input']) && $student['is_manual_input'] === false) {
+                continue;
+            }
+
+            $this->inputStudents[$index]['status'] = $status;
+            if (in_array($status, ['izin', 'sakit', 'alpa'])) {
+                $this->inputStudents[$index]['status_pulang'] = $status;
+            }
+        }
+    }
+
+    public function updatedBulkStatusPulang($value)
+    {
+        $this->applyBulkStatusPulang($value);
+    }
+
+    public function applyBulkStatusPulang($status)
+    {
+        if (empty($status)) return;
+
+        foreach ($this->inputStudents as $index => $student) {
+            // Abaikan siswa yang status kedatangannya izin/sakit/alpa
+            $currentStatus = $student['status'] ?? '';
+            if (in_array($currentStatus, ['izin', 'sakit', 'alpa'])) {
+                continue;
+            }
+
+            $this->inputStudents[$index]['status_pulang'] = $status;
+        }
     }
 
     public function saveManualInput()

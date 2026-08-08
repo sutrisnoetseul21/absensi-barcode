@@ -27,7 +27,8 @@ class GuruImport implements ToCollection
             
             $rawNip = trim((string) ($row[1] ?? ''), " '\"\t\n\r\0\x0B");
             $nip = preg_replace('/\D/', '', $rawNip); // Hanya ambil angka
-            $passwordVal = trim((string) ($row[2] ?? ''));
+            $no_hp = trim((string) ($row[2] ?? ''));
+            $passwordVal = trim((string) ($row[3] ?? ''));
 
             if ($name === '') {
                 continue; // skip empty rows
@@ -51,6 +52,7 @@ class GuruImport implements ToCollection
             $dataToSave = [
                 'name' => $name,
                 'nip' => $nip,
+                'no_hp' => $no_hp !== '' ? $no_hp : null,
             ];
 
             if ($existingGuru) {

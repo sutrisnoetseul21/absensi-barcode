@@ -79,18 +79,18 @@
 
                 <!-- Hasil Pencarian -->
                 @if($bukus->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 xl:gap-5">
                         @foreach($bukus as $buku)
-                            <div class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-brand-primary/30 transition-all duration-300 group">
-                                <div class="h-40 bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
+                            <div class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-indigo-500/30 transition-all duration-300 group">
+                                <div class="h-44 sm:h-52 bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
                                     @if($buku->sampul_buku)
                                         <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="{{ $buku->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     @else
                                         <svg class="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                                     @endif
                                 </div>
-                                <div class="p-6 flex-1 flex flex-col">
-                                    <div class="flex justify-between items-start mb-4">
+                                <div class="p-4 sm:p-5 flex-1 flex flex-col">
+                                    <div class="flex flex-wrap justify-between items-start gap-1.5 mb-3">
                                         <div class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $buku->dipinjam_oleh_saya ? 'bg-amber-100 text-amber-700' : ($buku->eksemplar_tersedia_count > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700') }}">
                                             @if($buku->dipinjam_oleh_saya)
                                                 <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>
@@ -145,7 +145,7 @@
                     </div>
                     
                     <div class="mt-8">
-                        {{ $bukus->links() }}
+                        {{ $bukus->links('vendor.livewire.custom-pagination') }}
                     </div>
                 @else
                     <div class="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-300">
@@ -233,8 +233,8 @@
                 </div>
                 
                 @if($peminjamanAktif->hasPages())
-                    <div class="p-4 border-t border-slate-200">
-                        {{ $peminjamanAktif->links() }}
+                    <div class="mt-6">
+                        {{ $peminjamanAktif->links('vendor.livewire.custom-pagination') }}
                     </div>
                 @endif
             </div>
@@ -316,8 +316,8 @@
                 </div>
                 
                 @if($riwayatPeminjaman->hasPages())
-                    <div class="p-4 border-t border-slate-200">
-                        {{ $riwayatPeminjaman->links() }}
+                    <div class="mt-6">
+                        {{ $riwayatPeminjaman->links('vendor.livewire.custom-pagination') }}
                     </div>
                 @endif
             </div>
@@ -375,8 +375,8 @@
                 </div>
                 
                 @if($riwayatKunjungan->hasPages())
-                    <div class="p-4 border-t border-slate-200">
-                        {{ $riwayatKunjungan->links() }}
+                    <div class="mt-6">
+                        {{ $riwayatKunjungan->links('vendor.livewire.custom-pagination') }}
                     </div>
                 @endif
             </div>

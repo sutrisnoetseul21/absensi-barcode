@@ -93,7 +93,7 @@ class KatalogPerpustakaan extends Component
             $query->where('grade_level', $this->grade_level);
         }
 
-        $bukus = $query->orderBy('created_at', 'desc')->paginate(12);
+        $bukus = $query->orderBy('created_at', 'desc')->paginate(15);
 
         $kategoris = Cache::remember('kategori_bukus_all', 3600, function () {
             return KategoriBuku::orderBy('nama_kategori')->get();

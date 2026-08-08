@@ -37,6 +37,7 @@ class ImportSiswaBaruAction extends Action
             ->icon('heroicon-o-arrow-up-tray')
             ->color('success')
             ->modalHeading('Import Siswa Baru (PPDB)')
+            ->modalDescription(new \Illuminate\Support\HtmlString('Unduh template Excel resmi: <a href="' . route('admin.siswa.download-template') . '" target="_blank" style="color: #2563eb; font-weight: 600; text-decoration: underline;">Download Template Siswa Baru (.xlsx)</a>'))
             ->modalWidth('5xl')
             ->form([
                 // ── Cek TA Aktif ───────────────────────────────────────────────
@@ -154,7 +155,7 @@ class ImportSiswaBaruAction extends Action
                                 $nisn     = trim((string)($row[0] ?? ''));
                                 $nis      = trim((string)($row[1] ?? ''));
                                 $name     = trim((string)($row[2] ?? ''));
-                                $kelas    = trim((string)($row[7] ?? ''));
+                                $kelas    = trim((string)($row[8] ?? ''));
 
                                 // Tentukan status preview
                                 [$statusHtml, $statusType] = $this->determinePreviewStatus(

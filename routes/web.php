@@ -21,6 +21,11 @@ Route::get('/presensi', PublicDashboard::class)->name('public.dashboard');
 Route::get('/presensi/dashboardv1', PublicDashboardV1::class)->name('public.dashboard.v1');
 Route::get('/presensi/display', PublicDashboard::class)->name('public.display');
 
+// API Client-Side JS Cache Katalog Buku
+Route::get('/api/katalog-buku-cache', [\App\Http\Controllers\Api\KatalogApiController::class, 'getCatalogJson'])
+    ->middleware('throttle:120,1')
+    ->name('api.katalog-buku.cache');
+
 // Dashboard Publik Perpustakaan
 Route::get('/perpustakaan', KatalogPerpustakaan::class)
     ->middleware('throttle:60,1')
@@ -125,6 +130,28 @@ Route::middleware('auth')->group(function () {
             $filename
         );
     })->name('admin.import.download-laporan');
+
+    // Route Download Template Excel
+    Route::get('/admin/siswa/download-template', function () {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SiswaBaruTemplateExport,
+            'template_siswa_baru.xlsx'
+        );
+    })->name('admin.siswa.download-template');
+
+    Route::get('/admin/guru/download-template', function () {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\GuruTemplateExport,
+            'template_guru.xlsx'
+        );
+    })->name('admin.guru.download-template');
+
+    Route::get('/admin/kelas/download-template', function () {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\KelasTemplateExport,
+            'template_kelas.xlsx'
+        );
+    })->name('admin.kelas.download-template');
 
     // Katalog Buku: Unduh PDF & Excel (dengan filter koleksi & mapel)
     Route::get('/admin-perpustakaan/katalog-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPdf'])
