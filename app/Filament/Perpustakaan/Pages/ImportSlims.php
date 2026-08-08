@@ -132,5 +132,37 @@ class ImportSlims extends Page implements HasForms
         return Excel::download(new SlimsBukuExport(app(SlimsConnectionService::class)), 'katalog-buku-slims.xlsx');
     }
 
+    protected function getHeaderActions(): array
+    {
+        $settings = \App\Models\PengaturanSekolah::current();
+        if ($settings && $settings->is_barcode_setup_completed) {
+            return [];
+        }
+
+        return [
+            \Filament\Actions\Action::make('skipSetup')
+                ->label('Batal Import, Mulai dari Nomor Awal')
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Batal Import SLiMS?')
+                ->modalDescription('Anda akan membatalkan proses import SLiMS dan sistem akan mengatur penomoran barcode dimulai dari awal (Nomor 1). Anda yakin ingin melanjutkan?')
+                ->action(function () {
+                    $settings = \App\Models\PengaturanSekolah::current();
+                    if ($settings) {
+                        $settings->update([
+                            'last_barcode_number' => 0,
+                            'is_barcode_setup_completed' => true
+                        ]);
+                        Notification::make()
+                            ->title('Setup Selesai. Penomoran dimulai dari 1.')
+                            ->success()
+                            ->send();
+                        return redirect()->to(\App\Filament\Perpustakaan\Pages\Dashboard::getUrl());
+                    }
+                })
+        ];
+    }
+
 }
 

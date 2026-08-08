@@ -31,6 +31,7 @@ class PengaturanSekolah extends Model
         'enable_promotion_features',
         'barcode_scan_mode',
         'lama_pinjam_buku_hari',
+        'last_barcode_number',
         'theme_primary',
         'theme_secondary',
         'theme_accent',
@@ -46,6 +47,7 @@ class PengaturanSekolah extends Model
         'welcome_message_perpustakaan',
         'global_announcement_active',
         'global_announcement',
+        'is_barcode_setup_completed',
     ];
 
     protected $casts = [
@@ -58,6 +60,7 @@ class PengaturanSekolah extends Model
         'maintenance_portal_guru'         => 'boolean',
         'maintenance_portal_perpustakaan' => 'boolean',
         'global_announcement_active'      => 'boolean',
+        'is_barcode_setup_completed'      => 'boolean',
     ];
 
     // Tahun ajaran yang sedang aktif

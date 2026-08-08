@@ -30,6 +30,8 @@ class ImportSlimsBukuJob implements ShouldQueue
 
     public function handle(): void
     {
+        \App\Models\EksemplarBuku::$isBulkImporting = true;
+
         try {
             // Import kedua sheet secara sinkron di background
             Excel::import(new SlimsBukuImport(), $this->filePath);
@@ -76,12 +78,21 @@ class ImportSlimsBukuJob implements ShouldQueue
                 }
             }
 
+            // Trigger auto-sync counter barcode setelah semua data masuk
+            \App\Services\BarcodeService::autoSyncBarcodeNumber();
+
+            // Set setup completed flag
+            $settings = \App\Models\PengaturanSekolah::current();
+            if ($settings) {
+                $settings->update(['is_barcode_setup_completed' => true]);
+            }
+
             // Beri notifikasi ke user jika sukses
             $user = User::find($this->userId);
             if ($user) {
                 Notification::make()
                     ->title('Import Buku SLiMS Berhasil')
-                    ->body('Data Buku dan Eksemplar berhasil diimport sepenuhnya ke ERP.')
+                    ->body('Data Buku dan Eksemplar berhasil diimport sepenuhnya ke ERP. Setup Barcode telah diselesaikan otomatis.')
                     ->success()
                     ->sendToDatabase($user);
             }
@@ -96,6 +107,7 @@ class ImportSlimsBukuJob implements ShouldQueue
             }
             throw $e;
         } finally {
+            \App\Models\EksemplarBuku::$isBulkImporting = false;
             // Selalu hapus file temporary
             @unlink($this->filePath);
         }

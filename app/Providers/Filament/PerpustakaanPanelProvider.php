@@ -76,7 +76,7 @@ class PerpustakaanPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Perpustakaan/Resources'), for: 'App\Filament\Perpustakaan\Resources')
             ->discoverPages(in: app_path('Filament/Perpustakaan/Pages'), for: 'App\Filament\Perpustakaan\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Perpustakaan\Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Perpustakaan/Widgets'), for: 'App\Filament\Perpustakaan\Widgets')
             ->widgets([

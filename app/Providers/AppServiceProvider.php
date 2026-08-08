@@ -45,6 +45,9 @@ class AppServiceProvider extends ServiceProvider
             return $user->is_super_admin ? true : null;
         });
 
+        // Observers
+        \App\Models\EksemplarBuku::observe(\App\Observers\EksemplarBukuObserver::class);
+
         // ─────────────────────────────────────────────────────────────
         // Event-Driven Architecture — Modul Siswa (Tahap 2 Refactoring)
         //

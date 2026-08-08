@@ -29,7 +29,8 @@ class CreateBuku extends CreateRecord
         $jumlah = $this->jumlahEksemplar;
         $prefix = $this->prefixKode;
         $asal = $this->data['asal_buku'] ?? 'Pembelian';
-        $harga = $this->data['harga_buku'] ?? null;
+        $hargaRaw = $this->data['harga_buku'] ?? null;
+        $harga = ($hargaRaw === '' || $hargaRaw === null) ? null : (int) $hargaRaw;
 
         if ($jumlah > 0) {
             try {

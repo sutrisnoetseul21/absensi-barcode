@@ -80,7 +80,9 @@ class BukuForm
                                 '9' => 'Kelas 9',
                             ])
                             ->placeholder('Pilih Jenjang')
-                            ->nullable(),
+                            ->nullable()
+                            ->formatStateUsing(fn ($state) => $state === null ? 'umum' : (string) $state)
+                            ->dehydrateStateUsing(fn ($state) => ($state === 'umum' || blank($state)) ? null : (int) $state),
                     ])->columns(2)->columnSpanFull(),
 
                     Group::make()->schema([
@@ -228,7 +230,8 @@ class BukuForm
                             ->placeholder('Misal: INF, MAT, UMM')
                             ->helperText('Contoh: INF untuk Informatika, MAT untuk Matematika')
                             ->maxLength(10)
-                            ->required(),
+                            ->required()
+                            ->dehydrateStateUsing(fn ($state) => strtoupper($state)),
                     ])
                     ->columns(2)
                     ->visible(fn ($operation) => $operation === 'create'),

@@ -256,7 +256,8 @@ class PetugasPerpusBuku extends Component
 
             // 3. Generate Eksemplar Fisik
             $jumlah = (int)$this->jumlah_eksemplar;
-            $generateResult = EksemplarBuku::generateKodeEksemplar($this->prefix_kode, $jumlah);
+            $prefixUpper = strtoupper($this->prefix_kode);
+            $generateResult = EksemplarBuku::generateKodeEksemplar($prefixUpper, $jumlah);
             foreach ($generateResult['codes'] as $kodeBarcode) {
                 EksemplarBuku::create([
                     'buku_id' => $buku->id,
