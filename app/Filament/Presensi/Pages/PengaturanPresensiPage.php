@@ -3,10 +3,7 @@
 namespace App\Filament\Presensi\Pages;
 
 use App\Models\PengaturanSekolah;
-use App\Models\TahunAjaran;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
@@ -51,7 +48,7 @@ class PengaturanPresensiPage extends Page implements HasForms
         $settings = PengaturanSekolah::current();
         $data = $settings ? $settings->toArray() : [];
 
-        // Load data WhatsApp Settings
+        // Load data WhatsApp Settings (Koneksi API saja)
         $wa = \App\Models\WhatsAppSetting::current();
         $data['wa_is_active'] = $wa->is_active;
         $data['wa_base_url'] = $wa->base_url;
@@ -61,34 +58,6 @@ class PengaturanPresensiPage extends Page implements HasForms
         $data['wa_delay_between_messages_seconds'] = $wa->delay_between_messages_seconds;
         $data['wa_send_window_start'] = $wa->send_window_start;
         $data['wa_send_window_end'] = $wa->send_window_end;
-
-        // Load data Presensi Notification Settings
-        $notifSettings = \App\Models\PresensiNotificationSetting::all()->keyBy('status_presensi')->toArray();
-        // Sembunyikan 'hadir' dan 'pulang' agar tidak memicu spam
-        $orderedStatuses = ['telat', 'alpa', 'sakit', 'izin'];
-        $repeaterData = [];
-        foreach ($orderedStatuses as $status) {
-            if (isset($notifSettings[$status])) {
-                $repeaterData[] = $notifSettings[$status];
-            }
-        }
-        $data['wa_notifications'] = $repeaterData;
-
-        // Load data Laporan Harian
-        $daily = \App\Models\PresensiDailyReportSetting::current();
-        $data['daily_is_active'] = $daily->is_active;
-        $data['daily_cutoff_time'] = $daily->cutoff_time;
-        $data['daily_recipients'] = $daily->recipients ?? [];
-        $data['daily_template_pesan'] = $daily->template_pesan;
-
-        // Load data Rekap Seluruh Sekolah
-        $school = \App\Models\PresensiSchoolSummarySetting::current();
-        $data['school_is_active'] = $school->is_active;
-        $data['school_cutoff_time'] = $school->cutoff_time;
-        $data['school_recipients'] = $school->recipients ?? [];
-        $data['school_template_header'] = $school->template_header;
-        $data['school_template_row'] = $school->template_row;
-        $data['school_template_footer'] = $school->template_footer;
 
         $this->form->fill($data);
     }
@@ -135,187 +104,89 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->helperText('Menentukan jenis barcode yang akan dipindai oleh mesin presensi.'),
                     ])->columns(2),
 
-                Section::make('Notifikasi WhatsApp')
+                Section::make('Koneksi API WhatsApp (Evolution API)')
                     ->schema([
-                        Section::make('Koneksi API WhatsApp (Evolution API)')
-                            ->schema([
-                                Toggle::make('wa_is_active')
-                                    ->label('Aktifkan Notifikasi WhatsApp')
-                                    ->reactive(),
-                                TextInput::make('wa_base_url')
-                                    ->label('Base URL Evolution API')
-                                    ->url()
-                                    ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('wa_is_active')),
-                                TextInput::make('wa_api_key')
-                                    ->label('API Key')
-                                    ->password()
-                                    ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('wa_is_active')),
-                                TextInput::make('wa_instance_name')
-                                    ->label('Nama Instance/Session'),
-                                TextInput::make('wa_sender_number')
-                                    ->label('Nomor Pengirim')
-                                    ->disabled()
-                                    ->helperText('Nomor sender yang terkoneksi di Evolution API (readonly).'),
-                                TextInput::make('wa_delay_between_messages_seconds')
-                                    ->label('Jeda antar pesan (detik)')
-                                    ->numeric()
-                                    ->default(4),
-                                TimePicker::make('wa_send_window_start')
-                                    ->label('Jam mulai pengiriman (Send Window)'),
-                                TimePicker::make('wa_send_window_end')
-                                    ->label('Jam batas pengiriman (Send Window)'),
-                                \Filament\Schemas\Components\Actions::make([
-                                    \Filament\Actions\Action::make('test_connection')
-                                        ->label('Test Koneksi')
-                                        ->icon('heroicon-o-signal')
-                                        ->color('info')
-                                        ->action(function (\Filament\Schemas\Components\Utilities\Get $get, \Filament\Schemas\Components\Utilities\Set $set) {
-                                            $baseUrl = $get('wa_base_url');
-                                            $apiKey = $get('wa_api_key');
-                                            $instanceName = $get('wa_instance_name');
+                        Toggle::make('wa_is_active')
+                            ->label('Aktifkan Notifikasi WhatsApp')
+                            ->reactive(),
+                        TextInput::make('wa_base_url')
+                            ->label('Base URL Evolution API')
+                            ->url()
+                            ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('wa_is_active')),
+                        TextInput::make('wa_api_key')
+                            ->label('API Key')
+                            ->password()
+                            ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('wa_is_active')),
+                        TextInput::make('wa_instance_name')
+                            ->label('Nama Instance/Session'),
+                        TextInput::make('wa_sender_number')
+                            ->label('Nomor Pengirim')
+                            ->disabled()
+                            ->helperText('Nomor sender yang terkoneksi di Evolution API (readonly).'),
+                        TextInput::make('wa_delay_between_messages_seconds')
+                            ->label('Jeda antar pesan (detik)')
+                            ->numeric()
+                            ->default(4),
+                        TimePicker::make('wa_send_window_start')
+                            ->label('Jam mulai pengiriman (Send Window)'),
+                        TimePicker::make('wa_send_window_end')
+                            ->label('Jam batas pengiriman (Send Window)'),
+                        \Filament\Schemas\Components\Actions::make([
+                            \Filament\Actions\Action::make('test_connection')
+                                ->label('Test Koneksi')
+                                ->icon('heroicon-o-signal')
+                                ->color('info')
+                                ->action(function (\Filament\Schemas\Components\Utilities\Get $get, \Filament\Schemas\Components\Utilities\Set $set) {
+                                    $baseUrl = $get('wa_base_url');
+                                    $apiKey = $get('wa_api_key');
+                                    $instanceName = $get('wa_instance_name');
+                                    
+                                    if (!$baseUrl || !$apiKey || !$instanceName) {
+                                        Notification::make()
+                                            ->title('Harap isi Base URL, API Key, dan Nama Instance terlebih dahulu.')
+                                            ->danger()
+                                            ->send();
+                                        return;
+                                    }
+
+                                    try {
+                                        $endpoint = rtrim($baseUrl, '/') . '/instance/connectionState/' . $instanceName;
+                                        $response = \Illuminate\Support\Facades\Http::withHeaders([
+                                            'apikey' => $apiKey
+                                        ])->timeout(5)->get($endpoint);
+
+                                        if ($response->successful()) {
+                                            $data = $response->json();
+                                            $state = $data['instance']['state'] ?? 'unknown';
                                             
-                                            if (!$baseUrl || !$apiKey || !$instanceName) {
+                                            if ($state === 'open') {
                                                 Notification::make()
-                                                    ->title('Harap isi Base URL, API Key, dan Nama Instance terlebih dahulu.')
-                                                    ->danger()
+                                                    ->title('Koneksi Berhasil! WhatsApp siap digunakan.')
+                                                    ->success()
                                                     ->send();
-                                                return;
-                                            }
-
-                                            try {
-                                                $endpoint = rtrim($baseUrl, '/') . '/instance/connectionState/' . $instanceName;
-                                                $response = \Illuminate\Support\Facades\Http::withHeaders([
-                                                    'apikey' => $apiKey
-                                                ])->timeout(5)->get($endpoint);
-
-                                                if ($response->successful()) {
-                                                    $data = $response->json();
-                                                    $state = $data['instance']['state'] ?? 'unknown';
-                                                    
-                                                    if ($state === 'open') {
-                                                        Notification::make()
-                                                            ->title('Koneksi Berhasil! WhatsApp siap digunakan.')
-                                                            ->success()
-                                                            ->send();
-                                                    } else {
-                                                        Notification::make()
-                                                            ->title('Instance ditemukan, tapi status: ' . strtoupper($state) . '. Silakan pastikan sudah Scan QR.')
-                                                            ->warning()
-                                                            ->send();
-                                                    }
-                                                } else {
-                                                    // Coba tangkap pesan error dari Evolution
-                                                    $errorMsg = $response->json('message') ?? $response->body();
-                                                    Notification::make()
-                                                        ->title('Gagal terhubung (Status ' . $response->status() . ')')
-                                                        ->body(substr($errorMsg, 0, 100))
-                                                        ->danger()
-                                                        ->send();
-                                                }
-                                            } catch (\Exception $e) {
+                                            } else {
                                                 Notification::make()
-                                                    ->title('Koneksi Error')
-                                                    ->body($e->getMessage())
-                                                    ->danger()
+                                                    ->title('Instance ditemukan, tapi status: ' . strtoupper($state) . '. Silakan pastikan sudah Scan QR.')
+                                                    ->warning()
                                                     ->send();
                                             }
-                                        })
-                                ])
-                            ])->columns(2),
-
-                        Section::make('Aturan Notifikasi Presensi')
-                            ->schema([
-                                \Filament\Forms\Components\Repeater::make('wa_notifications')
-                                    ->label('')
-                                    ->schema([
-                                        TextInput::make('status_presensi')
-                                            ->label('Status Kehadiran')
-                                            ->disabled()
-                                            ->dehydrated()
-                                            ->formatStateUsing(fn ($state) => ucfirst($state)),
-                                        Toggle::make('is_active')
-                                            ->label('Aktif'),
-                                        \Filament\Forms\Components\CheckboxList::make('recipients')
-                                            ->label('Kirim Ke (Penerima)')
-                                            ->options(function () {
-                                                $options = [
-                                                    'ortu' => 'Orang Tua',
-                                                    'wali_kelas' => 'Wali Kelas',
-                                                ];
-                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                                return array_merge($options, $jabatans);
-                                            })
-                                            ->columns(2),
-                                        Textarea::make('template_pesan')
-                                            ->label('Template Pesan')
-                                            ->rows(4)
-                                            ->helperText('Placeholder tersedia: {nama_siswa}, {kelas}, {tanggal}, {jam}, {status_kehadiran}, {nama_wali_kelas}, {nama_sekolah}')
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->addable(false)
-                                    ->deletable(false)
-                                    ->reorderable(false)
-                                    ->columns(2)
-                            ])
-                    ]),
-
-                Section::make('Laporan Harian Wali Kelas')
-                    ->description('Pengaturan pengiriman rekap harian presensi per kelas beserta daftar siswa yang belum presensi.')
-                    ->schema([
-                        Toggle::make('daily_is_active')
-                            ->label('Aktifkan Laporan Harian')
-                            ->columnSpanFull(),
-                        TimePicker::make('daily_cutoff_time')
-                            ->label('Jam Pengiriman (Cut-off Time)')
-                            ->seconds(false)
-                            ->required(),
-                        \Filament\Forms\Components\CheckboxList::make('daily_recipients')
-                            ->label('Kirim Ke (Penerima)')
-                            ->options(function () {
-                                $options = [
-                                    'wali_kelas' => 'Wali Kelas',
-                                ];
-                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                return array_merge($options, $jabatans);
-                            })
-                            ->columns(2),
-                        Textarea::make('daily_template_pesan')
-                            ->label('Template Pesan')
-                            ->rows(6)
-                            ->helperText('Placeholder tersedia: {nama_kelas}, {tanggal}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {jumlah_alpa}, {jumlah_sakit}, {jumlah_izin}, {daftar_belum_presensi}')
-                            ->columnSpanFull(),
-                    ]),
-
-                Section::make('Laporan Rekap Seluruh Sekolah')
-                    ->description('Pengaturan pengiriman rekap presensi seluruh kelas sekaligus (Helicopter View) untuk Manajemen Sekolah.')
-                    ->schema([
-                        Toggle::make('school_is_active')
-                            ->label('Aktifkan Laporan Rekap Sekolah')
-                            ->columnSpanFull(),
-                        TimePicker::make('school_cutoff_time')
-                            ->label('Jam Pengiriman (Cut-off Time)')
-                            ->seconds(false)
-                            ->required(),
-                        \Filament\Forms\Components\CheckboxList::make('school_recipients')
-                            ->label('Kirim Ke (Penerima)')
-                            ->options(function () {
-                                return \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                            })
-                            ->columns(2),
-                        Textarea::make('school_template_header')
-                            ->label('Template Header')
-                            ->rows(3)
-                            ->helperText('Placeholder: {nama_sekolah}, {hari}, {tanggal}')
-                            ->columnSpanFull(),
-                        Textarea::make('school_template_row')
-                            ->label('Template Baris per Kelas')
-                            ->rows(3)
-                            ->helperText('Diulang untuk setiap kelas. Placeholder: {nama_kelas}, {jumlah_hadir}, {jumlah_terlambat}, {nama_terlambat}, {jumlah_sakit}, {nama_sakit}, {jumlah_izin}, {nama_izin}, {jumlah_alpa}, {nama_alpa}, {jumlah_belum_presensi}, {nama_belum_presensi}')
-                            ->columnSpanFull(),
-                        Textarea::make('school_template_footer')
-                            ->label('Template Footer')
-                            ->rows(3)
-                            ->columnSpanFull(),
+                                        } else {
+                                            $errorMsg = $response->json('message') ?? $response->body();
+                                            Notification::make()
+                                                ->title('Gagal terhubung (Status ' . $response->status() . ')')
+                                                ->body(substr($errorMsg, 0, 100))
+                                                ->danger()
+                                                ->send();
+                                        }
+                                    } catch (\Exception $e) {
+                                        Notification::make()
+                                            ->title('Koneksi Error')
+                                            ->body($e->getMessage())
+                                            ->danger()
+                                            ->send();
+                                    }
+                                })
+                        ])
                     ])->columns(2),
 
             ])
@@ -336,53 +207,20 @@ class PengaturanPresensiPage extends Page implements HasForms
             }
             \Illuminate\Support\Facades\Cache::forget('public_pengaturan_sekolah');
 
-            // Simpan WhatsAppSetting
+            // Simpan WhatsAppSetting (Koneksi API)
             $wa = \App\Models\WhatsAppSetting::current();
             $wa->update([
                 'is_active' => $data['wa_is_active'] ?? false,
                 'base_url' => $data['wa_base_url'] ?? null,
                 'api_key' => $data['wa_api_key'] ?? null,
                 'instance_name' => $data['wa_instance_name'] ?? null,
-                // sender_number sengaja tidak di-update dari sini (biasanya ditarik dari API)
                 'delay_between_messages_seconds' => $data['wa_delay_between_messages_seconds'] ?? 4,
                 'send_window_start' => $data['wa_send_window_start'] ?? null,
                 'send_window_end' => $data['wa_send_window_end'] ?? null,
             ]);
 
-            // Simpan Aturan Notifikasi
-            if (isset($data['wa_notifications']) && is_array($data['wa_notifications'])) {
-                foreach ($data['wa_notifications'] as $notif) {
-                    \App\Models\PresensiNotificationSetting::where('status_presensi', $notif['status_presensi'])
-                        ->update([
-                            'is_active' => $notif['is_active'] ?? false,
-                            'recipients' => $notif['recipients'] ?? [],
-                            'template_pesan' => $notif['template_pesan'] ?? '',
-                        ]);
-                }
-            }
-
-            // Simpan Laporan Harian
-            $daily = \App\Models\PresensiDailyReportSetting::current();
-            $daily->update([
-                'is_active' => $data['daily_is_active'] ?? false,
-                'cutoff_time' => $data['daily_cutoff_time'] ?? '08:00:00',
-                'recipients' => $data['daily_recipients'] ?? [],
-                'template_pesan' => $data['daily_template_pesan'] ?? '',
-            ]);
-
-            // Simpan Rekap Seluruh Sekolah
-            $school = \App\Models\PresensiSchoolSummarySetting::current();
-            $school->update([
-                'is_active' => $data['school_is_active'] ?? false,
-                'cutoff_time' => $data['school_cutoff_time'] ?? '08:15:00',
-                'recipients' => $data['school_recipients'] ?? [],
-                'template_header' => $data['school_template_header'] ?? '',
-                'template_row' => $data['school_template_row'] ?? '',
-                'template_footer' => $data['school_template_footer'] ?? '',
-            ]);
-
             Notification::make()
-                ->title('Pengaturan berhasil disimpan')
+                ->title('Pengaturan presensi berhasil disimpan')
                 ->success()
                 ->send();
         } catch (Halt $exception) {
