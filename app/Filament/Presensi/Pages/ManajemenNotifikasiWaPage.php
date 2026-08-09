@@ -213,12 +213,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             // Simpan Aturan Notifikasi Terpadu (Satu pengaturan untuk telat, alpa, sakit, izin)
             $exceptionStatuses = ['telat', 'alpa', 'sakit', 'izin'];
             foreach ($exceptionStatuses as $status) {
-                \App\Models\PresensiNotificationSetting::where('status_presensi', $status)
-                    ->update([
+                \App\Models\PresensiNotificationSetting::updateOrCreate(
+                    ['status_presensi' => $status],
+                    [
                         'is_active' => $data['student_notif_is_active'] ?? false,
                         'recipients' => $data['student_notif_recipients'] ?? [],
                         'template_pesan' => $data['student_notif_template_pesan'] ?? '',
-                    ]);
+                    ]
+                );
             }
 
             // Simpan Laporan Harian
