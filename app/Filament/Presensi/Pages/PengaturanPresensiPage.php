@@ -110,13 +110,20 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->label('Aktifkan Notifikasi WhatsApp')
                             ->reactive(),
                         TextInput::make('wa_base_url')
-                            ->label('Base URL Evolution API')
-                            ->url()
-                            ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('wa_is_active')),
+                            ->hidden()
+                            ->dehydrated(false),
                         TextInput::make('wa_api_key')
-                            ->label('API Key')
-                            ->password()
-                            ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('wa_is_active')),
+                            ->hidden()
+                            ->dehydrated(false),
+                        \Filament\Forms\Components\Placeholder::make('wa_env_credentials_info')
+                            ->hiddenLabel()
+                            ->content(new \Illuminate\Support\HtmlString('
+                                <div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                                    <span class="text-base">🔒</span>
+                                    <div><strong>Kredensial Terproteksi:</strong> Base URL & API Key Evolution API disimpan secara rahasia via file <code>.env</code> server untuk keamanan tingkat tinggi.</div>
+                                </div>
+                            '))
+                            ->columnSpanFull(),
                         TextInput::make('wa_instance_name')
                             ->label('Nama Instance/Session'),
                         TextInput::make('wa_sender_number')
@@ -137,13 +144,14 @@ class PengaturanPresensiPage extends Page implements HasForms
                                 ->icon('heroicon-o-signal')
                                 ->color('info')
                                 ->action(function (\Filament\Schemas\Components\Utilities\Get $get, \Filament\Schemas\Components\Utilities\Set $set) {
-                                    $baseUrl = $get('wa_base_url');
-                                    $apiKey = $get('wa_api_key');
-                                    $instanceName = $get('wa_instance_name');
+                                    $waSetting = \App\Models\WhatsAppSetting::current();
+                                    $baseUrl = $waSetting->base_url;
+                                    $apiKey = $waSetting->api_key;
+                                    $instanceName = $get('wa_instance_name') ?: $waSetting->instance_name;
                                     
                                     if (!$baseUrl || !$apiKey || !$instanceName) {
                                         Notification::make()
-                                            ->title('Harap isi Base URL, API Key, dan Nama Instance terlebih dahulu.')
+                                            ->title('Harap konfirmasi Base URL/API Key di .env dan Nama Instance terlebih dahulu.')
                                             ->danger()
                                             ->send();
                                         return;

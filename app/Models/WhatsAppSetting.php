@@ -24,6 +24,18 @@ class WhatsAppSetting extends Model
         'is_active' => 'boolean',
     ];
 
+    public function getBaseUrlAttribute($value)
+    {
+        $envVal = env('WA_BASE_URL');
+        return !empty($envVal) ? $envVal : $value;
+    }
+
+    public function getApiKeyAttribute($value)
+    {
+        $envVal = env('WA_API_KEY');
+        return !empty($envVal) ? $envVal : $value;
+    }
+
     /**
      * Helper untuk mengambil setting secara singleton global
      */
