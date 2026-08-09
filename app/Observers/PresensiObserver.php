@@ -31,6 +31,13 @@ class PresensiObserver
             return;
         }
 
+        // --- Pencegahan Spam Notifikasi Masa Lalu ---
+        // Jika admin menginput/mengedit presensi untuk tanggal sebelum atau sesudah hari ini,
+        // jangan kirimkan notifikasi WA real-time untuk mencegah kebingungan orang tua.
+        if ($presensi->date && !$presensi->date->isToday()) {
+            return;
+        }
+
         // Ambil aturan untuk status ini
         $setting = PresensiNotificationSetting::where('status_presensi', $status)->first();
         
