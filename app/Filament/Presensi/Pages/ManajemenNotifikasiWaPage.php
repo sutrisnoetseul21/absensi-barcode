@@ -190,6 +190,17 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                             ]),
                     ])
                     ->columnSpanFull(),
+
+                \Filament\Forms\Components\Placeholder::make('evolution_api_disclaimer')
+                    ->hiddenLabel()
+                    ->content(new \Illuminate\Support\HtmlString('
+                        <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                            <p class="font-semibold text-gray-700 dark:text-gray-300">ℹ️ Pemberitahuan Lisensi & Sanggahan (Attribution & Trademark Notice):</p>
+                            <p>• Layanan notifikasi ini didukung oleh infrastruktur open-source <strong>Evolution API</strong> (Apache License 2.0 / Evolution Foundation).</p>
+                            <p>• <em>Disclaimer:</em> Sistem ERP ini merupakan perangkat lunak independen dan tidak berafiliasi, diawasi, atau didukung secara resmi oleh WhatsApp maupun Meta Platforms, Inc. WhatsApp® adalah merek dagang terdaftar milik Meta Platforms, Inc.</p>
+                        </div>
+                    '))
+                    ->columnSpanFull(),
             ])
             ->statePath('data');
     }
