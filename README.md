@@ -18,6 +18,7 @@ Sistem ERP (Enterprise Resource Planning) berbasis Laravel 12 & Filament untuk p
 ### 3. ⚙️ Manajemen Admin Portal (`/admin/pengaturan-sekolah`)
 - **Status Maintenance Portal (Siswa, Guru, Perpus)**: Sakelar (*toggle*) terpusat untuk mematikan/menghidupkan akses portal publik dengan pesan *welcome message* dinamis per portal.
 - **Pengumuman Global**: Pita pengumuman (*announcement banner/marquee*) dinamis berbasis Rich Editor yang muncul di bagian atas layar seluruh portal aktif.
+- **WhatsApp Notification Gateway**: Modul pengaturan notifikasi via Evolution API untuk pengiriman *real-time alert* (Hadir/Telat/Sakit) dan rekap terjadwal (Laporan Kelas & Rekap Seluruh Sekolah).
 
 ### 4. 🔑 Manajemen Akses Portal (`/admin/manajemen-akses-portal`)
 - **Akses Portal Guru**:

@@ -251,3 +251,41 @@ erDiagram
 2. **Fleksibilitas Identitas Kartu**: Kiosk secara otomatis mencari kecocokan dari `barcode_code` (Student/Teacher Presensi Profile), `NISN`, `NIS`, maupun `NIP`.
 3. **Proteksi Anti Spam (Debounce)**: Sistem secara otomatis menolak pencatatan berulang untuk pengunjung yang sama jika baru saja mencatat kunjungan dalam interval 3 menit di hari yang sama.
 4. **Integrasi Admin Panel**: Petugas perpustakaan dapat memantau riwayat presensi kunjungan secara real-time via `/admin-perpustakaan/riwayat-presensi` lengkap dengan filter tanggal dan kelas.
+
+---
+
+## 8. Relasi Modul Notifikasi WhatsApp (Evolution API)
+
+Untuk mengirimkan notifikasi absensi (hadir, telat, dsb) maupun pengingat perpustakaan secara *real-time* atau terjadwal, sistem dilengkapi dengan **WhatsApp Gateway Service**.
+
+```mermaid
+erDiagram
+    whatsapp_settings ||--o{ whatsapp_notification_logs : "pusat konfigurasi API"
+    presensi_notification_settings ||--o{ whatsapp_notification_logs : "trigger notif per siswa"
+    presensi_daily_report_settings ||--o{ whatsapp_notification_logs : "trigger rekap per kelas"
+    presensi_school_summary_settings ||--o{ whatsapp_notification_logs : "trigger rekap 1 sekolah"
+
+    whatsapp_settings {
+        id PK
+        string base_url
+        string api_key
+        string instance_name
+        time send_window_start
+        time send_window_end
+    }
+
+    whatsapp_notification_logs {
+        id PK
+        string module "presensi / perpustakaan"
+        string recipient_number
+        string status "pending / sent / failed"
+        string related_type "Polymorphic marker"
+        string related_id
+    }
+```
+
+**Alur & Aturan Bisnis:**
+1. **Singleton Configuration**: Konfigurasi koneksi WA (`whatsapp_settings`), rekap kelas (`presensi_daily_report_settings`), dan rekap sekolah (`presensi_school_summary_settings`) murni berdesain *Singleton* (selalu id=1). Hanya ada 1 nomor bot untuk seluruh ERP.
+2. **Deduplication Guard**: Sebelum *Job Queue* melempar HTTP request ke Evolution API, sistem menciptakan baris log berstatus `pending` di `whatsapp_notification_logs` dengan menautkan `related_type` (misal: "presensi_telat") dan `related_id` (misal: ID Absensi siswa). Jika *Event Observer* terpanggil 2 kali untuk data yang sama, *guard* ini akan menggagalkan *dispatch* berulang, menghindari *spam* WA ganda.
+3. **Recipient Resolver**: *Service layer* (`RecipientResolverService`) bertugas menerjemahkan tujuan "Orang Tua", "Wali Kelas", atau "Kepala Sekolah" menjadi deretan angka 628xxx secara dinamis lewat query *Eloquent* ke Master Data (Siswa, Kelas, Jabatan).
+4. **Scheduler (Cron)**: Khusus untuk *Daily Report* (Laporan per Kelas) dan *School Summary* (Rekap Helikopter 1 Sekolah), Command berjalan setiap menit mengecek kecocokan dengan `cutoff_time` sebelum merangkum dan mengeksekusi pengiriman.

@@ -47,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Observers
         \App\Models\EksemplarBuku::observe(\App\Observers\EksemplarBukuObserver::class);
+        \App\Models\Presensi::observe(\App\Observers\PresensiObserver::class);
 
         // ─────────────────────────────────────────────────────────────
         // Event-Driven Architecture — Modul Siswa (Tahap 2 Refactoring)

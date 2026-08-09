@@ -437,6 +437,71 @@ school_settings ──> academic_years (active)
 holidays ──> classes (nullable, khusus kelas)
 invalid_scan_logs (standalone)
 
+---
+
+## Modul Notifikasi WhatsApp - NEW ERP
+
+### `whatsapp_settings` (Singleton)
+```
+- id (unsignedBigInteger, primary)
+- is_active (boolean) default false
+- base_url (string, nullable)
+- api_key (string, nullable)
+- instance_name (string, nullable)
+- sender_number (string, nullable)
+- delay_between_messages_seconds (integer) default 4
+- send_window_start (time, nullable)
+- send_window_end (time, nullable)
+- timestamps()
+```
+
+### `whatsapp_notification_logs` (Audit Log Pengiriman Pesan WA)
+```
+- id (unsignedBigInteger, primary)
+- module (enum: 'presensi','perpustakaan')
+- recipient_type (string) → 'ortu', 'wali_kelas', 'Siswa', atau nama jabatan
+- recipient_number (string)
+- message (text)
+- status (enum: 'pending','sent','failed') default 'pending'
+- response_payload (json, nullable)
+- related_type (string, nullable) → misal 'presensi_telat', 'daily_report_kelas', 'school_summary_report'
+- related_id (string, nullable) → ID referensi kejadian
+- sent_at (timestamp, nullable)
+- timestamps()
+```
+
+### `presensi_notification_settings` (Aturan Notifikasi Real-time)
+```
+- id (unsignedBigInteger, primary)
+- status_presensi (string, unique) → 'hadir', 'sakit', 'izin', 'alpa', 'telat', 'pulang'
+- is_active (boolean) default false
+- recipients (json, nullable) → misal ["ortu", "wali_kelas", "Kepala Sekolah"]
+- template_pesan (text, nullable)
+- timestamps()
+```
+
+### `presensi_daily_report_settings` (Laporan Harian Kelas)
+```
+- id (unsignedBigInteger, primary)
+- is_active (boolean) default false
+- cutoff_time (time) default '08:00:00'
+- template_pesan (text, nullable)
+- recipients (json, nullable) → default ["wali_kelas"]
+- timestamps()
+```
+
+### `presensi_school_summary_settings` (Rekap Seluruh Sekolah)
+```
+- id (unsignedBigInteger, primary)
+- is_active (boolean) default false
+- cutoff_time (time) default '08:15:00'
+- template_header (text, nullable)
+- template_row (text, nullable)
+- template_footer (text, nullable)
+- recipients (json, nullable) → default ["Kepala Sekolah"]
+- timestamps()
+```
+
 > **Catatan no_hp:**
 > `no_hp` untuk akun dengan profil Guru/Siswa diambil dari tabel `teachers`/`students` (single source of truth). `users.no_hp` hanya dipakai untuk akun staff murni tanpa profil akademik. Disimpan dalam format normalisasi 62xxx (tanpa + atau 0 di depan) via model mutator, untuk kesiapan integrasi WA Gateway.
 
