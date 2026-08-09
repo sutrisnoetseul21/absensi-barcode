@@ -52,7 +52,7 @@
             })();
         </script>
     </head>
-    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex overflow-hidden" style="height: 100dvh; max-height: 100dvh;" x-data="{ sidebarOpen: false, sidebarCollapsed: (() => { const s = localStorage.getItem('portal_sidebar_collapsed'); return s === null ? window.innerWidth < 1280 : s === 'true'; })() }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val))">
+    <body class="font-sans antialiased text-gray-900 bg-gray-50 flex overflow-hidden" style="height: 100dvh; max-height: 100dvh;" x-data="{ sidebarOpen: false, sidebarCollapsed: (() => { const s = localStorage.getItem('portal_sidebar_collapsed'); return s === null ? window.innerWidth < 1280 : s === 'true'; })(), windowWidth: window.innerWidth, get isCollapsed() { return this.sidebarCollapsed && this.windowWidth >= 1024; } }" x-init="window.addEventListener('resize', () => { windowWidth = window.innerWidth; }); $watch('sidebarCollapsed', val => localStorage.setItem('portal_sidebar_collapsed', val));">
         
         @php
             $user = Auth::guard('web')->user();
@@ -96,13 +96,13 @@
                :class="{
                    'translate-x-0 pointer-events-auto': sidebarOpen, 
                    '-translate-x-full max-lg:pointer-events-none': !sidebarOpen,
-                   'w-72 lg:w-72': !sidebarCollapsed,
-                   'w-72 lg:w-20': sidebarCollapsed
+                   'w-72 lg:w-72': !isCollapsed,
+                   'w-72 lg:w-20': isCollapsed
                }">
             
             <!-- Sidebar Header (Brand Gradient) -->
             <div class="flex items-center justify-between h-20 bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-sm transition-all duration-300"
-                 :class="sidebarCollapsed ? 'px-3 justify-center' : 'px-6'">
+                 :class="isCollapsed ? 'px-3 justify-center' : 'px-6'">
                 <div class="flex items-center gap-3 overflow-hidden">
                     @if($sekolah?->school_logo_path)
                         <div class="h-10 w-10 min-w-10 bg-white p-1 rounded-xl shadow-md flex items-center justify-center">
@@ -113,7 +113,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                         </div>
                     @endif
-                    <div class="flex flex-col" x-show="!sidebarCollapsed" x-transition.opacity>
+                    <div class="flex flex-col" x-show="!isCollapsed" x-transition.opacity>
                         <span class="font-extrabold text-white text-base leading-tight truncate w-36 tracking-tight">{{ $sekolah?->school_name ?? 'ERP Sekolah' }}</span>
                         <span class="text-[10px] text-indigo-100 font-bold tracking-widest uppercase opacity-90 truncate">Portal {{ $userRole }}</span>
                     </div>
@@ -126,8 +126,8 @@
             </div>
 
             <!-- Sidebar Navigation -->
-            <div class="flex-1 overflow-y-auto py-6 space-y-1.5 bg-white transition-all duration-300" :class="sidebarCollapsed ? 'px-2' : 'px-4'">
-                <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!sidebarCollapsed" x-transition.opacity>Modul ERP</p>
+            <div class="flex-1 overflow-y-auto py-6 space-y-1.5 bg-white transition-all duration-300" :class="isCollapsed ? 'px-2' : 'px-4'">
+                <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul ERP</p>
                 
                 @if($isPerpusRoute)
                     @php
@@ -141,68 +141,68 @@
 
                     <!-- Menu Dashboard -->
                     <a href="{{ route('portal-perpustakaan.dashboard') }}" 
-                       :title="sidebarCollapsed ? 'Dashboard Perpustakaan' : ''"
+                       :title="isCollapsed ? 'Dashboard Perpustakaan' : ''"
                        class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboard ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDashboard ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Dashboard</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard</span>
                     </a>
 
                     <!-- Menu Katalog & Input Buku -->
                     <a href="{{ route('portal-perpustakaan.buku') }}" 
-                       :title="sidebarCollapsed ? 'Katalog & Input Buku' : ''"
+                       :title="isCollapsed ? 'Katalog & Input Buku' : ''"
                        class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isBuku ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isBuku ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Katalog & Input Buku</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Katalog & Input Buku</span>
                     </a>
 
                     <!-- Menu Inventaris Buku -->
                     <a href="{{ route('portal-perpustakaan.inventaris') }}" 
-                       :title="sidebarCollapsed ? 'Inventaris Buku' : ''"
+                       :title="isCollapsed ? 'Inventaris Buku' : ''"
                        class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isInventaris ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isInventaris ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Inventaris Buku</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Inventaris Buku</span>
                     </a>
 
                     <!-- Menu Sirkulasi Peminjaman -->
                     <a href="{{ route('portal-perpustakaan.sirkulasi') }}" 
-                       :title="sidebarCollapsed ? 'Sirkulasi & Peminjaman' : ''"
+                       :title="isCollapsed ? 'Sirkulasi & Peminjaman' : ''"
                        class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSirkulasi ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isSirkulasi ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Sirkulasi</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Sirkulasi</span>
                     </a>
 
                     <!-- Menu Peminjaman -->
                     <a href="{{ route('portal-perpustakaan.peminjaman') }}"
-                       :title="sidebarCollapsed ? 'Data Peminjaman' : ''"
+                       :title="isCollapsed ? 'Data Peminjaman' : ''"
                        class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPeminjaman ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isPeminjaman ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Peminjaman</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Peminjaman</span>
                     </a>
 
                     <!-- Menu Presensi Kunjungan -->
                     <a href="{{ route('portal-perpustakaan.kunjungan') }}" 
-                       :title="sidebarCollapsed ? 'Riwayat Presensi Kunjungan' : ''"
+                       :title="isCollapsed ? 'Riwayat Presensi Kunjungan' : ''"
                        class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isKunjungan ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isKunjungan ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Riwayat Presensi</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Riwayat Presensi</span>
                     </a>
                 @elseif($user && $user->hasRole('siswa'))
                     @php
@@ -212,32 +212,32 @@
                         $isPerpustakaanActive = request()->routeIs('portal-siswa.perpustakaan');
                     @endphp
                     
-                    <a href="{{ route('portal-siswa.dashboard') }}" :title="sidebarCollapsed ? 'Dashboard Utama' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-siswa.dashboard') }}" :title="isCollapsed ? 'Dashboard Utama' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Dashboard Utama</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
                     </a>
 
-                    <a href="{{ route('portal-siswa.akademik') }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-siswa.akademik') }}" :title="isCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Presensi & Akademik</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
                     </a>
 
-                    <a href="{{ route('portal-siswa.perpustakaan') }}" :title="sidebarCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-siswa.perpustakaan') }}" :title="isCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Perpustakaan</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Perpustakaan</span>
                     </a>
 
-                    <a href="{{ route('portal-siswa.profil') }}" :title="sidebarCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-siswa.profil') }}" :title="isCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Profil Saya</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Profil Saya</span>
                     </a>
                 @else
                     @php
@@ -246,32 +246,32 @@
                         $isPerpustakaanActive = request()->routeIs('portal-guru.perpustakaan');
                     @endphp
                     
-                    <a href="{{ route('portal-guru.dashboard') }}" :title="sidebarCollapsed ? 'Dashboard' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-guru.dashboard') }}" :title="isCollapsed ? 'Dashboard' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Dashboard Utama</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
                     </a>
 
-                    <a href="{{ route('portal-guru.akademik') }}" :title="sidebarCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-guru.akademik') }}" :title="isCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Presensi & Akademik</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
                     </a>
 
-                    <a href="{{ route('portal-guru.perpustakaan') }}" :title="sidebarCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                    <a href="{{ route('portal-guru.perpustakaan') }}" :title="isCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         </div>
-                        <span class="text-sm truncate" x-show="!sidebarCollapsed" x-transition.opacity>Perpustakaan</span>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Perpustakaan</span>
                     </a>
                 @endif
             </div>
 
             <!-- Sidebar Footer (User Info & Logout) -->
             <div class="p-4 border-t border-slate-200/80 bg-slate-50 transition-all duration-300 flex-shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
-                <div class="flex items-center gap-3 mb-3" :class="sidebarCollapsed ? 'justify-center px-0' : 'px-1'">
+                <div class="flex items-center gap-3 mb-3" :class="isCollapsed ? 'justify-center px-0' : 'px-1'">
                     @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
                         <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-9 h-9 rounded-xl object-cover shadow-md shadow-brand-primary/20 border border-slate-200 min-w-9 flex-shrink-0">
                     @else
@@ -279,16 +279,16 @@
                             {{ strtoupper(substr($userName, 0, 1)) }}
                         </div>
                     @endif
-                    <div class="flex flex-col overflow-hidden min-w-0" x-show="!sidebarCollapsed" x-transition.opacity>
+                    <div class="flex flex-col overflow-hidden min-w-0" x-show="!isCollapsed" x-transition.opacity>
                         <span class="text-sm font-bold text-slate-900 truncate leading-tight">{{ $userName }}</span>
                         <span class="text-xs text-slate-500 truncate leading-tight">{{ $userRole }}</span>
                     </div>
                 </div>
                 <form action="{{ $logoutRoute }}" method="POST">
                     @csrf
-                    <button type="submit" :title="sidebarCollapsed ? 'Keluar Portal' : ''" class="w-full flex items-center justify-center gap-2 py-2 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm" :class="sidebarCollapsed ? 'px-0' : 'px-3'">
+                    <button type="submit" :title="isCollapsed ? 'Keluar Portal' : ''" class="w-full flex items-center justify-center gap-2 py-2 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-700 transition-all shadow-sm" :class="isCollapsed ? 'px-0' : 'px-3'">
                         <svg class="w-4 h-4 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        <span x-show="!sidebarCollapsed" x-transition.opacity>Keluar Portal</span>
+                        <span x-show="!isCollapsed" x-transition.opacity>Keluar Portal</span>
                     </button>
                 </form>
             </div>
@@ -303,7 +303,7 @@
                     <!-- Single Icon Garis Tiga Toggle Button -->
                     <button @click="if (window.innerWidth < 1024) { sidebarOpen = !sidebarOpen } else { sidebarCollapsed = !sidebarCollapsed }" 
                             class="text-slate-600 hover:text-brand-primary focus:outline-none p-2 rounded-xl hover:bg-slate-100 transition-colors" 
-                            :title="sidebarCollapsed ? 'Perluas Sidebar' : 'Kecilkan Sidebar'">
+                            :title="isCollapsed ? 'Perluas Sidebar' : 'Kecilkan Sidebar'">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                 </div>
