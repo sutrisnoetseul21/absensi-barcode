@@ -356,7 +356,6 @@
         $isNisMode = $mode === 'nis';
         
         $identifierLabel = $isNisMode ? 'NIS' : 'NISN';
-        $identifierValue = $isNisMode ? $student->nis : $student->nisn;
         
         $pages = $students->chunk(9);
     @endphp
