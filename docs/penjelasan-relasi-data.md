@@ -256,7 +256,67 @@ erDiagram
 
 ## 8. Relasi Modul Notifikasi WhatsApp (Evolution API)
 
-Untuk mengirimkan notifikasi absensi (hadir, telat, dsb) maupun pengingat perpustakaan secara *real-time* atau terjadwal, sistem dilengkapi dengan **WhatsApp Gateway Service**.
+Untuk mengirimkan notifikasi absensi (hadir, telat, dsb) maupun laporan terjadwal secara *real-time* atau terjadwal, sistem dilengkapi dengan **WhatsApp Gateway Service**.
+
+```mermaid
+erDiagram
+    whatsapp_settings ||--o{ whatsapp_notification_logs : "pusat konfigurasi API"
+    presensi_notification_settings ||--o{ whatsapp_notification_logs : "trigger notif per siswa"
+    presensi_daily_report_settings ||--o{ whatsapp_notification_logs : "trigger rekap per kelas"
+    presensi_school_summary_settings ||--o{ whatsapp_notification_logs : "trigger rekap 1 sekolah"
+
+    whatsapp_settings {
+        id PK
+        string base_url
+        string api_key
+        string instance_name
+        time send_window_start
+        time send_window_end
+    }
+
+    presensi_daily_report_settings {
+        id PK "singleton id=1"
+        boolean is_active
+        time cutoff_time "jam mulai kirim"
+        text template_pesan
+        json recipients
+        date manual_send_date "tracking kirim manual"
+        tinyint manual_send_count "maks 1x per hari"
+    }
+
+    presensi_school_summary_settings {
+        id PK "singleton id=1"
+        boolean is_active
+        time cutoff_time
+        text template_header
+        text template_row
+        text template_footer
+        json recipients
+        date manual_send_date
+        tinyint manual_send_count
+    }
+
+    whatsapp_notification_logs {
+        id PK
+        string module "presensi / perpustakaan"
+        string recipient_number "format 628xxx"
+        string status "pending / sent / failed"
+        string related_type "Polymorphic marker"
+        string related_id
+        datetime sent_at
+    }
+```
+
+**Alur & Aturan Bisnis:**
+1. **Singleton Configuration**: Konfigurasi koneksi WA (`whatsapp_settings`), rekap kelas (`presensi_daily_report_settings`), dan rekap sekolah (`presensi_school_summary_settings`) murni berdesain *Singleton* (selalu id=1). Hanya ada 1 nomor bot untuk seluruh ERP.
+2. **Deduplication Guard**: Sebelum *Job Queue* melempar HTTP request ke Evolution API, sistem menciptakan baris log berstatus `pending`. Jika *Command* dipanggil lagi untuk tanggal yang sama dan sudah ada log berstatus `sent` atau `pending`, dispatch **diblok**. Log berstatus `failed` tidak memblok — artinya jika WA bot terputus dan laporan gagal, setelah bot dihubungkan kembali laporan bisa dikirim ulang.
+3. **Toleransi Window 1 Jam**: Command laporan tidak menggunakan pencocokan waktu tepat (*exact match*) tapi memeriksa apakah waktu sekarang berada dalam range **cutoff_time sampai cutoff_time + 1 jam**. Ini memastikan laporan tetap terkirim meskipun cron terlambat beberapa menit.
+4. **Scheduler Heartbeat**: Setiap menit, command `scheduler:heartbeat` menulis Unix timestamp ke `storage/framework/schedule-heartbeat`. File ini dibaca oleh UI admin panel untuk menampilkan status aktif/tidak-aktif scheduler secara real-time.
+5. **Kirim Manual (1x/hari)**: Admin dapat mengirim laporan secara manual via tombol di halaman pengaturan. Kolom `manual_send_date` dan `manual_send_count` di tabel setting mencatat penggunaan ini — tombol otomatis di-disable setelah 1x kirim per hari.
+6. **Recipient Resolver**: *Service layer* (`RecipientResolverService`) bertugas menerjemahkan tujuan `"Wali Kelas"`, `"Operator"`, atau `"Kepala Sekolah"` menjadi deretan angka `628xxx` secara dinamis lewat query *Eloquent* ke Master Data (Guru, Jabatan).
+
+**Dokumentasi Lengkap**: Lihat [`docs/notifikasi-wa-laporan-presensi.md`](notifikasi-wa-laporan-presensi.md) untuk panduan lengkap setup, konfigurasi, troubleshooting, dan referensi placeholder.
+
 
 ```mermaid
 erDiagram

@@ -44,6 +44,8 @@ Sistem ERP (Enterprise Resource Planning) berbasis Laravel 12 & Filament untuk p
 Dokumentasi arsitektur, panduan seeder, dan log pengembangan dapat ditemukan di folder [`docs/`](docs/):
 
 - [`docs/README.md`](docs/README.md) - Panduan Utama Dokumentasi System
+- [`docs/notifikasi-wa-laporan-presensi.md`](docs/notifikasi-wa-laporan-presensi.md) - **Panduan Lengkap Notifikasi WA** (Setup Scheduler, Konfigurasi, Kirim Manual, Troubleshooting)
+- [`docs/deployment-crontab.md`](docs/deployment-crontab.md) - Panduan Setup Cron Job (HestiaCP & SSH)
 - [`docs/pengaturan-admin-seeder/panduan.md`](docs/pengaturan-admin-seeder/panduan.md) - Panduan Seeder & Manajemen Akses Portal
 - [`docs/penjelasan-relasi-data.md`](docs/penjelasan-relasi-data.md) - Penjelasan Struktur Relasi & Skema Database
 - [`docs/progres-development/`](docs/progres-development/) - Catatan Tahapan Development (Fase 1 Presensi & Fase 2 ERP Perpustakaan)
