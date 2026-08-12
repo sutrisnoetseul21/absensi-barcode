@@ -29,7 +29,7 @@
             if (!this.state || this.state.trim().length < 3) return text;
             let q = this.state.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             let re = new RegExp('(' + q + ')', 'gi');
-            return text.replace(re, m => '<span class=\"text-indigo-600 dark:text-indigo-400 font-extrabold underline decoration-indigo-400/50 decoration-2 underline-offset-2\">' + m + '</span>');
+            return text.replace(re, m => '<span class=\'text-indigo-600 dark:text-indigo-400 font-extrabold underline decoration-indigo-400/50 decoration-2 underline-offset-2\'>' + m + '</span>');
         },
         select(val) {
             let formatted = val.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());

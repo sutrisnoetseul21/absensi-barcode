@@ -194,7 +194,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-4">
 
                         <div x-data="{
                             open: false,
@@ -335,7 +335,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-4">
                         <div x-data="{
                             open: false,
                             query: @entangle('penulis'),
@@ -624,11 +624,11 @@
                     </div>
 
                     {{-- Upload File PDF (E-Book) --}}
-                    <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-2">
-                        <label class="block text-xs font-bold text-emerald-400">File PDF E-Book (Opsional / Baca Online)</label>
-                        <input type="file" wire:model="file_pdf" accept="application/pdf" class="text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30">
-                        <p class="text-[10px] text-slate-400">Format PDF. Maksimal 50MB.</p>
-                        @error('file_pdf') <span class="text-rose-400 text-[11px] block">{{ $message }}</span> @enderror
+                    <div class="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-2">
+                        <label class="block text-xs font-bold text-emerald-700">File PDF E-Book (Opsional / Baca Online)</label>
+                        <input type="file" wire:model="file_pdf" accept="application/pdf" class="text-xs text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200">
+                        <p class="text-[10px] text-slate-500">Format PDF. Maksimal 50MB.</p>
+                        @error('file_pdf') <span class="text-rose-500 text-[11px] block">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-slate-100">
@@ -998,7 +998,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-4">
                         <div x-data="{
                             open: false,
                             selectedId: @entangle('edit_klasifikasi_ddc_id'),
@@ -1138,7 +1138,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-4">
                         <div x-data="{
                             open: false,
                             query: @entangle('edit_penulis'),
@@ -1439,20 +1439,20 @@
                     </div>
 
                     {{-- Upload File PDF E-Book --}}
-                    <div class="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
-                        <label class="block text-xs font-bold text-emerald-400">File PDF E-Book (Baca Online)</label>
+                    <div class="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-3">
+                        <label class="block text-xs font-bold text-emerald-700">File PDF E-Book (Baca Online)</label>
                         @if($edit_existing_pdf)
-                            <div class="flex items-center justify-between p-2.5 bg-slate-800 rounded-xl border border-slate-700">
+                            <div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-emerald-200 shadow-sm">
                                 <div class="flex items-center gap-2">
-                                    <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold">Ada PDF</span>
-                                    <span class="text-xs text-slate-300 font-mono">{{ basename($edit_existing_pdf) }}</span>
+                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">Ada PDF</span>
+                                    <span class="text-xs text-slate-600 font-mono">{{ basename($edit_existing_pdf) }}</span>
                                 </div>
-                                <a href="{{ asset('storage/' . $edit_existing_pdf) }}" target="_blank" class="text-xs text-emerald-400 hover:underline">Pratinjau →</a>
+                                <a href="{{ asset('storage/' . $edit_existing_pdf) }}" target="_blank" class="text-xs text-emerald-600 font-bold hover:underline">Pratinjau →</a>
                             </div>
                         @endif
-                        <input type="file" wire:model="edit_file_pdf" accept="application/pdf" class="text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30">
-                        <p class="text-[10px] text-slate-400">Format PDF. Maksimal 50MB. Kosongkan jika tidak ingin mengubah file PDF.</p>
-                        @error('edit_file_pdf') <span class="text-rose-400 text-[11px] block">{{ $message }}</span> @enderror
+                        <input type="file" wire:model="edit_file_pdf" accept="application/pdf" class="text-xs text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200">
+                        <p class="text-[10px] text-slate-500">Format PDF. Maksimal 50MB. Kosongkan jika tidak ingin mengubah file PDF.</p>
+                        @error('edit_file_pdf') <span class="text-rose-500 text-[11px] block">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

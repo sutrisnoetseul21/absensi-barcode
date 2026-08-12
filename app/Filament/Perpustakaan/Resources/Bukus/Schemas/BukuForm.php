@@ -63,38 +63,40 @@ class BukuForm
                             }),
                     ])->columns(2)->columnSpanFull(),
 
-                    Group::make()->schema([
-                        ViewField::make('klasifikasi_ddc_id')
-                            ->label('Klasifikasi DDC (Opsional)')
-                            ->view('filament.perpustakaan.components.autocomplete-ddc-field'),
-                        Select::make('grade_level')
-                            ->label('Jenjang (Grade)')
-                            ->options([
-                                'umum' => 'Semua Jenjang / Umum',
-                                '7' => 'Kelas 7',
-                                '8' => 'Kelas 8',
-                                '9' => 'Kelas 9',
-                            ])
-                            ->placeholder('Pilih Jenjang')
-                            ->nullable()
-                            ->formatStateUsing(fn ($state) => $state === null ? 'umum' : (string) $state)
-                            ->dehydrateStateUsing(fn ($state) => ($state === 'umum' || blank($state)) ? null : (int) $state),
-                    ])->columns(2)->columnSpanFull(),
+                    ViewField::make('klasifikasi_ddc_id')
+                        ->label('Klasifikasi DDC (Opsional)')
+                        ->view('filament.perpustakaan.components.autocomplete-ddc-field')
+                        ->columnSpanFull(),
+                    
+                    Select::make('grade_level')
+                        ->label('Jenjang (Grade)')
+                        ->options([
+                            'umum' => 'Semua Jenjang / Umum',
+                            '7' => 'Kelas 7',
+                            '8' => 'Kelas 8',
+                            '9' => 'Kelas 9',
+                        ])
+                        ->placeholder('Pilih Jenjang')
+                        ->nullable()
+                        ->formatStateUsing(fn ($state) => $state === null ? 'umum' : (string) $state)
+                        ->dehydrateStateUsing(fn ($state) => ($state === 'umum' || blank($state)) ? null : (int) $state)
+                        ->columnSpanFull(),
 
-                    Group::make()->schema([
-                        ViewField::make('penulis')
-                            ->label('Penulis')
-                            ->view('filament.perpustakaan.components.autocomplete-field', [
-                                'column' => 'penulis',
-                                'placeholder' => 'Nama Penulis (min. 3 huruf)',
-                            ]),
-                        ViewField::make('penerbit')
-                            ->label('Penerbit')
-                            ->view('filament.perpustakaan.components.autocomplete-field', [
-                                'column' => 'penerbit',
-                                'placeholder' => 'Nama Penerbit (min. 3 huruf)',
-                            ]),
-                    ])->columns(2)->columnSpanFull(),
+                    ViewField::make('penulis')
+                        ->label('Penulis')
+                        ->view('filament.perpustakaan.components.autocomplete-field', [
+                            'column' => 'penulis',
+                            'placeholder' => 'Nama Penulis (min. 3 huruf)',
+                        ])
+                        ->columnSpanFull(),
+                        
+                    ViewField::make('penerbit')
+                        ->label('Penerbit')
+                        ->view('filament.perpustakaan.components.autocomplete-field', [
+                            'column' => 'penerbit',
+                            'placeholder' => 'Nama Penerbit (min. 3 huruf)',
+                        ])
+                        ->columnSpanFull(),
 
                     Group::make()->schema([
                         TextInput::make('tahun_terbit')

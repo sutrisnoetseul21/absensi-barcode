@@ -39,7 +39,7 @@
             if (!this.search || this.search.trim().length < 3) return text;
             let q = this.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             let re = new RegExp('(' + q + ')', 'gi');
-            return text.replace(re, m => '<span class=\"text-indigo-600 dark:text-indigo-400 font-extrabold underline decoration-indigo-400/50 decoration-2 underline-offset-2\">' + m + '</span>');
+            return text.replace(re, m => '<span class=\'text-indigo-600 dark:text-indigo-400 font-extrabold underline decoration-indigo-400/50 decoration-2 underline-offset-2\'>' + m + '</span>');
         },
         select(item) {
             this.selectedId = item.id;
