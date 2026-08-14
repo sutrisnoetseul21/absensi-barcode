@@ -44,7 +44,10 @@ class BukusTable
                     ->falseColor('gray')
                     ->getStateUsing(fn ($record) => !empty($record->file_pdf)),
                 TextColumn::make('judul')
-                    ->searchable(),
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->where('judul', 'like', "%{$search}%")
+                            ->orWhereHas('eksemplarBukus', fn ($q) => $q->where('kode_eksemplar', $search));
+                    }),
                 TextColumn::make('penulis')
                     ->label('Pengarang')
                     ->searchable(),

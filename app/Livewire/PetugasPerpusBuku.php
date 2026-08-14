@@ -415,7 +415,8 @@ class PetugasPerpusBuku extends Component
                 $q->where(function ($sub) {
                     $sub->where('judul', 'like', "%{$this->search}%")
                         ->orWhere('penulis', 'like', "%{$this->search}%")
-                        ->orWhere('isbn', 'like', "%{$this->search}%");
+                        ->orWhere('isbn', 'like', "%{$this->search}%")
+                        ->orWhereHas('eksemplarBukus', fn ($e) => $e->where('kode_eksemplar', $this->search));
                 });
             })
             ->when($this->filterKategori, function ($q) {

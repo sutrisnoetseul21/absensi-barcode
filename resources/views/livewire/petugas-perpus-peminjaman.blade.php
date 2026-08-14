@@ -312,7 +312,9 @@
                             <div class="relative">
                                 <input type="text" 
                                        wire:model.live.debounce.150ms="searchMemberModal"
+                                       wire:keydown.enter="scanMember"
                                        @focus="open = true"
+                                       @keydown.enter="open = false"
                                        @click.away="open = false"
                                        placeholder="🔍 Ketik nama / NISN / NIP atau klik untuk pilih..."
                                        class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
@@ -362,7 +364,9 @@
                             <div class="relative">
                                 <input type="text" 
                                        wire:model.live.debounce.150ms="searchEksemplarModal"
+                                       wire:keydown.enter="scanEksemplar"
                                        @focus="open = true"
+                                       @keydown.enter="open = false"
                                        @click.away="open = false"
                                        placeholder="🔍 Ketik judul buku / kode eksemplar atau klik untuk pilih..."
                                        class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">

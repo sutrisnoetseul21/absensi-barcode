@@ -162,13 +162,13 @@ class ProcessSirkulasiAction
             } else if ($peminjaman) {
                 $borrowerName = 'Anggota Lain';
                 if ($peminjaman->peminjam_type === 'siswa') {
-                    $student = \App\Models\Student::find($peminjaman->peminjam_id);
+                    $student = \App\Models\Siswa::find($peminjaman->peminjam_id);
                     if ($student) {
                         $kelas = $student->enrollmentAktif?->kelas?->name ? " (Kelas {$student->enrollmentAktif->kelas->name})" : "";
                         $borrowerName = "Siswa {$student->name}{$kelas}";
                     }
                 } else if ($peminjaman->peminjam_type === 'guru' || $peminjaman->peminjam_type === 'wali_kelas') {
-                    $teacher = \App\Models\Teacher::find($peminjaman->peminjam_id);
+                    $teacher = \App\Models\Guru::find($peminjaman->peminjam_id);
                     if ($teacher) {
                         $borrowerName = "Guru/Staff {$teacher->name}";
                     }

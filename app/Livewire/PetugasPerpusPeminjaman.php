@@ -115,6 +115,55 @@ class PetugasPerpusPeminjaman extends Component
         $this->searchEksemplarModal = $display;
     }
 
+    public function scanMember(): void
+    {
+        $search = trim($this->searchMemberModal);
+        if (!$search) return;
+
+        // Try exact match on student barcode
+        $studentProfile = \App\Models\StudentPresensiProfile::where('barcode_code', $search)->first();
+        if ($studentProfile && $studentProfile->student) {
+            $this->selectMember($studentProfile->student->id, 'siswa', $studentProfile->student->name);
+            return;
+        }
+
+        // Try exact match on teacher barcode
+        $teacherProfile = \App\Models\TeacherPresensiProfile::where('barcode_code', $search)->first();
+        if ($teacherProfile && $teacherProfile->teacher) {
+            $this->selectMember($teacherProfile->teacher->id, 'guru', $teacherProfile->teacher->name);
+            return;
+        }
+    }
+
+    public function scanEksemplar(): void
+    {
+        $search = trim($this->searchEksemplarModal);
+        if (!$search) return;
+
+        $eksemplar = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
+            ->where('kode_eksemplar', $search)
+            ->first();
+
+        if ($eksemplar) {
+            $judul = $eksemplar->buku?->judul ?? 'Buku';
+            
+            if ($eksemplar->status !== 'tersedia') {
+                $statusFormatted = strtoupper($eksemplar->status);
+                $this->addError('form_eksemplar_id', "{$judul} sedang berstatus {$statusFormatted}, tidak bisa dipilih.");
+                return;
+            }
+
+            if (!($eksemplar->buku?->kategoriBuku?->is_bisa_dipinjam ?? true)) {
+                $this->addError('form_eksemplar_id', "{$judul} adalah koleksi referensi yang tidak dapat dipinjam.");
+                return;
+            }
+
+            $this->selectEksemplar($eksemplar->id, $judul . ' - [Kode: ' . $eksemplar->kode_eksemplar . ']');
+        } else {
+            $this->addError('form_eksemplar_id', "Buku dengan barcode '{$search}' tidak ditemukan.");
+        }
+    }
+
     public function openTambahModal(): void
     {
         $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
