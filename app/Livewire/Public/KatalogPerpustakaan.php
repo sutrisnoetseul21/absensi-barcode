@@ -117,11 +117,37 @@ class KatalogPerpustakaan extends Component
                 ->get();
         });
 
+
+        // Kelas Terpopuler (diukur dari jumlah kunjungan perpustakaan)
+        $kelasPopuler = Cache::remember('katalog_kelas_populer', 3600, function () {
+            return \App\Models\Kelas::select('classes.*', \Illuminate\Support\Facades\DB::raw('COUNT(kunjungan_perpustakaans.id) as total_kunjungan'))
+                ->join('student_enrollments', 'classes.id', '=', 'student_enrollments.class_id')
+                ->join('kunjungan_perpustakaans', function($join) {
+                    $join->on('student_enrollments.student_id', '=', 'kunjungan_perpustakaans.pengunjung_id')
+                         ->where('kunjungan_perpustakaans.pengunjung_type', 'siswa');
+                })
+                ->where('student_enrollments.status', 'aktif')
+                ->groupBy('classes.id')
+                ->orderByDesc('total_kunjungan')
+                ->take(5)
+                ->get();
+        });
+
+
+        // Pengunjung Hari Ini
+        $pengunjungHariIni = \App\Models\KunjunganPerpustakaan::with(['pengunjung'])
+            ->whereDate('tanggal', today())
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         return view('livewire.public.katalog-perpustakaan', [
             'bukus' => $bukus,
             'kategoris' => $kategoris,
             'stats' => $stats,
             'kategoriPopuler' => $kategoriPopuler,
+            'kelasPopuler' => $kelasPopuler,
+            'pengunjungHariIni' => $pengunjungHariIni,
             'pengaturanSekolah' => $pengaturanSekolah,
             'activeLoans' => $this->activeLoans,
         ])->title('Perpustakaan Digital ' . ($pengaturanSekolah->school_name ?? ''));

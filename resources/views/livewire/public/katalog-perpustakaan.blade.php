@@ -1,247 +1,7 @@
 <div class="min-h-screen bg-slate-50 flex flex-col font-jakarta" x-data="{ showPdfModal: false, pdfTitle: '', pdfUrl: '', readerUrl: '' }">
 
     <!-- ====================== HEADER / NAVBAR MODERN ====================== -->
-    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
-        x-data="{ scrolled: false, mobileMenuOpen: false }"
-        @scroll.window="scrolled = window.scrollY > 30"
-        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-brand-primary/10 border-b border-white/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-transparent')">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Header Kiri: Logo & Nama Sekolah -->
-                <div class="flex items-center gap-3 group">
-                    @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
-                        <div class="relative">
-                            <div class="absolute inset-0 bg-brand-primary-light/30 rounded-xl blur-md group-hover:blur-lg transition-all duration-300"></div>
-                            <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo"
-                                class="relative h-10 sm:h-12 w-auto object-contain drop-shadow-md">
-                        </div>
-                    @endif
-                    <div>
-                        <h1 class="text-lg sm:text-xl font-extrabold tracking-tight leading-tight transition-colors duration-300"
-                            :class="scrolled ? 'text-slate-800' : 'text-white drop-shadow-md'">
-                            {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'SMPN 1 Majenang' }}
-                        </h1>
-                        <p class="text-xs font-medium transition-colors duration-300" :class="scrolled ? 'text-brand-primary-dark' : 'text-brand-primary-100'">
-                            Perpustakaan Digital
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Header Kanan: Menu Navigasi Desktop -->
-                <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 shrink-0">
-                    <a href="{{ url('/') }}"
-                        class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                        <span class="flex items-center gap-1.5 whitespace-nowrap">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                            Home
-                        </span>
-                    </a>
-                    <a href="{{ url('/portal-siswa') }}"
-                        class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                        <span class="flex items-center gap-1.5 whitespace-nowrap">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            Portal Siswa
-                        </span>
-                    </a>
-                    <a href="{{ url('/portal-guru') }}"
-                        class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                        <span class="flex items-center gap-1.5 whitespace-nowrap">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Portal Guru
-                        </span>
-                    </a>
-                    <a href="{{ url('/portal-perpustakaan') }}"
-                        class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                        <span class="flex items-center gap-1.5 whitespace-nowrap">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                            Portal Perpus
-                        </span>
-                    </a>
-                    @guest
-                        <a href="{{ route('login') }}"
-                            class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                            :class="scrolled ? 'text-slate-600 hover:text-brand-primary hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                            <span class="flex items-center gap-1.5 whitespace-nowrap">
-                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                Admin
-                            </span>
-                        </a>
-                    @endguest
-
-                    @auth
-                        @php
-                            $authUser = Auth::user();
-                            $authName = $authUser->display_name;
-                            $authRole = $authUser->role_badge;
-                            $accessiblePortals = $authUser->getAccessiblePortals();
-                        @endphp
-
-                        <!-- User Profile & Logout Dropdown -->
-                        <div class="relative ml-1 xl:ml-2 shrink-0" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
-                            <button @click="userMenuOpen = !userMenuOpen" 
-                                    class="flex items-center gap-2 py-1.5 px-2.5 xl:px-3 rounded-xl transition-all duration-200 border whitespace-nowrap shrink-0"
-                                    :class="scrolled ? 'bg-slate-100 border-slate-200 text-slate-800 hover:bg-slate-200' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'">
-                                <div class="w-7 h-7 rounded-lg bg-brand-primary text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
-                                    {{ strtoupper(substr($authName, 0, 1)) }}
-                                </div>
-                                <div class="flex flex-col text-left whitespace-nowrap">
-                                    <span class="text-xs font-bold leading-tight truncate max-w-[100px] xl:max-w-[130px] whitespace-nowrap">{{ $authName }}</span>
-                                    <span class="text-[10px] opacity-75 font-medium leading-none whitespace-nowrap">{{ $authRole }}</span>
-                                </div>
-                                <svg class="w-3.5 h-3.5 opacity-75 transition-transform duration-200 shrink-0" :class="{ 'rotate-180': userMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-
-                            <div x-show="userMenuOpen" 
-                                 x-transition:enter="transition ease-out duration-150"
-                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                 x-transition:leave="transition ease-in duration-100"
-                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                                 class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 overflow-hidden text-slate-800"
-                                 style="display: none;">
-                                
-                                <div class="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Login Sebagai:</p>
-                                    <p class="text-sm font-bold text-slate-900 truncate">{{ $authName }}</p>
-                                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary-50 text-brand-primary border border-brand-primary-100">
-                                            {{ $authRole }}
-                                        </span>
-                                        @if($authUser->email)
-                                            <span class="text-[10px] text-slate-400 truncate max-w-[130px]">{{ $authUser->email }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="px-3 py-2">
-                                    <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1.5 px-1">Akses Portal Saya ({{ count($accessiblePortals) }})</p>
-                                    <div class="max-h-52 overflow-y-auto space-y-1.5 pr-0.5">
-                                        @foreach($accessiblePortals as $p)
-                                            <a href="{{ $p['url'] }}" class="flex items-start justify-between p-2 rounded-xl border text-xs font-semibold transition-all {{ $p['bg'] }}">
-                                                <div class="flex flex-col">
-                                                    <span class="font-bold text-slate-900 leading-tight">{{ $p['name'] }}</span>
-                                                    <span class="text-[10px] opacity-75 font-normal mt-0.5">{{ $p['desc'] }}</span>
-                                                </div>
-                                                <svg class="w-3.5 h-3.5 shrink-0 mt-0.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-
-                                <div class="pt-1 mt-1 border-t border-slate-100 px-1.5">
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
-                                            <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                                            Keluar (Logout)
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    @endauth
-
-                    <a href="#katalog"
-                        class="ml-2 xl:ml-3 flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary-dark hover:to-brand-secondary-dark text-white px-4 xl:px-5 py-2.5 rounded-xl font-bold text-xs xl:text-sm whitespace-nowrap shrink-0 shadow-lg shadow-brand-primary/30 transition-all duration-300 transform hover:scale-105 hover:shadow-brand-primary/50">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                        Cari Buku
-                        <span class="w-2 h-2 rounded-full bg-brand-accent-light animate-pulse ml-1 shrink-0"></span>
-                    </a>
-                </nav>
-
-                <!-- Mobile Menu Button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl transition-all duration-200"
-                    :class="scrolled ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'">
-                    <svg x-show="!mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <svg x-show="mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mobile Dropdown Menu -->
-        <div x-show="mobileMenuOpen" 
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="lg:hidden absolute top-full left-0 w-full backdrop-blur-xl border-b shadow-xl transition-colors duration-300"
-             :class="scrolled ? 'bg-white/95 border-slate-200' : 'bg-slate-950/80 border-white/10'"
-             style="display: none;">
-            <div class="px-4 pt-2 pb-6 space-y-2">
-                <a href="{{ url('/') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Home
-                </a>
-                <a href="{{ url('/portal-siswa') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Portal Siswa
-                </a>
-                <a href="{{ url('/portal-guru') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Portal Guru
-                </a>
-                <a href="{{ url('/portal-perpustakaan') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Portal Perpus
-                </a>
-
-                @guest
-                    <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                       :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                        Admin
-                    </a>
-                @endguest
-
-                @auth
-                    @php
-                        $authUser = Auth::user();
-                        $authName = $authUser->display_name;
-                        $authRole = $authUser->role_badge;
-                        $accessiblePortals = $authUser->getAccessiblePortals();
-                    @endphp
-
-                    <div class="pt-3 border-t border-slate-200/40 space-y-2">
-                        <div class="px-4 py-2.5 rounded-xl bg-brand-primary/10">
-                            <p class="text-[10px] text-slate-400 uppercase font-bold">Login Sebagai:</p>
-                            <p class="text-sm font-bold text-slate-800 dark:text-white">{{ $authName }}</p>
-                            <span class="inline-block mt-0.5 text-xs font-semibold text-brand-primary">{{ $authRole }}</span>
-                        </div>
-
-                        <p class="text-[10px] font-bold uppercase text-slate-400 px-1 mt-2">Daftar Portal Yang Dapat Diakses:</p>
-                        <div class="space-y-1.5">
-                            @foreach($accessiblePortals as $p)
-                                <a href="{{ $p['url'] }}" class="flex items-center justify-between px-4 py-2.5 rounded-xl border text-xs font-bold transition-all {{ $p['bg'] }}">
-                                    <span>{{ $p['name'] }}</span>
-                                    <svg class="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                                </a>
-                            @endforeach
-                        </div>
-
-                        <form action="{{ route('logout') }}" method="POST" class="mt-3">
-                            @csrf
-                            <button type="submit" class="w-full text-left px-4 py-3 rounded-xl font-bold text-rose-600 bg-rose-50 flex items-center justify-between">
-                                Keluar (Logout)
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                            </button>
-                        </form>
-                    </div>
-                @endauth
-                <a href="#katalog" class="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-4 py-3 rounded-xl font-bold shadow-md shadow-brand-primary/20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    Cari Buku
-                </a>
-            </div>
-        </div>
-    </header>
+    <x-public-dashboard.navbar :pengaturanSekolah="$pengaturanSekolah" />
 
     <!-- ====================== HERO SECTION MODERN ====================== -->
     <div class="relative overflow-hidden min-h-[70vh] flex items-center">
@@ -281,7 +41,6 @@
 
                 <!-- Main Title -->
                 <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight mb-6">
-                    Katalog
                     <span class="bg-gradient-to-r from-brand-primary-light via-brand-secondary-light to-brand-cyan bg-clip-text text-transparent">
                         Perpustakaan
                     </span>
@@ -386,8 +145,10 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
-            <!-- ====================== KATEGORI TERPOPULER (DATA SEKUNDER) ====================== -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col h-full lg:col-span-1">
+            <!-- ====================== SIDEBAR KIRI ====================== -->
+            <div class="flex flex-col gap-6 lg:col-span-1">
+                <!-- ====================== KATEGORI TERPOPULER ====================== -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col">
                 <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
                     <div class="w-10 h-10 flex items-center justify-center bg-brand-warning-50 rounded-2xl text-brand-warning-dark flex-shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
@@ -424,6 +185,93 @@
                             <p class="text-sm">Belum ada data kategori.</p>
                         </div>
                     @endif
+                </div>
+                </div>
+
+                <!-- ====================== PENGUNJUNG HARI INI ====================== -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
+                        <div class="w-10 h-10 flex items-center justify-center bg-brand-info-50 rounded-2xl text-brand-info-dark flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800 leading-tight">Pengunjung Hari Ini</h3>
+                            <p class="text-xs text-slate-400">Paling baru</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center space-y-4">
+                        @foreach(isset($pengunjungHariIni) ? $pengunjungHariIni : [] as $kunjungan)
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 border border-slate-200">
+                                @if($kunjungan->pengunjung_type === 'siswa' && $kunjungan->pengunjung?->photo_path)
+                                    <img src="{{ asset('storage/' . $kunjungan->pengunjung->photo_path) }}" alt="Foto" class="w-full h-full object-cover rounded-full">
+                                @else
+                                    <span class="text-sm font-bold text-slate-400">
+                                        {{ strtoupper(substr($kunjungan->pengunjung?->name ?? '?', 0, 1)) }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-slate-800 truncate" title="{{ $kunjungan->pengunjung?->name ?? 'Tidak diketahui' }}">
+                                    {{ $kunjungan->pengunjung?->name ?? 'Tidak diketahui' }}
+                                </p>
+                                <p class="text-[10px] text-slate-400 font-medium truncate">
+                                    Pukul {{ \Carbon\Carbon::parse($kunjungan->waktu_masuk)->format('H:i') }}
+                                </p>
+                            </div>
+                        </div>
+                        @endforeach
+                        @if(!isset($pengunjungHariIni) || $pengunjungHariIni->isEmpty())
+                            <div class="text-center text-slate-400 py-4">
+                                <p class="text-sm">Belum ada kunjungan hari ini.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- ====================== KELAS PENGUNJUNG TERBANYAK ====================== -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
+                        <div class="w-10 h-10 flex items-center justify-center bg-brand-primary-50 rounded-2xl text-brand-primary-dark flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800 leading-tight">Kelas Teraktif</h3>
+                            <p class="text-xs text-slate-400">Pengunjung terbanyak</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center space-y-3">
+                        @foreach(isset($kelasPopuler) ? $kelasPopuler : [] as $index => $kelas)
+                        @php
+                            $medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+                            $barColors = ['bg-brand-warning','bg-slate-400','bg-orange-400','bg-brand-primary-light','bg-brand-info-light'];
+                            $textColors = ['text-brand-warning-dark','text-slate-600','text-orange-600','text-brand-primary','text-brand-info'];
+                            $maxKunjungan = isset($kelasPopuler) && count($kelasPopuler) > 0 ? $kelasPopuler[0]->total_kunjungan : 1;
+                            $percentage = $maxKunjungan > 0 ? min(100, round(($kelas->total_kunjungan / $maxKunjungan) * 100)) : 0;
+                        @endphp
+                        <div class="group">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg leading-none">{{ $medals[$index] ?? '•' }}</span>
+                                    <span class="text-sm font-bold text-slate-700 truncate max-w-[120px]" title="{{ $kelas->nama_kelas }}">{{ $kelas->nama_kelas }}</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-sm font-extrabold {{ $textColors[$index] ?? 'text-slate-500' }}">{{ $kelas->total_kunjungan }}</span>
+                                    <span class="text-[10px] text-slate-400 font-medium">kunjungan</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="{{ $barColors[$index] ?? 'bg-slate-300' }} h-2.5 rounded-full transition-all duration-700 ease-out"
+                                    style="width: {{ max(5, $percentage) }}%"></div>
+                            </div>
+                        </div>
+                        @endforeach
+                        @if(!isset($kelasPopuler) || $kelasPopuler->isEmpty())
+                            <div class="text-center text-slate-400 py-8">
+                                <p class="text-sm">Belum ada data kunjungan.</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 

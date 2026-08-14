@@ -50,6 +50,11 @@ Route::post('/logout', function () {
 
 // Kiosk Absensi Routes - Portal Presensi Kiosk
 Route::prefix('portal-presensi')->group(function () {
+    // Route dashboard Portal Presensi (sementara menggunakan tampilan kosong)
+    Route::get('/', \App\Livewire\PortalPresensiDashboard::class)->middleware('auth.presensi')->name('portal-presensi.dashboard');
+
+
+    
     Route::get('/login', \App\Livewire\PetugasPresensiLogin::class)->middleware('guest')->name('portal-presensi.login');
     
     Route::middleware('auth.presensi')->group(function () {
