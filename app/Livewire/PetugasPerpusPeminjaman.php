@@ -268,41 +268,53 @@ class PetugasPerpusPeminjaman extends Component
         $availableEksemplars = collect();
 
         if ($this->showTambahModal) {
-            $siswa = \App\Models\Siswa::when($this->searchMemberModal, function ($q) {
-                $q->where(function ($sub) {
-                    $sub->where('name', 'like', "%{$this->searchMemberModal}%")
-                        ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
-                        ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
-                });
-            })->select('id', 'name', 'nisn', 'nis')->get()->map(function($item) {
-                $item->model_type = 'siswa';
-                return $item;
-            });
-
-            $guru = \App\Models\Guru::when($this->searchMemberModal, function ($q) {
-                $q->where(function ($sub) {
-                    $sub->where('name', 'like', "%{$this->searchMemberModal}%")
-                        ->orWhere('nip', 'like', "%{$this->searchMemberModal}%");
-                });
-            })->select('id', 'name', 'nip')->get()->map(function($item) {
-                $item->model_type = 'guru';
-                return $item;
-            });
-
-            $availableMembers = $siswa->concat($guru)->sortBy('name')->take(20);
-
-            $availableEksemplars = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
-                ->where('status', 'tersedia')
-                ->when($this->searchEksemplarModal, function ($q) {
+            if (strlen(trim($this->searchMemberModal)) >= 2) {
+                $siswa = \App\Models\Siswa::when($this->searchMemberModal, function ($q) {
                     $q->where(function ($sub) {
-                        $sub->where('kode_eksemplar', 'like', "%{$this->searchEksemplarModal}%")
-                            ->orWhereHas('buku', fn ($b) => $b->where('judul', 'like', "%{$this->searchEksemplarModal}%"));
+                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                            ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
+                            ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
                     });
-                })
-                ->get()
-                ->filter(function ($item) {
-                    return $item->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
+                })->select('id', 'name', 'nisn', 'nis')
+                  ->limit(20)
+                  ->get()
+                  ->map(function($item) {
+                    $item->model_type = 'siswa';
+                    return $item;
                 });
+
+                $guru = \App\Models\Guru::when($this->searchMemberModal, function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                            ->orWhere('nip', 'like', "%{$this->searchMemberModal}%");
+                    });
+                })->select('id', 'name', 'nip')
+                  ->limit(20)
+                  ->get()
+                  ->map(function($item) {
+                    $item->model_type = 'guru';
+                    return $item;
+                });
+
+                $availableMembers = $siswa->concat($guru)->sortBy('name')->take(20);
+            }
+
+            if (strlen(trim($this->searchEksemplarModal)) >= 2) {
+                $availableEksemplars = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
+                    ->where('status', 'tersedia')
+                    ->where(function ($q) {
+                        $q->whereHas('buku.kategoriBuku', fn ($q2) => $q2->where('is_bisa_dipinjam', true))
+                          ->orWhereDoesntHave('buku.kategoriBuku');
+                    })
+                    ->when($this->searchEksemplarModal, function ($q) {
+                        $q->where(function ($sub) {
+                            $sub->where('kode_eksemplar', 'like', "%{$this->searchEksemplarModal}%")
+                                ->orWhereHas('buku', fn ($b) => $b->where('judul', 'like', "%{$this->searchEksemplarModal}%"));
+                        });
+                    })
+                    ->limit(20)
+                    ->get();
+            }
         }
 
         return view('livewire.petugas-perpus-peminjaman', [

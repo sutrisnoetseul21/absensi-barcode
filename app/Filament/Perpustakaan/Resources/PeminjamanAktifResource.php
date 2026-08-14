@@ -47,52 +47,86 @@ class PeminjamanAktifResource extends Resource
                     'guru' => 'Guru / Staff',
                 ])
                 ->required()
-                ->live(),
+                ->live()
+                ->afterStateUpdated(fn ($set) => $set('peminjam_id', null)),
 
             \Filament\Forms\Components\Select::make('peminjam_id')
                 ->label('Peminjam / Kartu Anggota')
                 ->placeholder('Pindai Barcode Kartu atau Ketik Nama / NISN / NIS / NIP')
                 ->helperText('Klik kolom ini lalu scan Kartu Anggota atau ketik pencarian.')
-                ->options(function ($get) {
-                    $type = $get('peminjam_type');
-                    if ($type === 'guru') {
-                        return \App\Models\Guru::orderBy('name')
-                            ->get()
-                            ->mapWithKeys(fn ($guru) => [$guru->id => $guru->name . ($guru->nip ? " (NIP: {$guru->nip})" : '')]);
-                    }
-                    return \App\Models\Siswa::orderBy('name')
-                        ->get()
-                        ->mapWithKeys(function ($siswa) {
-                            $info = [];
-                            if ($siswa->nisn) $info[] = "NISN: {$siswa->nisn}";
-                            if ($siswa->nis) $info[] = "NIS: {$siswa->nis}";
-                            $extra = count($info) > 0 ? ' (' . implode(' | ', $info) . ')' : '';
-                            return [$siswa->id => "{$siswa->name}{$extra}"];
-                        });
-                })
                 ->searchable()
-                ->preload()
+                ->getSearchResultsUsing(function (string $search, \Filament\Forms\Get $get) {
+                    $type = $get('peminjam_type');
+                    $query = $type === 'guru' ? \App\Models\Guru::query() : \App\Models\Siswa::query();
+
+                    return $query->where(function ($q) use ($search, $type) {
+                        $q->where('name', 'like', "%{$search}%");
+                        if ($type === 'guru') {
+                            $q->orWhere('nip', 'like', "%{$search}%");
+                        } else {
+                            $q->orWhere('nisn', 'like', "%{$search}%")
+                              ->orWhere('nis', 'like', "%{$search}%");
+                        }
+                    })
+                    ->limit(50)
+                    ->get()
+                    ->mapWithKeys(function ($model) use ($type) {
+                        if ($type === 'guru') {
+                            return [$model->id => $model->name . ($model->nip ? " (NIP: {$model->nip})" : '')];
+                        }
+                        $info = [];
+                        if ($model->nisn) $info[] = "NISN: {$model->nisn}";
+                        if ($model->nis) $info[] = "NIS: {$model->nis}";
+                        $extra = count($info) > 0 ? ' (' . implode(' | ', $info) . ')' : '';
+                        return [$model->id => "{$model->name}{$extra}"];
+                    })->all();
+                })
+                ->getOptionLabelUsing(function ($value, \Filament\Forms\Get $get) {
+                    $type = $get('peminjam_type');
+                    $model = $type === 'guru' ? \App\Models\Guru::find($value) : \App\Models\Siswa::find($value);
+                    if (!$model) return null;
+
+                    if ($type === 'guru') {
+                        return $model->name . ($model->nip ? " (NIP: {$model->nip})" : '');
+                    }
+                    $info = [];
+                    if ($model->nisn) $info[] = "NISN: {$model->nisn}";
+                    if ($model->nis) $info[] = "NIS: {$model->nis}";
+                    $extra = count($info) > 0 ? ' (' . implode(' | ', $info) . ')' : '';
+                    return "{$model->name}{$extra}";
+                })
                 ->required()
-                ->disabled(fn ($get) => ! $get('peminjam_type')),
+                ->disabled(fn (\Filament\Forms\Get $get) => ! $get('peminjam_type')),
 
             \Filament\Forms\Components\Select::make('eksemplar_id')
                 ->label('Buku & Eksemplar (Tersedia)')
                 ->placeholder('Pindai Barcode Buku atau Ketik Judul / Kode Eksemplar')
                 ->helperText('Klik kolom ini lalu scan label barcode di fisik buku. Koleksi yang tidak bisa dipinjam otomatis disembunyikan.')
-                ->options(function () {
+                ->searchable()
+                ->getSearchResultsUsing(function (string $search) {
                     return \App\Models\EksemplarBuku::with('buku.kategoriBuku')
                         ->where('status', 'tersedia')
-                        ->get()
-                        ->filter(function ($item) {
-                            return $item->buku?->kategoriBuku?->is_bisa_dipinjam ?? true;
+                        ->where(function ($q) {
+                            $q->whereHas('buku.kategoriBuku', fn ($q2) => $q2->where('is_bisa_dipinjam', true))
+                              ->orWhereDoesntHave('buku.kategoriBuku');
                         })
+                        ->where(function ($q) use ($search) {
+                            $q->where('kode_eksemplar', 'like', "%{$search}%")
+                              ->orWhereHas('buku', fn ($q2) => $q2->where('judul', 'like', "%{$search}%"));
+                        })
+                        ->limit(50)
+                        ->get()
                         ->mapWithKeys(function ($item) {
                             $judul = $item->buku->judul ?? 'Tanpa Judul';
                             return [$item->id => "{$judul} - [Kode: {$item->kode_eksemplar}]"];
-                        });
+                        })->all();
                 })
-                ->searchable()
-                ->preload()
+                ->getOptionLabelUsing(function ($value) {
+                    $item = \App\Models\EksemplarBuku::with('buku')->find($value);
+                    if (!$item) return null;
+                    $judul = $item->buku->judul ?? 'Tanpa Judul';
+                    return "{$judul} - [Kode: {$item->kode_eksemplar}]";
+                })
                 ->required()
                 ->rules([
                     function () {

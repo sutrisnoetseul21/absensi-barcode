@@ -311,7 +311,7 @@
                         <div x-data="{ open: false }" class="relative">
                             <div class="relative">
                                 <input type="text" 
-                                       wire:model.live.debounce.150ms="searchMemberModal"
+                                       wire:model.live.debounce.400ms="searchMemberModal"
                                        wire:keydown.enter="scanMember"
                                        @focus="open = true"
                                        @keydown.enter="open = false"
@@ -326,31 +326,37 @@
                             <div x-show="open" 
                                  x-transition
                                  class="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100">
-                                @forelse($availableMembers as $m)
-                                    @php
-                                        $extra = isset($m->nisn) && $m->nisn ? '(NISN: '.$m->nisn.')' : (isset($m->nis) && $m->nis ? '(NIS: '.$m->nis.')' : (isset($m->nip) && $m->nip ? '(NIP: '.$m->nip.')' : ''));
-                                        $isSelected = $form_peminjam_id === $m->id;
-                                    @endphp
-                                    <button type="button"
-                                            wire:click="selectMember('{{ $m->id }}', '{{ $m->model_type }}', '{{ addslashes($m->name) }}')"
-                                            @click="open = false"
-                                            class="w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-indigo-50 transition-colors {{ $isSelected ? 'bg-indigo-50 font-bold text-indigo-700' : 'text-slate-700' }}">
-                                        <div>
-                                            <span class="font-semibold">{{ $m->name }}</span>
-                                            @if($extra)
-                                                <span class="text-[11px] text-slate-400 ml-1">{{ $extra }}</span>
-                                            @endif
-                                            <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md ml-2 {{ $m->model_type === 'guru' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700' }}">{{ $m->model_type }}</span>
-                                        </div>
-                                        @if($isSelected)
-                                            <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        @endif
-                                    </button>
-                                @empty
+                                @if(strlen(trim($searchMemberModal)) < 2)
+                                    <div class="px-4 py-3 text-xs text-slate-500 text-center">
+                                        Ketik minimal 2 huruf untuk mencari...
+                                    </div>
+                                @elseif($availableMembers->isEmpty())
                                     <div class="p-3 text-xs text-slate-400 italic text-center">
                                         Tidak ada anggota ditemukan.
                                     </div>
-                                @endforelse
+                                @else
+                                    @foreach($availableMembers as $m)
+                                        @php
+                                            $extra = isset($m->nisn) && $m->nisn ? '(NISN: '.$m->nisn.')' : (isset($m->nis) && $m->nis ? '(NIS: '.$m->nis.')' : (isset($m->nip) && $m->nip ? '(NIP: '.$m->nip.')' : ''));
+                                            $isSelected = $form_peminjam_id === $m->id;
+                                        @endphp
+                                        <button type="button"
+                                                wire:click="selectMember('{{ $m->id }}', '{{ $m->model_type }}', '{{ addslashes($m->name) }}')"
+                                                @click="open = false"
+                                                class="w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-indigo-50 transition-colors {{ $isSelected ? 'bg-indigo-50 font-bold text-indigo-700' : 'text-slate-700' }}">
+                                            <div>
+                                                <span class="font-semibold">{{ $m->name }}</span>
+                                                @if($extra)
+                                                    <span class="text-[11px] text-slate-400 ml-1">{{ $extra }}</span>
+                                                @endif
+                                                <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md ml-2 {{ $m->model_type === 'guru' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700' }}">{{ $m->model_type }}</span>
+                                            </div>
+                                            @if($isSelected)
+                                                <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                @endif
                             </div>
                         </div>
                         @error('form_peminjam_id') <span class="text-[11px] font-bold text-rose-500 mt-1 block">{{ $message }}</span> @enderror
@@ -363,7 +369,7 @@
                         <div x-data="{ open: false }" class="relative">
                             <div class="relative">
                                 <input type="text" 
-                                       wire:model.live.debounce.150ms="searchEksemplarModal"
+                                       wire:model.live.debounce.400ms="searchEksemplarModal"
                                        wire:keydown.enter="scanEksemplar"
                                        @focus="open = true"
                                        @keydown.enter="open = false"
@@ -378,28 +384,34 @@
                             <div x-show="open" 
                                  x-transition
                                  class="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100">
-                                @forelse($availableEksemplars as $eks)
-                                    @php
-                                        $judul = $eks->buku?->judul ?? 'Tanpa Judul';
-                                        $isSelected = $form_eksemplar_id === $eks->id;
-                                    @endphp
-                                    <button type="button"
-                                            wire:click="selectEksemplar('{{ $eks->id }}', '{{ addslashes($judul) }} - [Kode: {{ $eks->kode_eksemplar }}]')"
-                                            @click="open = false"
-                                            class="w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-indigo-50 transition-colors {{ $isSelected ? 'bg-indigo-50 font-bold text-indigo-700' : 'text-slate-700' }}">
-                                        <div>
-                                            <span class="font-semibold">{{ $judul }}</span>
-                                            <span class="font-mono text-[11px] text-slate-500 ml-1.5">[Kode: {{ $eks->kode_eksemplar }}]</span>
-                                        </div>
-                                        @if($isSelected)
-                                            <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        @endif
-                                    </button>
-                                @empty
-                                    <div class="p-3 text-xs text-slate-400 italic text-center">
-                                        Tidak ada eksemplar buku ditemukan.
+                                @if(strlen(trim($searchEksemplarModal)) < 2)
+                                    <div class="px-4 py-3 text-xs text-slate-500 text-center">
+                                        Ketik minimal 2 huruf untuk mencari...
                                     </div>
-                                @endforelse
+                                @elseif($availableEksemplars->isEmpty())
+                                    <div class="p-3 text-xs text-slate-400 italic text-center">
+                                        Tidak ada buku ditemukan atau stok tidak tersedia.
+                                    </div>
+                                @else
+                                    @foreach($availableEksemplars as $e)
+                                        @php
+                                            $judul = $e->buku?->judul ?? 'Buku Tanpa Judul';
+                                            $isSelected = $form_eksemplar_id === $e->id;
+                                        @endphp
+                                        <button type="button"
+                                                wire:click="selectEksemplar('{{ $e->id }}', '{{ addslashes($judul) }} - [Kode: {{ $e->kode_eksemplar }}]')"
+                                                @click="open = false"
+                                                class="w-full text-left px-3 py-2 flex items-center justify-between hover:bg-emerald-50 transition-colors {{ $isSelected ? 'bg-emerald-50 font-bold text-emerald-700' : 'text-slate-700' }}">
+                                            <div>
+                                                <div class="text-[11px] font-semibold leading-tight">{{ $judul }}</div>
+                                                <div class="text-[10px] text-slate-400 mt-0.5 font-mono">Kode: {{ $e->kode_eksemplar }}</div>
+                                            </div>
+                                            @if($isSelected)
+                                                <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                @endif
                             </div>
                         </div>
                         <p class="text-[11px] text-slate-400 mt-1">Koleksi yang tidak bisa dipinjam otomatis disembunyikan.</p>
