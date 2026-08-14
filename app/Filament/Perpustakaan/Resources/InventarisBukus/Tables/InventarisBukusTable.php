@@ -23,7 +23,10 @@ class InventarisBukusTable
                     ->label('No Inventaris')
                     ->fontFamily('mono')
                     ->weight('bold')
-                    ->searchable(),
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->where('no_inventaris', 'like', "%{$search}%")
+                            ->orWhereHas('eksemplarBukus', fn ($q) => $q->where('kode_eksemplar', $search));
+                    }),
                 TextColumn::make('buku.judul')
                     ->label('Judul')
                     ->weight('bold')
