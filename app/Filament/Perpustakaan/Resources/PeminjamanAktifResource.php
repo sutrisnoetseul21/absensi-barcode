@@ -55,7 +55,7 @@ class PeminjamanAktifResource extends Resource
                 ->placeholder('Pindai Barcode Kartu atau Ketik Nama / NISN / NIS / NIP')
                 ->helperText('Klik kolom ini lalu scan Kartu Anggota atau ketik pencarian.')
                 ->searchable()
-                ->getSearchResultsUsing(function (string $search, \Filament\Forms\Get $get) {
+                ->getSearchResultsUsing(function (string $search, $get) {
                     $type = $get('peminjam_type');
                     $query = $type === 'guru' ? \App\Models\Guru::query() : \App\Models\Siswa::query();
 
@@ -81,7 +81,7 @@ class PeminjamanAktifResource extends Resource
                         return [$model->id => "{$model->name}{$extra}"];
                     })->all();
                 })
-                ->getOptionLabelUsing(function ($value, \Filament\Forms\Get $get) {
+                ->getOptionLabelUsing(function ($value, $get) {
                     $type = $get('peminjam_type');
                     $model = $type === 'guru' ? \App\Models\Guru::find($value) : \App\Models\Siswa::find($value);
                     if (!$model) return null;
@@ -96,7 +96,7 @@ class PeminjamanAktifResource extends Resource
                     return "{$model->name}{$extra}";
                 })
                 ->required()
-                ->disabled(fn (\Filament\Forms\Get $get) => ! $get('peminjam_type')),
+                ->disabled(fn ($get) => ! $get('peminjam_type')),
 
             \Filament\Forms\Components\Select::make('eksemplar_id')
                 ->label('Buku & Eksemplar (Tersedia)')
