@@ -20,6 +20,7 @@ class EditManajemenAksesPortal extends EditRecord
         $data['akses_portal_guru'] = $user->hasRole('wali_kelas');
         $data['akses_portal_perpustakaan'] = $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
         $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
+        $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
 
         if ($user->hasPermissionTo('portal_guru:akses_semua_kelas')) {
             $data['mode_akses_kelas'] = 'semua_kelas';
@@ -107,6 +108,19 @@ class EditManajemenAksesPortal extends EditRecord
         } else {
             if ($user->hasRole('petugas_presensi')) {
                 $user->removeRole('petugas_presensi');
+            }
+        }
+
+        // 4. Kelola Dashboard Presensi
+        $hasAksesDashboardPresensi = !empty($formData['akses_dashboard_presensi']);
+        if ($hasAksesDashboardPresensi) {
+            \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_presensi', 'guard_name' => 'web']);
+            if (!$user->hasRole('admin_portal_presensi')) {
+                $user->assignRole('admin_portal_presensi');
+            }
+        } else {
+            if ($user->hasRole('admin_portal_presensi')) {
+                $user->removeRole('admin_portal_presensi');
             }
         }
     }

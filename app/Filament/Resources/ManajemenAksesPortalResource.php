@@ -106,7 +106,11 @@ class ManajemenAksesPortalResource extends Resource
                     ->schema([
                         Toggle::make('akses_portal_presensi')
                             ->label('Izinkan Akses Kiosk Presensi')
-                            ->helperText('Jika diaktifkan, pengguna akan diberikan role Petugas Presensi.'),
+                            ->helperText('Jika diaktifkan, pengguna akan diberikan role Petugas Presensi (Scanner).'),
+
+                        Toggle::make('akses_dashboard_presensi')
+                            ->label('Izinkan Akses Portal Presensi')
+                            ->helperText('Jika diaktifkan, pengguna dapat mengakses Dashboard Manajemen Presensi (Admin).'),
                     ])->columns(1),
             ])
             ->statePath('data');
@@ -164,6 +168,12 @@ class ManajemenAksesPortalResource extends Resource
                     ->badge()
                     ->state(fn (User $record): string => $record->hasRole(['petugas_presensi']) ? 'Diizinkan' : 'Dilarang')
                     ->color(fn (string $state): string => str_contains($state, 'Diizinkan') ? 'success' : 'gray'),
+
+                TextColumn::make('status_dashboard_presensi')
+                    ->label('Akses Portal Presensi')
+                    ->badge()
+                    ->state(fn (User $record): string => $record->hasRole(['admin_portal_presensi']) ? 'Admin Presensi' : 'Tidak Aktif')
+                    ->color(fn (string $state): string => str_contains($state, 'Admin') ? 'success' : 'gray'),
             ])
             ->actions([
                 EditAction::make(),

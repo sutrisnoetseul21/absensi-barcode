@@ -22,7 +22,7 @@ class EnsureIsPetugasPresensi
 
         $user = Auth::user();
 
-        if (!$user->hasRole(['petugas_presensi', 'super_admin'])) {
+        if (!$user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin'])) {
             // Jika user adalah siswa atau wali kelas, arahkan ke dashboard masing-masing
             if ($user->hasRole('siswa')) {
                 return redirect('/portal-siswa');

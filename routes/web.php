@@ -58,6 +58,13 @@ Route::prefix('portal-presensi')->group(function () {
     Route::get('/login', \App\Livewire\PetugasPresensiLogin::class)->middleware('guest')->name('portal-presensi.login');
     
     Route::middleware('auth.presensi')->group(function () {
+        Route::get('/input-manual', \App\Livewire\PortalPresensi\InputPresensiManual::class)->name('portal-presensi.input-manual');
+        Route::get('/rekap-kelas', \App\Livewire\PortalPresensi\RekapAbsensiKelas::class)->name('portal-presensi.rekap-kelas');
+        Route::get('/rekap-sekolah', \App\Livewire\PortalPresensi\RekapAbsensiSekolah::class)->name('portal-presensi.rekap-sekolah');
+        Route::get('/cetak-laporan', \App\Livewire\PortalPresensi\CetakLaporanPresensi::class)->name('portal-presensi.cetak-laporan');
+        Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-presensi.cetak-kartu');
+        Route::get('/setting-notifikasi', \App\Livewire\PortalPresensi\SettingNotifikasi::class)->name('portal-presensi.setting-notifikasi');
+
         Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
         Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
             $barcode = $request->input('barcode');
@@ -193,6 +200,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/akademik', WaliKelasDashboard::class)->name('portal-guru.akademik');
         Route::get('/perpustakaan', \App\Livewire\GuruPerpustakaan::class)->name('portal-guru.perpustakaan');
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
+        Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-guru.cetak-kartu');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
@@ -234,6 +242,7 @@ Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->gr
         Route::get('/sirkulasi', \App\Livewire\PetugasPerpusSirkulasi::class)->name('portal-perpustakaan.sirkulasi');
         Route::get('/peminjaman', \App\Livewire\PetugasPerpusPeminjaman::class)->name('portal-perpustakaan.peminjaman');
         Route::get('/kunjungan', \App\Livewire\PetugasPerpusKunjungan::class)->name('portal-perpustakaan.kunjungan');
+        Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-perpustakaan.cetak-kartu');
         
         // Kiosk Sirkulasi (Mode Layar Penuh) 
         Route::get('/sirkulasi-kiosk', \App\Livewire\SirkulasiKiosk::class)->name('portal-perpustakaan.sirkulasi-kiosk');

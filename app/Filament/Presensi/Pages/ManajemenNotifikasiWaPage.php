@@ -64,16 +64,28 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
         $data = [];
 
-        // Load data Presensi Notification Settings
-        $telatSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'telat')->first();
-        if ($telatSetting) {
-            $data['student_notif_is_active']      = $telatSetting->is_active;
-            $data['student_notif_recipients']     = $telatSetting->recipients ?? ['ortu'];
-            $data['student_notif_template_pesan'] = $telatSetting->template_pesan;
+        // Load data Presensi Notification Settings (Sakit/Izin/Alpa)
+        $sakitSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'sakit')->first();
+        if ($sakitSetting) {
+            $data['student_notif_is_active']      = $sakitSetting->is_active;
+            $data['student_notif_recipients']     = $sakitSetting->recipients ?? ['ortu'];
+            $data['student_notif_template_pesan'] = $sakitSetting->template_pesan;
         } else {
             $data['student_notif_is_active']      = false;
             $data['student_notif_recipients']     = ['ortu'];
             $data['student_notif_template_pesan'] = "Halo Orang Tua/Wali,\nKami informasikan bahwa ananda {nama_siswa} (Kelas {kelas}) pada tanggal {tanggal} pukul {jam} tercatat berstatus {status_kehadiran}.\n\nSalam,\n{nama_sekolah}";
+        }
+
+        // Load data Presensi Notification Settings (Telat)
+        $telatSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'telat')->first();
+        if ($telatSetting) {
+            $data['telat_notif_is_active']      = $telatSetting->is_active;
+            $data['telat_notif_recipients']     = $telatSetting->recipients ?? ['ortu'];
+            $data['telat_notif_template_pesan'] = $telatSetting->template_pesan;
+        } else {
+            $data['telat_notif_is_active']      = false;
+            $data['telat_notif_recipients']     = ['ortu'];
+            $data['telat_notif_template_pesan'] = "Halo Orang Tua/Wali,\nKami informasikan bahwa ananda {nama_siswa} (Kelas {kelas}) pada tanggal {tanggal} pukul {jam} telah hadir namun terlambat.\n\nSalam,\n{nama_sekolah}";
         }
 
         // Load data Laporan Harian
@@ -155,11 +167,39 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                         Tab::make('Notifikasi Kehadiran Siswa')
                             ->icon('heroicon-o-bolt')
                             ->schema([
-                                Section::make('Aturan Otomatis Notifikasi Pengecualian')
-                                    ->description('Sistem akan otomatis mendeteksi ketika siswa berstatus Telat, Sakit, Izin, atau Alpa dan mengirimkan pesan WA sesuai template di bawah ini.')
+                                Section::make('Aturan Notifikasi: Terlambat')
+                                    ->description('Sistem akan otomatis mendeteksi ketika siswa berstatus Telat dan mengirimkan pesan WA sesuai template di bawah ini.')
+                                    ->schema([
+                                        Toggle::make('telat_notif_is_active')
+                                            ->label('Aktifkan Notifikasi Terlambat')
+                                            ->columnSpanFull(),
+                                        Select::make('telat_notif_recipients')
+                                            ->label('Kirim Ke (Penerima)')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Pilih satu atau beberapa penerima...')
+                                            ->options(function () {
+                                                $options  = [
+                                                    'ortu'       => 'Orang Tua',
+                                                    'wali_kelas' => 'Wali Kelas',
+                                                ];
+                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                                return array_merge($options, $jabatans);
+                                            })
+                                            ->columnSpanFull(),
+                                        Textarea::make('telat_notif_template_pesan')
+                                            ->label('Template Pesan Terlambat')
+                                            ->rows(5)
+                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Aturan Notifikasi: Sakit / Izin / Alpa')
+                                    ->description('Sistem akan otomatis mendeteksi ketika siswa berstatus Sakit, Izin, atau Alpa dan mengirimkan pesan WA sesuai template di bawah ini.')
                                     ->schema([
                                         Toggle::make('student_notif_is_active')
-                                            ->label('Aktifkan Notifikasi Kehadiran (Telat / Sakit / Izin / Alpa)')
+                                            ->label('Aktifkan Notifikasi (Sakit / Izin / Alpa)')
                                             ->columnSpanFull(),
                                         Select::make('student_notif_recipients')
                                             ->label('Kirim Ke (Penerima)')
@@ -177,9 +217,9 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('student_notif_template_pesan')
-                                            ->label('Template Pesan Otomatis')
+                                            ->label('Template Pesan Sakit/Izin/Alpa')
                                             ->rows(5)
-                                            ->helperText('Placeholder {status_kehadiran} akan otomatis terisi secara dinamis dengan kata: Telat, Sakit, Izin, atau Alpa. Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->helperText('Placeholder {status_kehadiran} akan otomatis terisi secara dinamis dengan kata: Sakit, Izin, atau Alpa. Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}')
                                             ->columnSpanFull(),
                                     ]),
                             ]),
@@ -592,8 +632,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         try {
             $data = $this->form->getState();
 
-            // Simpan Aturan Notifikasi Terpadu
-            $exceptionStatuses = ['telat', 'alpa', 'sakit', 'izin'];
+            // Simpan Aturan Notifikasi (Sakit / Izin / Alpa)
+            $exceptionStatuses = ['alpa', 'sakit', 'izin'];
             foreach ($exceptionStatuses as $status) {
                 \App\Models\PresensiNotificationSetting::updateOrCreate(
                     ['status_presensi' => $status],
@@ -604,6 +644,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                     ]
                 );
             }
+
+            // Simpan Aturan Notifikasi (Telat)
+            \App\Models\PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'telat'],
+                [
+                    'is_active'      => $data['telat_notif_is_active'] ?? false,
+                    'recipients'     => $data['telat_notif_recipients'] ?? [],
+                    'template_pesan' => $data['telat_notif_template_pesan'] ?? '',
+                ]
+            );
 
             // Simpan Laporan Harian
             $daily = PresensiDailyReportSetting::current();
