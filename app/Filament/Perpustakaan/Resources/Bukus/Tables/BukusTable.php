@@ -69,7 +69,7 @@ class BukusTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                TrashedFilter::make(),
+                // TrashedFilter is removed because it conflicts with the 'Sampah / Dihapus' Tab
             ])
             ->recordActions([
                 Action::make('bacaPdfModal')

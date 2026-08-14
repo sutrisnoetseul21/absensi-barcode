@@ -238,11 +238,13 @@ Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->gr
     Route::middleware('auth.perpus')->group(function () {
         Route::get('/', \App\Livewire\PetugasPerpusDashboard::class)->name('portal-perpustakaan.dashboard');
         Route::get('/buku', \App\Livewire\PetugasPerpusBuku::class)->name('portal-perpustakaan.buku');
+        Route::get('/riwayat-hapus-buku', \App\Livewire\PortalPerpustakaan\RiwayatHapusBuku::class)->name('portal-perpustakaan.riwayat-hapus-buku');
         Route::get('/inventaris', \App\Livewire\PetugasPerpusInventaris::class)->name('portal-perpustakaan.inventaris');
         Route::get('/sirkulasi', \App\Livewire\PetugasPerpusSirkulasi::class)->name('portal-perpustakaan.sirkulasi');
         Route::get('/peminjaman', \App\Livewire\PetugasPerpusPeminjaman::class)->name('portal-perpustakaan.peminjaman');
         Route::get('/kunjungan', \App\Livewire\PetugasPerpusKunjungan::class)->name('portal-perpustakaan.kunjungan');
         Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-perpustakaan.cetak-kartu');
+        Route::get('/klasifikasi-ddc', \App\Livewire\PortalPerpustakaan\KlasifikasiDdc::class)->name('portal-perpustakaan.klasifikasi-ddc');
         
         // Kiosk Sirkulasi (Mode Layar Penuh) 
         Route::get('/sirkulasi-kiosk', \App\Livewire\SirkulasiKiosk::class)->name('portal-perpustakaan.sirkulasi-kiosk');

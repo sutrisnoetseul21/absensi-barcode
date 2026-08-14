@@ -14,7 +14,8 @@ class PetugasPerpusKunjungan extends Component
     use WithPagination;
 
     public $search = '';
-    public $filterTanggal = '';
+    public $filterTanggalAwal = '';
+    public $filterTanggalAkhir = '';
     public $filterType = '';
 
     // Modal Unduh
@@ -23,10 +24,12 @@ class PetugasPerpusKunjungan extends Component
     public $filterAkhirUnduh = '';
     public array $filterTipeAnggotaUnduh = [];
     public string $formatUnduh = 'pdf';
+    public int $perPage = 15;
 
     public function mount()
     {
-        $this->filterTanggal = Carbon::today('Asia/Jakarta')->toDateString();
+        $this->filterTanggalAwal = Carbon::today('Asia/Jakarta')->toDateString();
+        $this->filterTanggalAkhir = Carbon::today('Asia/Jakarta')->toDateString();
     }
 
     public function openUnduhModal(): void
@@ -77,8 +80,11 @@ class PetugasPerpusKunjungan extends Component
     public function render()
     {
         $query = KunjunganPerpustakaan::with(['pengunjung'])
-            ->when($this->filterTanggal, function ($q) {
-                $q->where('tanggal', $this->filterTanggal);
+            ->when($this->filterTanggalAwal, function ($q) {
+                $q->where('tanggal', '>=', $this->filterTanggalAwal);
+            })
+            ->when($this->filterTanggalAkhir, function ($q) {
+                $q->where('tanggal', '<=', $this->filterTanggalAkhir);
             })
             ->when($this->filterType, function ($q) {
                 $q->where('pengunjung_type', $this->filterType);
@@ -90,7 +96,7 @@ class PetugasPerpusKunjungan extends Component
             })
             ->orderBy('created_at', 'desc');
 
-        $kunjungans = $query->paginate(12);
+        $kunjungans = $query->paginate($this->perPage);
 
         return view('livewire.petugas-perpus-kunjungan', [
             'kunjungans' => $kunjungans,

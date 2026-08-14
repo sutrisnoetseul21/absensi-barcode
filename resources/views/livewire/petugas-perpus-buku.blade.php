@@ -49,11 +49,12 @@
             <table class="w-full text-left text-xs">
                 <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80">
                     <tr>
-                        <th class="p-4 pl-6">Judul & Detail Buku</th>
-                        <th class="p-4">Koleksi & DDC</th>
+                        <th class="p-4 pl-6">Judul Buku</th>
+                        <th class="p-4">Koleksi</th>
                         <th class="p-4">Lokasi Rak</th>
-                        <th class="p-4">Fisik Eksemplar</th>
-                        <th class="p-4 text-center">Opsi</th>
+                        <th class="p-4 min-w-[130px] whitespace-nowrap">Eksemplar</th>
+                        <th class="p-4 text-center">Cetak</th>
+                        <th class="p-4 text-right pr-6">Opsi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -62,20 +63,17 @@
                             <td class="p-4 pl-6">
                                 <div class="flex items-center gap-4">
                                     @if($buku->sampul_buku)
-                                        <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="Sampul" class="w-12 h-16 object-cover rounded-md shadow-sm border border-slate-200">
+                                        <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="Sampul" class="w-12 h-16 shrink-0 object-cover rounded-md shadow-sm border border-slate-200">
                                     @else
-                                        <div class="w-12 h-16 bg-slate-100 rounded-md flex items-center justify-center border border-slate-200">
+                                        <div class="w-12 h-16 shrink-0 bg-slate-100 rounded-md flex items-center justify-center border border-slate-200">
                                             <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                                         </div>
                                     @endif
                                     <div>
                                         <h4 class="font-bold text-slate-900 text-sm">{{ $buku->judul }}</h4>
                                         <p class="text-[11px] text-slate-500 mt-0.5">
-                                            {{ $buku->penulis ?? 'Tanpa Penulis' }} &bull; {{ $buku->penerbit ?? '-' }} ({{ $buku->tahun_terbit ?? '-' }})
+                                            {{ $buku->penulis ?? 'Tanpa Penulis' }}
                                         </p>
-                                        @if($buku->isbn)
-                                            <span class="inline-block mt-1 font-mono text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border">ISBN: {{ $buku->isbn }}</span>
-                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -83,53 +81,48 @@
                                 <span class="px-2.5 py-1 bg-brand-primary/10 text-brand-primary font-bold rounded-lg border border-brand-primary/20 inline-block text-[11px]">
                                     {{ $buku->kategoriBuku?->nama_kategori ?? 'Umum' }}
                                 </span>
-                                @if($buku->klasifikasiDdc)
-                                    <span class="block text-[10px] text-slate-400 mt-1 font-mono">DDC: {{ $buku->klasifikasiDdc->kode_ddc }} - {{ $buku->klasifikasiDdc->kategori }}</span>
-                                @endif
                             </td>
                             <td class="p-4 font-medium text-slate-600">
                                 {{ $buku->lokasi_rak ?? '-' }}
                             </td>
-                            <td class="p-4">
+                            <td class="p-4 whitespace-nowrap">
                                 @php
                                     $totalFisik = $buku->eksemplarBukus->count();
                                     $tersedia = $buku->eksemplarBukus->where('status', 'tersedia')->count();
                                     $dipinjam = $buku->eksemplarBukus->where('status', 'dipinjam')->count();
                                 @endphp
-                                <span class="font-bold text-slate-800">{{ $totalFisik }} Fisik</span>
-                                <div class="flex items-center gap-1.5 mt-1 text-[10px]">
-                                    <span class="text-emerald-600 font-bold">{{ $tersedia }} Ada</span>
-                                    <span>&bull;</span>
+                                <span class="font-bold text-slate-800">{{ $totalFisik }} Eksemplar</span>
+                                <div class="flex items-center mt-1 text-[10px]">
                                     <span class="text-amber-600 font-bold">{{ $dipinjam }} Pinjam</span>
                                 </div>
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    <button type="button" wire:click="openEditBukuModal('{{ $buku->id }}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-amber-200/80 transition-all shadow-2xs cursor-pointer" title="Edit Data Buku">
-                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        Edit
-                                    </button>
-                                    <button type="button" wire:click="openDetailEksemplarModal('{{ $buku->id }}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-blue-200/80 transition-all shadow-2xs cursor-pointer" title="Detail Eksemplar Buku">
-                                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        Detail
-                                    </button>
-                                    <a href="{{ route('perpustakaan.cetak-barcode', $buku->id) }}" target="_blank" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-indigo-200/80 transition-all shadow-2xs" title="Cetak Label Barcode Eksemplar">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                                        Barcode
+                                    <a href="{{ route('perpustakaan.cetak-barcode', $buku->id) }}" target="_blank" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200/80 transition-all shadow-2xs" title="Cetak Label Barcode Eksemplar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                                     </a>
-                                    <a href="{{ route('perpustakaan.cetak-label-spine', $buku->id) }}" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-slate-200 transition-all shadow-2xs" title="Cetak Label Spine / Punggung Buku">
-                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"></path></svg>
-                                        Spine
+                                    <a href="{{ route('perpustakaan.cetak-label-spine', $buku->id) }}" target="_blank" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 transition-all shadow-2xs" title="Cetak Label Buku">
+                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"></path></svg>
                                     </a>
-                                    <button type="button" wire:confirm="Apakah Anda yakin ingin menghapus buku '{{ $buku->judul }}'?" wire:click="hapusBuku('{{ $buku->id }}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 border border-rose-200/80 transition-all shadow-2xs cursor-pointer" title="Hapus Buku">
-                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </div>
+                            </td>
+                            <td class="p-4 pr-6 text-right">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <button type="button" wire:click="openDetailEksemplarModal('{{ $buku->id }}')" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl border border-blue-200/80 transition-all shadow-2xs cursor-pointer" title="Detail Eksemplar Buku">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </button>
+                                    <button type="button" wire:click="openEditBukuModal('{{ $buku->id }}')" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl border border-amber-200/80 transition-all shadow-2xs cursor-pointer" title="Edit Data Buku">
+                                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                    <button type="button" wire:confirm="Apakah Anda yakin ingin menghapus buku '{{ $buku->judul }}'?" wire:click="hapusBuku('{{ $buku->id }}')" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200/80 transition-all shadow-2xs cursor-pointer" title="Hapus Buku">
+                                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="p-12 text-center text-slate-400">
+                            <td colspan="6" class="p-12 text-center text-slate-400">
                                 <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                                 <p class="text-xs font-medium">Belum ada buku katalog terdaftar.</p>
                             </td>
@@ -799,10 +792,16 @@
             <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 lg:p-8 space-y-6 max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">Detail Eksemplar Buku</h3>
-                        <p class="text-xs text-slate-500 mt-0.5 font-medium">
-                            Daftar fisik eksemplar terdaftar untuk buku ini.
-                        </p>
+                        <h3 class="text-lg font-bold text-slate-800">Detail Buku</h3>
+                        @if($selectedBukuDetail)
+                            <p class="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                                <span class="font-bold text-slate-700">{{ $selectedBukuDetail->judul }}</span> &bull; 
+                                {{ $selectedBukuDetail->penulis ?? 'Tanpa Penulis' }} &bull; 
+                                {{ $selectedBukuDetail->penerbit ?? 'Tanpa Penerbit' }} &bull; 
+                                Rak: {{ $selectedBukuDetail->lokasi_rak ?? '-' }} &bull; 
+                                ISBN: {{ $selectedBukuDetail->isbn ?? '-' }}
+                            </p>
+                        @endif
                     </div>
                     <button type="button" wire:click="$set('showDetailEksemplarModal', false)" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
                 </div>
@@ -817,7 +816,7 @@
                             </a>
                             <a href="{{ route('perpustakaan.cetak-label-spine', $selectedBukuDetail->id) }}" target="_blank" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 border border-slate-200 transition-all">
                                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"></path></svg>
-                                Cetak Label Spine (Semua)
+                                Cetak Label (Semua)
                             </a>
                         @endif
                     </div>

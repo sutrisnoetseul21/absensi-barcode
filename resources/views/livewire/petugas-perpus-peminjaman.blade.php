@@ -72,17 +72,29 @@
 
         <!-- Search Bar & Tab Content -->
         <div class="p-5 space-y-5">
-            <!-- Search -->
-            <div class="flex items-center gap-3">
-                <div class="relative flex-1 max-w-sm">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input wire:model.live.debounce.300ms="search" type="text"
-                           placeholder="Cari nama peminjam, judul, kode..."
-                           class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all">
+            <!-- Search & Filter -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 justify-between">
+                <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
+                    <div class="relative w-full max-w-sm">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input wire:model.live.debounce.300ms="search" type="text"
+                               placeholder="Cari nama peminjam, judul, kode..."
+                               class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all">
+                    </div>
+                    <div wire:loading class="text-xs text-slate-400 font-medium hidden sm:flex items-center gap-1.5 whitespace-nowrap">
+                        <svg class="w-4 h-4 animate-spin text-brand-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        Memuat...
+                    </div>
                 </div>
-                <div wire:loading class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                    <svg class="w-4 h-4 animate-spin text-brand-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    Memuat...
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <span class="text-xs text-slate-500 font-medium">Tampilkan:</span>
+                    <select wire:model.live="perPage" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-brand-primary/20 focus:border-brand-primary py-2 pl-3 pr-8">
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
                 </div>
             </div>
 
@@ -114,7 +126,15 @@
                                         </div>
                                         <div>
                                             <p class="font-bold text-slate-800">{{ $p->peminjam?->name ?? 'Anggota' }}</p>
-                                            <span class="text-[10px] text-slate-400 capitalize">{{ $p->peminjam_type }}</span>
+                                            <span class="text-[10px] text-slate-400">
+                                                @if($p->peminjam_type === 'siswa')
+                                                    NISN: {{ $p->peminjam?->nisn ?? '-' }}
+                                                @elseif($p->peminjam_type === 'guru')
+                                                    NIP: {{ $p->peminjam?->nip ?? '-' }}
+                                                @else
+                                                    {{ ucfirst($p->peminjam_type) }}
+                                                @endif
+                                            </span>
                                         </div>
                                     </div>
                                 </td>
