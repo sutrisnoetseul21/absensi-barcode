@@ -41,34 +41,37 @@ class UnifiedLogin extends Component
             
             $user = Auth::guard('web')->user();
 
-            // Jika role siswa, cek status enrollment aktif
-            if ($user->hasRole('siswa')) {
-                if ($user->student === null) {
-                    Auth::guard('web')->logout();
-                    RateLimiter::hit($key);
-                    throw ValidationException::withMessages([
-                        'username' => 'Profil siswa tidak ditemukan.',
-                    ]);
+            // Bypass pengecekan profil untuk super admin
+            if (!$user->hasRole('super_admin')) {
+                // Jika role siswa, cek status enrollment aktif
+                if ($user->hasRole('siswa')) {
+                    if ($user->student === null) {
+                        Auth::guard('web')->logout();
+                        RateLimiter::hit($key);
+                        throw ValidationException::withMessages([
+                            'username' => 'Profil siswa tidak ditemukan.',
+                        ]);
+                    }
+                    
+                    $hasActiveEnrollment = $user->student->enrollmentAktif()->exists();
+                    if (!$hasActiveEnrollment) {
+                        Auth::guard('web')->logout();
+                        RateLimiter::hit($key);
+                        throw ValidationException::withMessages([
+                            'username' => 'Akun Anda tidak berstatus aktif pada tahun ajaran ini (Lulus/Pindah) atau belum didaftarkan di kelas manapun.',
+                        ]);
+                    }
                 }
-                
-                $hasActiveEnrollment = $user->student->enrollmentAktif()->exists();
-                if (!$hasActiveEnrollment) {
-                    Auth::guard('web')->logout();
-                    RateLimiter::hit($key);
-                    throw ValidationException::withMessages([
-                        'username' => 'Akun Anda tidak berstatus aktif pada tahun ajaran ini (Lulus/Pindah) atau belum didaftarkan di kelas manapun.',
-                    ]);
-                }
-            }
 
-            // Jika role wali kelas, cek status teacher
-            if ($user->hasRole('wali_kelas')) {
-                if ($user->teacher === null) {
-                    Auth::guard('web')->logout();
-                    RateLimiter::hit($key);
-                    throw ValidationException::withMessages([
-                        'username' => 'Profil guru tidak ditemukan.',
-                    ]);
+                // Jika role wali kelas, cek status teacher
+                if ($user->hasRole('wali_kelas')) {
+                    if ($user->teacher === null) {
+                        Auth::guard('web')->logout();
+                        RateLimiter::hit($key);
+                        throw ValidationException::withMessages([
+                            'username' => 'Profil guru tidak ditemukan.',
+                        ]);
+                    }
                 }
             }
 
