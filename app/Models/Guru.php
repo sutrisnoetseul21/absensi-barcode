@@ -39,6 +39,12 @@ class Guru extends Authenticatable
         return $this->hasMany(KelasAjaran::class, 'teacher_id');
     }
 
+    // Kelas tambahan yang bisa dipantau (Akses Portal Pantau)
+    public function kelasPantau(): HasMany
+    {
+        return $this->hasMany(TeacherClassAccess::class, 'teacher_id');
+    }
+
     // Absensi manual yang diinput wali kelas ini (polymorphic)
     public function absensisManual()
     {

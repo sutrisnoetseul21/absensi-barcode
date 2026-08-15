@@ -72,24 +72,36 @@ class ManajemenAksesPortalResource extends Resource
                             ->helperText('Jika diaktifkan, pengguna akan diberikan role Wali Kelas.')
                             ->live(),
 
+                        Placeholder::make('wali_kelas_utama')
+                            ->label('Wali Kelas Utama (Sesuai Data Induk)')
+                            ->content(function ($record) {
+                                if (!$record || !$record->teacher) return '-';
+                                $activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
+                                if (!$activeYear) return '-';
+                                $kelas = $record->teacher->kelasAjarans()->where('academic_year_id', $activeYear->id)->with('kelas')->get();
+                                if ($kelas->isEmpty()) return 'Tidak ada (Bukan wali kelas utama di tahun aktif)';
+                                return $kelas->map(fn($k) => $k->kelas->name ?? 'Unknown')->implode(', ');
+                            })
+                            ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
+
                         Select::make('mode_akses_kelas')
                             ->label('Tipe Akses Kelas')
                             ->options([
-                                'wali_kelas_saja' => '1. Hanya Kelas Binaan Utama (Default Wali Kelas)',
-                                'kelas_tertentu'   => '2. Akses Beberapa Kelas Pilihan (Multi-Select)',
-                                'semua_kelas'      => '3. Akses Semua Kelas (Bypass Mode 7A - 9C)',
+                                'wali_kelas_saja' => '1. Hanya Kelas Utama (Sesuai Data Wali Kelas)',
+                                'kelas_tertentu'   => '2. Tambahan Akses Kelas Pantau (Misal: Guru BK)',
+                                'semua_kelas'      => '3. Akses Semua Kelas (Bypass Mode)',
                             ])
                             ->default('wali_kelas_saja')
                             ->visible(fn ($get) => (bool) $get('akses_portal_guru'))
                             ->live(),
 
                         Select::make('kelas_pilihan_ids')
-                            ->label('Pilih Kelas Spesifik (Tahun Ajaran Aktif)')
+                            ->label('Pilih Tambahan Kelas Pantau (Tahun Ajaran Aktif)')
                             ->options($kelasOptions)
                             ->multiple()
                             ->searchable()
                             ->preload()
-                            ->helperText('Pilih kelas apa saja yang boleh diakses dan dikelola oleh guru ini.')
+                            ->helperText('Pilih kelas tambahan yang boleh dipantau oleh guru ini (misal untuk Guru BK). Data kelas utama (Wali Kelas) tidak akan terhapus.')
                             ->visible(fn ($get) => (bool) $get('akses_portal_guru') && $get('mode_akses_kelas') === 'kelas_tertentu'),
                     ])->columns(1),
 
@@ -101,16 +113,12 @@ class ManajemenAksesPortalResource extends Resource
                             ->helperText('Jika diaktifkan, pengguna akan diberikan role Petugas Perpustakaan.'),
                     ])->columns(1),
 
-                Section::make('Akses Kiosk Presensi (/portal-presensi/scan)')
-                    ->description('Atur izin staf / admin ini untuk membuka halaman Kiosk Presensi Mandiri.')
+                Section::make('Akses Manajemen Presensi (/portal-presensi)')
+                    ->description('Atur izin staf / admin ini untuk mengakses Dashboard Manajemen Presensi. (Catatan: Semua Guru otomatis mendapatkan akses Kiosk Presensi).')
                     ->schema([
-                        Toggle::make('akses_portal_presensi')
-                            ->label('Izinkan Akses Kiosk Presensi')
-                            ->helperText('Jika diaktifkan, pengguna akan diberikan role Petugas Presensi (Scanner).'),
-
                         Toggle::make('akses_dashboard_presensi')
                             ->label('Izinkan Akses Portal Presensi')
-                            ->helperText('Jika diaktifkan, pengguna dapat mengakses Dashboard Manajemen Presensi (Admin).'),
+                            ->helperText('Jika diaktifkan, pengguna akan menjadi Admin Presensi yang dapat mengelola rekapitulasi (otomatis mendapatkan akses Kiosk).'),
                     ])->columns(1),
             ])
             ->statePath('data');

@@ -106,8 +106,10 @@ class WaliKelasDashboard extends Component
             return;
         }
 
-        if (Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher === null) {
-            abort(403, 'Akses Ditolak: Data profil guru Anda belum ditautkan oleh Admin.');
+        if (!Auth::user()->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            if (Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher === null) {
+                abort(403, 'Akses Ditolak: Data profil guru Anda belum ditautkan oleh Admin.');
+            }
         }
 
         $isAdminMode = Auth::user()->hasAnyRole(['super_admin', 'admin_presensi']);
@@ -115,10 +117,15 @@ class WaliKelasDashboard extends Component
 
         if (!$isAdminMode && !$hasBypass) {
             $actor = Auth::user()->teacher;
-            $this->classes = Kelas::whereHas('kelasAjarans', function ($query) use ($actor) {
-                $query->where('academic_year_id', $this->selectedAcademicYearId)
-                      ->where('teacher_id', $actor->id);
-            })->get();
+            $this->classes = Kelas::where(function ($q) use ($actor) {
+                $q->whereHas('kelasAjarans', function ($query) use ($actor) {
+                    $query->where('academic_year_id', $this->selectedAcademicYearId)
+                          ->where('teacher_id', $actor->id);
+                })->orWhereHas('guruKelasPantau', function ($query) use ($actor) {
+                    $query->where('academic_year_id', $this->selectedAcademicYearId)
+                          ->where('teacher_id', $actor->id);
+                });
+            })->orderBy('name', 'asc')->get();
         } else {
             $this->classes = Kelas::whereHas('kelasAjarans', function ($query) {
                 $query->where('academic_year_id', $this->selectedAcademicYearId);
@@ -144,8 +151,10 @@ class WaliKelasDashboard extends Component
 
     public function updatedSelectedClassId()
     {
-        if (Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher === null) {
-            abort(403, 'Akses Ditolak: Data profil guru tidak lengkap.');
+        if (!Auth::user()->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            if (Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher === null) {
+                abort(403, 'Akses Ditolak: Data profil guru tidak lengkap.');
+            }
         }
 
         $isAdminMode = Auth::user()->hasAnyRole(['super_admin', 'admin_presensi']);

@@ -16,8 +16,29 @@ class EnsureIsWaliKelas
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::guard('web')->check() || !Auth::user()->hasRole('wali_kelas') || Auth::user()->teacher === null) {
+        if (!Auth::guard('web')->check()) {
             return redirect('/portal-guru/login');
+        }
+
+        $user = Auth::user();
+
+        // Izinkan super_admin dan admin_presensi untuk bypass pengecekan guru
+        if (!$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            if (!$user->hasRole('wali_kelas') || $user->teacher === null) {
+                // Jika user adalah siswa, arahkan ke dashboard siswa
+                if ($user->hasRole('siswa')) {
+                    return redirect('/portal-siswa');
+                }
+                // Jika user adalah petugas perpustakaan
+                if ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan')) {
+                    return redirect('/portal-perpustakaan');
+                }
+                // Jika user adalah petugas presensi
+                if ($user->hasRole('petugas_presensi')) {
+                    return redirect('/portal-presensi/scan');
+                }
+                abort(403, 'Akses ditolak. Anda tidak terdaftar sebagai Guru/Wali Kelas.');
+            }
         }
 
         $user = Auth::user();

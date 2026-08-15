@@ -86,6 +86,15 @@ class GuruPerpustakaan extends Component
             }
         }
 
+        // 3. Kelas Pantau (Guru BK dll)
+        $kelasPantau = $guru->kelasPantau()
+            ->where('academic_year_id', $activeYear->id)
+            ->with('kelas')
+            ->get();
+        foreach ($kelasPantau as $kp) {
+            if ($kp->kelas) $kelasCollection->push($kp->kelas);
+        }
+
         $this->kelasAmpu = $kelasCollection->unique('id')->sortBy('name')->values()->all();
         if (count($this->kelasAmpu) > 0) {
             $this->selectedKelasId = $this->kelasAmpu[0]->id;

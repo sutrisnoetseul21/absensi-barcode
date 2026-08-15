@@ -16,8 +16,28 @@ class EnsureIsSiswa
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::guard('web')->check() || !Auth::user()->hasRole('siswa') || Auth::user()->student === null) {
+        if (!Auth::guard('web')->check()) {
             return redirect('/portal-siswa/login');
+        }
+
+        $user = Auth::user();
+
+        if (!$user->hasRole('super_admin')) {
+            if (!$user->hasRole('siswa') || $user->student === null) {
+                // Jika user adalah wali kelas
+                if ($user->hasRole('wali_kelas')) {
+                    return redirect('/portal-guru');
+                }
+                // Jika user adalah petugas perpustakaan
+                if ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan')) {
+                    return redirect('/portal-perpustakaan');
+                }
+                // Jika user adalah petugas presensi
+                if ($user->hasRole('petugas_presensi')) {
+                    return redirect('/portal-presensi/scan');
+                }
+                abort(403, 'Akses ditolak. Anda tidak terdaftar sebagai Siswa.');
+            }
         }
 
         $user = Auth::user();

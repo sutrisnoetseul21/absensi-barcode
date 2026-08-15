@@ -39,7 +39,11 @@ Route::get('/perpustakaan/buku/{buku}/baca', function (\App\Models\Buku $buku) {
     return view('baca-buku', compact('buku'));
 })->name('perpustakaan.baca-buku');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
-Route::get('/login', fn() => view('auth.portal-selection'))->name('login');
+Route::get('/pilih-admin', fn() => view('auth.portal-selection'))->name('pilih-admin');
+
+// Unified Login Route
+Route::get('/login', \App\Livewire\Auth\UnifiedLogin::class)->name('login')->middleware('guest');
+
 Route::post('/logout', function () {
     Auth::guard('web')->logout();
     request()->session()->invalidate();
@@ -117,12 +121,12 @@ Route::middleware('auth')->group(function () {
     })->name('perpustakaan.sirkulasi.process');
 
     // Kiosk Kunjungan Perpustakaan Routes
-    Route::get('/perpustakaan/kunjungan', \App\Livewire\KunjunganKiosk::class)->name('perpustakaan.kunjungan');
+    Route::get('/perpustakaan/kunjungan', \App\Livewire\KunjunganKiosk::class)->middleware('auth.perpus')->name('perpustakaan.kunjungan');
     Route::post('/perpustakaan/kunjungan/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessKunjunganAction $action) {
         $barcode = $request->input('barcode');
         $tujuan = $request->input('tujuan_kunjungan', 'Membaca / Belajar');
         return response()->json($action->execute((string) $barcode, auth()->id(), (string) $tujuan));
-    })->middleware('throttle:60,1')->name('perpustakaan.kunjungan.process');
+    })->middleware(['throttle:60,1', 'auth.perpus'])->name('perpustakaan.kunjungan.process');
 
     // Download laporan hasil import siswa (PPDB)
     Route::get('/admin/import/download-laporan', function () {

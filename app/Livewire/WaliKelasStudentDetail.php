@@ -44,8 +44,10 @@ class WaliKelasStudentDetail extends Component
         // Verify if the authenticated teacher is indeed the Wali Kelas for this enrollment
         $user = Auth::user();
 
-        if ($user->hasRole('wali_kelas') && $user->teacher === null) {
-            abort(403, 'Akses Ditolak: Data profil guru tidak lengkap.');
+        if (!$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            if ($user->hasRole('wali_kelas') && $user->teacher === null) {
+                abort(403, 'Akses Ditolak: Data profil guru Anda belum ditautkan oleh Admin.');
+            }
         }
 
         $isAdminMode = $user->hasAnyRole(['super_admin', 'admin_presensi']);

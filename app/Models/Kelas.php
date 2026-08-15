@@ -30,6 +30,12 @@ class Kelas extends Model
         return $this->hasMany(KelasAjaran::class, 'class_id');
     }
 
+    // Akses pantau tambahan (Guru BK dll)
+    public function guruKelasPantau(): HasMany
+    {
+        return $this->hasMany(TeacherClassAccess::class, 'class_id');
+    }
+
     // Enrollment siswa di kelas ini
     public function enrollments(): HasMany
     {

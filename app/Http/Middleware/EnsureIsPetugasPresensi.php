@@ -22,19 +22,33 @@ class EnsureIsPetugasPresensi
 
         $user = Auth::user();
 
-        if (!$user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin'])) {
-            // Jika user adalah siswa atau wali kelas, arahkan ke dashboard masing-masing
-            if ($user->hasRole('siswa')) {
-                return redirect('/portal-siswa');
+        // Cek apakah route yang diakses adalah Kiosk (scan)
+        if ($request->routeIs('kiosk.scan') || $request->routeIs('kiosk.scan-nis')) {
+            if (!$user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas'])) {
+                abort(403, 'Anda tidak memiliki akses ke Kiosk Presensi.');
             }
-            if ($user->hasRole('wali_kelas')) {
-                return redirect('/portal-guru');
+        } else {
+            // Jika mengakses dashboard atau halaman manajemen presensi lainnya
+            if (!$user->hasRole(['admin_portal_presensi', 'super_admin'])) {
+                // Jika dia hanya petugas presensi (scanner), alihkan ke Kiosk
+                if ($user->hasRole('petugas_presensi')) {
+                    $scanMode = \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? 'kiosk.scan-nis' : 'kiosk.scan';
+                    return redirect()->route($scanMode);
+                }
+                
+                // Jika user adalah siswa atau wali kelas, arahkan ke dashboard masing-masing
+                if ($user->hasRole('siswa')) {
+                    return redirect('/portal-siswa');
+                }
+                if ($user->hasRole('wali_kelas')) {
+                    return redirect('/portal-guru');
+                }
+                if ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan')) {
+                    return redirect('/portal-perpustakaan');
+                }
+                // Jika tidak, tolak akses
+                abort(403, 'Anda tidak memiliki akses ke Portal Presensi.');
             }
-            if ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan')) {
-                return redirect('/portal-perpustakaan');
-            }
-            // Jika tidak, tolak akses
-            abort(403, 'Anda tidak memiliki akses sebagai Petugas Presensi (Kiosk).');
         }
 
         return $next($request);
