@@ -1,9 +1,9 @@
-@props(['pengaturanSekolah' => null])
+@props(['pengaturanSekolah' => null, 'alwaysDark' => false])
 
 <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
     x-data="{ scrolled: false, mobileMenuOpen: false, loginMenuOpenMobile: false }"
-    @scroll.window="scrolled = window.scrollY > 30"
-    :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-brand-primary-100/50 border-b border-slate-200/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-transparent')">
+    @scroll.window="scrolled = {{ $alwaysDark ? 'false' : 'window.scrollY > 30' }}"
+    :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-brand-primary-100/50 border-b border-slate-200/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-slate-950/40 backdrop-blur-sm border-b border-white/10')">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-20">
             <!-- Header Kiri: Logo & Nama Sekolah -->
@@ -21,7 +21,7 @@
                         {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Digital' }}
                     </h1>
                     <p class="text-xs font-medium transition-colors duration-300" :class="scrolled ? 'text-brand-primary' : 'text-brand-primary-100'">
-                        {{ request()->is('perpustakaan') ? 'Perpustakaan Digital' : 'Sistem Presensi Digital' }}
+                        {{ request()->is('/') ? 'Sistem Informasi Terpadu' : (request()->is('perpustakaan') ? 'Perpustakaan Digital' : 'Sistem Presensi Digital') }}
                     </p>
                 </div>
             </div>
@@ -127,17 +127,45 @@
                             </div>
 
                             <div class="px-3 py-2">
-                                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1.5 px-1">Akses Portal Saya ({{ count($accessiblePortals) }})</p>
-                                <div class="max-h-52 overflow-y-auto space-y-1.5 pr-0.5">
-                                    @foreach($accessiblePortals as $p)
-                                        <a href="{{ $p['url'] }}" class="flex items-start justify-between p-2 rounded-xl border text-xs font-semibold transition-all {{ $p['bg'] }}">
-                                            <div class="flex flex-col">
-                                                <span class="font-bold text-slate-900 leading-tight">{{ $p['name'] }}</span>
-                                                <span class="text-[10px] opacity-75 font-normal mt-0.5">{{ $p['desc'] }}</span>
-                                            </div>
-                                            <svg class="w-3.5 h-3.5 shrink-0 mt-0.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                                        </a>
-                                    @endforeach
+                                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1.5 px-1">Pintasan Akses</p>
+                                <div class="max-h-60 overflow-y-auto space-y-1 pr-0.5">
+                                    
+                                    <a href="{{ url('/portal-guru') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/50 text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all">
+                                        <div class="p-1.5 rounded-lg bg-indigo-100 text-indigo-600">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                        </div>
+                                        <span>Portal Guru</span>
+                                    </a>
+
+                                    <a href="{{ url('/portal-perpustakaan') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-emerald-100 hover:bg-emerald-50/50 text-xs font-semibold text-slate-700 hover:text-emerald-700 transition-all">
+                                        <div class="p-1.5 rounded-lg bg-emerald-100 text-emerald-600">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                        </div>
+                                        <span>Portal Perpustakaan</span>
+                                    </a>
+
+                                    <a href="{{ url('/portal-presensi') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-amber-100 hover:bg-amber-50/50 text-xs font-semibold text-slate-700 hover:text-amber-700 transition-all">
+                                        <div class="p-1.5 rounded-lg bg-amber-100 text-amber-600">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </div>
+                                        <span>Portal Presensi</span>
+                                    </a>
+                                    
+                                    <div class="border-t border-slate-100 my-1 mx-2"></div>
+
+                                    <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
+                                        <div class="p-1.5 rounded-lg bg-blue-100 text-blue-600">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                        </div>
+                                        <span>Presensi Digital</span>
+                                    </a>
+
+                                    <a href="{{ route('perpustakaan.kunjungan') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-purple-100 hover:bg-purple-50/50 text-xs font-semibold text-slate-700 hover:text-purple-700 transition-all">
+                                        <div class="p-1.5 rounded-lg bg-purple-100 text-purple-600">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                        </div>
+                                        <span>Kunjungan Perpustakaan</span>
+                                    </a>
                                 </div>
                             </div>
 
@@ -247,14 +275,28 @@
                         <span class="inline-block mt-0.5 text-xs font-semibold" :class="scrolled ? 'text-brand-primary' : 'text-brand-primary-light'">{{ $authRole }}</span>
                     </div>
 
-                    <p class="text-[10px] font-bold uppercase px-1 mt-2" :class="scrolled ? 'text-slate-400' : 'text-slate-400'">Daftar Portal Yang Dapat Diakses:</p>
+                    <p class="text-[10px] font-bold uppercase px-1 mt-2" :class="scrolled ? 'text-slate-400' : 'text-slate-400'">Pintasan Akses:</p>
                     <div class="space-y-1.5">
-                        @foreach($accessiblePortals as $p)
-                            <a href="{{ $p['url'] }}" class="flex items-center justify-between px-4 py-2.5 rounded-xl border text-xs font-bold transition-all {{ $p['bg'] }}">
-                                <span>{{ $p['name'] }}</span>
-                                <svg class="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </a>
-                        @endforeach
+                        <a href="{{ url('/portal-guru') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all" :class="scrolled ? 'border-slate-100 hover:bg-slate-50 text-slate-700' : 'border-white/10 hover:bg-white/5 text-slate-200'">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            <span>Portal Guru</span>
+                        </a>
+                        <a href="{{ url('/portal-perpustakaan') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all" :class="scrolled ? 'border-slate-100 hover:bg-slate-50 text-slate-700' : 'border-white/10 hover:bg-white/5 text-slate-200'">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            <span>Portal Perpustakaan</span>
+                        </a>
+                        <a href="{{ url('/portal-presensi') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all" :class="scrolled ? 'border-slate-100 hover:bg-slate-50 text-slate-700' : 'border-white/10 hover:bg-white/5 text-slate-200'">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Portal Presensi</span>
+                        </a>
+                        <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all" :class="scrolled ? 'border-slate-100 hover:bg-slate-50 text-slate-700' : 'border-white/10 hover:bg-white/5 text-slate-200'">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                            <span>Presensi Digital</span>
+                        </a>
+                        <a href="{{ route('perpustakaan.kunjungan') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all" :class="scrolled ? 'border-slate-100 hover:bg-slate-50 text-slate-700' : 'border-white/10 hover:bg-white/5 text-slate-200'">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            <span>Kunjungan Perpustakaan</span>
+                        </a>
                     </div>
 
                     <form action="{{ route('logout') }}" method="POST" class="mt-3">

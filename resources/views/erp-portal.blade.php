@@ -9,12 +9,15 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    @livewireStyles
 </head>
 <body class="antialiased">
 
 @php
     $pengaturanSekolah = \App\Models\PengaturanSekolah::current();
 @endphp
+
+<x-public-dashboard.navbar :pengaturanSekolah="$pengaturanSekolah" :alwaysDark="true" />
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-slate-900 relative overflow-hidden p-4 sm:p-8">
     <!-- Global Background -->
@@ -84,5 +87,6 @@
     </div>
 </div>
 
+@livewireScripts
 </body>
 </html>
