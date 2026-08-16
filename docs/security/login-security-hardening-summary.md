@@ -6,14 +6,13 @@ Dokumen ini merangkum seluruh arsitektur dan perubahan teknis yang telah diterap
 
 ## 1. Ringkasan 4 Pilar Penguatan Keamanan
 
-### Pilar 1: Math Captcha Sisi Server (Portal Siswa & Guru)
+### Pilar 1: Cloudflare Turnstile Dual-Mode (Portal Siswa & Guru)
 * **File Utama**: `app/Livewire/Auth/UnifiedLogin.php`, `resources/views/livewire/auth/unified-login.blade.php`
-* **Masalah Awal**: Nilai jawaban penjumlahan sebelumnya rentan terbaca pada JSON snapshot Livewire (`wire:snapshot`).
-* **Solusi yang Diterapkan**:
-  - Jawaban penjumlahan benar **disimpan secara eksklusif di Server Session** (`session(['unified_login_captcha' => $num1 + $num2])`).
-  - Properti Livewire `$captcha_answer` hanya berfungsi menampung input user.
-  - Validasi membandingkan input user langsung dengan data session.
-  - Nilai diacak ulang (*regenerated*) pada **seluruh jalur kegagalan** (salah captcha, salah password, user tak terdaftar, rate limit).
+* **Fitur & Mekanisme**:
+  - **Dual Mode (Zero-Config Ready)**:
+    - Jika `TURNSTILE_SITE_KEY` terisi di `.env` $\rightarrow$ otomatis memuat widget **Cloudflare Turnstile**.
+    - Jika `TURNSTILE_SITE_KEY` kosong di `.env` $\rightarrow$ otomatis fallback ke **Server-Side Session Math Captcha** (jawaban tersimpan di session server, tidak bocor ke Livewire snapshot).
+  - Dilengkapi verifikasi *Fail-Closed*, penanganan *Single-Use Token Reset* (`reset-turnstile`), dan *Fallback Timeout 8 detik*.
 
 ---
 

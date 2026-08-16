@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use App\Services\TurnstileService;
 
 #[Layout('components.layouts.app')]
 class UnifiedLogin extends Component
@@ -17,13 +18,25 @@ class UnifiedLogin extends Component
     public $username = '';
     public $password = '';
     public $remember = false;
+
+    // Property untuk mode Turnstile
+    public string $turnstile_token = '';
+
+    // Property untuk mode Math Captcha
     public int $num1 = 0;
     public int $num2 = 0;
     public $captcha_answer = '';
 
     public function mount(): void
     {
-        $this->generateCaptcha();
+        if ($this->shouldUseMathCaptcha()) {
+            $this->generateCaptcha();
+        }
+    }
+
+    public function shouldUseMathCaptcha(): bool
+    {
+        return blank(config('services.turnstile.site_key'));
     }
 
     public function generateCaptcha(): void
@@ -41,22 +54,45 @@ class UnifiedLogin extends Component
         // 1. PRE-CHECK: Cek Secondary Rate Limiter (Spray Protection per-IP)
         $this->checkSprayLimiter($ip);
 
-        // 2. Validasi input & Captcha
-        $this->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-            'captcha_answer' => 'required|numeric',
-        ], [
-            'captcha_answer.required' => 'Pertanyaan keamanan wajib diisi.',
-            'captcha_answer.numeric' => 'Jawaban harus berupa angka.',
-        ]);
-
-        $expected = session('unified_login_captcha');
-        if ($expected === null || (int) $this->captcha_answer !== (int) $expected) {
-            $this->generateCaptcha();
-            throw ValidationException::withMessages([
-                'captcha_answer' => 'Jawaban hitungan keamanan salah. Silakan coba lagi.',
+        // 2. Validasi input & Verifikasi Keamanan (Dual-Mode)
+        if ($this->shouldUseMathCaptcha()) {
+            $this->validate([
+                'username' => 'required|string',
+                'password' => 'required|string',
+                'captcha_answer' => 'required|numeric',
+            ], [
+                'captcha_answer.required' => 'Pertanyaan keamanan wajib diisi.',
+                'captcha_answer.numeric' => 'Jawaban harus berupa angka.',
             ]);
+
+            $expected = session('unified_login_captcha');
+            if ($expected === null || (int) $this->captcha_answer !== (int) $expected) {
+                $this->generateCaptcha();
+                throw ValidationException::withMessages([
+                    'captcha_answer' => 'Jawaban hitungan keamanan salah. Silakan coba lagi.',
+                ]);
+            }
+        } else {
+            $this->validate([
+                'username' => 'required|string',
+                'password' => 'required|string',
+            ]);
+
+            if (blank($this->turnstile_token)) {
+                $this->dispatch('reset-turnstile');
+                throw ValidationException::withMessages([
+                    'turnstile_token' => 'Verifikasi keamanan Turnstile wajib diselesaikan sebelum masuk.',
+                ]);
+            }
+
+            $turnstileService = app(TurnstileService::class);
+            if (!$turnstileService->verify($this->turnstile_token, $ip)) {
+                $this->turnstile_token = '';
+                $this->dispatch('reset-turnstile');
+                throw ValidationException::withMessages([
+                    'turnstile_token' => 'Verifikasi keamanan gagal atau kedaluwarsa. Silakan verifikasi kembali widget.',
+                ]);
+            }
         }
 
         // 3. Primary Rate Limiter (Individu: IP + Username, max 5 attempts)
@@ -64,7 +100,12 @@ class UnifiedLogin extends Component
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
-            $this->generateCaptcha();
+            if ($this->shouldUseMathCaptcha()) {
+                $this->generateCaptcha();
+            } else {
+                $this->turnstile_token = '';
+                $this->dispatch('reset-turnstile');
+            }
             throw ValidationException::withMessages([
                 'username' => "Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik.",
             ]);
@@ -164,7 +205,13 @@ class UnifiedLogin extends Component
                 Cache::put($logThrottleKey, true, now()->addMinutes(10));
             }
 
-            $this->generateCaptcha();
+            if ($this->shouldUseMathCaptcha()) {
+                $this->generateCaptcha();
+            } else {
+                $this->turnstile_token = '';
+                $this->dispatch('reset-turnstile');
+            }
+
             throw ValidationException::withMessages([
                 'username' => 'Aktivitas login mencurigakan terdeteksi dari jaringan Anda (terlalu banyak akun gagal). Akses login dari IP ini ditangguhkan sementara.',
             ]);
@@ -177,7 +224,13 @@ class UnifiedLogin extends Component
     public function recordFailedAttempt(string $ip, string $key): void
     {
         RateLimiter::hit($key);
-        $this->generateCaptcha();
+        
+        if ($this->shouldUseMathCaptcha()) {
+            $this->generateCaptcha();
+        } else {
+            $this->turnstile_token = '';
+            $this->dispatch('reset-turnstile');
+        }
 
         $uniqueFailedCount = 0;
 

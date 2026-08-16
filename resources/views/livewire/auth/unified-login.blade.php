@@ -99,26 +99,96 @@
                         @error('password') <p class="mt-2 text-xs text-rose-300 lg:text-rose-500 font-medium drop-shadow-sm lg:drop-shadow-none">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Verifikasi Keamanan Anti-Bot (Math Captcha) -->
-                    <div class="bg-indigo-50/60 lg:bg-slate-50/80 p-3.5 rounded-2xl border border-indigo-100 dark:border-slate-800">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label for="captcha_answer" class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                Hitungan Keamanan
-                            </label>
-                            <button type="button" wire:click="generateCaptcha" class="text-[11px] font-medium text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                Acak Ulang
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-2.5">
-                            <div class="px-3.5 py-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono font-extrabold text-base text-indigo-700 dark:text-indigo-400 select-none shadow-xs whitespace-nowrap">
-                                {{ $num1 }} + {{ $num2 }} =
+                    <!-- Verifikasi Keamanan Anti-Bot (Dual-Mode: Turnstile / Math Captcha) -->
+                    @if(empty(config('services.turnstile.site_key')))
+                        <!-- MODE FALLBACK: Math Captcha -->
+                        <div class="bg-indigo-50/60 lg:bg-slate-50/80 p-3.5 rounded-2xl border border-indigo-100 dark:border-slate-800">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="captcha_answer" class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    Hitungan Keamanan
+                                </label>
+                                <button type="button" wire:click="generateCaptcha" class="text-[11px] font-medium text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                    Acak Ulang
+                                </button>
                             </div>
-                            <input wire:model="captcha_answer" id="captcha_answer" type="number" required class="block w-full px-3 py-2 border border-slate-200 rounded-xl leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm shadow-xs" placeholder="Hasil ?">
+                            <div class="flex items-center gap-2.5">
+                                <div class="px-3.5 py-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono font-extrabold text-base text-indigo-700 dark:text-indigo-400 select-none shadow-xs whitespace-nowrap">
+                                    {{ $num1 }} + {{ $num2 }} =
+                                </div>
+                                <input wire:model="captcha_answer" id="captcha_answer" type="number" required class="block w-full px-3 py-2 border border-slate-200 rounded-xl leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm shadow-xs" placeholder="Hasil ?">
+                            </div>
+                            @error('captcha_answer') <p class="mt-1.5 text-xs text-rose-500 font-semibold">{{ $message }}</p> @enderror
                         </div>
-                        @error('captcha_answer') <p class="mt-1.5 text-xs text-rose-500 font-semibold">{{ $message }}</p> @enderror
-                    </div>
+                    @else
+                        <!-- MODE TURNSTILE: Cloudflare Turnstile -->
+                        <div wire:ignore class="my-2 flex flex-col items-center">
+                            <div id="turnstile-unified-container" class="flex justify-center"></div>
+                            
+                            <!-- Fallback UI jika script diblokir / gagal load -->
+                            <div id="turnstile-unified-error" class="hidden mt-2 p-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-xs text-rose-600 dark:text-rose-300 text-center w-full">
+                                Gagal memuat verifikasi keamanan Cloudflare. Periksa koneksi internet Anda atau muat ulang halaman.
+                            </div>
+                        </div>
+
+                        @error('turnstile_token')
+                            <p class="mt-1 text-xs text-rose-500 font-semibold text-center">{{ $message }}</p>
+                        @enderror
+
+                        <script>
+                            let turnstileUnifiedWidgetId = null;
+
+                            function renderUnifiedTurnstile() {
+                                const container = document.getElementById('turnstile-unified-container');
+                                const sitekey = "{{ config('services.turnstile.site_key') }}";
+
+                                if (!container || !sitekey || typeof turnstile === 'undefined') {
+                                    return;
+                                }
+
+                                if (turnstileUnifiedWidgetId === null) {
+                                    turnstileUnifiedWidgetId = turnstile.render(container, {
+                                        sitekey: sitekey,
+                                        theme: 'auto',
+                                        callback: function(token) {
+                                            document.getElementById('turnstile-unified-error')?.classList.add('hidden');
+                                            @this.set('turnstile_token', token);
+                                        },
+                                        'error-callback': function() {
+                                            document.getElementById('turnstile-unified-error')?.classList.remove('hidden');
+                                            @this.set('turnstile_token', '');
+                                        },
+                                        'expired-callback': function() {
+                                            @this.set('turnstile_token', '');
+                                        }
+                                    });
+                                }
+                            }
+
+                            // 1. Explicit Onload Callback dari Cloudflare API
+                            window.onloadTurnstileCallback = function() {
+                                renderUnifiedTurnstile();
+                            };
+
+                            // 2. Fallback Timeout 8 Detik
+                            setTimeout(function() {
+                                if (turnstileUnifiedWidgetId === null && "{{ config('services.turnstile.site_key') }}") {
+                                    document.getElementById('turnstile-unified-error')?.classList.remove('hidden');
+                                }
+                            }, 8000);
+
+                            // 3. Livewire Reset Event Listener
+                            window.addEventListener('reset-turnstile', function() {
+                                if (turnstileUnifiedWidgetId !== null && typeof turnstile !== 'undefined') {
+                                    turnstile.reset(turnstileUnifiedWidgetId);
+                                }
+                                @this.set('turnstile_token', '');
+                            });
+                        </script>
+
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit" async defer></script>
+                    @endif
 
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
