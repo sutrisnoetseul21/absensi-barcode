@@ -104,7 +104,7 @@ class SiswaForm
                     ->revealable()
                     ->label('Password Login')
                     ->autocomplete('new-password')
-                    ->dehydrated(false)
+                    ->dehydrated(fn ($state) => filled($state))
                     ->maxLength(255)
                     ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Biarkan kosong jika tidak ingin mengubah password.' : 'Kosongkan untuk menggunakan NISN sebagai password default.'),
             ]);

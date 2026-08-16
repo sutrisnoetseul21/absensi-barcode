@@ -68,7 +68,7 @@ class GuruForm
                     ->label(fn (string $operation): string => $operation === 'edit' ? 'Password Baru' : 'Password Login')
                     ->password()
                     ->revealable()
-                    ->dehydrated(false)
+                    ->dehydrated(fn ($state) => filled($state))
                     ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password.' : 'Kosongkan untuk meng-generate random password (akan ditampilkan setelah disimpan).'),
                 
                 Placeholder::make('mapel_aktif')
