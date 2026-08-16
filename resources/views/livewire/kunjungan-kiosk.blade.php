@@ -514,7 +514,7 @@
                         this.visitorClass = '';
                         this.photoUrl = null;
                         this.statusMessage = '';
-                    }, 3500);
+                    }, 1000);
                 },
                 
                 playAudio(type) {
