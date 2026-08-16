@@ -84,8 +84,11 @@ class SiswaForm
                     ->imageEditorAspectRatios([
                         '1:1',
                     ])
-                    ->imageResizeTargetWidth(500)
-                    ->imageResizeTargetHeight(500)
+                    ->imageResizeTargetWidth(400)
+                    ->imageResizeTargetHeight(400)
+                    ->imageResizeMode('cover')
+                    ->imageResizeUpscale(false)
+                    ->maxSize(2048)
                     ->disk('public')
                     ->directory('siswa-photos')
                     ->nullable(),

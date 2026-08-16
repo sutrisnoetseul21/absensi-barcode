@@ -633,7 +633,7 @@
                         this.photoUrl = null;
                         this.statusMessage = '';
                         this.lateMinutes = 0;
-                    }, 3000);
+                    }, 1000);
                     @endif
                 },
                 

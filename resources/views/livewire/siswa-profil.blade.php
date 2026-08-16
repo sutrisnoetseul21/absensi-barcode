@@ -116,12 +116,77 @@
                 @endif
 
                 <form wire:submit.prevent="updatePhoto" class="space-y-4">
-                    <div>
+                    <div x-data="{
+                        compressing: false,
+                        handleFileSelect(event) {
+                            const file = event.target.files[0];
+                            if (!file || !file.type.startsWith('image/')) return;
+
+                            this.compressing = true;
+                            const maxWidth = 400;
+                            const maxHeight = 400;
+                            const quality = 0.75;
+
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    let width = img.width;
+                                    let height = img.height;
+
+                                    if (width > maxWidth || height > maxHeight) {
+                                        if (width / height > maxWidth / maxHeight) {
+                                            height = Math.round((height * maxWidth) / width);
+                                            width = maxWidth;
+                                        } else {
+                                            width = Math.round((width * maxHeight) / height);
+                                            height = maxHeight;
+                                        }
+                                    }
+
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = width;
+                                    canvas.height = height;
+
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        this.compressing = false;
+                                        if (!blob) return;
+                                        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.jpg', {
+                                            type: 'image/jpeg',
+                                            lastModified: Date.now()
+                                        });
+                                        $wire.upload('photo', compressedFile,
+                                            () => {},
+                                            () => { alert('Gagal mengunggah foto, coba lagi.'); }
+                                        );
+                                    }, 'image/jpeg', quality);
+                                };
+                                img.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Pilih File Foto</label>
-                        <input type="file" wire:model="photo" accept="image/png, image/jpeg, image/jpg, image/webp"
+                        <input type="file" accept="image/png, image/jpeg, image/jpg, image/webp"
+                            @change="handleFileSelect($event)"
                             class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-brand-primary hover:file:bg-indigo-100 transition-all cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">
                         @error('photo') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
-                        <p class="text-[11px] text-slate-400 mt-1.5">Format: JPG, PNG, WEBP (Maks. 2MB)</p>
+
+                        {{-- Status compress di browser --}}
+                        <div x-show="compressing" style="display:none;" class="text-xs text-amber-600 mt-1.5 font-semibold flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Mengompres foto di browser...
+                        </div>
+                        {{-- Status upload ke server --}}
+                        <div wire:loading wire:target="photo" class="text-xs text-brand-primary mt-1.5 font-semibold flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Mengunggah ke server...
+                        </div>
+
+                        <p class="text-[11px] text-slate-400 mt-1.5">Format: JPG, PNG, WEBP — Otomatis dikompres di browser sebelum diunggah</p>
                     </div>
 
                     <div class="flex items-center gap-2 pt-2">
