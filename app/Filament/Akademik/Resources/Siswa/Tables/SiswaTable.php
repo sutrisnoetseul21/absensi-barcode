@@ -117,7 +117,8 @@ class SiswaTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->headerActions([
-                \App\Filament\Akademik\Resources\Siswa\Actions\ImportFotoMassalAction::make(),
+                \App\Filament\Akademik\Resources\Siswa\Actions\ImportFotoMassalAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
                 // 1. Download Template Siswa Baru
                 Action::make('download_template_siswa_baru')
@@ -125,9 +126,11 @@ class SiswaTable
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
                     ->url(route('admin.siswa.download-template'))
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
-                \App\Filament\Akademik\Resources\Siswa\Actions\ImportSiswaBaruAction::make(),
+                \App\Filament\Akademik\Resources\Siswa\Actions\ImportSiswaBaruAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'aktif'))
             ->filters([
@@ -158,7 +161,7 @@ class SiswaTable
                     ->requiresConfirmation()
                     ->modalHeading('Tandai Siswa Mutasi')
                     ->modalDescription('Siswa ini akan ditandai sebagai Mutasi (pindah/keluar sekolah). Jika siswa masih terdaftar di sebuah kelas, status pendaftarannya di kelas tersebut akan otomatis diubah menjadi "Pindah".')
-                    ->visible(fn (Siswa $record) => $record->status === 'aktif')
+                    ->visible(fn (Siswa $record) => $record->status === 'aktif' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
                     ->action(function (Siswa $record) {
                         (new MutateStudentAction)->execute($record);
 
@@ -175,7 +178,7 @@ class SiswaTable
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (Siswa $record) => $record->status === 'mutasi')
+                    ->visible(fn (Siswa $record) => $record->status === 'mutasi' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
                     ->action(function (Siswa $record) {
                         (new ReactivateStudentAction)->execute($record);
 
@@ -192,6 +195,7 @@ class SiswaTable
                     ->label('Reset Password')
                     ->icon('heroicon-o-key')
                     ->color('warning')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->form([
                         TextInput::make('password')
                             ->password()
@@ -229,6 +233,9 @@ class SiswaTable
                     ->modalHeading('Batalkan Kelulusan Siswa')
                     ->modalDescription('Apakah Anda yakin ingin membatalkan kelulusan siswa ini dan mengembalikan statusnya menjadi "Aktif"?')
                     ->visible(function (Siswa $record, $livewire) {
+                        if (!auth()->user()?->isSuperAdmin() && !auth()->user()?->hasRole('admin_akademik_editor') && !auth()->user()?->hasRole('admin_master_editor')) {
+                            return false;
+                        }
                         $targetYearId = $livewire->tableFilters['academic_year_id']['value'] ?? null;
                         $activeYearId = $targetYearId ?: (\App\Models\PengaturanSekolah::current()?->academic_year_id_active);
                         if (!$activeYearId) return false;
@@ -256,6 +263,7 @@ class SiswaTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                         ->before(function (\Illuminate\Database\Eloquent\Collection $records, DeleteBulkAction $action) {
                             $blocked = $records->filter(fn ($r) => $r->enrollments()->exists());
                             if ($blocked->isNotEmpty()) {
@@ -268,7 +276,8 @@ class SiswaTable
                                 $action->cancel();
                             }
                         }),
-                    RestoreBulkAction::make(),
+                    RestoreBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
                 ]),
             ])
             ->defaultSort('name');

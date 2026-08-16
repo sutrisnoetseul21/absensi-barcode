@@ -206,6 +206,10 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
         Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-guru.cetak-kartu');
         
+        Route::get('/ijin-kehadiran', \App\Livewire\PortalGuru\IjinKehadiranList::class)->name('portal-guru.ijin');
+        Route::get('/ijin-kehadiran/{id}', \App\Livewire\PortalGuru\IjinKehadiranDetail::class)->name('portal-guru.ijin.detail');
+        Route::get('/profil', \App\Livewire\GuruProfil::class)->name('portal-guru.profil');
+
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
             request()->session()->invalidate();
@@ -225,6 +229,9 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
         Route::get('/perpustakaan', \App\Livewire\SiswaPerpustakaan::class)->name('portal-siswa.perpustakaan');
         Route::get('/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMandiri'])->name('portal-siswa.cetak-kartu');
+        
+        Route::get('/ijin-kehadiran', \App\Livewire\PortalSiswa\IjinKehadiranList::class)->name('portal-siswa.ijin');
+        Route::get('/ijin-kehadiran/form/{id?}', \App\Livewire\PortalSiswa\IjinKehadiranForm::class)->name('portal-siswa.ijin.form');
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();

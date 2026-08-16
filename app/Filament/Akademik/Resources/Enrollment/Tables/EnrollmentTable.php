@@ -59,7 +59,7 @@ class EnrollmentTable
             ->headerActions([
                 // Download Template Naik Kelas (Siswa Lama)
                 Action::make('download_template_naik_kelas')
-                    ->visible(fn () => \App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false)
+                    ->visible(fn () => (\App\Models\PengaturanSekolah::current()?->enable_promotion_features ?? false) && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
                     ->label('Template Naik Kelas')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
@@ -149,7 +149,8 @@ class EnrollmentTable
                         );
                     }),
 
-                \App\Filament\Akademik\Resources\Enrollment\Actions\ImportNaikKelasAction::make(),
+                \App\Filament\Akademik\Resources\Enrollment\Actions\ImportNaikKelasAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
             ])
             ->actions([
                 Action::make('manage_rombel')

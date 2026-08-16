@@ -110,11 +110,11 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Cek apakah user ini adalah Super Admin.
-     * Super Admin punya akses penuh: setting sekolah, tahun ajaran, kenaikan kelas.
+     * Super Admin punya akses penuh: setting sekolah, tahun ajaran, kenaikan kelas, dan seluruh modul.
      */
     public function isSuperAdmin(): bool
     {
-        return (bool) $this->is_super_admin;
+        return (bool) $this->is_super_admin || $this->hasRole('super_admin');
     }
 
     // Absensi yang discan oleh admin ini

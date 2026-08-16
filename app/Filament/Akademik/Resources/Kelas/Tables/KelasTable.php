@@ -326,6 +326,7 @@ class KelasTable
                 EditAction::make()
                     ->iconButton()
                     ->tooltip('Edit Kelas')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->modalDescription(function (\App\Models\Kelas $record) {
                         $hasPengajaran = $record->pengajarans()->exists() ?? false;
                         $hasSiswa = $record->enrollments()->exists() ?? false;
@@ -354,6 +355,7 @@ class KelasTable
                 DeleteAction::make()
                     ->iconButton()
                     ->tooltip('Hapus Kelas')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->before(function (\App\Models\Kelas $record, DeleteAction $action) {
                         $hasPengajaran = $record->pengajarans()->exists() ?? false;
                         $hasSiswa = $record->enrollments()->exists() ?? false;
@@ -371,6 +373,7 @@ class KelasTable
                     }),
 
                 RestoreAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->iconButton(),
             ])
             ->defaultGroup('grade_level')

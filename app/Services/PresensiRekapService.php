@@ -105,6 +105,7 @@ class PresensiRekapService
                     'izin'  => 'I',
                     'sakit' => 'S',
                     'alpa'  => 'A',
+                    'libur' => 'L',
                     default => '-',
                 };
                 

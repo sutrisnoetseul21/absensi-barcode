@@ -201,6 +201,7 @@ class LaporanPresensi extends Page implements HasTable
             ->recordActions([
                 DeleteAction::make()
                     ->label('Hapus')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_presensi_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Hapus Data Presensi')
                     ->modalDescription('Anda yakin ingin menghapus data presensi ini? Tindakan ini tidak dapat dibatalkan.'),
@@ -209,6 +210,7 @@ class LaporanPresensi extends Page implements HasTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->label('Hapus Presensi Terpilih')
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_presensi_editor') || auth()->user()?->hasRole('admin_master_editor'))
                         ->requiresConfirmation()
                         ->modalHeading('Hapus Data Presensi')
                         ->modalDescription('Hapus semua data presensi yang dipilih? Tindakan ini tidak bisa dibatalkan.'),

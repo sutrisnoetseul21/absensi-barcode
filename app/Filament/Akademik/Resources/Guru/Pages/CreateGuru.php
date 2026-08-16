@@ -32,7 +32,7 @@ class CreateGuru extends CreateRecord
             'name'                 => $data['name'],
             'email'                => $email,
             'password'             => $this->generatedPassword,
-            'must_change_password' => empty($data['password']),
+            'must_change_password' => false,
         ]);
         $user->assignRole('wali_kelas');
 
@@ -55,8 +55,7 @@ class CreateGuru extends CreateRecord
             ->body(
                 "**Simpan informasi login ini sekarang:**\n\n" .
                 "Email: `{$this->record->user->email}`\n" .
-                "Password: `{$this->generatedPassword}`\n\n" .
-                "Guru diwajibkan mengganti password saat login pertama kali."
+                "Password: `{$this->generatedPassword}`"
             )
             ->success()
             ->persistent()

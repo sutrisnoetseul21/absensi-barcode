@@ -2,6 +2,7 @@
 
 namespace App\Filament\Akademik\Resources\Guru\Schemas;
 
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
@@ -16,6 +17,16 @@ class GuruForm
     {
         return $schema
             ->components([
+                FileUpload::make('photo_path')
+                    ->label('Foto Profil Guru')
+                    ->image()
+                    ->directory('guru-photos')
+                    ->disk('public')
+                    ->maxSize(2048)
+                    ->avatar()
+                    ->imageEditor()
+                    ->circleCropper(),
+
                 TextInput::make('name')
                     ->label('Nama Lengkap')
                     ->placeholder('Contoh: Dr. Budi Santoso, M.Pd.')

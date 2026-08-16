@@ -15,9 +15,17 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasSimpleRoleAccess;
 
 class PengumumanResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'master';
+    }
+
     protected static ?string $model = Pengumuman::class;
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedMegaphone;

@@ -20,7 +20,7 @@ trait HasSimplePageRoleAccess
         $user = auth()->user();
         if (!$user) return false;
         
-        if ($user->isSuperAdmin()) return true;
+        if ($user->isSuperAdmin() || $user->hasRole('super_admin')) return true;
 
         $prefix = static::getModuleRolePrefix();
         $roles = static::requiresEditorRole() 

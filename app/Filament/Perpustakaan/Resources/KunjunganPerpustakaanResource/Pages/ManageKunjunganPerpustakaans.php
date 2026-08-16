@@ -76,7 +76,8 @@ class ManageKunjunganPerpustakaans extends ManageRecords
 
             Actions\CreateAction::make()
                 ->label('Tambah Manual')
-                ->icon('heroicon-o-plus'),
+                ->icon('heroicon-o-plus')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
         ];
     }
 }

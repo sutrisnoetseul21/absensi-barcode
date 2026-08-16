@@ -60,7 +60,8 @@ class ListInventarisBukus extends ListRecords
                     return redirect()->to(route($routeName, $params));
                 }),
 
-            CreateAction::make(),
+            CreateAction::make()
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
         ];
     }
 }

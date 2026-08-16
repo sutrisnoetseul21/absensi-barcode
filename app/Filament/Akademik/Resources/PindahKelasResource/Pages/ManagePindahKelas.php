@@ -27,6 +27,7 @@ class ManagePindahKelas extends ManageRecords
                 ->label('Proses Pindah Kelas')
                 ->icon('heroicon-o-arrows-right-left')
                 ->color('warning')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->modalHeading('Pindah Kelas Siswa')
                 ->modalDescription('Pilih siswa yang sedang aktif untuk dipindahkan ke kelas lain pada tahun ajaran ini.')
                 ->modalWidth('md')

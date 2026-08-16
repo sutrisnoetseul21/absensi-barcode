@@ -82,6 +82,12 @@ class Siswa extends Authenticatable
         return $this->hasMany(Presensi::class, 'student_id');
     }
 
+    // Semua record ijin kehadiran siswa
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class, 'student_id');
+    }
+
     // Profil presensi (barcode dsb)
     public function presensiProfile(): HasOne
     {

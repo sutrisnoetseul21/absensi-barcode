@@ -81,10 +81,10 @@ class UnifiedLogin extends Component
             // Auto routing berdasarkan prioritas role
             if ($user->hasRole('super_admin')) {
                 return redirect()->intended('/admin');
-            } elseif ($user->hasRole('admin_portal_presensi')) {
-                return redirect()->intended('/portal-presensi');
             } elseif ($user->hasRole('wali_kelas')) {
                 return redirect()->intended('/portal-guru');
+            } elseif ($user->hasRole('admin_portal_presensi')) {
+                return redirect()->intended('/portal-presensi');
             } elseif ($user->hasRole('petugas_perpustakaan')) {
                 return redirect()->intended('/portal-perpustakaan');
             } elseif ($user->hasRole('siswa')) {

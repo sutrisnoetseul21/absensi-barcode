@@ -96,6 +96,7 @@ class SiswaLulusResource extends Resource
                     ->label('Aktifkan Kembali')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('warning')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Batalkan Kelulusan Siswa')
                     ->modalDescription('Siswa ini akan dikembalikan ke status Aktif. Status enrollment kelulusan juga akan dibatalkan. Apakah Anda yakin?')

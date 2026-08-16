@@ -54,6 +54,7 @@ class TahunAjaransTable
             ])
             ->recordActions([
                 EditAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_master_editor') || auth()->user()?->hasRole('admin_akademik_editor'))
                     ->modalDescription(function (\App\Models\TahunAjaran $record) {
                         $hasData = $record->kelasAjarans()->exists() || $record->enrollments()->exists() || $record->absensis()->exists();
                         if ($hasData || $record->status === 'aktif') {
@@ -63,6 +64,7 @@ class TahunAjaransTable
                     }),
 
                 DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_master_editor') || auth()->user()?->hasRole('admin_akademik_editor'))
                     ->before(function (\App\Models\TahunAjaran $record, DeleteAction $action) {
                         $hasData = $record->kelasAjarans()->exists() || $record->enrollments()->exists() || $record->absensis()->exists();
                         if ($hasData || $record->status === 'aktif') {
@@ -80,6 +82,7 @@ class TahunAjaransTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_master_editor') || auth()->user()?->hasRole('admin_akademik_editor'))
                         ->before(function (DeleteBulkAction $action, \Illuminate\Database\Eloquent\Collection $records) {
                             foreach ($records as $record) {
                                 if ($record->kelasAjarans()->count() > 0 || $record->enrollments()->count() > 0 || $record->absensis()->count() > 0) {

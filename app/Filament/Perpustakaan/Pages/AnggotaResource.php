@@ -163,6 +163,7 @@ class AnggotaResource extends Page implements HasTable
                     ->icon(fn ($record) => $record->barcode_active ? 'heroicon-o-no-symbol' : 'heroicon-o-check-circle')
                     ->color(fn ($record) => $record->barcode_active ? 'danger' : 'success')
                     ->requiresConfirmation()
+                    ->visible(fn ($record) => !empty($record->barcode_code) && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')))
                     ->action(function ($record) {
                         if ($record->tipe === 'Siswa') {
                             $profile = StudentPresensiProfile::where('student_id', $record->original_id)->first();
@@ -179,8 +180,7 @@ class AnggotaResource extends Page implements HasTable
                             ->title('Status barcode berhasil diubah')
                             ->success()
                             ->send();
-                    })
-                    ->hidden(fn ($record) => empty($record->barcode_code)),
+                    }),
             ]);
     }
 }

@@ -186,6 +186,28 @@ class MigrateAuthToUsers extends Command
         }
 
         // ==========================
+        // SINKRONISASI ROLE SISWA YANG SUDAH PUNYA USER_ID
+        // (untuk siswa lama yang user sudah dibuat tapi belum ada role)
+        // ==========================
+        if ($only === null || $only === 'siswa') {
+            $this->info("\n--- SINKRONISASI ROLE SISWA LAMA ---");
+            $roleFixed = 0;
+            Siswa::whereNotNull('user_id')->with('user')->chunk(100, function ($students) use (&$roleFixed, $isDryRun) {
+                foreach ($students as $s) {
+                    if (!$s->user) continue;
+                    if (!$s->user->hasRole('siswa')) {
+                        $this->line("  Role fix: {$s->name} (NISN: {$s->nisn})");
+                        if (!$isDryRun) {
+                            $s->user->assignRole('siswa');
+                        }
+                        $roleFixed++;
+                    }
+                }
+            });
+            $this->info("  → {$roleFixed} user siswa diperbaiki rolenya.");
+        }
+
+        // ==========================
         // RINGKASAN
         // ==========================
         $this->info("\n=========================");

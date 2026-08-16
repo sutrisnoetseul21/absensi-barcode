@@ -70,6 +70,11 @@ class GuruImport implements ToCollection
                         $userData['password'] = $password;
                     }
                     $user->update($userData);
+
+                    // Pastikan role wali_kelas sudah ada (guru lama mungkin belum punya role)
+                    if (!$user->hasRole('wali_kelas')) {
+                        $user->assignRole('wali_kelas');
+                    }
                 } else {
                     $email = $email ?? UsernameHelper::generateForGuru($name, $nip, $excludeId) . '@' . config('school.email_domain', 'sekolah.sch.id');
                     $user = \App\Models\User::firstOrCreate(
@@ -77,7 +82,7 @@ class GuruImport implements ToCollection
                         [
                             'name' => $name,
                             'password' => $password,
-                            'must_change_password' => $passwordVal === '',
+                            'must_change_password' => false,
                             'teacher_id' => $existingGuru->id,
                         ]
                     );
@@ -90,7 +95,7 @@ class GuruImport implements ToCollection
                     [
                         'name' => $name,
                         'password' => $password,
-                        'must_change_password' => $passwordVal === '',
+                        'must_change_password' => false,
                     ]
                 );
                 $user->assignRole('wali_kelas');

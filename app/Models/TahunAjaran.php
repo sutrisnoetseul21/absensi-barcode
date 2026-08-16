@@ -70,6 +70,12 @@ class TahunAjaran extends Model
         return $this->hasMany(Presensi::class, 'academic_year_id');
     }
 
+    // Ijin kehadiran di tahun ajaran ini
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class, 'academic_year_id');
+    }
+
     // Log kenaikan kelas dari tahun ajaran ini
     public function logKenaikansFrom(): HasMany
     {

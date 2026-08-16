@@ -21,6 +21,7 @@ class EditManajemenAksesPortal extends EditRecord
         $data['akses_portal_perpustakaan'] = $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
         $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
         $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
+        $data['akses_ijin_kehadiran'] = $user->hasRole('admin_ijin_kehadiran');
 
         if ($user->hasPermissionTo('portal_guru:akses_semua_kelas')) {
             $data['mode_akses_kelas'] = 'semua_kelas';
@@ -109,18 +110,24 @@ class EditManajemenAksesPortal extends EditRecord
 
         // 3 & 4. Kelola Portal Presensi (Admin & Kiosk)
         $hasAksesDashboardPresensi = !empty($formData['akses_dashboard_presensi']);
+        $hasAksesIjinKehadiran = !empty($formData['akses_ijin_kehadiran']);
         
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'petugas_presensi', 'guard_name' => 'web']);
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_presensi', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_ijin_kehadiran', 'guard_name' => 'web']);
 
         if ($hasAksesDashboardPresensi) {
             if (!$user->hasRole('admin_portal_presensi')) $user->assignRole('admin_portal_presensi');
             if (!$user->hasRole('petugas_presensi')) $user->assignRole('petugas_presensi');
         } else {
             if ($user->hasRole('admin_portal_presensi')) $user->removeRole('admin_portal_presensi');
-            // Jika dia bukan guru (wali_kelas), mungkin kita perlu cabut role petugas_presensi juga?
-            // Tapi aman untuk cabut saja dari akses presensi portal. Kiosk akan diberikan ke wali_kelas via middleware
             if ($user->hasRole('petugas_presensi')) $user->removeRole('petugas_presensi');
+        }
+
+        if ($hasAksesIjinKehadiran) {
+            if (!$user->hasRole('admin_ijin_kehadiran')) $user->assignRole('admin_ijin_kehadiran');
+        } else {
+            if ($user->hasRole('admin_ijin_kehadiran')) $user->removeRole('admin_ijin_kehadiran');
         }
 
     }

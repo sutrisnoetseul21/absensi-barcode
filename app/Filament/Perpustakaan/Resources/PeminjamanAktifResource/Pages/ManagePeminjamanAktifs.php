@@ -77,6 +77,7 @@ class ManagePeminjamanAktifs extends ManageRecords
             Actions\CreateAction::make()
                 ->label('New Peminjaman')
                 ->modalHeading('Tambah Transaksi Peminjaman')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->after(function ($record) {
                     if ($record->eksemplar_id) {
                         \App\Models\EksemplarBuku::where('id', $record->eksemplar_id)->update(['status' => 'dipinjam']);

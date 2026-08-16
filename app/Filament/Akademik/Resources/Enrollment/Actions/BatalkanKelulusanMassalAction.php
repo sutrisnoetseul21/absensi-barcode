@@ -17,7 +17,7 @@ class BatalkanKelulusanMassalAction extends Action
     {
         parent::setUp();
 
-        $this->visible(fn () => PengaturanSekolah::current()?->enable_promotion_features ?? false)
+        $this->visible(fn () => (PengaturanSekolah::current()?->enable_promotion_features ?? false) && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
             ->label('Batalkan Kelulusan')
             ->icon('heroicon-o-arrow-path')
             ->color('gray')

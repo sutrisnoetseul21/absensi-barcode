@@ -18,11 +18,13 @@ class ManageKlasifikasiDdcs extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
             Action::make('downloadTemplate')
                 ->label('Download Template')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('info')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->action(function () {
                     $csvData = "kode_ddc,kategori\n000,Karya Umum / Komputer\n100,Filsafat & Psikologi\n200,Agama\n297,Agama Islam\n300,Ilmu-ilmu Sosial\n370,Pendidikan\n400,Bahasa & Linguistik\n500,Sains & Matematika\n510,Matematika\n600,Teknologi & Ilmu Terapan\n700,Kesenian & Olahraga\n800,Kesusastraan & Sastra\n900,Sejarah & Geografi\n";
                     
@@ -36,6 +38,7 @@ class ManageKlasifikasiDdcs extends ManageRecords
                 ->label('Import DDC dari XLS')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->form([
                     FileUpload::make('file_xls')
                         ->label('Pilih File Excel DDC dari SLiMS')

@@ -117,11 +117,15 @@ class ManajemenAksesPortalResource extends Resource
                     ])->columns(1),
 
                 Section::make('Akses Manajemen Presensi (/portal-presensi)')
-                    ->description('Atur izin staf / admin ini untuk mengakses Dashboard Manajemen Presensi. (Catatan: Semua Guru otomatis mendapatkan akses Kiosk Presensi).')
+                    ->description('Atur izin staf / admin ini untuk mengakses Dashboard Manajemen Presensi dan Ijin Kehadiran. (Catatan: Semua Guru otomatis mendapatkan akses Kiosk Presensi).')
                     ->schema([
                         Toggle::make('akses_dashboard_presensi')
                             ->label('Izinkan Akses Portal Presensi')
                             ->helperText('Jika diaktifkan, pengguna akan menjadi Admin Presensi yang dapat mengelola rekapitulasi (otomatis mendapatkan akses Kiosk).'),
+                            
+                        Toggle::make('akses_ijin_kehadiran')
+                            ->label('Izinkan Akses Manajemen Ijin Kehadiran')
+                            ->helperText('Jika diaktifkan, pengguna dapat melihat dan menyetujui pengajuan ijin/sakit siswa di menu Presensi.'),
                     ])->columns(1),
             ])
             ->statePath('data');
@@ -184,6 +188,12 @@ class ManajemenAksesPortalResource extends Resource
                     ->label('Akses Portal Presensi')
                     ->badge()
                     ->state(fn (User $record): string => $record->hasRole(['admin_portal_presensi']) ? 'Admin Presensi' : 'Tidak Aktif')
+                    ->color(fn (string $state): string => str_contains($state, 'Admin') ? 'success' : 'gray'),
+                    
+                TextColumn::make('status_ijin_kehadiran')
+                    ->label('Akses Ijin Kehadiran')
+                    ->badge()
+                    ->state(fn (User $record): string => $record->hasRole(['admin_ijin_kehadiran']) ? 'Admin Ijin' : 'Tidak Aktif')
                     ->color(fn (string $state): string => str_contains($state, 'Admin') ? 'success' : 'gray'),
             ])
             ->actions([

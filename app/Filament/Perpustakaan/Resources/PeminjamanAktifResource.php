@@ -279,8 +279,9 @@ class PeminjamanAktifResource extends Resource
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (Peminjaman $record) => $record->status === 'dipinjam'),
-                EditAction::make(),
+                    ->visible(fn (Peminjaman $record) => $record->status === 'dipinjam' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))),
+                EditAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
             ])
             ->bulkActions([
             ]);

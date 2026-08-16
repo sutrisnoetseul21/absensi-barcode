@@ -95,6 +95,7 @@ class SiswaMutasiResource extends Resource
                     ->label('Aktifkan Kembali')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('success')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Aktifkan Kembali Siswa')
                     ->modalDescription('Siswa ini akan dikembalikan ke status Aktif. Jika sebelumnya ada kelas aktif yang ditandai "pindah", kelas tersebut juga akan dikembalikan menjadi aktif.')

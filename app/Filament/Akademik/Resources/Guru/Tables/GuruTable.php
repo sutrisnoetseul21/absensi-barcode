@@ -13,6 +13,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -24,6 +25,12 @@ class GuruTable
     {
         return $table
             ->columns([
+                ImageColumn::make('photo_path')
+                    ->label('Foto')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=6366f1&color=ffffff'),
+
                 TextColumn::make('name')
                     ->label('Nama Guru')
                     ->searchable()
@@ -69,6 +76,7 @@ class GuruTable
                     ->label('Generate Barcode Masal')
                     ->icon('heroicon-o-qr-code')
                     ->color('info')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Generate Barcode Masal Guru')
                     ->modalDescription('Sistem akan meng-generate Barcode untuk semua guru yang belum memiliki Barcode berdasarkan NIP. Jika NIP kosong, angka acak akan digunakan.')
@@ -103,12 +111,14 @@ class GuruTable
                     ->label('Download Template')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->url(route('admin.guru.download-template'))
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
                 Action::make('import_guru')
                     ->label('Import Excel')
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('success')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->form([
                         \Filament\Forms\Components\FileUpload::make('file')
                             ->label('Pilih file Excel (.xlsx)')
@@ -312,10 +322,12 @@ class GuruTable
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
                 // Blokir hapus jika guru masih menjadi wali kelas
                 DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->before(function (Guru $record, DeleteAction $action) {
                         if ($record->kelasAjarans()->exists()) {
                             Notification::make()
@@ -331,6 +343,7 @@ class GuruTable
                     ->label('Reset Password')
                     ->icon('heroicon-o-key')
                     ->color('warning')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Reset Password Guru')
                     ->modalDescription(fn (Guru $record): string => "Password baru akan di-generate untuk {$record->name}. Pastikan catat password sebelum menutup dialog ini.")
@@ -355,6 +368,7 @@ class GuruTable
                     ->label(fn (Guru $record) => $record->presensiProfile && $record->presensiProfile->barcode_code ? 'Regenerate Barcode' : 'Generate Barcode')
                     ->icon('heroicon-o-qr-code')
                     ->color('info')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Generate Barcode Guru')
                     ->modalDescription(fn (Guru $record): string => "Sistem akan meng-generate Barcode berdasarkan NIP. Jika NIP kosong, angka acak akan digunakan.")
@@ -379,12 +393,15 @@ class GuruTable
                             ->send();
                     }),
 
-                RestoreAction::make(),
+                RestoreAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
+                    RestoreBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
                 ]),
             ])
             ->defaultSort('name');

@@ -17,7 +17,7 @@ trait HasSimpleRoleAccess
         $user = auth()->user();
         if (!$user) return false;
         
-        if ($user->isSuperAdmin()) return true;
+        if ($user->isSuperAdmin() || $user->hasRole('super_admin')) return true;
 
         $prefix = static::getModuleRolePrefix();
         return $user->hasAnyRole(["admin_{$prefix}_viewer", "admin_{$prefix}_editor"]);
@@ -28,7 +28,7 @@ trait HasSimpleRoleAccess
         $user = auth()->user();
         if (!$user) return false;
         
-        if ($user->isSuperAdmin()) return true;
+        if ($user->isSuperAdmin() || $user->hasRole('super_admin')) return true;
 
         $prefix = static::getModuleRolePrefix();
         return $user->hasRole("admin_{$prefix}_editor");
@@ -39,7 +39,7 @@ trait HasSimpleRoleAccess
         $user = auth()->user();
         if (!$user) return false;
         
-        if ($user->isSuperAdmin()) return true;
+        if ($user->isSuperAdmin() || $user->hasRole('super_admin')) return true;
 
         $prefix = static::getModuleRolePrefix();
         return $user->hasRole("admin_{$prefix}_editor");
@@ -50,7 +50,7 @@ trait HasSimpleRoleAccess
         $user = auth()->user();
         if (!$user) return false;
         
-        if ($user->isSuperAdmin()) return true;
+        if ($user->isSuperAdmin() || $user->hasRole('super_admin')) return true;
 
         $prefix = static::getModuleRolePrefix();
         return $user->hasRole("admin_{$prefix}_editor");

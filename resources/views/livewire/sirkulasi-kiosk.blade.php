@@ -370,7 +370,24 @@
                             if (devices && devices.length) {
                                 this.cameraList = devices;
                                 if (!this.selectedCameraId) {
-                                    this.selectedCameraId = devices[0].id;
+                                    // 1. Cari kamera dengan label belakang (back/rear/environment/belakang)
+                                    const backCam = devices.find(d => {
+                                        const label = (d.label || '').toLowerCase();
+                                        return /back|rear|environment|belakang|facing back|camera2 0/i.test(label);
+                                    });
+
+                                    if (backCam) {
+                                        this.selectedCameraId = backCam.id;
+                                    } else if (devices.length > 1) {
+                                        // 2. Jika ada >1 kamera tanpa kata kunci eksplisit, prioritaskan yang bukan kamera depan
+                                        const nonFrontCam = devices.find(d => {
+                                            const label = (d.label || '').toLowerCase();
+                                            return !/front|user|selfie|depan|facing front|camera2 1/i.test(label);
+                                        });
+                                        this.selectedCameraId = nonFrontCam ? nonFrontCam.id : devices[devices.length - 1].id;
+                                    } else {
+                                        this.selectedCameraId = devices[0].id;
+                                    }
                                 }
                             }
                         }
@@ -413,7 +430,7 @@
 
                             const cameraConfig = (this.cameraList.length > 0 && this.selectedCameraId)
                                 ? this.selectedCameraId
-                                : { facingMode: "user" };
+                                : { facingMode: "environment" };
 
                             await this.html5QrcodeScanner.start(
                                 cameraConfig,
@@ -428,8 +445,19 @@
                                 () => {}
                             );
                         } catch (err) {
-                            console.error("Gagal memulai kamera:", err);
-                            this.isCameraActive = false;
+                            console.error("Gagal memulai kamera via ID, mencoba fallback mode:", err);
+                            try {
+                                const fallbackConfig = { facingMode: "environment" };
+                                await this.html5QrcodeScanner.start(
+                                    fallbackConfig,
+                                    { fps: 15, qrbox: { width: 250, height: 140 }, aspectRatio: 1.333333 },
+                                    (decodedText) => { this.onCameraScan(decodedText); },
+                                    () => {}
+                                );
+                            } catch (fallbackErr) {
+                                console.error("Fallback kamera juga gagal:", fallbackErr);
+                                this.isCameraActive = false;
+                            }
                         }
                     });
                 },

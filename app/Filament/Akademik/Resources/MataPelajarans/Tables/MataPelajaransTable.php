@@ -22,6 +22,7 @@ class MataPelajaransTable
             ])
             ->recordActions([
                 EditAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_master_editor') || auth()->user()?->hasRole('admin_akademik_editor'))
                     ->modalDescription(function (\App\Models\MataPelajaran $record) {
                         if ($record->pengajarans()->exists()) {
                             return new \Illuminate\Support\HtmlString('<span style="color: #ef4444; font-weight: bold;">⚠️ Peringatan: Mata Pelajaran ini sudah dipakai dalam Pembelajaran. Mengubah data dapat merusak riwayat akademik!</span>');
@@ -42,6 +43,7 @@ class MataPelajaransTable
                     }),
 
                 \Filament\Actions\DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_master_editor') || auth()->user()?->hasRole('admin_akademik_editor'))
                     ->before(function (\App\Models\MataPelajaran $record, \Filament\Actions\DeleteAction $action) {
                         if ($record->pengajarans()->exists()) {
                             \Filament\Notifications\Notification::make()

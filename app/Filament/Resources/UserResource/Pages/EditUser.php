@@ -18,6 +18,14 @@ class EditUser extends EditRecord
         ];
     }
     
+    protected function afterSave(): void
+    {
+        $hasSuperAdminRole = $this->record->hasRole('super_admin');
+        if ((bool) $this->record->is_super_admin !== $hasSuperAdminRole) {
+            $this->record->forceFill(['is_super_admin' => $hasSuperAdminRole])->saveQuietly();
+        }
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

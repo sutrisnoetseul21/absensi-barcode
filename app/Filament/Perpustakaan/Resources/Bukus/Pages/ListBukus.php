@@ -24,6 +24,7 @@ class ListBukus extends ListRecords
                 ->label('Import Buku dari XLS')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->form([
                     \Filament\Forms\Components\FileUpload::make('file_xls')
                         ->label('Pilih File Katalog Buku (Excel)')
@@ -58,6 +59,7 @@ class ListBukus extends ListRecords
                 ->label('Unduh Katalog')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->modalHeading('Unduh Katalog Buku')
                 ->modalDescription('Pilih koleksi dan format dokumen yang ingin diunduh.')
                 ->modalWidth('lg')
@@ -126,7 +128,8 @@ class ListBukus extends ListRecords
                     return redirect()->to(route($routeName, $params));
                 }),
 
-            CreateAction::make(),
+            CreateAction::make()
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
         ];
     }
 

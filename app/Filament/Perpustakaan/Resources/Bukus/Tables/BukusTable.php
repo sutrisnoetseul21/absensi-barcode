@@ -108,8 +108,11 @@ class BukusTable
                     ->color('success')
                     ->url(fn ($record) => route('perpustakaan.cetak-barcode', ['buku' => $record]))
                     ->openUrlInNewTab(),
-                EditAction::make(),
+                \Filament\Actions\ViewAction::make(),
+                EditAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
                 DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->before(function (DeleteAction $action, $record) {
                         // Tolak jika ada eksemplar yang sedang dipinjam
                         if ($record->eksemplarBukus()->where('status', 'dipinjam')->exists()) {
@@ -137,6 +140,7 @@ class BukusTable
                         \App\Models\InventarisBuku::where('buku_id', $record->id)->update(['status' => 'dibatalkan']);
                     }),
                 RestoreAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->after(function ($record) {
                         // Restore eksemplar dan update status inventaris menjadi aktif
                         $record->eksemplarBukus()->withTrashed()->restore();
@@ -146,6 +150,7 @@ class BukusTable
                         ]);
                     }),
                 ForceDeleteAction::make()
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->before(function (ForceDeleteAction $action, $record) {
                         if ($record->eksemplarBukus()->whereHas('peminjamans')->exists()) {
                             Notification::make()
@@ -193,6 +198,7 @@ class BukusTable
                             return redirect()->to(route('perpustakaan.cetak-label-spine-massal', ['session_key' => $sessionKey]));
                         }),
                     DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                         ->before(function (DeleteBulkAction $action, $records) {
                             foreach ($records as $record) {
                                 if ($record->eksemplarBukus()->whereHas('peminjamans')->exists()) {
@@ -206,6 +212,7 @@ class BukusTable
                             }
                         }),
                     ForceDeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))
                         ->before(function (ForceDeleteBulkAction $action, $records) {
                             foreach ($records as $record) {
                                 if ($record->eksemplarBukus()->whereHas('peminjamans')->exists()) {
@@ -218,7 +225,8 @@ class BukusTable
                                 }
                             }
                         }),
-                    RestoreBulkAction::make(),
+                    RestoreBulkAction::make()
+                        ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')),
                 ]),
             ]);
     }

@@ -84,7 +84,7 @@ class InventarisBukusTable
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->status === 'aktif')
+                    ->visible(fn ($record) => $record->status === 'aktif' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')))
                     ->form([
                         Textarea::make('alasan_pembatalan')
                             ->label('Alasan Pembatalan')
@@ -128,7 +128,7 @@ class InventarisBukusTable
                     ->requiresConfirmation()
                     ->modalHeading('Pulihkan Entri Inventaris')
                     ->modalDescription('Apakah Anda yakin ingin memulihkan entri inventaris ini? Eksemplar buku yang dibatalkan akan dikembalikan ke status tersedia.')
-                    ->visible(fn ($record) => $record->status === 'dibatalkan')
+                    ->visible(fn ($record) => $record->status === 'dibatalkan' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor')))
                     ->action(function ($record) {
                         // 1. Restore Master Buku jika sedang dalam kondisi terhapus (soft-deleted)
                         if ($record->buku && $record->buku->trashed()) {

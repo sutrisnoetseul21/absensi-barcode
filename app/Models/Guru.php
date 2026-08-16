@@ -21,6 +21,7 @@ class Guru extends Authenticatable
         'name',
         'nip',
         'no_hp',
+        'photo_path',
     ];
 
     public function user()

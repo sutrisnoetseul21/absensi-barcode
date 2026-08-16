@@ -22,6 +22,7 @@ class ListSiswaMutasi extends ListRecords
                 ->label('Proses Mutasi')
                 ->icon('heroicon-o-arrow-right-on-rectangle')
                 ->color('danger')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->modalHeading('Proses Mutasi Siswa')
                 ->modalDescription('Siswa yang dipilih akan dikeluarkan dari kelas aktifnya dan kartunya akan dinonaktifkan. Data riwayat mereka akan tetap tersimpan.')
                 ->modalWidth('md')

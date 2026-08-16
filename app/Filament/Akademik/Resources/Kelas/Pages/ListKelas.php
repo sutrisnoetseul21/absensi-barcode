@@ -24,19 +24,22 @@ class ListKelas extends ListRecords
         return [
             CreateAction::make()
                 ->label('Tambah Kelas')
-                ->icon('heroicon-o-plus'),
+                ->icon('heroicon-o-plus')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
             Action::make('download_template')
                 ->label('Download Template')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('warning')
                 ->url(route('admin.kelas.download-template'))
-                ->openUrlInNewTab(),
+                ->openUrlInNewTab()
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
             Action::make('import_kelas')
                 ->label('Import Excel')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
+                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                 ->form([
                     FileUpload::make('file')
                         ->label('Pilih file Excel (.xlsx)')

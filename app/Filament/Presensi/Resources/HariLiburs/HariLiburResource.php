@@ -24,6 +24,13 @@ class HariLiburResource extends Resource
         return 'presensi';
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->isSuperAdmin() || $user->hasRole('super_admin') || $user->hasRole('admin_presensi_editor');
+    }
+
     protected static ?string $model = HariLibur::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';

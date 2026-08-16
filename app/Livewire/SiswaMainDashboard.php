@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use App\Models\Pengumuman;
 use App\Models\Peminjaman;
 use App\Models\Presensi;
+use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -14,8 +15,13 @@ class SiswaMainDashboard extends Component
 {
     public $student;
     public $activeAnnouncements;
-    public $attendancePercentage;
-    public $activeBooksCount;
+    public $attendancePercentage = 0;
+    public $activeBooksCount = 0;
+    public $pendingIjinCount = 0;
+    public $approvedIjinCount = 0;
+    public $rejectedIjinCount = 0;
+    public $totalIjinCount = 0;
+    public $kelasName = '-';
 
     public function mount()
     {
@@ -24,29 +30,41 @@ class SiswaMainDashboard extends Component
         // Fetch announcements
         $this->activeAnnouncements = Pengumuman::aktifSekarang()->latest()->get();
 
-        // Calculate attendance percentage for current month
-        $this->calculateAttendance();
-
-        // Count active book loans
         if ($this->student) {
+            // Get active enrollment
+            $enrollment = $this->student->enrollments()->latest('created_at')->first();
+            $this->kelasName = $enrollment?->kelas?->name ?? 'Belum Terdaftar';
+
+            // Calculate attendance percentage for current month
+            $this->calculateAttendance($enrollment);
+
+            // Count active book loans
             $this->activeBooksCount = Peminjaman::where('peminjam_type', 'siswa')
                 ->where('peminjam_id', $this->student->id)
                 ->where('status', 'dipinjam')
                 ->count();
-        } else {
-            $this->activeBooksCount = 0;
+
+            // Count leave requests by status
+            $this->pendingIjinCount = LeaveRequest::where('student_id', $this->student->id)
+                ->where('status', 'pending')
+                ->count();
+                
+            $this->approvedIjinCount = LeaveRequest::where('student_id', $this->student->id)
+                ->where('status', 'approved')
+                ->count();
+                
+            $this->rejectedIjinCount = LeaveRequest::where('student_id', $this->student->id)
+                ->where('status', 'rejected')
+                ->count();
+
+            $this->totalIjinCount = LeaveRequest::where('student_id', $this->student->id)
+                ->count();
         }
     }
 
-    private function calculateAttendance()
+    private function calculateAttendance($enrollment)
     {
-        if (!$this->student) {
-            $this->attendancePercentage = 0;
-            return;
-        }
-
-        $enrollment = $this->student->enrollments()->latest('created_at')->first();
-        if (!$enrollment) {
+        if (!$this->student || !$enrollment) {
             $this->attendancePercentage = 0;
             return;
         }

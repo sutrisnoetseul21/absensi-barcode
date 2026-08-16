@@ -25,8 +25,19 @@ class ListEnrollments extends ListRecords
         return [];
     }
 
+    protected function canModifyEnrollment(): bool
+    {
+        $user = auth()->user();
+        return (bool) ($user?->isSuperAdmin() || $user?->hasRole('admin_akademik_editor') || $user?->hasRole('admin_master_editor'));
+    }
+
     public function enrollStudent($studentId, $classId = null, $academicYearId = null)
     {
+        if (!$this->canModifyEnrollment()) {
+            \Filament\Notifications\Notification::make()->title('Akses Ditolak: Anda hanya memiliki hak akses melihat data.')->danger()->send();
+            return false;
+        }
+
         $classId = $classId ?: $this->manageClassId;
         $academicYearId = $academicYearId ?: $this->manageAcademicYearId;
 
@@ -60,6 +71,11 @@ class ListEnrollments extends ListRecords
 
     public function unenrollStudent($studentId, $academicYearId = null)
     {
+        if (!$this->canModifyEnrollment()) {
+            \Filament\Notifications\Notification::make()->title('Akses Ditolak: Anda hanya memiliki hak akses melihat data.')->danger()->send();
+            return false;
+        }
+
         $academicYearId = $academicYearId ?: $this->manageAcademicYearId;
 
         if (!$academicYearId) {
@@ -97,6 +113,11 @@ class ListEnrollments extends ListRecords
 
     public function registerNewStudent()
     {
+        if (!$this->canModifyEnrollment()) {
+            \Filament\Notifications\Notification::make()->title('Akses Ditolak: Anda hanya memiliki hak akses melihat data.')->danger()->send();
+            return;
+        }
+
         $this->validate([
             'newStudentName' => 'required|string|max:255',
             'newStudentNisn' => 'required|string|max:20|unique:students,nisn',
