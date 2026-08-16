@@ -78,9 +78,9 @@ class GuruProfil extends Component
                 ->whereHas('kelasAjaran', function($q) use ($activeYear) {
                     $q->where('academic_year_id', $activeYear->id);
                 })
-                ->with(['subject', 'kelasAjaran.kelas'])
+                ->with(['mataPelajaran', 'kelasAjaran.kelas'])
                 ->get()
-                ->map(fn($p) => ($p->subject->name ?? 'Mapel') . ' (' . ($p->kelasAjaran->kelas->name ?? '') . ')')
+                ->map(fn($p) => ($p->mataPelajaran->nama_mapel ?? 'Mapel') . ' (' . ($p->kelasAjaran->kelas->name ?? '') . ')')
                 ->toArray();
         }
 
