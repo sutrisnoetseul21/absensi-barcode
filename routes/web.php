@@ -39,7 +39,14 @@ Route::get('/perpustakaan/buku/{buku}/baca', function (\App\Models\Buku $buku) {
     return view('baca-buku', compact('buku'));
 })->name('perpustakaan.baca-buku');
 // Route fallback untuk redirect unauthenticated users ke Filament admin login
-Route::get('/pilih-admin', fn() => view('auth.portal-selection'))->name('pilih-admin');
+Route::redirect('/pilih-admin', '/admin/login')->name('pilih-admin');
+
+// Redirect URL panel lama ke panel /admin terpadu
+Route::redirect('/admin-akademik', '/admin');
+Route::redirect('/admin-presensi', '/admin');
+Route::redirect('/admin-perpustakaan', '/admin');
+Route::any('/admin-akademik/{any}', fn() => redirect('/admin'))->where('any', '.*');
+Route::any('/admin-presensi/{any}', fn() => redirect('/admin'))->where('any', '.*');
 
 // Unified Login Route
 Route::get('/login', \App\Livewire\Auth\UnifiedLogin::class)->name('login')->middleware('guest');
@@ -57,8 +64,6 @@ Route::prefix('portal-presensi')->group(function () {
     // Route dashboard Portal Presensi (sementara menggunakan tampilan kosong)
     Route::get('/', \App\Livewire\PortalPresensiDashboard::class)->middleware('auth.presensi')->name('portal-presensi.dashboard');
 
-
-    
     Route::get('/login', \App\Livewire\PetugasPresensiLogin::class)->middleware('guest')->name('portal-presensi.login');
     
     Route::middleware('auth.presensi')->group(function () {
@@ -86,13 +91,18 @@ Route::prefix('portal-presensi')->group(function () {
             }
             return response()->json($action->execute($barcode, $request->ip(), 'nis'));
         })->middleware('throttle:60,1')->name('kiosk.process-nis');
-        
-        Route::post('/logout', function () {
-            Auth::guard('web')->logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-            return redirect('/');
-        })->name('portal-presensi.logout');
+
+        // Route legacy / fallback untuk scanner presensi
+        Route::get('/scanner', \App\Livewire\AttendanceKiosk::class);
+        Route::get('/scanner-nis', \App\Livewire\AttendanceKioskNIS::class);
+        Route::get('/kiosk', \App\Livewire\AttendanceKiosk::class);
+
+        // Route fallback untuk API lama jika ada
+        Route::post('/scan/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessAttendanceAction $action) {
+            $barcode = $request->input('barcode');
+            $session = $request->input('session', 'masuk');
+            return response()->json($action->execute((string) $barcode, (string) $session));
+        })->middleware('throttle:60,1')->name('portal-presensi.scan.process');
     });
 });
 
@@ -105,18 +115,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/siswa/cetak-kartu-login-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLoginMassal'])->name('siswa.cetak-kartu-login-massal');
 
     // Cetak Barcode Perpustakaan Routes
-    Route::get('/admin-perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');
-    Route::get('/admin-perpustakaan/eksemplar/{eksemplar}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeEksemplar'])->name('perpustakaan.cetak-barcode-eksemplar');
-    Route::get('/admin-perpustakaan/eksemplar/cetak-barcode-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeMassal'])->name('perpustakaan.cetak-barcode-massal');
+    Route::get('/admin/perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');
+    Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeEksemplar'])->name('perpustakaan.cetak-barcode-eksemplar');
+    Route::get('/admin/perpustakaan/eksemplar/cetak-barcode-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeMassal'])->name('perpustakaan.cetak-barcode-massal');
     
     // Cetak Label Spine Buku Routes
-    Route::get('/admin-perpustakaan/buku/{buku}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpine'])->name('perpustakaan.cetak-label-spine');
-    Route::get('/admin-perpustakaan/eksemplar/{eksemplar}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineEksemplar'])->name('perpustakaan.cetak-label-spine-eksemplar');
-    Route::get('/admin-perpustakaan/buku/cetak/label-spine-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineMassal'])->name('perpustakaan.cetak-label-spine-massal');
+    Route::get('/admin/perpustakaan/buku/{buku}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpine'])->name('perpustakaan.cetak-label-spine');
+    Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineEksemplar'])->name('perpustakaan.cetak-label-spine-eksemplar');
+    Route::get('/admin/perpustakaan/buku/cetak/label-spine-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineMassal'])->name('perpustakaan.cetak-label-spine-massal');
     
     // Kiosk Sirkulasi Perpustakaan Routes
-    Route::get('/admin-perpustakaan/sirkulasi', \App\Livewire\SirkulasiKiosk::class)->name('perpustakaan.sirkulasi');
-    Route::post('/admin-perpustakaan/sirkulasi/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {
+    Route::get('/admin/perpustakaan/sirkulasi', \App\Livewire\SirkulasiKiosk::class)->name('perpustakaan.sirkulasi');
+    Route::post('/admin/perpustakaan/sirkulasi/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {
         return response()->json($action->execute($request->all(), auth()->id()));
     })->name('perpustakaan.sirkulasi.process');
 
@@ -170,27 +180,27 @@ Route::middleware('auth')->group(function () {
     })->name('admin.kelas.download-template');
 
     // Katalog Buku: Unduh PDF & Excel (dengan filter koleksi & mapel)
-    Route::get('/admin-perpustakaan/katalog-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPdf'])
+    Route::get('/admin/perpustakaan/katalog-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPdf'])
         ->name('perpustakaan.katalog-buku.pdf');
-    Route::get('/admin-perpustakaan/katalog-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadExcel'])
+    Route::get('/admin/perpustakaan/katalog-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadExcel'])
         ->name('perpustakaan.katalog-buku.excel');
 
     // Inventaris Buku: Unduh PDF & Excel (dengan filter status)
-    Route::get('/admin-perpustakaan/inventaris-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadInventarisPdf'])
+    Route::get('/admin/perpustakaan/inventaris-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadInventarisPdf'])
         ->name('perpustakaan.inventaris-buku.pdf');
-    Route::get('/admin-perpustakaan/inventaris-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadInventarisExcel'])
+    Route::get('/admin/perpustakaan/inventaris-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadInventarisExcel'])
         ->name('perpustakaan.inventaris-buku.excel');
 
     // Peminjaman Buku: Unduh PDF & Excel
-    Route::get('/admin-perpustakaan/peminjaman-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanPdf'])
+    Route::get('/admin/perpustakaan/peminjaman-buku/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanPdf'])
         ->name('perpustakaan.peminjaman-buku.pdf');
-    Route::get('/admin-perpustakaan/peminjaman-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanExcel'])
+    Route::get('/admin/perpustakaan/peminjaman-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanExcel'])
         ->name('perpustakaan.peminjaman-buku.excel');
 
     // Kunjungan Perpustakaan: Unduh PDF & Excel
-    Route::get('/admin-perpustakaan/kunjungan-perpustakaan/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganPdf'])
+    Route::get('/admin/perpustakaan/kunjungan-perpustakaan/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganPdf'])
         ->name('perpustakaan.kunjungan.pdf');
-    Route::get('/admin-perpustakaan/kunjungan-perpustakaan/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganExcel'])
+    Route::get('/admin/perpustakaan/kunjungan-perpustakaan/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganExcel'])
         ->name('perpustakaan.kunjungan.excel');
 });
 

@@ -207,52 +207,20 @@ class User extends Authenticatable implements FilamentUser
         $portals = [];
 
         $isSuper = $this->isSuperAdmin() || $this->hasRole('super_admin');
+        $hasAdminRole = $isSuper || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'));
 
-        // 1. Panel Admin Utama (/admin)
-        if ($isSuper) {
+        // 1. Panel Administrasi Terpadu (/admin)
+        if ($hasAdminRole) {
             $portals[] = [
-                'name' => 'Panel Admin Utama',
+                'name' => 'Panel Administrasi',
                 'url'  => url('/admin'),
-                'desc' => 'Pengaturan sistem & manajemen pengguna',
-                'badge' => 'Super Admin',
+                'desc' => 'Pusat administrasi akademik, presensi, perpustakaan & pengaturan',
+                'badge' => $isSuper ? 'Super Admin' : 'Admin Panel',
                 'bg'   => 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
             ];
         }
 
-        // 2. Panel Admin Akademik (/admin-akademik)
-        if ($isSuper || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_akademik'))) {
-            $portals[] = [
-                'name' => 'Panel Admin Akademik',
-                'url'  => url('/admin-akademik'),
-                'desc' => 'Kelola siswa, kelas, guru & tahun ajaran',
-                'badge' => 'Admin Akademik',
-                'bg'   => 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
-            ];
-        }
-
-        // 3. Panel Admin Presensi (/admin-presensi)
-        if ($isSuper || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_presensi'))) {
-            $portals[] = [
-                'name' => 'Panel Admin Presensi',
-                'url'  => url('/admin-presensi'),
-                'desc' => 'Kelola laporan & rekapitulasi kehadiran',
-                'badge' => 'Admin Presensi',
-                'bg'   => 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
-            ];
-        }
-
-        // 4. Panel Admin Perpustakaan (/admin-perpustakaan)
-        if ($isSuper || $this->roles->contains(fn($r) => str_contains($r->name, 'perpustakaan'))) {
-            $portals[] = [
-                'name' => 'Panel Admin Perpustakaan',
-                'url'  => url('/admin-perpustakaan'),
-                'desc' => 'Kelola katalog buku & sirkulasi perpus',
-                'badge' => 'Admin Perpus',
-                'bg'   => 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
-            ];
-        }
-
-        // 5. Portal Guru / Wali Kelas (/portal-guru)
+        // 2. Portal Guru / Wali Kelas (/portal-guru)
         if ($isSuper || $this->hasRole('wali_kelas') || $this->hasRole('guru') || $this->teacher_id !== null || $this->teacher !== null) {
             $portals[] = [
                 'name' => 'Portal Guru & Wali Kelas',
@@ -263,30 +231,8 @@ class User extends Authenticatable implements FilamentUser
             ];
         }
 
-        // 6. Portal Sirkulasi Perpustakaan (/portal-perpustakaan)
-        if ($isSuper || $this->hasRole('petugas_perpustakaan') || $this->roles->contains(fn($r) => str_contains($r->name, 'perpustakaan'))) {
-            $portals[] = [
-                'name' => 'Portal Sirkulasi Perpustakaan',
-                'url'  => url('/portal-perpustakaan'),
-                'desc' => 'Peminjaman, pengembalian & katalog',
-                'badge' => 'Perpustakaan',
-                'bg'   => 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100',
-            ];
-        }
-
-        // 7. Kiosk Presensi Mandiri (/portal-presensi/scan)
-        if ($isSuper || $this->hasRole('petugas_presensi') || $this->roles->contains(fn($r) => str_contains($r->name, 'presensi'))) {
-            $portals[] = [
-                'name' => 'Kiosk Scan Presensi',
-                'url'  => url('/portal-presensi/scan'),
-                'desc' => 'Layar kiosk absensi barcode siswa/guru',
-                'badge' => 'Kiosk Presensi',
-                'bg'   => 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100',
-            ];
-        }
-
-        // 8. Portal Siswa (/portal-siswa)
-        if ($this->hasRole('siswa') || $this->student !== null) {
+        // 3. Portal Siswa (/portal-siswa)
+        if ($this->hasRole('siswa') || $this->student_id !== null || $this->student !== null) {
             $portals[] = [
                 'name' => 'Portal Siswa',
                 'url'  => url('/portal-siswa'),
