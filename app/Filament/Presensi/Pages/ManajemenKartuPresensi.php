@@ -8,6 +8,7 @@ use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use BackedEnum;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -22,13 +23,25 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ManajemenKartuPresensi extends Page implements HasTable
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     use InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon  = 'heroicon-o-identification';
     protected static ?string              $navigationLabel = 'Kartu Presensi Siswa';
     protected static ?string              $title           = 'Manajemen Kartu Presensi Siswa';
     protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
-    protected static ?int                 $navigationSort  = 90;
+    protected static ?int                 $navigationSort  = 6;
     protected string                      $view            = 'filament.pages.manajemen-kartu-presensi';
 
     // Filters
@@ -37,14 +50,6 @@ class ManajemenKartuPresensi extends Page implements HasTable
     public $classes                = [];
     public $selectedClassId        = null;
     public bool $hasSubmittedFilter = false;
-
-    /**
-     * Hanya Superadmin yang boleh akses halaman ini.
-     */
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public function mount(): void
     {

@@ -10,16 +10,25 @@ use App\Filament\Presensi\Resources\HariLiburs\Tables\HariLibursTable;
 use App\Models\HariLibur;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class HariLiburResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
     protected static ?string $model = HariLibur::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
+    protected static ?int $navigationSort = 7;
     protected static ?string $modelLabel = 'Pengaturan Hari Libur';
     protected static ?string $pluralModelLabel = 'Pengaturan Hari Libur';
     protected static ?string $navigationLabel = 'Pengaturan Hari Libur';

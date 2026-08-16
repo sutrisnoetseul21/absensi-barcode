@@ -12,12 +12,12 @@ use App\Models\Guru;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, HasUuids, Notifiable, HasRoles, HasPanelShield;
+    use HasFactory, HasUuids, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -67,6 +67,11 @@ class User extends Authenticatable implements FilamentUser
      */
     public function canAccessPanel(Panel $panel): bool
     {
+        // Tolak akses jika user adalah siswa (memiliki relasi student)
+        if ($this->student()->exists()) {
+            return false;
+        }
+
         // Super Admin (role Spatie) boleh masuk ke semua panel
         $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
         if ($this->hasRole($superAdminRole)) {
@@ -85,9 +90,11 @@ class User extends Authenticatable implements FilamentUser
 
         $panelId = $panel->getId();
         
-        // Panel utama 'admin' (Super Admin)
+        // Panel utama 'admin' (Bisa diakses oleh semua jenis admin)
         if ($panelId === 'admin') {
-            return false; // Hanya lolos jika super_admin (sudah di-check di atas)
+            return $this->roles->contains(function ($role) {
+                return str_starts_with($role->name, 'admin_');
+            });
         }
 
         if (isset($panelRolePrefixes[$panelId])) {

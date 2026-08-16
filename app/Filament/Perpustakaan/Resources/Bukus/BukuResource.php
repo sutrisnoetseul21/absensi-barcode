@@ -10,6 +10,7 @@ use App\Filament\Perpustakaan\Resources\Bukus\Tables\BukusTable;
 use App\Models\Buku;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -18,6 +19,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class BukuResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     protected static ?string $model = Buku::class;
 
     protected static ?string $slug = 'buku';
@@ -30,7 +38,7 @@ class BukuResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
+    protected static \UnitEnum|string|null $navigationGroup = 'Perpustakaan';
 
     protected static ?int $navigationSort = 1;
 

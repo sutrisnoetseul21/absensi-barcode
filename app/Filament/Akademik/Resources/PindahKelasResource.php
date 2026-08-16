@@ -10,6 +10,7 @@ use BackedEnum;
 use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -17,6 +18,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PindahKelasResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
     protected static ?string $model = \App\Models\RiwayatPindahKelas::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
@@ -24,12 +32,7 @@ class PindahKelasResource extends Resource
     protected static ?string $pluralLabel = 'Pindah Kelas';
     protected static ?string $modelLabel = 'Riwayat';
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
-    protected static ?int $navigationSort = 2;
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
+    protected static ?int $navigationSort = 5;
 
     public static function getEloquentQuery(): Builder
     {

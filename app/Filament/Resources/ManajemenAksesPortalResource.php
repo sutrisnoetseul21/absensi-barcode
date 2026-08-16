@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Schemas\Components\Section;
@@ -20,26 +21,28 @@ use Illuminate\Support\HtmlString;
 
 class ManajemenAksesPortalResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akses';
+    }
+
     protected static ?string $model = User::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-key';
 
     protected static ?string $navigationLabel = 'Manajemen Akses Portal';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
+    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Akses';
 
     protected static ?string $modelLabel = 'Akses Portal Pengguna';
 
     protected static ?string $pluralModelLabel = 'Manajemen Akses Portal';
 
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'manajemen-akses-portal';
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public static function form(Schema $schema): Schema
     {

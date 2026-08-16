@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Support\Exceptions\Halt;
 
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -18,6 +19,18 @@ use Filament\Forms\Contracts\HasForms;
 
 class PengaturanPresensiPage extends Page implements HasForms
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
@@ -30,17 +43,11 @@ class PengaturanPresensiPage extends Page implements HasForms
 
     protected static ?string $title = 'Pengaturan Presensi';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
+
+    protected static ?int $navigationSort = 9;
 
     public ?array $data = [];
-
-    /**
-     * Hanya Super Admin yang bisa mengakses halaman pengaturan.
-     */
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public function mount(): void
     {

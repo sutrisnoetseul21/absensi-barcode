@@ -3,6 +3,7 @@
 namespace App\Filament\Presensi\Pages;
 
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Notifications\Notification;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
@@ -14,9 +15,17 @@ use Illuminate\Support\Facades\Auth;
 
 class RekapAbsensiKelas extends Page
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
     protected string $view = 'filament.pages.rekap-absensi-kelas';
-    protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
+    protected static ?int $navigationSort = 2;
     protected static ?string $title = 'Rekap Presensi Kelas';
     protected static ?string $navigationLabel = 'Rekap Presensi Kelas';
 

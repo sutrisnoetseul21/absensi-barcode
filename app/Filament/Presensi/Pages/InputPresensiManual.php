@@ -3,6 +3,7 @@
 namespace App\Filament\Presensi\Pages;
 
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Notifications\Notification;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
@@ -13,12 +14,24 @@ use Illuminate\Support\Facades\Auth;
 
 class InputPresensiManual extends Page
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-pencil-square';
     protected string $view = 'filament.pages.input-presensi-manual';
     protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
     protected static ?string $title = 'Input Presensi Manual';
     protected static ?string $navigationLabel = 'Input Presensi Manual';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     // Filters
     public $academicYears   = [];

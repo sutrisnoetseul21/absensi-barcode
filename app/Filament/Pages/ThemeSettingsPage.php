@@ -21,6 +21,8 @@ class ThemeSettingsPage extends Page implements HasForms
 
     protected string $view = 'filament.pages.school-settings'; // Reusing the same view logic which typically just renders the form
 
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $navigationLabel = 'Pengaturan Tema';
 
     protected static ?string $title = 'Pengaturan Tema Website';

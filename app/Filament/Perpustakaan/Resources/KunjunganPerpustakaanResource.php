@@ -6,6 +6,7 @@ use App\Filament\Perpustakaan\Resources\KunjunganPerpustakaanResource\Pages;
 use App\Models\KunjunganPerpustakaan;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Actions\EditAction;
@@ -17,14 +18,21 @@ use Illuminate\Support\Carbon;
 
 class KunjunganPerpustakaanResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     protected static ?string $model = KunjunganPerpustakaan::class;
 
     protected static ?string $slug = 'riwayat-presensi';
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-identification';
     
-    protected static string | \UnitEnum | null $navigationGroup = 'Sirkulasi';
-    protected static ?int $navigationSort = 3;
+    protected static string | \UnitEnum | null $navigationGroup = 'Perpustakaan';
+    protected static ?int $navigationSort = 7;
     protected static ?string $modelLabel = 'Presensi Kunjungan';
     protected static ?string $pluralModelLabel = 'Riwayat Presensi Kunjungan';
     protected static ?string $navigationLabel = 'Riwayat Presensi';

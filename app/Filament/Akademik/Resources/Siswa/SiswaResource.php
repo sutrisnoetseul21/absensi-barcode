@@ -10,12 +10,20 @@ use App\Filament\Akademik\Resources\Siswa\Tables\SiswaTable;
 use App\Models\Siswa;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class SiswaResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
     protected static ?string $model = Siswa::class;
 
     protected static ?string $modelLabel = 'Siswa';
@@ -28,16 +36,11 @@ class SiswaResource extends Resource
 
     protected static ?string $navigationLabel = 'Siswa';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'name';
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public static function form(Schema $schema): Schema
     {

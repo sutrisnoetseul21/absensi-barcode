@@ -3,6 +3,7 @@
 namespace App\Filament\Presensi\Pages;
 
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -23,6 +24,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LaporanPresensi extends Page implements HasTable
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
     use InteractsWithTable;
 
     public static function getNavigationIcon(): string|\Illuminate\Contracts\Support\Htmlable|null
@@ -47,12 +55,7 @@ class LaporanPresensi extends Page implements HasTable
 
     public static function getNavigationSort(): ?int
     {
-        return 4;
-    }
-
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
+        return 1;
     }
 
     protected string $view = 'filament.pages.laporan-presensi';

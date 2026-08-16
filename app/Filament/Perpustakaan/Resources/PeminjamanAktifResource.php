@@ -6,6 +6,7 @@ use App\Filament\Perpustakaan\Resources\PeminjamanAktifResource\Pages;
 use App\Models\Peminjaman;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Actions\Action;
@@ -18,22 +19,24 @@ use Illuminate\Support\Carbon;
 
 class PeminjamanAktifResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     protected static ?string $model = Peminjaman::class;
 
     protected static ?string $slug = 'peminjaman';
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     
-    protected static string | \UnitEnum | null $navigationGroup = 'Sirkulasi';
-    protected static ?int $navigationSort = 1;
+    protected static string | \UnitEnum | null $navigationGroup = 'Perpustakaan';
+    protected static ?int $navigationSort = 5;
     protected static ?string $modelLabel = 'Peminjaman';
     protected static ?string $pluralModelLabel = 'Peminjaman';
     protected static ?string $navigationLabel = 'Peminjaman';
-    
-    public static function canCreate(): bool
-    {
-        return true;
-    }
 
     public static function form(Schema $schema): Schema
     {

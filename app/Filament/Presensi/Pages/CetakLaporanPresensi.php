@@ -3,6 +3,7 @@
 namespace App\Filament\Presensi\Pages;
 
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Notifications\Notification;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
@@ -14,12 +15,19 @@ use App\Services\PresensiRekapService;
 
 class CetakLaporanPresensi extends Page
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-printer';
     protected string $view = 'filament.pages.cetak-laporan-presensi';
-    protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
     protected static ?string $title = 'Cetak Laporan Presensi';
     protected static ?string $navigationLabel = 'Cetak Laporan Presensi';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     // Filter state
     public $academicYears = [];

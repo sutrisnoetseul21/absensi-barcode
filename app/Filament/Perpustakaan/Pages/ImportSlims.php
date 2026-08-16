@@ -12,6 +12,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Cache;
@@ -19,13 +20,25 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ImportSlims extends Page implements HasForms
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-down-on-square-stack';
     protected static ?string $navigationLabel  = 'Import dari SLiMS';
     protected static ?string $title            = 'Sinkronisasi Data SLiMS → ERP';
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan';
-    protected static ?int $navigationSort      = 90;
+    protected static string|\UnitEnum|null $navigationGroup = 'Perpustakaan';
+    protected static ?int $navigationSort      = 11;
 
     protected string $view = 'filament.perpustakaan.pages.import-slims';
 

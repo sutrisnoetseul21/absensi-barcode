@@ -7,11 +7,19 @@ use App\Filament\Akademik\Resources\RombonganBelajar\Tables\RombonganBelajarsTab
 use App\Models\Kelas;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class RombonganBelajarResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
     protected static ?string $model = Kelas::class;
 
     protected static ?string $slug = 'rombongan-belajar';
@@ -23,12 +31,7 @@ class RombonganBelajarResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
     
-    protected static ?int $navigationSort = 1;
-
-    public static function canCreate(): bool
-    {
-        return false; // Creation is handled in KelasResource (Data Master)
-    }
+    protected static ?int $navigationSort = 3;
 
     public static function table(Table $table): Table
     {

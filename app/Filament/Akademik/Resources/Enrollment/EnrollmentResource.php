@@ -10,12 +10,20 @@ use App\Filament\Akademik\Resources\Enrollment\Tables\EnrollmentTable;
 use App\Models\EnrollmentSiswa;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class EnrollmentResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
     protected static ?string $model = \App\Models\Kelas::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
@@ -28,12 +36,7 @@ class EnrollmentResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
-    protected static ?int $navigationSort = 1;
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

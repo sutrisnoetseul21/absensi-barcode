@@ -10,12 +10,25 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Support\Exceptions\Halt;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 
 class AkademikSettingsPage extends Page implements HasForms
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
@@ -28,7 +41,9 @@ class AkademikSettingsPage extends Page implements HasForms
 
     protected static ?string $title = 'Pengaturan Akademik';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
+
+    protected static ?int $navigationSort = 8;
 
     public ?array $data = [];
 

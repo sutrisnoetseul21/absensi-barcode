@@ -18,7 +18,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use App\Filament\Widgets\QuickLinksWidget;
 
 class AdminPanelProvider extends PanelProvider
@@ -74,21 +73,38 @@ class AdminPanelProvider extends PanelProvider
                 'Data Master',
                 'Akademik',
                 'Presensi',
-                'Laporan',
-                'Konten',
+                'Perpustakaan',
                 'Pengaturan Sistem',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverResources(in: app_path('Filament/Akademik/Resources'), for: 'App\Filament\Akademik\Resources')
+            ->discoverResources(in: app_path('Filament/Presensi/Resources'), for: 'App\Filament\Presensi\Resources')
+            ->discoverResources(in: app_path('Filament/Perpustakaan/Resources'), for: 'App\Filament\Perpustakaan\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
+                // Akademik Pages (exclude AkademikDashboard — rute konflik dengan /admin)
+                \App\Filament\Akademik\Pages\AkademikSettingsPage::class,
+                // Presensi Pages (exclude Presensi Dashboard — rute konflik dengan /admin)
+                \App\Filament\Presensi\Pages\LaporanPresensi::class,
+                \App\Filament\Presensi\Pages\CetakLaporanPresensi::class,
+                \App\Filament\Presensi\Pages\InputPresensiManual::class,
+                \App\Filament\Presensi\Pages\ManajemenKartuPresensi::class,
+                \App\Filament\Presensi\Pages\ManajemenNotifikasiWaPage::class,
+                \App\Filament\Presensi\Pages\PengaturanPresensiPage::class,
+                \App\Filament\Presensi\Pages\RekapAbsensiKelas::class,
+                \App\Filament\Presensi\Pages\RekapAbsensiSekolah::class,
+                // Perpustakaan Pages (exclude Perpustakaan Dashboard — rute konflik dengan /admin)
+                \App\Filament\Perpustakaan\Pages\AnggotaResource::class,
+                \App\Filament\Perpustakaan\Pages\ImportSlims::class,
+                \App\Filament\Perpustakaan\Pages\LaporanSirkulasi::class,
+                \App\Filament\Perpustakaan\Pages\PengaturanPerpustakaan::class,
+                \App\Filament\Perpustakaan\Pages\ReservasiSegeraHadir::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-                \App\Filament\Widgets\PortalWidget::class,
-                QuickLinksWidget::class,
-                AccountWidget::class,
-            ])
+            ->discoverWidgets(in: app_path('Filament/Akademik/Widgets'), for: 'App\Filament\Akademik\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Perpustakaan/Widgets'), for: 'App\Filament\Perpustakaan\Widgets')
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -102,9 +118,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ])
-            ->plugins([
-                FilamentShieldPlugin::make(),
             ]);
     }
 }

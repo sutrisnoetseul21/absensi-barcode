@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Support\Exceptions\Halt;
 
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -27,6 +28,18 @@ use Illuminate\Support\HtmlString;
 
 class ManajemenNotifikasiWaPage extends Page implements HasForms
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
@@ -39,7 +52,9 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     protected static ?string $title = 'Manajemen Notifikasi WA';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
+
+    protected static ?int $navigationSort = 8;
 
     public ?array $data = [];
 
@@ -51,11 +66,6 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
     // Status kirim manual per tab
     public bool $canSendDailyManual  = true;
     public bool $canSendSchoolManual = true;
-
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public function mount(): void
     {

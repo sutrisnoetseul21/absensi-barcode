@@ -10,12 +10,20 @@ use App\Filament\Perpustakaan\Resources\KategoriBukus\Tables\KategoriBukusTable;
 use App\Models\KategoriBuku;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class KategoriBukuResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     protected static ?string $model = KategoriBuku::class;
 
     protected static ?string $slug = 'klasifikasi-buku';
@@ -30,9 +38,9 @@ class KategoriBukuResource extends Resource
 
     protected static bool $shouldRegisterNavigation = true;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
+    protected static \UnitEnum|string|null $navigationGroup = 'Perpustakaan';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'nama_kategori';
 

@@ -31,6 +31,8 @@ class SchoolSettingsPage extends Page implements HasForms
 
     protected string $view = 'filament.pages.school-settings';
 
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $navigationLabel = 'Pengaturan Sekolah';
 
     protected static ?string $slug = 'pengaturan-sekolah';

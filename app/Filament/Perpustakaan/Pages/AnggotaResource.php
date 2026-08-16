@@ -5,6 +5,7 @@ namespace App\Filament\Perpustakaan\Pages;
 use App\Models\StudentPresensiProfile;
 use App\Models\TeacherPresensiProfile;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Table;
@@ -20,13 +21,20 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AnggotaResource extends Page implements HasTable
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     use InteractsWithTable;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'Anggota';
     protected static ?string $title = 'Anggota Perpustakaan';
-    protected static \UnitEnum|string|null $navigationGroup = 'Keanggotaan';
-    protected static ?int $navigationSort = 1;
+    protected static \UnitEnum|string|null $navigationGroup = 'Perpustakaan';
+    protected static ?int $navigationSort = 10;
 
     protected string $view = 'filament.perpustakaan.pages.anggota-resource';
 

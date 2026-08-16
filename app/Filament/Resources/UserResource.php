@@ -7,32 +7,28 @@ use App\Filament\Resources\UserResource\Schemas\UserForm;
 use App\Filament\Resources\UserResource\Tables\UserTable;
 use App\Models\User;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 class UserResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akses';
+    }
+
     protected static ?string $model = User::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
     
     protected static ?string $navigationLabel = 'Manajemen Admin';
     
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan Sistem';
+    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Akses';
     
-    protected static ?string $modelLabel = 'Admin';
-    
-    protected static ?string $pluralModelLabel = 'Admin';
-    
-    protected static ?int $navigationSort = 10;
-
-    /**
-     * Hanya Super Admin yang boleh mengakses resource ini.
-     */
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

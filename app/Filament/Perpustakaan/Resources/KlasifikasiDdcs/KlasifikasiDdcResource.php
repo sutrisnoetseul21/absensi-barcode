@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -18,6 +19,13 @@ use Filament\Tables\Table;
 
 class KlasifikasiDdcResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     protected static ?string $model = KlasifikasiDdc::class;
 
     protected static ?string $slug = 'klasifikasi-ddc';
@@ -28,9 +36,9 @@ class KlasifikasiDdcResource extends Resource
 
     protected static ?string $navigationLabel = 'Klasifikasi DDC';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Koleksi Buku';
+    protected static \UnitEnum|string|null $navigationGroup = 'Perpustakaan';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

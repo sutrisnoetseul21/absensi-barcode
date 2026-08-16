@@ -90,7 +90,29 @@ class UserForm
 
                 Select::make('roles')
                     ->label('Hak Akses Panel (Role)')
-                    ->relationship('roles', 'name')
+                    ->relationship(
+                        name: 'roles', 
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn ($query) => $query->whereIn('name', [
+                            'super_admin',
+                            'admin_akademik_editor', 'admin_akademik_viewer',
+                            'admin_presensi_editor', 'admin_presensi_viewer',
+                            'admin_perpustakaan_editor', 'admin_perpustakaan_viewer',
+                            'admin_master_editor', 'admin_master_viewer',
+                        ])
+                    )
+                    ->getOptionLabelFromRecordUsing(fn ($record) => match ($record->name) {
+                        'super_admin' => 'Super Admin (Akses Penuh)',
+                        'admin_akademik_editor' => 'Admin Akademik (Bisa Edit)',
+                        'admin_akademik_viewer' => 'Admin Akademik (Hanya Lihat)',
+                        'admin_presensi_editor' => 'Admin Presensi (Bisa Edit)',
+                        'admin_presensi_viewer' => 'Admin Presensi (Hanya Lihat)',
+                        'admin_perpustakaan_editor' => 'Admin Perpustakaan (Bisa Edit)',
+                        'admin_perpustakaan_viewer' => 'Admin Perpustakaan (Hanya Lihat)',
+                        'admin_master_editor' => 'Admin Data Master (Bisa Edit)',
+                        'admin_master_viewer' => 'Admin Data Master (Hanya Lihat)',
+                        default => $record->name,
+                    })
                     ->multiple()
                     ->preload()
                     ->searchable()

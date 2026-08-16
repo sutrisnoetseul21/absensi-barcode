@@ -3,6 +3,7 @@
 namespace App\Filament\Presensi\Pages;
 
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Notifications\Notification;
 use App\Models\TahunAjaran;
 use App\Models\PengaturanSekolah;
@@ -13,9 +14,17 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class RekapAbsensiSekolah extends Page
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'presensi';
+    }
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-bar';
     protected string $view = 'filament.pages.rekap-absensi-sekolah';
-    protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Presensi';
+    protected static ?int $navigationSort = 3;
     protected static ?string $title = 'Rekap Presensi Sekolah';
     protected static ?string $navigationLabel = 'Rekap Presensi Sekolah';
 

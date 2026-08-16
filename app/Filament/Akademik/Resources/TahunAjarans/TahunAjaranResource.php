@@ -10,12 +10,20 @@ use App\Filament\Akademik\Resources\TahunAjarans\Tables\TahunAjaransTable;
 use App\Models\TahunAjaran;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class TahunAjaranResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'master';
+    }
+
     protected static ?string $model = TahunAjaran::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
@@ -24,7 +32,7 @@ class TahunAjaranResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 6;
 
     protected static ?string $slug = 'tahun-ajaran';
 

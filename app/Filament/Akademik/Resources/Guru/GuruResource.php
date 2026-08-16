@@ -10,12 +10,20 @@ use App\Filament\Akademik\Resources\Guru\Tables\GuruTable;
 use App\Models\Guru;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class GuruResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'master';
+    }
+
     protected static ?string $model = Guru::class;
 
     protected static ?string $modelLabel = 'Guru';
@@ -32,11 +40,6 @@ class GuruResource extends Resource
     protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'name';
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public static function form(Schema $schema): Schema
     {

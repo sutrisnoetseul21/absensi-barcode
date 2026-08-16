@@ -16,6 +16,7 @@ use Illuminate\Support\HtmlString;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Pages\Page;
+use App\Filament\Traits\HasSimplePageRoleAccess;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
 use Illuminate\Support\Facades\Hash;
@@ -24,13 +25,25 @@ use Closure;
 
 class PengaturanPerpustakaan extends Page implements HasForms
 {
+    use HasSimplePageRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
+    protected static function requiresEditorRole(): bool
+    {
+        return true;
+    }
+
     use InteractsWithForms;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationLabel = 'Pengaturan Default';
     protected static ?string $title = 'Pengaturan Perpustakaan';
-    protected static \UnitEnum|string|null $navigationGroup = 'Pengaturan';
-    protected static ?int $navigationSort = 2;
+    protected static \UnitEnum|string|null $navigationGroup = 'Perpustakaan';
+    protected static ?int $navigationSort = 12;
 
     protected string $view = 'filament.perpustakaan.pages.pengaturan-perpustakaan';
 

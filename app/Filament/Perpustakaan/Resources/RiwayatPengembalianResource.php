@@ -6,6 +6,7 @@ use App\Filament\Perpustakaan\Resources\RiwayatPengembalianResource\Pages;
 use App\Models\Peminjaman;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Actions\EditAction;
@@ -17,22 +18,25 @@ use Illuminate\Support\Carbon;
 
 class RiwayatPengembalianResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'perpustakaan';
+    }
+
     protected static ?string $model = Peminjaman::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     
-    protected static string | \UnitEnum | null $navigationGroup = 'Sirkulasi';
-    protected static ?int $navigationSort = 2;
+    protected static string | \UnitEnum | null $navigationGroup = 'Perpustakaan';
+    protected static ?int $navigationSort = 6;
     protected static ?string $modelLabel = 'Riwayat Pengembalian';
     protected static ?string $pluralModelLabel = 'Riwayat Pengembalian';
     protected static ?string $navigationLabel = 'Pengembalian';
     protected static bool $shouldRegisterNavigation = false;
     
     // Nonaktifkan create button karena peminjaman via kiosk
-    public static function canCreate(): bool
-    {
-        return false;
-    }
 
     public static function form(Schema $schema): Schema
     {

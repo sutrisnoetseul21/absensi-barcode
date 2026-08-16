@@ -7,6 +7,7 @@ use App\Models\PengaturanSekolah;
 use App\Models\Siswa;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -18,6 +19,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SiswaLulusResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
     protected static ?string $model = Siswa::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
@@ -33,14 +41,6 @@ class SiswaLulusResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
     protected static ?int $navigationSort = 6;
-
-    /**
-     * Hanya Superadmin yang boleh akses menu ini.
-     */
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public static function form(Schema $schema): Schema
     {

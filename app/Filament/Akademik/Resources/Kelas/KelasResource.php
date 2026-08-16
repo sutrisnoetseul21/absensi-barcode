@@ -11,27 +11,30 @@ use App\Filament\Akademik\Resources\Kelas\Tables\KelasTable;
 use App\Models\Kelas;
 use BackedEnum;
 use Filament\Resources\Resource;
+use App\Filament\Traits\HasSimpleRoleAccess;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class KelasResource extends Resource
 {
+    use HasSimpleRoleAccess;
+
+    protected static function getModuleRolePrefix(): string
+    {
+        return 'akademik';
+    }
+
     protected static ?string $model = Kelas::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingLibrary;
 
     protected static ?string $navigationLabel = 'Kelas';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
     protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'name';
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->isSuperAdmin() ?? false;
-    }
 
     public static function form(Schema $schema): Schema
     {
