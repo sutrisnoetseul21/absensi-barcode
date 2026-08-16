@@ -111,19 +111,28 @@ class UnifiedLogin extends Component
             ]);
         }
 
-        $email = $this->username;
-        if (!str_contains($email, '@')) {
-            $email = trim($email) . '@' . config('school.email_domain');
+        // 4. Proses Autentikasi Fleksibel (Email, Username Prefix, NISN, atau Nama)
+        $input = trim($this->username);
+        $schoolDomain = config('school.email_domain');
+
+        // Cari user berdasarkan email langsung, email sekolah, nama, atau username prefix
+        $targetUser = \App\Models\User::where('email', $input)
+            ->orWhere('email', str_contains($input, '@') ? $input : $input . '@' . $schoolDomain)
+            ->orWhere('name', $input)
+            ->orWhere('email', 'like', $input . '@%')
+            ->first();
+
+        $loginSuccess = false;
+        if ($targetUser && \Illuminate\Support\Facades\Hash::check($this->password, $targetUser->password)) {
+            Auth::guard('web')->login($targetUser, $this->remember);
+            $loginSuccess = true;
         }
 
-        // 4. Proses Autentikasi
-        if (Auth::guard('web')->attempt(['email' => $email, 'password' => $this->password], $this->remember) || 
-            Auth::guard('web')->attempt(['name' => $this->username, 'password' => $this->password], $this->remember)) {
-            
+        if ($loginSuccess) {
             $user = Auth::guard('web')->user();
 
-            // Bypass pengecekan profil untuk super admin
-            if (!$user->hasRole('super_admin')) {
+            // Bypass pengecekan profil khusus untuk super admin
+            if (!$user->isSuperAdmin()) {
                 // Jika role siswa, cek status enrollment aktif
                 if ($user->hasRole('siswa')) {
                     if ($user->student === null) {
@@ -160,7 +169,7 @@ class UnifiedLogin extends Component
             session()->regenerate();
 
             // Auto routing berdasarkan prioritas role
-            if ($user->hasRole('super_admin') || $user->isSuperAdmin() || $user->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'))) {
+            if ($user->isSuperAdmin() || $user->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'))) {
                 return redirect()->intended('/admin');
             } elseif ($user->hasRole('wali_kelas') || $user->hasRole('guru')) {
                 return redirect()->intended('/portal-guru');
