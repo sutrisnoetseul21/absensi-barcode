@@ -169,10 +169,12 @@ class UnifiedLogin extends Component
             session()->regenerate();
 
             // Auto routing berdasarkan prioritas role
-            if ($user->isSuperAdmin() || $user->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'))) {
-                return redirect()->intended('/admin');
-            } elseif ($user->hasRole('wali_kelas') || $user->hasRole('guru')) {
+            // 1. Jika statusnya adalah Guru / Wali Kelas (atau punya profil teacher), selalu utamakan ke Portal Guru
+            if ($user->hasRole('wali_kelas') || $user->hasRole('guru') || $user->teacher !== null) {
                 return redirect()->intended('/portal-guru');
+            } elseif ($user->isSuperAdmin() || $user->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'))) {
+                // 2. Jika murni Admin / Super Admin (bukan guru), arahkan ke Admin Panel
+                return redirect()->intended('/admin');
             } elseif ($user->hasRole('admin_portal_presensi')) {
                 return redirect()->intended('/portal-presensi');
             } elseif ($user->hasRole('petugas_perpustakaan')) {
