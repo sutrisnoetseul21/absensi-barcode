@@ -5,30 +5,30 @@
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-indigo-200 mb-3">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Portal Guru & Wali Kelas
-                </div>
-                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+                <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Portal Guru & Wali Kelas</span>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mt-3 tracking-tight leading-snug">
                     Selamat Datang, {{ $teacher?->name ?? 'Bapak/Ibu Guru' }}!
                 </h1>
-                <p class="text-indigo-200/90 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
+                <p class="text-indigo-100/90 text-sm sm:text-base mt-1 max-w-2xl leading-relaxed">
                     Kelola absensi kelas binaan, tanggapi permohonan ijin siswa, dan akses berbagai layanan akademik dengan mudah dari satu tempat.
                 </p>
             </div>
 
-            <!-- Quick Summary Badges -->
-            <div class="flex flex-wrap sm:flex-nowrap gap-3 items-center self-start md:self-center">
-                <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 min-w-[130px]">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block">Kelas Binaan</span>
-                    <span class="text-2xl font-extrabold text-white mt-0.5 block">{{ $kelasAmpuCount }} <span class="text-xs font-medium text-indigo-200">Kelas</span></span>
-                </div>
-                <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 min-w-[130px]">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block">Total Siswa</span>
-                    <span class="text-2xl font-extrabold text-white mt-0.5 block">{{ $totalStudentsCount }} <span class="text-xs font-medium text-indigo-200">Siswa</span></span>
-                </div>
+            <!-- Action Buttons (Presensi Digital & Presensi Manual) -->
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" 
+                   target="_blank" 
+                   class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                    Presensi Digital
+                </a>
+                <a href="{{ route('portal-guru.akademik') }}" 
+                   class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all border border-white/30 backdrop-blur-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Presensi Manual
+                </a>
             </div>
         </div>
     </div>

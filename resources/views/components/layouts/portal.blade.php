@@ -527,7 +527,7 @@
                     </a>
 
                     <!-- Section Akses Portal Terkait (Jika Punya Role Lain) -->
-                    @if($user && ($user->hasRole(['admin_portal_presensi', 'petugas_presensi', 'petugas_perpustakaan', 'admin_perpustakaan', 'super_admin'])))
+                    @if($user && ($user->hasRole(['admin_portal_presensi', 'petugas_presensi', 'petugas_perpustakaan', 'admin_perpustakaan', 'super_admin', 'wali_kelas']) || $user->teacher))
                         <div class="pt-4 mt-4 border-t border-slate-100">
                             <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 truncate" x-show="!isCollapsed" x-transition.opacity>Akses Portal Terkait</p>
 
@@ -545,7 +545,7 @@
                                 </a>
                             @endif
 
-                            @if($user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin']))
+                            @if($user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas']) || $user->teacher)
                                 <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" target="_blank" :title="isCollapsed ? 'Kiosk Scan' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-700 text-xs font-semibold transition-all">
                                     <div class="p-1 rounded-lg bg-blue-100 text-blue-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg></div>
                                     <span x-show="!isCollapsed" x-transition.opacity>Kiosk Scan</span>
@@ -732,8 +732,8 @@
                                         <div class="border-t border-slate-100 my-1 mx-2"></div>
                                     @endif
 
-                                    @if($user && $user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin']))
-                                        <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
+                                    @if($user && ($user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas']) || $user->teacher))
+                                        <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" target="_blank" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
                                             <div class="p-1.5 rounded-lg bg-blue-100 text-blue-600">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
                                             </div>
