@@ -74,6 +74,13 @@ Route::prefix('portal-presensi')->group(function () {
         Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-presensi.cetak-kartu');
         Route::get('/setting-notifikasi', \App\Livewire\PortalPresensi\SettingNotifikasi::class)->name('portal-presensi.setting-notifikasi');
 
+        Route::post('/logout', function () {
+            \Illuminate\Support\Facades\Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/');
+        })->name('portal-presensi.logout');
+
         Route::get('/scan', \App\Livewire\AttendanceKiosk::class)->name('kiosk.scan');
         Route::post('/scan', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanAction $action) {
             $barcode = $request->input('barcode');
