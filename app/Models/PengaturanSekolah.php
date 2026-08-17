@@ -14,6 +14,7 @@ class PengaturanSekolah extends Model
 
     protected $fillable = [
         'school_name',
+        'nama_perpustakaan',
         'school_address',
         'school_logo_path',
         'district_logo_path',

@@ -17,6 +17,7 @@
 ```
 - id (uuid, primary)
 - school_name (string)
+- nama_perpustakaan (string, nullable)         → nama unit perpustakaan untuk kop/label
 - school_address (text, nullable)
 - school_logo_path (string, nullable)
 - principal_name (string, nullable)          → nama kepala sekolah untuk TTD

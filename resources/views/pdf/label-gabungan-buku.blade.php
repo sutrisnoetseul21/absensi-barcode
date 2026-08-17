@@ -166,20 +166,32 @@
             width: 100%;
             background-color: #80f4f4 !important; /* Warna cyan/tosca sesuai Gambar 2 SLiMS */
             font-weight: 700;
-            font-size: 8.5pt;
             text-align: center;
-            padding: 3px 6px;
+            padding: 2px 4px;
             border-bottom: 1px solid #000;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             height: 1.1cm;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
             box-sizing: border-box;
+            line-height: 1.15;
+            color: #000;
+        }
+
+        .spine-header-line-1,
+        .spine-header-line-2 {
+            font-size: 7.5pt;
+            font-weight: 700;
             line-height: 1.2;
             color: #000;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .call-number-container {
@@ -227,7 +239,17 @@
     @php
         $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
         $sekolah = \App\Models\PengaturanSekolah::current() ?? \App\Models\PengaturanSekolah::first();
-        $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'PERPUSTAKAAN SEKOLAH';
+        
+        $rawNamaPerpus = trim($sekolah?->nama_perpustakaan ?? '');
+        $rawNamaSekolah = trim($sekolah?->school_name ?? '');
+
+        if (!empty($rawNamaPerpus)) {
+            $headerBaris1 = strtoupper($rawNamaPerpus);
+            $headerBaris2 = !empty($rawNamaSekolah) ? strtoupper($rawNamaSekolah) : null;
+        } else {
+            $headerBaris1 = !empty($rawNamaSekolah) ? strtoupper($rawNamaSekolah) : 'PERPUSTAKAAN SEKOLAH';
+            $headerBaris2 = null;
+        }
     @endphp
 
     <div class="print-controls">
@@ -290,7 +312,12 @@
                 
                 <!-- Sisi Kanan: Spine Section -->
                 <div class="spine-section">
-                    <div class="spine-header">{{ Str::limit($namaSekolah, 35) }}</div>
+                    <div class="spine-header">
+                        <div class="spine-header-line-1">{{ Str::limit($headerBaris1, 32) }}</div>
+                        @if($headerBaris2)
+                            <div class="spine-header-line-2">{{ Str::limit($headerBaris2, 38) }}</div>
+                        @endif
+                    </div>
                     <div class="call-number-container">
                         <div class="call-number-line">{{ $ddcLine }}</div>
                         <div class="call-number-line">{{ $authorLine }}</div>

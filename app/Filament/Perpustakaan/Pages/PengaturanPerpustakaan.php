@@ -61,6 +61,7 @@ class PengaturanPerpustakaan extends Page implements HasForms
             $tipePenomoran = ($lastBarcode == 0 && $realMax == 0) ? 'auto' : 'manual';
             
             $this->form->fill([
+                'nama_perpustakaan' => $settings->nama_perpustakaan,
                 'lama_pinjam_buku_hari' => $settings->lama_pinjam_buku_hari,
                 'barcode_scan_mode' => $settings->barcode_scan_mode ?? 'nisn',
                 'tipe_penomoran' => $tipePenomoran,
@@ -73,6 +74,16 @@ class PengaturanPerpustakaan extends Page implements HasForms
     {
         return $schema
             ->schema([
+                Section::make('Identitas Perpustakaan')
+                    ->description('Atur identitas resmi unit perpustakaan.')
+                    ->schema([
+                        TextInput::make('nama_perpustakaan')
+                            ->label('Nama Perpustakaan')
+                            ->placeholder('Contoh: PERPUSTAKAAN WIYATA MANDALA')
+                            ->maxLength(255)
+                            ->helperText('Nama resmi unit perpustakaan. Jika dikosongkan, sistem akan otomatis menggunakan nama sekolah.'),
+                    ]),
+
                 Section::make('Konfigurasi Sirkulasi')
                     ->description('Atur pengaturan dasar untuk operasional perpustakaan.')
                     ->schema([
@@ -153,6 +164,7 @@ class PengaturanPerpustakaan extends Page implements HasForms
 
         if ($settings) {
             $settings->update([
+                'nama_perpustakaan' => $data['nama_perpustakaan'] ?? null,
                 'lama_pinjam_buku_hari' => $data['lama_pinjam_buku_hari'],
                 'last_barcode_number' => $data['last_barcode_number'] ?? 0,
             ]);

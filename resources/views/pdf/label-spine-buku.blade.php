@@ -102,14 +102,31 @@
             width: 100%;
             background-color: #CCCCCC !important;
             font-weight: bold;
-            padding: 4px;
-            font-size: 9pt;
+            padding: 2px 4px;
             border-bottom: 1px solid #000;
             text-align: center;
             box-sizing: border-box;
             text-transform: uppercase;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            height: 1.1cm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.15;
+        }
+
+        .label-header-line-1,
+        .label-header-line-2 {
+            font-size: 7.5pt;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #000;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .call-number-container {
@@ -157,7 +174,17 @@
 
     @php
         $sekolah = \App\Models\PengaturanSekolah::current() ?? \App\Models\PengaturanSekolah::first();
-        $namaSekolah = $sekolah && $sekolah->school_name ? $sekolah->school_name : 'SMP NEGERI 3 KEDUNGREJA';
+        
+        $rawNamaPerpus = trim($sekolah?->nama_perpustakaan ?? '');
+        $rawNamaSekolah = trim($sekolah?->school_name ?? '');
+
+        if (!empty($rawNamaPerpus)) {
+            $headerBaris1 = strtoupper($rawNamaPerpus);
+            $headerBaris2 = !empty($rawNamaSekolah) ? strtoupper($rawNamaSekolah) : null;
+        } else {
+            $headerBaris1 = !empty($rawNamaSekolah) ? strtoupper($rawNamaSekolah) : 'PERPUSTAKAAN SEKOLAH';
+            $headerBaris2 = null;
+        }
     @endphp
 
     <div class="print-controls">
@@ -198,7 +225,12 @@
                 }
             @endphp
             <div class="label-container">
-                <div class="label-header">{{ Str::limit($namaSekolah, 40) }}</div>
+                <div class="label-header">
+                    <div class="label-header-line-1">{{ Str::limit($headerBaris1, 35) }}</div>
+                    @if($headerBaris2)
+                        <div class="label-header-line-2">{{ Str::limit($headerBaris2, 40) }}</div>
+                    @endif
+                </div>
                 <div class="call-number-container">
                     <div class="call-number-line">{{ $ddcLine }}</div>
                     <div class="call-number-line">{{ $authorLine }}</div>
