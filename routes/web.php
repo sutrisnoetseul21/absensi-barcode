@@ -131,6 +131,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineEksemplar'])->name('perpustakaan.cetak-label-spine-eksemplar');
     Route::get('/admin/perpustakaan/buku/cetak/label-spine-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineMassal'])->name('perpustakaan.cetak-label-spine-massal');
     
+    // Cetak Label Gabungan Buku Routes
+    Route::get('/admin/perpustakaan/buku/{buku}/cetak-label-gabungan', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelGabungan'])->name('perpustakaan.cetak-label-gabungan');
+    Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-label-gabungan', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelGabunganEksemplar'])->name('perpustakaan.cetak-label-gabungan-eksemplar');
+    Route::get('/admin/perpustakaan/buku/cetak/label-gabungan-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelGabunganMassal'])->name('perpustakaan.cetak-label-gabungan-massal');
+    
     // Kiosk Sirkulasi Perpustakaan Routes
     Route::get('/admin/perpustakaan/sirkulasi', \App\Livewire\SirkulasiKiosk::class)->name('perpustakaan.sirkulasi');
     Route::post('/admin/perpustakaan/sirkulasi/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {

@@ -102,6 +102,22 @@ class BukusTable
                     ->action(function ($record, array $data) {
                         return redirect()->to(route('perpustakaan.cetak-label-spine', ['buku' => $record, 'jumlah' => $data['jumlah_cetak']]));
                     }),
+                Action::make('cetakLabelGabungan')
+                    ->label('Cetak Gabungan')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('warning')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('jumlah_cetak')
+                            ->label('Jumlah Label yang Dicetak')
+                            ->numeric()
+                            ->required()
+                            ->minValue(1)
+                            ->maxValue(fn ($record) => max($record->eksemplarBukus()->count(), 1))
+                            ->default(fn ($record) => max($record->eksemplarBukus()->count(), 1))
+                    ])
+                    ->action(function ($record, array $data) {
+                        return redirect()->to(route('perpustakaan.cetak-label-gabungan', ['buku' => $record, 'jumlah' => $data['jumlah_cetak']]));
+                    }),
                 Action::make('cetakBarcode')
                     ->label('Cetak Barcode')
                     ->icon('heroicon-o-qr-code')
@@ -196,6 +212,20 @@ class BukusTable
                             $sessionKey = 'cetak_label_spine_ids_' . uniqid();
                             session()->put($sessionKey, $eksemplarIds);
                             return redirect()->to(route('perpustakaan.cetak-label-spine-massal', ['session_key' => $sessionKey]));
+                        }),
+                    BulkAction::make('cetakLabelGabunganTerpilih')
+                        ->label('Cetak Label Gabungan')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->color('warning')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $eksemplarIds = \App\Models\EksemplarBuku::whereIn('buku_id', $records->pluck('id'))->pluck('id')->toArray();
+                            if (empty($eksemplarIds)) {
+                                Notification::make()->warning()->title('Tidak ada eksemplar')->body('Buku yang dipilih belum memiliki eksemplar.')->send();
+                                return;
+                            }
+                            $sessionKey = 'cetak_label_gabungan_ids_' . uniqid();
+                            session()->put($sessionKey, $eksemplarIds);
+                            return redirect()->to(route('perpustakaan.cetak-label-gabungan-massal', ['session_key' => $sessionKey]));
                         }),
                     DeleteBulkAction::make()
                         ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_perpustakaan_editor') || auth()->user()?->hasRole('admin_master_editor'))

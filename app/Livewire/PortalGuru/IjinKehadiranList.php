@@ -31,13 +31,18 @@ class IjinKehadiranList extends Component
     {
         $this->teacher = Auth::user()->teacher;
         
-        // Dapatkan kelas Wali Kelas
-        $kelasWali = $this->teacher->kelasAjarans()->pluck('class_id')->toArray();
-        // Dapatkan kelas Pantau (BK)
-        $kelasPantau = $this->teacher->kelasPantau()->pluck('class_id')->toArray();
-        
-        $this->accessibleClassIds = array_unique(array_merge($kelasWali, $kelasPantau));
-        $this->accessibleClasses = Kelas::whereIn('id', $this->accessibleClassIds)->orderBy('name')->get();
+        if ($this->teacher) {
+            // Dapatkan kelas Wali Kelas
+            $kelasWali = $this->teacher->kelasAjarans()->pluck('class_id')->toArray();
+            // Dapatkan kelas Pantau (BK)
+            $kelasPantau = $this->teacher->kelasPantau()->pluck('class_id')->toArray();
+            
+            $this->accessibleClassIds = array_unique(array_merge($kelasWali, $kelasPantau));
+            $this->accessibleClasses = Kelas::whereIn('id', $this->accessibleClassIds)->orderBy('name')->get();
+        } else {
+            $this->accessibleClassIds = [];
+            $this->accessibleClasses = collect();
+        }
 
         $this->filterMonth = date('Y-m');
         $this->generateAvailableMonths();

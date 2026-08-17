@@ -108,4 +108,55 @@ class EksemplarCetakController extends Controller
             'buku' => null,
         ]);
     }
+
+    public function cetakLabelGabungan(Buku $buku, Request $request)
+    {
+        $query = $buku->eksemplarBukus()->orderBy('kode_eksemplar');
+        if ($request->has('jumlah')) {
+            $jumlah = max((int) $request->query('jumlah'), 1);
+            $query->limit($jumlah);
+        }
+        $eksemplars = $query->get();
+        
+        if ($eksemplars->isEmpty()) {
+            abort(404, 'Buku ini belum memiliki eksemplar.');
+        }
+
+        return view('pdf.label-gabungan-buku', [
+            'eksemplars' => $eksemplars,
+            'buku' => $buku,
+        ]);
+    }
+
+    public function cetakLabelGabunganEksemplar(EksemplarBuku $eksemplar)
+    {
+        return view('pdf.label-gabungan-buku', [
+            'eksemplars' => collect([$eksemplar]),
+            'buku' => $eksemplar->buku,
+        ]);
+    }
+
+    public function cetakLabelGabunganMassal(Request $request)
+    {
+        $sessionKey = $request->query('session_key');
+        if (empty($sessionKey)) {
+            abort(400, 'Parameter session_key tidak ditemukan');
+        }
+
+        $ids = session()->get($sessionKey);
+        if (empty($ids) || !is_array($ids)) {
+            abort(404, 'Data session cetak telah kedaluwarsa atau tidak valid. Silakan ulangi proses cetak.');
+        }
+
+        $eksemplars = EksemplarBuku::with('buku')->whereIn('id', $ids)->orderBy('kode_eksemplar')->get();
+
+        if ($eksemplars->isEmpty()) {
+            abort(404, 'Data eksemplar tidak ditemukan');
+        }
+
+        return view('pdf.label-gabungan-buku', [
+            'eksemplars' => $eksemplars,
+            'buku' => null,
+        ]);
+    }
 }

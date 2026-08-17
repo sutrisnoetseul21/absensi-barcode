@@ -200,7 +200,6 @@
             <div class="label-container">
                 <div class="label-header">{{ Str::limit($namaSekolah, 40) }}</div>
                 <div class="call-number-container">
-                    <div class="call-number-line" style="font-weight: bold;">{{ $prefixLine }}</div>
                     <div class="call-number-line">{{ $ddcLine }}</div>
                     <div class="call-number-line">{{ $authorLine }}</div>
                     <div class="call-number-line">{{ $titleLine }}</div>
