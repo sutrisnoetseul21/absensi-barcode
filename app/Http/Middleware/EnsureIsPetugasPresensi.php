@@ -17,14 +17,26 @@ class EnsureIsPetugasPresensi
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('web')->check()) {
+            if ($request->expectsJson() || $request->is('portal-presensi/scan*')) {
+                return response()->json([
+                    'message' => 'Sesi login telah berakhir. Silakan login kembali.',
+                    'status' => 'unauthenticated'
+                ], 401);
+            }
             return redirect('/portal-presensi/login');
         }
 
         $user = Auth::user();
 
         // Cek apakah route yang diakses adalah Kiosk (scan)
-        if ($request->routeIs('kiosk.scan') || $request->routeIs('kiosk.scan-nis')) {
+        if ($request->routeIs('kiosk.scan') || $request->routeIs('kiosk.scan-nis') || $request->is('portal-presensi/scan*')) {
             if (!$user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas'])) {
+                if ($request->expectsJson() || ($request->is('portal-presensi/scan*') && $request->isMethod('post'))) {
+                    return response()->json([
+                        'message' => 'Anda tidak memiliki hak akses ke Kiosk Presensi.',
+                        'status' => 'forbidden'
+                    ], 403);
+                }
                 abort(403, 'Anda tidak memiliki akses ke Kiosk Presensi.');
             }
         } else {

@@ -42,13 +42,16 @@
     @if(!$isGlobalHoliday)
     <input type="text" 
            x-ref="barcodeInput" 
-           x-model="barcode"
+           @input="barcode = $event.target.value"
            @keydown.enter="submitScan()"
-           @keydown.escape="barcode = ''"
+           @keydown.escape="barcode = ''; $event.target.value = ''"
            @blur="refocusInput()"
-           class="absolute opacity-0 w-0 h-0"
+           class="fixed top-0 left-0 opacity-0 w-px h-px"
            autofocus
-           autocomplete="off">
+           autocomplete="off"
+           autocorrect="off"
+           autocapitalize="off"
+           spellcheck="false">
     @endif
 
     <!-- Main Container: Wider to accommodate history -->
@@ -300,6 +303,9 @@
                 candidateCameraCode: null,
                 candidateCameraCount: 0,
                 
+                // Web Audio API Context
+                audioCtx: null,
+
                 initKiosk() {
                     this.refocusInterval = setInterval(() => {
                         this.refocusInput();
@@ -488,6 +494,13 @@
                 activateKiosk() {
                     this.isActive = true;
                     try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (AudioCtx) {
+                            if (!this.audioCtx) this.audioCtx = new AudioCtx();
+                            if (this.audioCtx.state === 'suspended') {
+                                this.audioCtx.resume();
+                            }
+                        }
                         let audio = document.getElementById('audio-success');
                         if (audio) {
                             audio.volume = 0;
@@ -495,7 +508,7 @@
                                 audio.pause();
                                 audio.currentTime = 0;
                                 audio.volume = 1;
-                            }).catch(e => console.log('Audio unlock failed:', e));
+                            }).catch(() => {});
                         }
                     } catch (e) {}
                     
@@ -511,6 +524,7 @@
                 async submitScan(overrideBarcode = null) {
                     const currentBarcode = (overrideBarcode || this.barcode).trim();
                     this.barcode = ''; 
+                    if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = '';
                     
                     if (currentBarcode.length === 0) return;
                     
@@ -518,22 +532,31 @@
                     if (this.resetTimer) clearTimeout(this.resetTimer);
                     
                     try {
-                        const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
+                        const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
                         const response = await fetch('{{ route('kiosk.process-nis') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
                                 'X-CSRF-TOKEN': csrfToken
                             },
                             body: JSON.stringify({ barcode: currentBarcode })
                         });
                         
+                        if (response.redirected || response.status === 401 || response.status === 419) {
+                            window.location.reload();
+                            return;
+                        }
+
+                        if (response.status === 403) {
+                            const errorData = await response.json().catch(() => ({}));
+                            this.showFeedback('error', 'Akses Ditolak', null, errorData.message || 'Anda tidak memiliki hak akses ke Kiosk Presensi.');
+                            this.playAudio('error');
+                            return;
+                        }
+
                         if (!response.ok) {
-                            if (response.status === 419) {
-                                window.location.reload();
-                                return;
-                            }
                             const errorData = await response.json().catch(() => ({}));
                             this.showFeedback('error', 'Error Sistem', null, errorData.message || `Terjadi kesalahan (Kode: ${response.status})`);
                             this.playAudio('error');
@@ -543,6 +566,7 @@
                         const data = await response.json();
                         this.handleResponse(data);
                     } catch (error) {
+                        console.error('Scan submission error:', error);
                         this.showFeedback('network_error', 'Gagal Terhubung', null, 'Terjadi gangguan jaringan atau server.');
                         this.playAudio('network');
                     } finally {
@@ -642,7 +666,69 @@
                     const audio = document.getElementById(id);
                     if (audio) {
                         audio.currentTime = 0;
-                        audio.play().catch(e => console.log('Autoplay prevented:', e));
+                        audio.play().catch(e => {
+                            this.playSyntheticTone(type);
+                        });
+                    } else {
+                        this.playSyntheticTone(type);
+                    }
+                },
+
+                playSyntheticTone(type) {
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioCtx) return;
+                        if (!this.audioCtx) {
+                            this.audioCtx = new AudioCtx();
+                        }
+                        if (this.audioCtx.state === 'suspended') {
+                            this.audioCtx.resume();
+                        }
+                        
+                        const now = this.audioCtx.currentTime;
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        osc.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+                        
+                        if (type === 'success') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(880, now);
+                            osc.frequency.exponentialRampToValueAtTime(1320, now + 0.12);
+                            gain.gain.setValueAtTime(0.3, now);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                            osc.start(now);
+                            osc.stop(now + 0.2);
+                        } else if (type === 'error') {
+                            osc.type = 'sawtooth';
+                            osc.frequency.setValueAtTime(220, now);
+                            osc.frequency.linearRampToValueAtTime(180, now + 0.25);
+                            gain.gain.setValueAtTime(0.25, now);
+                            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                            osc.start(now);
+                            osc.stop(now + 0.25);
+                        } else if (type === 'holiday') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(523.25, now);
+                            osc.frequency.setValueAtTime(659.25, now + 0.08);
+                            osc.frequency.setValueAtTime(783.99, now + 0.16);
+                            osc.frequency.setValueAtTime(1046.50, now + 0.24);
+                            gain.gain.setValueAtTime(0.3, now);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                            osc.start(now);
+                            osc.stop(now + 0.45);
+                        } else if (type === 'network') {
+                            osc.type = 'square';
+                            osc.frequency.setValueAtTime(440, now);
+                            osc.frequency.setValueAtTime(330, now + 0.15);
+                            osc.frequency.setValueAtTime(440, now + 0.3);
+                            gain.gain.setValueAtTime(0.2, now);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                            osc.start(now);
+                            osc.stop(now + 0.45);
+                        }
+                    } catch (e) {
+                        console.warn('Synthetic audio tone error:', e);
                     }
                 },
                 
