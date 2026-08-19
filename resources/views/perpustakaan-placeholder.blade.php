@@ -131,16 +131,16 @@
         </div>
     </header>
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-slate-900 relative overflow-hidden p-4 sm:p-8 pt-24">
+<div class="min-h-screen flex flex-col bg-slate-900 relative overflow-x-hidden pt-28 sm:pt-32 pb-12 sm:pb-16 px-4 sm:px-6">
     <!-- Global Background -->
-    <div class="absolute inset-0 z-0">
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-slate-900/50 mix-blend-multiply"></div>
         <!-- Decorative Blobs -->
         <div class="absolute top-1/4 -left-20 w-96 h-96 bg-teal-500 rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
     </div>
 
     <!-- Main Content -->
-    <div class="relative z-10 w-full max-w-2xl mx-auto text-center">
+    <div class="relative z-10 w-full max-w-2xl mx-auto my-auto text-center">
         <div class="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-3xl backdrop-blur-md border border-white/20 text-teal-400 shadow-xl mb-8">
             <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
         </div>

@@ -19,9 +19,9 @@
     $accessiblePortals = $accessiblePortals ?? ($authUser ? $authUser->getAccessiblePortals() : []);
 @endphp
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-slate-900 relative overflow-hidden px-4 py-12 sm:px-6">
+<div class="min-h-screen flex flex-col bg-slate-900 relative overflow-x-hidden px-4 py-8 sm:px-6 sm:py-12">
     <!-- Global Background -->
-    <div class="absolute inset-0 z-0 pointer-events-none">
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         @if($pengaturanSekolah && $pengaturanSekolah->login_background_path)
             <img src="{{ asset('storage/' . $pengaturanSekolah->login_background_path) }}" class="w-full h-full object-cover object-center opacity-70">
         @else
@@ -34,28 +34,27 @@
     </div>
 
     <!-- Main Content Wrapper -->
-    <div class="relative z-10 w-full max-w-5xl mx-auto">
+    <div class="relative z-10 w-full max-w-5xl mx-auto my-auto">
 
-        <!-- Mini Header (no navbar, clean & focused) -->
-        <div class="flex items-center justify-between mb-10 sm:mb-12">
-            <!-- Logo + Nama Sekolah -->
-            <div class="flex items-center gap-3">
+        <!-- User Greeting & Center School Brand -->
+        <div class="text-center mb-10">
+            <!-- Logo & Nama SMP di Tengah (Pengganti Login Aktif) -->
+            <div class="inline-flex items-center gap-3.5 px-5 py-2.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl mb-6 shadow-2xl ring-1 ring-white/10 transition-all hover:bg-white/15">
                 @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
-                    <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo" class="w-9 h-9 object-contain rounded-lg">
+                    <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo" class="w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-md">
                 @else
-                    <div class="w-9 h-9 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                 @endif
-                <span class="text-sm font-bold text-white/80 hidden sm:block">{{ $pengaturanSekolah->school_name ?? config('app.name') }}</span>
-            </div>
-        </div>
-
-        <!-- User Greeting -->
-        <div class="text-center mb-10">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-indigo-200 backdrop-blur-md mb-4 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Login Aktif: {{ $authUser->role_badge }}
+                <div class="text-left">
+                    <h2 class="text-sm sm:text-base font-extrabold text-white tracking-tight leading-tight">
+                        {{ $pengaturanSekolah->school_name ?? 'SMP Negeri 3 Kedungreja' }}
+                    </h2>
+                    <p class="text-[11px] sm:text-xs font-semibold text-blue-300 leading-tight">
+                        Sistem Informasi Terpadu
+                    </p>
+                </div>
             </div>
             
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-3">

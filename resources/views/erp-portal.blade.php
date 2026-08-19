@@ -21,9 +21,9 @@
 
 <x-public-dashboard.navbar :pengaturanSekolah="$pengaturanSekolah" :alwaysDark="true" />
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-slate-900 relative overflow-hidden p-4 sm:p-8 pt-24">
+<div class="min-h-screen bg-slate-900 relative overflow-x-hidden pt-36 sm:pt-44 pb-16 px-4 sm:px-6 flex flex-col justify-start">
     <!-- Global Background -->
-    <div class="absolute inset-0 z-0 pointer-events-none">
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         @if($pengaturanSekolah && $pengaturanSekolah->login_background_path)
             <img src="{{ asset('storage/' . $pengaturanSekolah->login_background_path) }}" class="w-full h-full object-cover object-center opacity-50">
         @else
@@ -41,9 +41,23 @@
         @auth
             <!-- Logged-in View: Hub Pemilihan Portal Sesuai Hak Akses -->
             <div class="text-center mb-10">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-indigo-200 backdrop-blur-md mb-4 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Login Aktif: {{ $authUser->role_badge }}
+                <!-- Logo & Nama SMP di Tengah (Pengganti Login Aktif) -->
+                <div class="inline-flex items-center gap-3.5 px-5 py-2.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl mb-6 shadow-2xl ring-1 ring-white/10 transition-all hover:bg-white/15">
+                    @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
+                        <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo" class="w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-md">
+                    @else
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                    @endif
+                    <div class="text-left">
+                        <h2 class="text-sm sm:text-base font-extrabold text-white tracking-tight leading-tight">
+                            {{ $pengaturanSekolah->school_name ?? 'SMP Negeri 3 Kedungreja' }}
+                        </h2>
+                        <p class="text-[11px] sm:text-xs font-semibold text-blue-300 leading-tight">
+                            Sistem Informasi Terpadu
+                        </p>
+                    </div>
                 </div>
                 
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-3">
@@ -55,7 +69,30 @@
             </div>
 
             <!-- Portal Grid for Authenticated User -->
-            <div class="grid grid-cols-1 md:grid-cols-2 {{ count($accessiblePortals) >= 3 ? 'lg:grid-cols-3' : '' }} gap-6 sm:gap-8 max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+                
+                {{-- Kartu Beranda --}}
+                <a href="{{ url('/') }}"
+                   class="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 hover:border-slate-300/50 hover:shadow-2xl hover:shadow-slate-400/10 transition-all duration-300 transform hover:-translate-y-1.5 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-md bg-slate-800 text-slate-200 group-hover:bg-slate-500 group-hover:text-white">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border bg-white/10 text-slate-200 border-white/20">Navigasi</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-slate-200 transition-colors">Beranda</h3>
+                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">Kembali ke halaman utama portal layanan sekolah.</p>
+                    </div>
+                    <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-300 group-hover:text-white transition-colors">
+                        <span>Buka Halaman</span>
+                        <div class="w-8 h-8 rounded-xl bg-white/5 group-hover:bg-white/20 flex items-center justify-center transition-all duration-200 group-hover:translate-x-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </div>
+                    </div>
+                </a>
+
                 @forelse($accessiblePortals as $portal)
                     <a href="{{ $portal['url'] }}" 
                        class="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 hover:border-blue-400/50 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-1.5 overflow-hidden">
@@ -105,15 +142,39 @@
                         <p class="font-medium text-sm">Tidak ada portal aktif yang terhubung dengan akun Anda.</p>
                     </div>
                 @endforelse
+
+                {{-- Kartu Keluar --}}
+                <form action="{{ route('logout') }}" method="POST" class="contents">
+                    @csrf
+                    <button type="submit" class="group relative text-left flex flex-col justify-between w-full p-6 sm:p-7 rounded-3xl bg-white/10 hover:bg-rose-500/20 backdrop-blur-md border border-white/20 hover:border-rose-400/50 hover:shadow-2xl hover:shadow-rose-500/20 transition-all duration-300 transform hover:-translate-y-1.5 overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-rose-500 to-red-600 opacity-0 group-hover:opacity-15 transition-opacity duration-300"></div>
+                        <div>
+                            <div class="flex items-center justify-between mb-5">
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-md bg-slate-800 text-slate-200 group-hover:bg-rose-500 group-hover:text-white">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border bg-rose-500/20 text-rose-300 border-rose-400/30">Akun</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-rose-300 transition-colors">Keluar</h3>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">Akhiri sesi dan keluar dari akun Anda.</p>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-rose-300 group-hover:text-white transition-colors">
+                            <span>Logout</span>
+                            <div class="w-8 h-8 rounded-xl bg-white/5 group-hover:bg-white/20 flex items-center justify-center transition-all duration-200 group-hover:translate-x-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </div>
+                        </div>
+                    </button>
+                </form>
             </div>
         @else
             <!-- Guest View: Landing Page Sistem Terpadu -->
             <div class="text-center mb-10">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 text-white shadow-xl mb-6">
+                <div class="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 bg-white/10 rounded-3xl backdrop-blur-xl border border-white/20 text-white shadow-2xl mb-6 ring-4 ring-white/5 transition-transform duration-300 hover:scale-105">
                     @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
-                        <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo" class="w-12 h-12 object-contain">
+                        <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md">
                     @else
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        <svg class="w-12 h-12 sm:w-14 sm:h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     @endif
                 </div>
                 <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
