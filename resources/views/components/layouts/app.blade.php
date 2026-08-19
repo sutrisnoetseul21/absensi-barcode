@@ -37,8 +37,10 @@
                 }
             </style>
         @endif
+        @livewireStyles
     </head>
     <body class="font-sans antialiased text-gray-900 bg-gray-50">
         {{ $slot }}
+        @livewireScripts
     </body>
 </html>

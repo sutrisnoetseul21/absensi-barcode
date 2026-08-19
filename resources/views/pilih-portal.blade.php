@@ -9,6 +9,7 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    @livewireStyles
 </head>
 <body class="antialiased text-slate-100">
 
@@ -146,5 +147,6 @@
     </div>
 </div>
 
+@livewireScripts
 </body>
 </html>
