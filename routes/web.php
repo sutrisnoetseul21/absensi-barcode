@@ -16,7 +16,21 @@ use App\Livewire\Public\KatalogPerpustakaan;
 // ERP Portal Route
 Route::get('/', fn() => view('erp-portal'))->name('erp.portal');
 
-// Dashboard Publik Presensi Routes
+// Hub Pemilihan Portal untuk pengguna yang sudah login
+Route::get('/pilih-portal', function () {
+    $user = Auth::user();
+    if (!$user) {
+        return redirect()->route('login');
+    }
+    $accessiblePortals = $user->getAccessiblePortals();
+    if (count($accessiblePortals) === 1) {
+        return redirect($accessiblePortals[0]['url']);
+    }
+    return view('pilih-portal', compact('accessiblePortals'));
+})->middleware('auth')->name('pilih-portal');
+
+// Route fallback untuk redirect unauthenticated users ke Filament admin login
+Route::redirect('/pilih-admin', '/admin/login')->name('pilih-admin');
 Route::get('/presensi', PublicDashboard::class)->name('public.dashboard');
 Route::get('/presensi/dashboardv1', PublicDashboardV1::class)->name('public.dashboard.v1');
 Route::get('/presensi/display', PublicDashboard::class)->name('public.display');
@@ -38,8 +52,6 @@ Route::get('/perpustakaan/buku/{buku}/baca', function (\App\Models\Buku $buku) {
     }
     return view('baca-buku', compact('buku'));
 })->name('perpustakaan.baca-buku');
-// Route fallback untuk redirect unauthenticated users ke Filament admin login
-Route::redirect('/pilih-admin', '/admin/login')->name('pilih-admin');
 
 // Redirect URL panel lama ke panel /admin terpadu
 Route::redirect('/admin-akademik', '/admin');

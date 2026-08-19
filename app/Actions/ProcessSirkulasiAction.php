@@ -108,6 +108,7 @@ class ProcessSirkulasiAction
                     'tanggal_pinjam' => $p->tanggal_pinjam ? $p->tanggal_pinjam->format('d M Y') : '-',
                     'tanggal_jatuh_tempo' => $p->tanggal_jatuh_tempo ? $p->tanggal_jatuh_tempo->format('d M Y') : '-',
                     'is_terlambat' => (bool)$isTerlambat,
+                    'can_extend' => true,
                 ];
             })->values()->toArray();
     }

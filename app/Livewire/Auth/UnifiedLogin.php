@@ -168,22 +168,24 @@ class UnifiedLogin extends Component
             RateLimiter::clear($key);
             session()->regenerate();
 
-            // Auto routing berdasarkan prioritas role
-            // 1. Jika statusnya adalah Guru / Wali Kelas (atau punya profil teacher), selalu utamakan ke Portal Guru
-            if ($user->hasRole('wali_kelas') || $user->hasRole('guru') || $user->teacher !== null) {
-                return redirect()->intended('/portal-guru');
-            } elseif ($user->isSuperAdmin() || $user->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'))) {
-                // 2. Jika murni Admin / Super Admin (bukan guru), arahkan ke Admin Panel
-                return redirect()->intended('/admin');
-            } elseif ($user->hasRole('admin_portal_presensi')) {
-                return redirect()->intended('/portal-presensi');
-            } elseif ($user->hasRole('petugas_perpustakaan')) {
-                return redirect()->intended('/portal-perpustakaan');
-            } elseif ($user->hasRole('siswa')) {
-                return redirect()->intended('/portal-siswa');
-            } else {
-                return redirect()->intended('/');
+            RateLimiter::clear($key);
+            session()->regenerate();
+
+            // Ambil daftar portal yang berhak diakses oleh user ini
+            $accessiblePortals = $user->getAccessiblePortals();
+
+            // Jika hanya memiliki 1 akses portal (misal: Siswa murni), langsung arahkan ke portal tersebut
+            if (count($accessiblePortals) === 1) {
+                return redirect()->intended($accessiblePortals[0]['url']);
             }
+
+            // Jika memiliki lebih dari 1 akses portal (misal: Super Admin, Guru + Petugas/Admin),
+            // arahkan ke halaman hub pemilihan portal
+            if (count($accessiblePortals) > 1) {
+                return redirect()->intended('/pilih-portal');
+            }
+
+            return redirect()->intended('/');
         }
 
         // Catat kegagalan login kredensial salah

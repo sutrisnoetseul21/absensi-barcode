@@ -99,18 +99,26 @@
                         </div>
                         <div class="max-h-48 overflow-y-auto space-y-2 pr-1">
                             <template x-for="loan in activeLoans" :key="loan.peminjaman_id">
-                                <div class="p-2.5 rounded-xl bg-white/10 border border-white/15 text-xs flex justify-between items-center gap-2">
+                                <button type="button"
+                                        @click="openLoanActionModal(loan)"
+                                        :disabled="isInCart(loan.eksemplar_id)"
+                                        class="w-full p-2.5 rounded-xl border text-xs flex justify-between items-center gap-2 transition-all duration-200 text-left"
+                                        :class="isInCart(loan.eksemplar_id)
+                                            ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
+                                            : 'bg-white/10 border-white/15 hover:bg-white/25 hover:border-white/35 cursor-pointer'">
                                     <div class="overflow-hidden">
                                         <p class="font-bold text-white truncate" x-text="loan.buku_title"></p>
                                         <p class="text-[11px] text-slate-300 font-mono" x-text="loan.kode_eksemplar"></p>
                                     </div>
-                                    <div class="text-right flex-shrink-0">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" 
+                                    <div class="flex items-center gap-1.5 flex-shrink-0 text-right">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
                                               :class="loan.is_terlambat ? 'bg-rose-500/80 text-white' : 'bg-emerald-500/30 text-emerald-200'"
                                               x-text="loan.is_terlambat ? 'Terlambat' : 'Jatuh Tempo: ' + loan.tanggal_jatuh_tempo">
                                         </span>
+                                        <span x-show="isInCart(loan.eksemplar_id)" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-400/30 text-amber-200">✓</span>
+                                        <svg x-show="!isInCart(loan.eksemplar_id)" class="w-3 h-3 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </div>
-                                </div>
+                                </button>
                             </template>
                             <div x-show="activeLoans.length === 0" class="text-center py-4 text-xs text-slate-400 italic bg-white/5 rounded-xl">
                                 Tidak ada pinjaman aktif.
@@ -154,7 +162,113 @@
 
             <!-- Right Side: Interactive Scan & Draft Cart Table -->
             <div class="w-full md:w-7/12 p-6 lg:p-8 flex flex-col relative bg-slate-50/50">
-                
+
+                <!-- Loan Action Modal Popup (In-Panel) -->
+                <div x-show="loanActionModal.open"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     style="display:none;"
+                     class="absolute inset-0 z-30 flex items-center justify-center bg-slate-900/20 backdrop-blur-xs rounded-r-3xl p-6 sm:p-8">
+                    <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6 border border-slate-100 relative">
+                        <!-- Header -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0 text-indigo-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            </div>
+                            <div class="overflow-hidden flex-1">
+                                <h4 class="text-base font-extrabold text-slate-900 leading-tight truncate" x-text="loanActionModal.loan?.buku_title"></h4>
+                                <p class="text-xs font-mono text-slate-500 mt-0.5" x-text="loanActionModal.loan?.kode_eksemplar"></p>
+                            </div>
+                        </div>
+
+                        <!-- Jatuh Tempo -->
+                        <div class="flex items-center justify-between text-xs bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 mb-4">
+                            <span class="text-slate-500 font-medium">Jatuh Tempo</span>
+                            <span class="font-extrabold"
+                                  :class="loanActionModal.loan?.is_terlambat ? 'text-rose-600' : 'text-emerald-700'"
+                                  x-text="(loanActionModal.loan?.is_terlambat ? '⚠ Terlambat — ' : '') + (loanActionModal.loan?.tanggal_jatuh_tempo ?? '-')"></span>
+                        </div>
+
+                        <p class="text-xs text-slate-500 mb-3.5 text-center font-medium">Pilih tindakan untuk buku ini:</p>
+
+                        <!-- Action Buttons -->
+                        <div class="grid grid-cols-2 gap-3.5 mb-3.5">
+                            <!-- Mengembalikan Buku -->
+                            <button type="button" @click="addLoanToCart('KEMBALI')"
+                                    class="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-sky-50 hover:bg-sky-100 border-2 border-sky-200 hover:border-sky-300 text-sky-800 transition-all group active:scale-95">
+                                <div class="w-11 h-11 rounded-xl bg-sky-100 group-hover:bg-sky-200 text-sky-600 flex items-center justify-center mb-1.5 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                </div>
+                                <span class="text-xs font-extrabold leading-tight">Mengembalikan Buku</span>
+                            </button>
+
+                            <!-- Perpanjang Buku -->
+                            <button type="button" @click="addLoanToCart('PERPANJANG')"
+                                    x-show="loanActionModal.loan?.can_extend"
+                                    class="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 hover:border-purple-300 text-purple-800 transition-all group active:scale-95">
+                                <div class="w-11 h-11 rounded-xl bg-purple-100 group-hover:bg-purple-200 text-purple-600 flex items-center justify-center mb-1.5 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </div>
+                                <span class="text-xs font-extrabold leading-tight">Perpanjang Buku</span>
+                            </button>
+                        </div>
+
+                        <!-- Cancel Button -->
+                        <button type="button" @click="loanActionModal.open = false; refocusInput()"
+                                class="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-colors text-center">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Success Transaction Popup (Teleported to Body) -->
+                <template x-teleport="body">
+                    <div x-show="successModal.open"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         style="display:none;"
+                         class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-6">
+                        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-emerald-100">
+                            <!-- Header Hijau -->
+                            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 px-8 pt-10 pb-8 text-center">
+                                <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-5 animate-pulse">
+                                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <h3 class="text-2xl font-extrabold text-white">Transaksi Berhasil!</h3>
+                                <p class="text-emerald-100 text-base mt-1 font-medium" x-text="successModal.memberName"></p>
+                            </div>
+
+                            <!-- Daftar Item Transaksi -->
+                            <div class="px-8 py-6">
+                                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Ringkasan Transaksi</p>
+                                <div class="space-y-2.5 max-h-52 overflow-y-auto">
+                                    <template x-for="item in successModal.items" :key="item.eksemplar_id">
+                                        <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                                            <span class="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-extrabold"
+                                                  :class="item.action_type === 'KEMBALI' ? 'bg-sky-100 text-sky-700' : item.action_type === 'PERPANJANG' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'"
+                                                  x-text="item.action_type === 'KEMBALI' ? 'Dikembalikan' : item.action_type === 'PERPANJANG' ? 'Diperpanjang' : 'Dipinjam'"></span>
+                                            <p class="text-sm font-semibold text-slate-800 truncate" x-text="item.buku_title"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Auto-dismiss hint -->
+                            <div class="pb-7 text-center">
+                                <p class="text-sm text-slate-400">Menutup otomatis dalam 5 detik...</p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
                 <!-- Camera Scanner Visualizer -->
                 <div x-show="isCameraActive" class="flex flex-col items-center justify-center w-full max-w-sm mx-auto mb-4" style="display: none;">
                     <div id="reader" class="w-full h-52 bg-slate-900 rounded-3xl overflow-hidden shadow-xl border-2 border-emerald-500/80 relative"></div>
@@ -331,6 +445,39 @@
 
                 activeLoans: [], // Daftar buku yg sedang dipinjam peminjam ini saat ini
                 draftCart: [],   // Keranjang draft buku yg di-scan di sesi ini
+
+                // Loan Action Modal
+                loanActionModal: { open: false, loan: null },
+
+                // Success Transaction Modal
+                successModal: { open: false, memberName: '', items: [] },
+
+                openLoanActionModal(loan) {
+                    if (this.isInCart(loan.eksemplar_id)) return;
+                    this.loanActionModal = { open: true, loan: loan };
+                },
+
+                addLoanToCart(actionType) {
+                    const loan = this.loanActionModal.loan;
+                    if (!loan) return;
+                    const label = actionType === 'KEMBALI' ? 'Pengembalian' : 'Perpanjang +7 Hari';
+                    this.draftCart.push({
+                        eksemplar_id: loan.eksemplar_id,
+                        kode_eksemplar: loan.kode_eksemplar,
+                        buku_title: loan.buku_title,
+                        action_type: actionType,
+                        action_label: label,
+                        can_extend: actionType === 'KEMBALI',
+                    });
+                    this.loanActionModal = { open: false, loan: null };
+                    this.showFeedback('success', 'Ditambahkan ke Keranjang', `<strong>${loan.buku_title}</strong> — ${label}`);
+                    this.playAudio('success');
+                    this.refocusInput();
+                },
+
+                isInCart(eksemplarId) {
+                    return this.draftCart.some(item => item.eksemplar_id === eksemplarId);
+                },
 
                 feedbackState: 'idle', // 'idle', 'success', 'error', 'network_error'
                 feedbackTitle: '',
@@ -545,6 +692,8 @@
                     this.peminjamInfo = { id: null, type: null, name: '', sub_info: '' };
                     this.activeLoans = [];
                     this.draftCart = [];
+                    this.loanActionModal = { open: false, loan: null };
+                    this.successModal = { open: false, memberName: '', items: [] };
                     this.showFeedback('idle', '', '');
                     this.barcode = '';
                     if (this.$refs.barcodeInput) this.$refs.barcodeInput.value = '';
@@ -633,7 +782,7 @@
                             }
                         } else if (this.scanState === 'BUKU') {
                             // Step 2: Pre-check barcode buku ke keranjang draft
-                            const exists = this.draftCart.some(item => item.kode_eksemplar === currentBarcode);
+                            const exists = this.draftCart.some(item => (item.kode_eksemplar || '').toLowerCase() === currentBarcode.toLowerCase());
                             if (exists) {
                                 this.showFeedback('error', 'Buku Sudah Ada', `Kode buku <strong>${currentBarcode}</strong> sudah ada di keranjang.`);
                                 this.playAudio('error');
@@ -641,6 +790,28 @@
                                 return;
                             }
 
+                            // 1. Cek langsung apakah buku ini sedang dipinjam oleh anggota ini
+                            const matchingLoan = this.activeLoans.find(loan => 
+                                (loan.kode_eksemplar || '').toLowerCase() === currentBarcode.toLowerCase()
+                            );
+
+                            if (matchingLoan) {
+                                if (this.isInCart(matchingLoan.eksemplar_id)) {
+                                    this.showFeedback('error', 'Buku Sudah Ada', `Buku <strong>${matchingLoan.buku_title}</strong> sudah ada di keranjang.`);
+                                    this.playAudio('error');
+                                    this.isLoading = false;
+                                    return;
+                                }
+
+                                // Buka popup modal tindakan (Mengembalikan Buku / Perpanjang Buku)
+                                this.openLoanActionModal(matchingLoan);
+                                this.showFeedback('idle', '', '');
+                                this.playAudio('success');
+                                this.isLoading = false;
+                                return;
+                            }
+
+                            // 2. Jika bukan pinjaman aktif, kirim ke server (buku baru / tersedia)
                             const response = await fetch('/portal-perpustakaan/sirkulasi-kiosk/process', {
                                 method: 'POST',
                                 headers: {
@@ -669,16 +840,33 @@
 
                             const data = await response.json();
                             if (data.status === 'success') {
-                                this.draftCart.push({
-                                    eksemplar_id: data.eksemplar_id,
-                                    kode_eksemplar: data.kode_eksemplar,
-                                    buku_title: data.buku_title,
-                                    action_type: data.action_type,
-                                    action_label: data.action_label,
-                                    can_extend: data.can_extend || false
-                                });
-                                this.showFeedback('success', 'Buku Masuk Keranjang', `<strong>${data.buku_title}</strong> (${data.action_label})`);
-                                this.playAudio('success');
+                                if (data.action_type === 'KEMBALI') {
+                                    // Jika server mendeteksi buku ini sedang dipinjam, buka popup modal tindakan
+                                    const loanObj = this.activeLoans.find(l => l.eksemplar_id === data.eksemplar_id) || {
+                                        peminjaman_id: data.peminjaman_id,
+                                        eksemplar_id: data.eksemplar_id,
+                                        kode_eksemplar: data.kode_eksemplar,
+                                        buku_title: data.buku_title,
+                                        tanggal_jatuh_tempo: data.tanggal_jatuh_tempo || '-',
+                                        is_terlambat: data.is_terlambat || false,
+                                        can_extend: data.can_extend !== false
+                                    };
+                                    this.openLoanActionModal(loanObj);
+                                    this.showFeedback('idle', '', '');
+                                    this.playAudio('success');
+                                } else {
+                                    // Buku baru/tersedia: langsung masuk keranjang pinjaman baru
+                                    this.draftCart.push({
+                                        eksemplar_id: data.eksemplar_id,
+                                        kode_eksemplar: data.kode_eksemplar,
+                                        buku_title: data.buku_title,
+                                        action_type: data.action_type,
+                                        action_label: data.action_label,
+                                        can_extend: data.can_extend || false
+                                    });
+                                    this.showFeedback('success', 'Buku Masuk Keranjang', `<strong>${data.buku_title}</strong> (${data.action_label})`);
+                                    this.playAudio('success');
+                                }
                             } else if (data.status === 'referensi') {
                                 this.showFeedback('referensi', '⚠️ Koleksi Referensi', data.message || 'Buku referensi tidak boleh dipinjam.');
                                 this.playAudio('error');
@@ -732,7 +920,17 @@
 
                         const data = await response.json();
                         if (data.status === 'success_batch') {
-                            this.showFeedback('success', 'Transaksi Selesai!', data.message);
+                            // Hapus buku yang sudah diproses dari daftar pinjaman aktif
+                            const processedIds = this.draftCart.map(item => item.eksemplar_id);
+                            this.activeLoans = this.activeLoans.filter(loan => !processedIds.includes(loan.eksemplar_id));
+                            // Simpan ringkasan transaksi untuk popup
+                            this.successModal = {
+                                open: true,
+                                memberName: this.peminjamInfo.name,
+                                items: [...this.draftCart],
+                            };
+                            this.draftCart = [];
+                            this.showFeedback('idle', '', '');
                             this.playAudio('success');
                             this.scheduleResetToPeminjam();
                         } else {
@@ -770,7 +968,7 @@
                     if (this.resetTimer) clearTimeout(this.resetTimer);
                     this.resetTimer = setTimeout(() => {
                         this.resetToPeminjam();
-                    }, 4000);
+                    }, 5000);
                 }
             }
         }

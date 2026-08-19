@@ -7,7 +7,7 @@
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Portal Guru & Wali Kelas</span>
+                <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Portal Guru</span>
                 <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mt-3 tracking-tight leading-snug">
                     Selamat Datang, {{ $teacher?->name ?? 'Bapak/Ibu Guru' }}!
                 </h1>

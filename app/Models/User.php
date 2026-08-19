@@ -209,36 +209,84 @@ class User extends Authenticatable implements FilamentUser
         $isSuper = $this->isSuperAdmin() || $this->hasRole('super_admin');
         $hasAdminRole = $isSuper || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'));
 
-        // 1. Panel Administrasi Terpadu (/admin)
+        // 1. Portal Admin (/admin)
         if ($hasAdminRole) {
             $portals[] = [
-                'name' => 'Panel Administrasi',
-                'url'  => url('/admin'),
-                'desc' => 'Pusat administrasi akademik, presensi, perpustakaan & pengaturan',
+                'id'    => 'admin',
+                'name'  => 'Portal Admin',
+                'url'   => url('/admin'),
+                'desc'  => 'Pusat administrasi master data akademik, presensi, perpustakaan & pengaturan sistem.',
                 'badge' => $isSuper ? 'Super Admin' : 'Admin Panel',
-                'bg'   => 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
+                'badge_color' => 'bg-purple-500/20 text-purple-200 border-purple-400/30',
+                'gradient' => 'from-purple-600 to-indigo-700',
+                'icon_bg'  => 'bg-purple-500/20 text-purple-300 group-hover:bg-purple-500 group-hover:text-white',
+                'border_hover' => 'hover:border-purple-400/50 hover:shadow-purple-500/20',
+                'icon'  => 'shield',
             ];
         }
 
-        // 2. Portal Guru / Wali Kelas (/portal-guru)
+        // 2. Portal Guru (/portal-guru)
         if ($isSuper || $this->hasRole('wali_kelas') || $this->hasRole('guru') || $this->teacher_id !== null || $this->teacher !== null) {
             $portals[] = [
-                'name' => 'Portal Guru & Wali Kelas',
-                'url'  => url('/portal-guru'),
-                'desc' => 'Absensi kelas binaan & kegiatan siswa',
-                'badge' => 'Wali Kelas',
-                'bg'   => 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100',
+                'id'    => 'portal_guru',
+                'name'  => 'Portal Guru',
+                'url'   => url('/portal-guru'),
+                'desc'  => 'Monitoring absensi kelas binaan, permohonan ijin siswa, dan profil guru.',
+                'badge' => 'Guru',
+                'badge_color' => 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30',
+                'gradient' => 'from-emerald-600 to-teal-700',
+                'icon_bg'  => 'bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500 group-hover:text-white',
+                'border_hover' => 'hover:border-emerald-400/50 hover:shadow-emerald-500/20',
+                'icon'  => 'user-group',
             ];
         }
 
-        // 3. Portal Siswa (/portal-siswa)
-        if ($this->hasRole('siswa') || $this->student_id !== null || $this->student !== null) {
+        // 3. Portal Presensi & Kiosk (/portal-presensi)
+        if ($isSuper || $this->hasRole('admin_portal_presensi') || $this->hasRole('petugas_presensi') || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_presensi'))) {
             $portals[] = [
-                'name' => 'Portal Siswa',
-                'url'  => url('/portal-siswa'),
-                'desc' => 'Riwayat presensi & peminjaman buku',
+                'id'    => 'portal_presensi',
+                'name'  => 'Portal Presensi',
+                'url'   => url('/portal-presensi'),
+                'desc'  => 'Dashboard rekap absensi, input presensi manual, cetak laporan & kartu presensi.',
+                'badge' => 'Petugas Presensi',
+                'badge_color' => 'bg-amber-500/20 text-amber-200 border-amber-400/30',
+                'gradient' => 'from-amber-500 to-orange-600',
+                'icon_bg'  => 'bg-amber-500/20 text-amber-300 group-hover:bg-amber-500 group-hover:text-white',
+                'border_hover' => 'hover:border-amber-400/50 hover:shadow-amber-500/20',
+                'icon'  => 'clock',
+            ];
+        }
+
+        // 4. Portal Perpustakaan (/portal-perpustakaan)
+        if ($isSuper || $this->hasRole('petugas_perpustakaan') || $this->roles->contains(fn($r) => str_contains($r->name, 'admin_perpustakaan'))) {
+            $portals[] = [
+                'id'    => 'portal_perpustakaan',
+                'name'  => 'Portal Perpustakaan',
+                'url'   => url('/portal-perpustakaan'),
+                'desc'  => 'Katalog buku, sirkulasi peminjaman, buku tamu pengunjung & barcode buku.',
+                'badge' => 'Petugas Perpustakaan',
+                'badge_color' => 'bg-cyan-500/20 text-cyan-200 border-cyan-400/30',
+                'gradient' => 'from-cyan-600 to-blue-700',
+                'icon_bg'  => 'bg-cyan-500/20 text-cyan-300 group-hover:bg-cyan-500 group-hover:text-white',
+                'border_hover' => 'hover:border-cyan-400/50 hover:shadow-cyan-500/20',
+                'icon'  => 'book',
+            ];
+        }
+
+        // 5. Portal Siswa (/portal-siswa) - HANYA untuk akun Siswa yang valid
+        $isPureStudent = ($this->hasRole('siswa') || $this->student !== null) && !$isSuper && $this->teacher === null;
+        if ($isPureStudent) {
+            $portals[] = [
+                'id'    => 'portal_siswa',
+                'name'  => 'Portal Siswa',
+                'url'   => url('/portal-siswa'),
+                'desc'  => 'Riwayat kehadiran harian, kartu pelajar digital, dan riwayat peminjaman buku.',
                 'badge' => 'Siswa',
-                'bg'   => 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100',
+                'badge_color' => 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
+                'gradient' => 'from-indigo-600 to-violet-700',
+                'icon_bg'  => 'bg-indigo-500/20 text-indigo-300 group-hover:bg-indigo-500 group-hover:text-white',
+                'border_hover' => 'hover:border-indigo-400/50 hover:shadow-indigo-500/20',
+                'icon'  => 'academic-cap',
             ];
         }
 
