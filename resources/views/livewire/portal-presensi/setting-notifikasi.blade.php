@@ -52,7 +52,7 @@
                 <li>Isi kolom <strong>Command</strong> dengan perintah di bawah ini:</li>
             </ol>
             <div class="bg-slate-900 text-emerald-400 text-xs font-mono rounded-lg p-3 break-all select-all shadow-inner mt-2">
-                /usr/bin/php8.3 {{ base_path('artisan') }} schedule:run >> /dev/null 2>&1
+                /usr/bin/php8.4 {{ base_path('artisan') }} schedule:run >> /dev/null 2>&1
             </div>
         </div>
         <div>

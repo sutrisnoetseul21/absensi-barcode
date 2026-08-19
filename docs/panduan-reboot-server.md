@@ -52,8 +52,8 @@ Jika dari hasil cek di atas ternyata statusnya berhenti atau *error*, Anda bisa 
 2. Coba lakukan *login*.
 3. Jika tiba-tiba terjadi *Error 500* atau tampilan acak-acakan (jarang terjadi tapi mungkin akibat *cache*), jalankan pembersihan *cache*:
 ```bash
-php8.3 artisan optimize:clear
-php8.3 artisan optimize
+php artisan optimize:clear
+php artisan optimize
 ```
 
 ---

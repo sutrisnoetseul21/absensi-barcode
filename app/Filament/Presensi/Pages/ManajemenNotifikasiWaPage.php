@@ -368,7 +368,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             </div>
             HTML;
         } else {
-            $cronCommand = htmlspecialchars('/usr/bin/php8.3 ' . base_path('artisan') . ' schedule:run >> /dev/null 2>&1');
+            $cronCommand = htmlspecialchars('/usr/bin/php8.4 ' . base_path('artisan') . ' schedule:run >> /dev/null 2>&1');
             $notFoundMsg = $this->schedulerLastRun
                 ? "Terakhir terdeteksi: <strong>{$this->schedulerLastRun}</strong> ({$this->schedulerAgeLabel})"
                 : "Belum pernah terdeteksi sejak instalasi.";

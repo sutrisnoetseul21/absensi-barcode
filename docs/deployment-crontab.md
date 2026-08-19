@@ -12,7 +12,7 @@ Laravel memiliki fitur Task Scheduling (di dalam `routes/console.php`), namun fi
 ## Command Cron yang Digunakan
 
 ```bash
-* * * * * /usr/bin/php8.3 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/bin/php8.4 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1
 ```
 
 Ganti path sesuai lokasi instalasi jika server berbeda.
@@ -36,7 +36,7 @@ Ganti path sesuai lokasi instalasi jika server berbeda.
    | Day | `*` |
    | Month | `*` |
    | Day of Week | `*` |
-   | Command | `/usr/bin/php8.3 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1` |
+   | Command | `/usr/bin/php8.4 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1` |
 
 5. Klik **Save**
 
@@ -58,7 +58,7 @@ Ganti path sesuai lokasi instalasi jika server berbeda.
 
 3. Tambahkan baris ini di paling bawah:
    ```bash
-   * * * * * /usr/bin/php8.3 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1
+   * * * * * /usr/bin/php8.4 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1
    ```
 
 4. Simpan dan keluar:
@@ -97,7 +97,7 @@ date -d @$(cat storage/framework/schedule-heartbeat)
 ### Cara 3 — Jalankan Manual untuk Test
 
 ```bash
-php8.3 artisan schedule:run
+php8.4 artisan schedule:run
 ```
 
 Output yang benar:

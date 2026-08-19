@@ -67,7 +67,7 @@ Cron job adalah **komponen wajib** yang sering terlupakan. Tanpa ini, laporan ot
    | Day | `*` |
    | Month | `*` |
    | Day of Week | `*` |
-   | Command | `/usr/bin/php8.3 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1` |
+   | Command | `/usr/bin/php8.4 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1` |
 
 5. Klik **Save**
 6. Tunggu 1-2 menit, lalu refresh halaman **Manajemen Notifikasi WA** — banner harus berubah menjadi 🟢 Aktif
@@ -77,7 +77,7 @@ Cron job adalah **komponen wajib** yang sering terlupakan. Tanpa ini, laporan ot
 ```bash
 crontab -e
 # Tambahkan baris ini:
-* * * * * /usr/bin/php8.3 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/bin/php8.4 /home/smpn3kedungreja/web/app.smpn3kedungreja.sch.id/public_html/artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### Langkah 2 — Pastikan Queue Worker Berjalan

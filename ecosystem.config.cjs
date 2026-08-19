@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "absensi-queue",
       script: "artisan",
-      interpreter: "/usr/bin/php8.3",
+      interpreter: "php",
       args: "queue:work --sleep=3 --tries=3 --timeout=3600",
       instances: 1,
       exec_mode: "fork",
