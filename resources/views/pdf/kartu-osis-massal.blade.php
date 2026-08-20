@@ -61,18 +61,19 @@
         /* ===== A4 PAGE CONTAINER ===== */
         .a4-page {
             width: 210mm;
-            min-height: 297mm;
+            height: 297mm;
             background: white;
             margin: 0 auto 20px;
-            padding: 12mm 15mm;
+            padding: 14.5mm 19mm;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             box-sizing: border-box;
             display: grid;
             grid-template-columns: repeat(3, 54mm);
-            grid-auto-rows: 86mm;
+            grid-template-rows: repeat(3, 86mm);
             grid-gap: 5mm;
             justify-content: center;
-            align-content: start;
+            align-content: center;
+            overflow: hidden;
         }
 
         /* ===== CARD CONTAINER (54x86mm) ===== */
@@ -300,33 +301,55 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 10mm;
+                margin: 0;
             }
-            body {
-                background: none;
-                padding: 0;
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: none !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .print-controls {
                 display: none !important;
             }
             .a4-page {
-                box-shadow: none;
-                margin: 0;
-                padding: 0;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 14.5mm 19mm !important;
+                box-sizing: border-box !important;
+                display: grid !important;
+                grid-template-columns: repeat(3, 54mm) !important;
+                grid-template-rows: repeat(3, 86mm) !important;
+                grid-gap: 5mm !important;
+                justify-content: center !important;
+                align-content: center !important;
                 page-break-after: always;
+                break-after: page;
+                overflow: hidden !important;
             }
             /* Override background for printing to ensure exact colors */
             .card-bg {
                 background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important;
             }
             .card {
-                border: 0.5px dashed #94a3b8; /* Keep border to guide scissors */
-                border-radius: 0; /* No radius for easier cutting */
+                width: 54mm !important;
+                height: 86mm !important;
+                border: 0.5px dashed #94a3b8 !important; /* Keep border to guide scissors */
+                border-radius: 0 !important; /* No radius for easier cutting */
+                page-break-inside: avoid;
+                break-inside: avoid;
+                box-sizing: border-box !important;
             }
             
             /* Hide the last empty page break if present */
             .a4-page:last-child {
                 page-break-after: auto;
+                break-after: auto;
             }
         }
     </style>
@@ -339,7 +362,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             Cetak Massal
         </button>
-        <span class="print-hint">Gunakan Kertas A4 (Portrait)</span>
+        <span class="print-hint">Kertas: <strong>A4</strong> &bull; Skala: <strong>100%</strong> &bull; Margin: <strong>None</strong></span>
     </div>
 
     @php
