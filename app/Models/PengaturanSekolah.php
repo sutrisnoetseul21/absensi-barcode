@@ -25,6 +25,9 @@ class PengaturanSekolah extends Model
         'checkin_time',
         'batas_scan_datang_time',
         'start_scan_out_time',
+        'auto_alpa_active',
+        'auto_alpa_time',
+        'last_auto_alpa_run_date',
         'work_days_type',
         'work_days_history',
         'late_threshold_minutes',
@@ -53,6 +56,9 @@ class PengaturanSekolah extends Model
 
     protected $casts = [
         'checkin_time'                    => 'string',
+        'auto_alpa_active'                => 'boolean',
+        'auto_alpa_time'                  => 'string',
+        'last_auto_alpa_run_date'         => 'date',
         'late_threshold_minutes'          => 'integer',
         'enable_promotion_features'       => 'boolean',
         'work_days_history'               => 'array',

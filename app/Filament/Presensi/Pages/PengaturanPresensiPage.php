@@ -111,6 +111,22 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->helperText('Menentukan jenis barcode yang akan dipindai oleh mesin presensi.'),
                     ])->columns(2),
 
+                Section::make('Otomatisasi Alpa')
+                    ->description('Tandai Alpa secara otomatis untuk siswa yang belum absen pada jam tertentu.')
+                    ->schema([
+                        Toggle::make('auto_alpa_active')
+                            ->label('Aktifkan Otomatisasi Alpa')
+                            ->reactive()
+                            ->helperText('Jika diaktifkan, sistem akan otomatis menandai alpa siswa yang belum absen hari ini (kecuali hari libur).'),
+
+                        TimePicker::make('auto_alpa_time')
+                            ->label('Jam Proses Otomatis')
+                            ->seconds(false)
+                            ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('auto_alpa_active'))
+                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('auto_alpa_active'))
+                            ->helperText('Sistem akan mulai mengecek pada jam ini.'),
+                    ])->columns(2),
+
                 Section::make('Koneksi API WhatsApp (Evolution API)')
                     ->schema([
                         Toggle::make('wa_is_active')
