@@ -68,25 +68,62 @@
                     <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-700 text-sm whitespace-pre-wrap">{{ $request->reason }}</div>
                 </div>
 
-                <div>
+                <div x-data="{ isModalOpen: false, modalImageUrl: '' }">
                     <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lampiran Bukti</div>
                     @if(count($request->attachments) > 0)
-                        <div class="flex flex-col sm:flex-row flex-wrap gap-3">
+                        <div class="flex flex-wrap gap-4">
                             @foreach($request->attachments as $index => $path)
-                            <div class="inline-flex items-center gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 min-w-[250px]">
-                                <div class="p-2 bg-white rounded-lg shadow-sm text-brand-primary flex-shrink-0">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                </div>
-                                <div class="truncate">
-                                    <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-sm font-semibold text-brand-primary hover:underline block truncate">Lihat Lampiran {{ count($request->attachments) > 1 ? ($index + 1) : '' }}</a>
-                                    <span class="text-xs text-slate-500 block truncate">Buka di tab baru</span>
-                                </div>
-                            </div>
+                                @php
+                                    $isImage = in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                    $fileUrl = asset('storage/' . $path);
+                                @endphp
+                                
+                                @if($isImage)
+                                    <div class="relative group cursor-pointer w-24 h-24 flex-shrink-0" @click="isModalOpen = true; modalImageUrl = '{{ $fileUrl }}'">
+                                        <img src="{{ $fileUrl }}" alt="Lampiran" class="w-full h-full object-cover rounded-xl border-2 border-slate-200 group-hover:border-brand-primary shadow-sm transition-all">
+                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="inline-flex items-center gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 h-24 min-w-[200px]">
+                                        <div class="p-2 bg-white rounded-lg shadow-sm text-brand-primary flex-shrink-0">
+                                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                        </div>
+                                        <div class="truncate">
+                                            <a href="{{ $fileUrl }}" target="_blank" class="text-sm font-semibold text-brand-primary hover:underline block truncate">Dokumen {{ count($request->attachments) > 1 ? ($index + 1) : '' }}</a>
+                                            <span class="text-xs text-slate-500 block truncate">PDF / File Lain</span>
+                                        </div>
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                     @else
                         <p class="text-sm text-slate-500 italic">Tidak ada lampiran.</p>
                     @endif
+
+                    <!-- Image Modal (AlpineJS) -->
+                    <div x-show="isModalOpen" 
+                         style="display: none;"
+                         class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0">
+                         
+                        <!-- Modal Content -->
+                        <div class="relative max-w-4xl w-full flex flex-col items-center justify-center" @click.away="isModalOpen = false">
+                            <!-- Close Button -->
+                            <button @click="isModalOpen = false" class="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full cursor-pointer z-10">
+                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                            
+                            <!-- Image -->
+                            <img :src="modalImageUrl" class="max-h-[85vh] max-w-full object-contain rounded-lg shadow-2xl" alt="Preview Lampiran">
+                        </div>
+                    </div>
                 </div>
             </div>
 
