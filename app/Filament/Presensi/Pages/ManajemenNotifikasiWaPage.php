@@ -261,8 +261,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                             ]),
 
 
-                        // ── Tab: Notifikasi Ijin Kehadiran ───────────────────
-                        Tab::make('Notifikasi Ijin Kehadiran')
+                        // ── Tab: Notifikasi Ijin Online ───────────────────
+                        Tab::make('Notifikasi Ijin Online')
                             ->icon('heroicon-o-document-text')
                             ->schema([
                                 Section::make('Aturan Notifikasi: Pengajuan Ijin (Oleh Siswa)')
