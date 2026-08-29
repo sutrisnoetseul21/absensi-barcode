@@ -9,6 +9,8 @@ use App\Models\EnrollmentSiswa;
 use App\Services\LeaveRequestService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use App\Models\PresensiNotificationSetting;
+use Illuminate\Support\Carbon;
 
 #[Layout('components.layouts.portal')]
 class IjinKehadiranDetail extends Component
@@ -67,6 +69,8 @@ class IjinKehadiranDetail extends Component
 
             DB::commit();
             
+            $this->sendNotificationToStudent('DISETUJUI', null);
+            
             $this->loadRequest();
             $this->dispatch('notify', [
                 'type' => 'success',
@@ -109,6 +113,8 @@ class IjinKehadiranDetail extends Component
             $this->request->recordLog('rejected', "Ditolak: " . $this->reason);
 
             DB::commit();
+            
+            $this->sendNotificationToStudent('DITOLAK', $this->reason);
             
             $this->reason = '';
             $this->showRejectForm = false;
@@ -170,6 +176,48 @@ class IjinKehadiranDetail extends Component
                 'type' => 'error',
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    protected function sendNotificationToStudent($statusLabel, $alasanTolak)
+    {
+        $setting = PresensiNotificationSetting::where('status_presensi', 'leave_approval')->first();
+        if (!$setting || !$setting->is_active || empty($setting->recipients) || empty($setting->template_pesan)) {
+            return;
+        }
+
+        $student = $this->request->student;
+        if (!$student) return;
+        
+        $noHpSiswa = $student->no_hp;
+        $user = auth()->user();
+
+        $alasanText = $alasanTolak ? "Alasan penolakan: " . $alasanTolak : "";
+
+        $replacements = [
+            '{nama_siswa}' => $student->name,
+            '{jenis_ijin}' => ucfirst($this->request->type),
+            '{tanggal_mulai}' => Carbon::parse($this->request->start_date)->translatedFormat('d F Y'),
+            '{tanggal_selesai}' => Carbon::parse($this->request->end_date)->translatedFormat('d F Y'),
+            '{status_persetujuan}' => $statusLabel,
+            '{nama_guru}' => $user->name,
+            '{alasan_penolakan}' => $alasanText,
+        ];
+
+        $pesan = strtr($setting->template_pesan, $replacements);
+        $waService = app(\App\Services\WhatsAppGatewayService::class);
+
+        foreach ($setting->recipients as $recipientType) {
+            if ($recipientType === 'siswa' && $noHpSiswa) {
+                $waService->sendMessage(
+                    $noHpSiswa,
+                    $pesan,
+                    'leave_approval',
+                    $this->request->id,
+                    'siswa'
+                );
+            }
+            // Optional: other recipient types
         }
     }
 

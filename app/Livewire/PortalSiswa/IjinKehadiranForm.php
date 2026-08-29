@@ -9,6 +9,8 @@ use App\Models\LeaveRequest;
 use App\Models\TahunAjaran;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Carbon;
+use App\Models\PresensiNotificationSetting;
+use App\Models\KelasAjaran;
 
 #[Layout('components.layouts.portal')]
 class IjinKehadiranForm extends Component
@@ -189,6 +191,8 @@ class IjinKehadiranForm extends Component
             $record = LeaveRequest::create($data);
             $record->recordLog('created', 'Dibuat oleh siswa');
             $message = 'Pengajuan berhasil dibuat.';
+            
+            $this->sendNotification($record);
         }
 
         $this->dispatch('notify', [
@@ -197,6 +201,53 @@ class IjinKehadiranForm extends Component
         ]);
 
         return redirect()->route('portal-siswa.ijin');
+    }
+
+    protected function sendNotification($record)
+    {
+        $setting = PresensiNotificationSetting::where('status_presensi', 'leave_request')->first();
+        if (!$setting || !$setting->is_active || empty($setting->recipients) || empty($setting->template_pesan)) {
+            return;
+        }
+
+        $enrollment = $this->student->enrollmentAktif;
+        if (!$enrollment) return;
+        
+        $kelas = $enrollment->kelas->name ?? '-';
+
+        $kelasAjaran = KelasAjaran::where('class_id', $enrollment->class_id)
+            ->where('academic_year_id', $enrollment->academic_year_id)
+            ->with('guru')
+            ->first();
+
+        $namaWaliKelas = $kelasAjaran?->guru?->name ?? 'Wali Kelas';
+        $noHpWaliKelas = $kelasAjaran?->guru?->no_hp;
+        
+        $replacements = [
+            '{nama_siswa}' => $this->student->name,
+            '{kelas}' => $kelas,
+            '{jenis_ijin}' => ucfirst($this->type),
+            '{tanggal_mulai}' => Carbon::parse($this->start_date)->translatedFormat('d F Y'),
+            '{tanggal_selesai}' => Carbon::parse($this->end_date)->translatedFormat('d F Y'),
+            '{alasan}' => $this->reason,
+            '{nama_wali_kelas}' => $namaWaliKelas,
+            '{link_detail}' => url('/portal-guru/ijin-kehadiran/' . $record->id),
+        ];
+
+        $pesan = strtr($setting->template_pesan, $replacements);
+        $waService = app(\App\Services\WhatsAppGatewayService::class);
+
+        foreach ($setting->recipients as $recipientType) {
+            if ($recipientType === 'wali_kelas' && $noHpWaliKelas) {
+                $waService->sendMessage(
+                    $noHpWaliKelas,
+                    $pesan,
+                    'leave_request',
+                    $record->id,
+                    'guru'
+                );
+            }
+        }
     }
 
     public function render()

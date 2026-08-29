@@ -42,6 +42,16 @@ class SettingNotifikasi extends Component
     public array $student_notif_recipients = [];
     public string $student_notif_template_pesan = '';
 
+    // Form Data - Tab 1: Pengajuan Ijin (Oleh Siswa)
+    public bool $leave_request_notif_is_active = false;
+    public array $leave_request_notif_recipients = [];
+    public string $leave_request_notif_template_pesan = '';
+
+    // Form Data - Tab 1: Persetujuan Ijin (Oleh Guru)
+    public bool $leave_approval_notif_is_active = false;
+    public array $leave_approval_notif_recipients = [];
+    public string $leave_approval_notif_template_pesan = '';
+
     // Form Data - Tab 2: Laporan Harian
     public bool $daily_is_active = false;
     public string $daily_cutoff_time = '08:00:00';
@@ -69,6 +79,7 @@ class SettingNotifikasi extends Component
         $jabatans = Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
         
         $this->recipientOptions = array_merge([
+            'siswa'      => 'Siswa',
             'ortu'       => 'Orang Tua',
             'wali_kelas' => 'Wali Kelas',
         ], $jabatans);
@@ -100,6 +111,30 @@ class SettingNotifikasi extends Component
             $this->telat_notif_is_active      = false;
             $this->telat_notif_recipients     = ['ortu'];
             $this->telat_notif_template_pesan = "Halo Orang Tua/Wali,\nKami informasikan bahwa ananda {nama_siswa} (Kelas {kelas}) pada tanggal {tanggal} pukul {jam} telah hadir namun terlambat.\n\nSalam,\n{nama_sekolah}";
+        }
+
+        // Load data Notification Settings (Pengajuan Ijin)
+        $leaveRequestSetting = PresensiNotificationSetting::where('status_presensi', 'leave_request')->first();
+        if ($leaveRequestSetting) {
+            $this->leave_request_notif_is_active      = $leaveRequestSetting->is_active;
+            $this->leave_request_notif_recipients     = $leaveRequestSetting->recipients ?? ['wali_kelas'];
+            $this->leave_request_notif_template_pesan = $leaveRequestSetting->template_pesan;
+        } else {
+            $this->leave_request_notif_is_active      = false;
+            $this->leave_request_notif_recipients     = ['wali_kelas'];
+            $this->leave_request_notif_template_pesan = "Halo Bapak/Ibu {nama_wali_kelas},\nSiswa Anda, *{nama_siswa}* dari kelas *{kelas}* telah mengajukan *{jenis_ijin}* pada tanggal {tanggal_mulai} sampai {tanggal_selesai}.\nAlasan: {alasan}\n\nSilakan login ke Portal Guru untuk meninjau:\n{link_detail}";
+        }
+
+        // Load data Notification Settings (Persetujuan Ijin)
+        $leaveApprovalSetting = PresensiNotificationSetting::where('status_presensi', 'leave_approval')->first();
+        if ($leaveApprovalSetting) {
+            $this->leave_approval_notif_is_active      = $leaveApprovalSetting->is_active;
+            $this->leave_approval_notif_recipients     = $leaveApprovalSetting->recipients ?? ['siswa'];
+            $this->leave_approval_notif_template_pesan = $leaveApprovalSetting->template_pesan;
+        } else {
+            $this->leave_approval_notif_is_active      = false;
+            $this->leave_approval_notif_recipients     = ['siswa'];
+            $this->leave_approval_notif_template_pesan = "Halo *{nama_siswa}*,\nPengajuan *{jenis_ijin}* Anda untuk tanggal {tanggal_mulai} sampai {tanggal_selesai} telah *{status_persetujuan}* oleh Bapak/Ibu {nama_guru}.\n{alasan_penolakan}\n\nSemoga aktivitas Anda berjalan lancar.";
         }
 
         // Load data Laporan Harian
@@ -281,6 +316,26 @@ class SettingNotifikasi extends Component
                     'is_active'      => $this->telat_notif_is_active,
                     'recipients'     => $this->telat_notif_recipients,
                     'template_pesan' => $this->telat_notif_template_pesan,
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Pengajuan Ijin)
+            PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'leave_request'],
+                [
+                    'is_active'      => $this->leave_request_notif_is_active,
+                    'recipients'     => $this->leave_request_notif_recipients,
+                    'template_pesan' => $this->leave_request_notif_template_pesan,
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Persetujuan Ijin)
+            PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'leave_approval'],
+                [
+                    'is_active'      => $this->leave_approval_notif_is_active,
+                    'recipients'     => $this->leave_approval_notif_recipients,
+                    'template_pesan' => $this->leave_approval_notif_template_pesan,
                 ]
             );
 

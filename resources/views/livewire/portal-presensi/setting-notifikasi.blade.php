@@ -211,7 +211,126 @@
                         <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder {status_kehadiran} akan terisi dinamis (Sakit/Izin/Alpa). Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}</p>
                     </div>
                 </div>
+            {{-- Pengajuan Ijin --}}
+            <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900">Aturan Notifikasi: Pengajuan Ijin (Oleh Siswa)</h3>
+                    <p class="text-sm text-slate-500 mt-1">Sistem akan mengirim pesan WA saat siswa membuat pengajuan Ijin/Sakit melalui Portal Siswa.</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="leave_request_notif_is_active" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                            <span class="ml-3 text-sm font-bold text-slate-700">Aktifkan Notifikasi Pengajuan Ijin</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kirim Ke (Penerima)</label>
+                        <div x-data="{
+                                options: {{ json_encode($recipientOptions) }},
+                                selected: @entangle('leave_request_notif_recipients'),
+                                open: false,
+                                toggle(key) {
+                                    if (this.selected.includes(key)) {
+                                        this.selected = this.selected.filter(i => i !== key);
+                                    } else {
+                                        this.selected.push(key);
+                                    }
+                                }
+                            }" class="relative">
+                            <div @click="open = !open" class="min-h-[42px] w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2 cursor-pointer flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary transition-colors">
+                                <template x-if="selected.length === 0">
+                                    <span class="text-slate-500">Pilih satu atau beberapa penerima...</span>
+                                </template>
+                                <template x-for="item in selected" :key="item">
+                                    <span class="inline-flex items-center gap-1 bg-brand-primary/10 text-brand-primary px-2.5 py-1 rounded-md text-xs font-bold">
+                                        <span x-text="options[item] || item"></span>
+                                        <svg @click.stop="toggle(item)" class="w-3 h-3 cursor-pointer hover:text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                            <div x-show="open" @click.away="open = false" x-transition.opacity.duration.200ms class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-1">
+                                <template x-for="[key, label] in Object.entries(options)" :key="key">
+                                    <div @click="toggle(key)" class="px-3 py-2 text-sm rounded-lg cursor-pointer flex items-center justify-between hover:bg-slate-50 transition-colors" :class="selected.includes(key) ? 'text-brand-primary font-bold bg-brand-primary/5' : 'text-slate-700'">
+                                        <span x-text="label"></span>
+                                        <svg x-show="selected.includes(key)" class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Pengajuan Ijin</label>
+                        <textarea wire:model="leave_request_notif_template_pesan" rows="5" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {alasan}, {nama_wali_kelas}, {link_detail}</p>
+                    </div>
+                </div>
             </div>
+
+            {{-- Persetujuan Ijin --}}
+            <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900">Aturan Notifikasi: Persetujuan Ijin (Oleh Guru)</h3>
+                    <p class="text-sm text-slate-500 mt-1">Sistem akan mengirim pesan WA saat guru (Wali Kelas) memberikan persetujuan atau menolak pengajuan ijin.</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="leave_approval_notif_is_active" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                            <span class="ml-3 text-sm font-bold text-slate-700">Aktifkan Notifikasi Persetujuan Ijin</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kirim Ke (Penerima)</label>
+                        <div x-data="{
+                                options: {{ json_encode($recipientOptions) }},
+                                selected: @entangle('leave_approval_notif_recipients'),
+                                open: false,
+                                toggle(key) {
+                                    if (this.selected.includes(key)) {
+                                        this.selected = this.selected.filter(i => i !== key);
+                                    } else {
+                                        this.selected.push(key);
+                                    }
+                                }
+                            }" class="relative">
+                            <div @click="open = !open" class="min-h-[42px] w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2 cursor-pointer flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary transition-colors">
+                                <template x-if="selected.length === 0">
+                                    <span class="text-slate-500">Pilih satu atau beberapa penerima...</span>
+                                </template>
+                                <template x-for="item in selected" :key="item">
+                                    <span class="inline-flex items-center gap-1 bg-brand-primary/10 text-brand-primary px-2.5 py-1 rounded-md text-xs font-bold">
+                                        <span x-text="options[item] || item"></span>
+                                        <svg @click.stop="toggle(item)" class="w-3 h-3 cursor-pointer hover:text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                            <div x-show="open" @click.away="open = false" x-transition.opacity.duration.200ms class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-1">
+                                <template x-for="[key, label] in Object.entries(options)" :key="key">
+                                    <div @click="toggle(key)" class="px-3 py-2 text-sm rounded-lg cursor-pointer flex items-center justify-between hover:bg-slate-50 transition-colors" :class="selected.includes(key) ? 'text-brand-primary font-bold bg-brand-primary/5' : 'text-slate-700'">
+                                        <span x-text="label"></span>
+                                        <svg x-show="selected.includes(key)" class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Persetujuan Ijin</label>
+                        <textarea wire:model="leave_approval_notif_template_pesan" rows="5" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {status_persetujuan}, {nama_guru}, {alasan_penolakan}</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         {{-- TAB 2: HARIAN KELAS --}}
