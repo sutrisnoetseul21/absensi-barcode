@@ -25,6 +25,7 @@ class LeaveRequest extends Model
         'end_date',
         'reason',
         'file_path',
+        'file_paths',
         'status',
         'approved_by',
         'approved_by_type',
@@ -36,7 +37,20 @@ class LeaveRequest extends Model
         'end_date' => 'date',
         'approved_at' => 'datetime',
         'duration_days' => 'integer',
+        'file_paths' => 'array',
     ];
+
+    public function getAttachmentsAttribute(): array
+    {
+        $attachments = [];
+        if (!empty($this->file_path)) {
+            $attachments[] = $this->file_path;
+        }
+        if (is_array($this->file_paths)) {
+            $attachments = array_merge($attachments, $this->file_paths);
+        }
+        return array_unique($attachments);
+    }
 
     public function student(): BelongsTo
     {

@@ -25,8 +25,8 @@ class IjinKehadiranForm extends Component
     public $end_date;
     public $duration_days = 1;
     public $reason;
-    public $file_path; // For new upload
-    public $existing_file_path; // To show existing
+    public $attachments = []; // For new upload(s)
+    public $existing_file_paths = []; // To show existing(s)
     public $holidayMessages = [];
 
 
@@ -46,7 +46,7 @@ class IjinKehadiranForm extends Component
             $this->end_date = $record->end_date->format('Y-m-d');
             $this->duration_days = $record->duration_days;
             $this->reason = $record->reason;
-            $this->existing_file_path = $record->file_path;
+            $this->existing_file_paths = $record->attachments ?? [];
         } else {
             $this->start_date = now()->format('Y-m-d');
             $this->end_date = now()->format('Y-m-d');
@@ -68,9 +68,12 @@ class IjinKehadiranForm extends Component
         $this->updatedDurationDays($this->duration_days);
     }
 
-    public function removeUpload()
+    public function removeAttachment($index)
     {
-        $this->file_path = null;
+        if (isset($this->attachments[$index])) {
+            unset($this->attachments[$index]);
+            $this->attachments = array_values($this->attachments);
+        }
     }
 
     public function updatedStartDate($value)
@@ -108,7 +111,8 @@ class IjinKehadiranForm extends Component
             'duration_days' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'reason' => 'required|string',
-            'file_path' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'attachments' => 'nullable|array|max:5',
+            'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
         ]);
 
         // Validasi Tahun Ajaran Aktif
@@ -165,10 +169,13 @@ class IjinKehadiranForm extends Component
             return;
         }
 
-        $path = $this->existing_file_path;
-        if ($this->file_path) {
-            $path = $this->file_path->store('leave-requests', 'public');
+        $paths = $this->existing_file_paths ?? [];
+        if ($this->attachments && is_array($this->attachments)) {
+            foreach ($this->attachments as $file) {
+                $paths[] = $file->store('leave-requests', 'public');
+            }
         }
+        $paths = array_unique($paths);
 
         $data = [
             'student_id' => $this->student->id,
@@ -178,7 +185,8 @@ class IjinKehadiranForm extends Component
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'reason' => $this->reason,
-            'file_path' => $path,
+            'file_path' => count($paths) > 0 ? $paths[0] : null,
+            'file_paths' => count($paths) > 1 ? array_slice($paths, 1) : null,
         ];
 
         if ($this->recordId) {

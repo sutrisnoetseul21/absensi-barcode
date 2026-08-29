@@ -70,15 +70,19 @@
 
                 <div>
                     <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lampiran Bukti</div>
-                    @if($request->file_path)
-                        <div class="inline-flex items-center gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                            <div class="p-2 bg-white rounded-lg shadow-sm text-brand-primary">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                    @if(count($request->attachments) > 0)
+                        <div class="flex flex-col sm:flex-row flex-wrap gap-3">
+                            @foreach($request->attachments as $index => $path)
+                            <div class="inline-flex items-center gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 min-w-[250px]">
+                                <div class="p-2 bg-white rounded-lg shadow-sm text-brand-primary flex-shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                </div>
+                                <div class="truncate">
+                                    <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-sm font-semibold text-brand-primary hover:underline block truncate">Lihat Lampiran {{ count($request->attachments) > 1 ? ($index + 1) : '' }}</a>
+                                    <span class="text-xs text-slate-500 block truncate">Buka di tab baru</span>
+                                </div>
                             </div>
-                            <div>
-                                <a href="{{ asset('storage/' . $request->file_path) }}" target="_blank" class="text-sm font-semibold text-brand-primary hover:underline block">Lihat Lampiran</a>
-                                <span class="text-xs text-slate-500">Buka di tab baru</span>
-                            </div>
+                            @endforeach
                         </div>
                     @else
                         <p class="text-sm text-slate-500 italic">Tidak ada lampiran.</p>

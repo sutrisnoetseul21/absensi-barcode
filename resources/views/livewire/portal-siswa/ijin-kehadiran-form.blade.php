@@ -209,7 +209,7 @@
 
                     <!-- Drag & Drop / File Input Box -->
                     <div class="relative group">
-                        <input type="file" wire:model="file_path" id="file_upload_input" accept=".pdf,image/jpeg,image/png,image/webp" class="sr-only">
+                        <input type="file" wire:model="attachments" id="file_upload_input" accept=".pdf,image/jpeg,image/png,image/webp" multiple class="sr-only">
                         
                         <label for="file_upload_input" 
                                class="flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all duration-200 text-center group">
@@ -237,7 +237,7 @@
                     </div>
 
                     <!-- Upload Loading State -->
-                    <div wire:loading wire:target="file_path" class="w-full p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-center">
+                    <div wire:loading wire:target="attachments" class="w-full p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-center">
                         <div class="inline-flex items-center gap-2 text-xs font-semibold text-indigo-700">
                             <svg class="animate-spin h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -248,7 +248,9 @@
                     </div>
 
                     <!-- Uploaded File Preview -->
-                    @if($file_path)
+                    @if($attachments && count($attachments) > 0)
+                        <div class="space-y-2">
+                        @foreach($attachments as $index => $file)
                         <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
                             <div class="flex items-center gap-2.5 overflow-hidden">
                                 <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
@@ -257,20 +259,24 @@
                                     </svg>
                                 </div>
                                 <div class="truncate text-xs">
-                                    <span class="font-bold text-emerald-900 block truncate">{{ $file_path->getClientOriginalName() }}</span>
+                                    <span class="font-bold text-emerald-900 block truncate">{{ $file->getClientOriginalName() }}</span>
                                     <span class="text-emerald-700 text-[10px]">File baru siap dikirim</span>
                                 </div>
                             </div>
-                            <button type="button" wire:click="removeUpload" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors cursor-pointer" title="Hapus file ini">
+                            <button type="button" wire:click="removeAttachment({{ $index }})" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors cursor-pointer" title="Hapus file ini">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
+                        @endforeach
+                        </div>
                     @endif
 
-                    <!-- Existing File If Editing -->
-                    @if($existing_file_path && !$file_path)
+                    <!-- Existing Files If Editing -->
+                    @if($existing_file_paths && count($existing_file_paths) > 0)
+                        <div class="space-y-2">
+                        @foreach($existing_file_paths as $path)
                         <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
                             <div class="flex items-center gap-2.5 overflow-hidden">
                                 <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
@@ -279,17 +285,20 @@
                                     </svg>
                                 </div>
                                 <div class="truncate text-xs">
-                                    <span class="font-bold text-slate-800 block truncate">Lampiran Sebelumnya Tersimpan</span>
-                                    <a href="{{ asset('storage/' . $existing_file_path) }}" target="_blank" class="text-indigo-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
+                                    <span class="font-bold text-slate-800 block truncate">Lampiran Tersimpan</span>
+                                    <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-indigo-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
                                         Lihat / Unduh Dokumen
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </a>
                                 </div>
                             </div>
                         </div>
+                        @endforeach
+                        </div>
                     @endif
 
-                    @error('file_path') <p class="text-rose-500 text-xs font-medium">{{ $message }}</p> @enderror
+                    @error('attachments') <p class="text-rose-500 text-xs font-medium">{{ $message }}</p> @enderror
+                    @error('attachments.*') <p class="text-rose-500 text-xs font-medium">{{ $message }}</p> @enderror
                 </div>
 
             </div>
