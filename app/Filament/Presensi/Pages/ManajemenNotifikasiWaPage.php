@@ -258,6 +258,13 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->columnSpanFull(),
                                     ]),
 
+                            ]),
+
+
+                        // ── Tab: Notifikasi Ijin Kehadiran ───────────────────
+                        Tab::make('Notifikasi Ijin Kehadiran')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
                                 Section::make('Aturan Notifikasi: Pengajuan Ijin (Oleh Siswa)')
                                     ->description('Sistem akan mengirim pesan WA saat siswa membuat pengajuan Ijin/Sakit melalui Portal Siswa.')
                                     ->schema([

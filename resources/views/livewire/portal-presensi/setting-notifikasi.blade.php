@@ -85,6 +85,11 @@
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                 Rekap Seluruh Sekolah
             </button>
+        
+            <button wire:click="setActiveTab('ijin')" class="{{ $activeTab === 'ijin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Notifikasi Ijin Kehadiran
+            </button>
         </nav>
     </div>
 
@@ -211,6 +216,11 @@
                         <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder {status_kehadiran} akan terisi dinamis (Sakit/Izin/Alpa). Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}</p>
                     </div>
                 </div>
+        </div>
+
+
+        {-- TAB: IJIN --}
+        <div class="{{ $activeTab === 'ijin' ? 'block' : 'hidden' }} space-y-6">
             {{-- Pengajuan Ijin --}}
             <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
