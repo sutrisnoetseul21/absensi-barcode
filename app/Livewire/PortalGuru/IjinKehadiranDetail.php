@@ -209,7 +209,7 @@ class IjinKehadiranDetail extends Component
 
         foreach ($setting->recipients as $recipientType) {
             if ($recipientType === 'siswa' && $noHpSiswa) {
-                $waService->sendMessage(
+                \App\Jobs\SendWhatsAppNotificationJob::dispatch(
                     $noHpSiswa,
                     $pesan,
                     'leave_approval',

@@ -247,7 +247,7 @@ class IjinKehadiranForm extends Component
 
         foreach ($setting->recipients as $recipientType) {
             if ($recipientType === 'wali_kelas' && $noHpWaliKelas) {
-                $waService->sendMessage(
+                \App\Jobs\SendWhatsAppNotificationJob::dispatch(
                     $noHpWaliKelas,
                     $pesan,
                     'leave_request',
