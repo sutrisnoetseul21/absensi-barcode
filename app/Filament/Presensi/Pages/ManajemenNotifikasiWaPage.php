@@ -98,6 +98,30 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             $data['telat_notif_template_pesan'] = "Halo Orang Tua/Wali,\nKami informasikan bahwa ananda {nama_siswa} (Kelas {kelas}) pada tanggal {tanggal} pukul {jam} telah hadir namun terlambat.\n\nSalam,\n{nama_sekolah}";
         }
 
+        // Load data Notification Settings (Pengajuan Ijin)
+        $leaveRequestSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'leave_request')->first();
+        if ($leaveRequestSetting) {
+            $data['leave_request_notif_is_active']      = $leaveRequestSetting->is_active;
+            $data['leave_request_notif_recipients']     = $leaveRequestSetting->recipients ?? ['wali_kelas'];
+            $data['leave_request_notif_template_pesan'] = $leaveRequestSetting->template_pesan;
+        } else {
+            $data['leave_request_notif_is_active']      = false;
+            $data['leave_request_notif_recipients']     = ['wali_kelas'];
+            $data['leave_request_notif_template_pesan'] = "Halo Bapak/Ibu {nama_wali_kelas},\nSiswa Anda, *{nama_siswa}* dari kelas *{kelas}* telah mengajukan *{jenis_ijin}* pada tanggal {tanggal_mulai} sampai {tanggal_selesai}.\nAlasan: {alasan}\n\nSilakan login ke Portal Guru untuk meninjau:\n{link_detail}";
+        }
+
+        // Load data Notification Settings (Persetujuan Ijin)
+        $leaveApprovalSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'leave_approval')->first();
+        if ($leaveApprovalSetting) {
+            $data['leave_approval_notif_is_active']      = $leaveApprovalSetting->is_active;
+            $data['leave_approval_notif_recipients']     = $leaveApprovalSetting->recipients ?? ['siswa'];
+            $data['leave_approval_notif_template_pesan'] = $leaveApprovalSetting->template_pesan;
+        } else {
+            $data['leave_approval_notif_is_active']      = false;
+            $data['leave_approval_notif_recipients']     = ['siswa'];
+            $data['leave_approval_notif_template_pesan'] = "Halo *{nama_siswa}*,\nPengajuan *{jenis_ijin}* Anda untuk tanggal {tanggal_mulai} sampai {tanggal_selesai} telah *{status_persetujuan}* oleh Bapak/Ibu {nama_guru}.\n{alasan_penolakan}\n\nSemoga aktivitas Anda berjalan lancar.";
+        }
+
         // Load data Laporan Harian
         $daily                        = PresensiDailyReportSetting::current();
         $data['daily_is_active']      = $daily->is_active;
@@ -191,6 +215,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->placeholder('Pilih satu atau beberapa penerima...')
                                             ->options(function () {
                                                 $options  = [
+                                                    'siswa'      => 'Siswa',
                                                     'ortu'       => 'Orang Tua',
                                                     'wali_kelas' => 'Wali Kelas',
                                                 ];
@@ -230,6 +255,64 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->label('Template Pesan Sakit/Izin/Alpa')
                                             ->rows(5)
                                             ->helperText('Placeholder {status_kehadiran} akan otomatis terisi secara dinamis dengan kata: Sakit, Izin, atau Alpa. Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Aturan Notifikasi: Pengajuan Ijin (Oleh Siswa)')
+                                    ->description('Sistem akan mengirim pesan WA saat siswa membuat pengajuan Ijin/Sakit melalui Portal Siswa.')
+                                    ->schema([
+                                        Toggle::make('leave_request_notif_is_active')
+                                            ->label('Aktifkan Notifikasi Pengajuan Ijin')
+                                            ->columnSpanFull(),
+                                        Select::make('leave_request_notif_recipients')
+                                            ->label('Kirim Ke (Penerima)')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Pilih satu atau beberapa penerima...')
+                                            ->options(function () {
+                                                $options  = [
+                                                    'siswa'      => 'Siswa',
+                                                    'ortu'       => 'Orang Tua',
+                                                    'wali_kelas' => 'Wali Kelas',
+                                                ];
+                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                                return array_merge($options, $jabatans);
+                                            })
+                                            ->columnSpanFull(),
+                                        Textarea::make('leave_request_notif_template_pesan')
+                                            ->label('Template Pesan Pengajuan Ijin')
+                                            ->rows(5)
+                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {alasan}, {nama_wali_kelas}, {link_detail}')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Aturan Notifikasi: Persetujuan Ijin (Oleh Guru)')
+                                    ->description('Sistem akan mengirim pesan WA saat guru (Wali Kelas) memberikan persetujuan atau menolak pengajuan ijin.')
+                                    ->schema([
+                                        Toggle::make('leave_approval_notif_is_active')
+                                            ->label('Aktifkan Notifikasi Persetujuan Ijin')
+                                            ->columnSpanFull(),
+                                        Select::make('leave_approval_notif_recipients')
+                                            ->label('Kirim Ke (Penerima)')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Pilih satu atau beberapa penerima...')
+                                            ->options(function () {
+                                                $options  = [
+                                                    'siswa'      => 'Siswa',
+                                                    'ortu'       => 'Orang Tua',
+                                                    'wali_kelas' => 'Wali Kelas',
+                                                ];
+                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                                return array_merge($options, $jabatans);
+                                            })
+                                            ->columnSpanFull(),
+                                        Textarea::make('leave_approval_notif_template_pesan')
+                                            ->label('Template Pesan Persetujuan Ijin')
+                                            ->rows(5)
+                                            ->helperText('Placeholder: {nama_siswa}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {status_persetujuan}, {nama_guru}, {alasan_penolakan}')
                                             ->columnSpanFull(),
                                     ]),
                             ]),
@@ -662,6 +745,26 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                     'is_active'      => $data['telat_notif_is_active'] ?? false,
                     'recipients'     => $data['telat_notif_recipients'] ?? [],
                     'template_pesan' => $data['telat_notif_template_pesan'] ?? '',
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Pengajuan Ijin)
+            \App\Models\PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'leave_request'],
+                [
+                    'is_active'      => $data['leave_request_notif_is_active'] ?? false,
+                    'recipients'     => $data['leave_request_notif_recipients'] ?? [],
+                    'template_pesan' => $data['leave_request_notif_template_pesan'] ?? '',
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Persetujuan Ijin)
+            \App\Models\PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'leave_approval'],
+                [
+                    'is_active'      => $data['leave_approval_notif_is_active'] ?? false,
+                    'recipients'     => $data['leave_approval_notif_recipients'] ?? [],
+                    'template_pesan' => $data['leave_approval_notif_template_pesan'] ?? '',
                 ]
             );
 
