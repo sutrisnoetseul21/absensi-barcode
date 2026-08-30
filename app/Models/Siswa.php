@@ -112,11 +112,7 @@ class Siswa extends Authenticatable
         return $this->hasOne(StudentPresensiProfile::class, 'student_id');
     }
 
-    // Data orang tua / wali siswa
-    public function guardians(): HasMany
-    {
-        return $this->hasMany(StudentGuardian::class, 'student_id');
-    }
+
 
     protected function noHp(): Attribute
     {

@@ -84,9 +84,29 @@ class SchoolSettingsPage extends Page implements HasForms
                                             ->maxLength(500),
                 
                                         TextInput::make('principal_name')
-                                            ->label('Nama Kepala Sekolah')
+                                            ->label('Nama Kepala Sekolah (Fallback)')
                                             ->required()
-                                            ->maxLength(255),
+                                            ->maxLength(255)
+                                            ->helperText('Digunakan jika tidak ada Guru aktif dengan jabatan "Kepala Sekolah".'),
+                                            
+                                        TextInput::make('principal_nip')
+                                            ->label('NIP Kepala Sekolah (Fallback)')
+                                            ->maxLength(50)
+                                            ->helperText('NIP Kepala Sekolah untuk fallback pencetakan dokumen.'),
+                                            
+                                        TextInput::make('kota')
+                                            ->label('Kota Default')
+                                            ->maxLength(100)
+                                            ->helperText('Contoh: Jakarta.'),
+                                            
+                                        TextInput::make('tempat_rapor')
+                                            ->label('Tempat Terbit Rapor')
+                                            ->maxLength(100)
+                                            ->helperText('Contoh: Jakarta. Digunakan khusus di halaman Biodata/Rapor.'),
+                                            
+                                        \Filament\Forms\Components\DatePicker::make('tanggal_rapor')
+                                            ->label('Tanggal Terbit Rapor')
+                                            ->helperText('Tanggal yang akan dicetak pada Rapor/Biodata. Kosongkan jika ingin menggunakan tanggal hari ini (Otomatis).'),
                 
                                         FileUpload::make('principal_signature_path')
                                             ->label('Tanda Tangan Kepala Sekolah (PNG)')

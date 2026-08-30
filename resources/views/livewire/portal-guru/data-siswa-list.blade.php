@@ -96,25 +96,17 @@
 
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Export / Import Buttons (Full Data) -->
-                    <button wire:click="downloadDataExcel" class="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Download Semua Biodata Siswa (Excel)">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        Download Data
-                    </button>
-                    <button wire:click="openUploadModal('data')" class="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Upload File Biodata Siswa">
+                    <button wire:click="openUploadModal('data')" class="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Update Data Lengkap Siswa via Excel">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                        Upload Data
+                        Update Data Lengkap
                     </button>
 
                     <div class="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
 
                     <!-- Export / Import Buttons (No HP Only) -->
-                    <button wire:click="downloadNoHpExcel" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Download Template No. HP (Excel)">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        Download No. HP
-                    </button>
-                    <button wire:click="openUploadModal('nohp')" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Upload File No. HP Siswa & Ortu">
+                    <button wire:click="openUploadModal('nohp')" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Update No. HP Siswa & Ortu via Excel">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                        Upload No. HP
+                        Update No. HP
                     </button>
 
                     @if(count($selectedStudents) > 0)
@@ -126,6 +118,10 @@
                     <button wire:click="cetakSemua" class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all ml-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                         Cetak Kartu Semua
+                    </button>
+                    <button wire:click="cetakBiodataSemua" class="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all ml-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        Cetak Biodata Kelas
                     </button>
                 </div>
             </div>
@@ -207,8 +203,12 @@
                                             Pass
                                         </button>
                                         <button wire:click="cetakKartu('{{ $student->id }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 rounded-lg text-[10px] sm:text-xs font-bold transition-colors" title="Cetak Kartu">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                                            Cetak
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                            Kartu
+                                        </button>
+                                        <button wire:click="cetakBiodata('{{ $student->id }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-[10px] sm:text-xs font-bold transition-colors" title="Cetak Biodata">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                            Biodata
                                         </button>
                                     </div>
                                 </td>
@@ -236,19 +236,18 @@
 
     <!-- Upload Modal -->
     @if($showUploadModal)
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="closeUploadModal"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-200">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+    <div class="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="closeUploadModal"></div>
+            <div class="relative bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all my-8 max-w-4xl w-full border border-slate-200 z-10 flex flex-col max-h-[90vh]">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 overflow-y-auto flex-1 custom-scrollbar">
                     <div class="sm:flex sm:items-start mb-4">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100 sm:mx-0 sm:h-10 sm:w-10">
                             <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-bold text-slate-900" id="modal-title">
-                                @if($uploadType === 'nohp') Upload & Update No. HP Siswa @else Upload & Update Data Siswa @endif
+                                @if($uploadType === 'nohp') Update No. HP Siswa via Excel @else Update Biodata Siswa via Excel @endif
                             </h3>
                             <div class="mt-2 text-sm text-slate-500">
                                 @if($uploadType === 'nohp')
@@ -267,12 +266,45 @@
                         </div>
                     @endif
 
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Pilih File Excel (.xlsx)</label>
-                        <input type="file" wire:model.live="uploadFile" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 transition-all border border-slate-300 rounded-xl bg-slate-50">
-                        <div wire:loading wire:target="uploadFile" class="text-sm text-brand-primary mt-2 flex items-center gap-2 font-medium">
-                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            Memproses file...
+                    <div class="mt-2 space-y-6">
+                        <!-- Step 1: Download Template -->
+                        <div class="p-5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 shrink-0 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-lg">1</div>
+                                <div>
+                                    <h4 class="font-bold text-indigo-900 text-base mb-1">Download Template Excel</h4>
+                                    <p class="text-sm text-indigo-700 mb-3">Unduh template berisikan data siswa saat ini. Ubah/perbarui data pada baris yang sesuai, namun <strong class="text-indigo-900">jangan mengubah kolom ID</strong>.</p>
+                                    
+                                    @if($uploadType === 'data')
+                                        <button type="button" wire:click="downloadDataExcel" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-indigo-300 rounded-lg text-sm font-bold text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                            Download Template Lengkap
+                                        </button>
+                                    @else
+                                        <button type="button" wire:click="downloadNoHpExcel" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-300 rounded-lg text-sm font-bold text-emerald-700 hover:bg-emerald-100 transition-colors shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                            Download Template No. HP
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Upload File -->
+                        <div class="p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 shrink-0 bg-slate-600 text-white rounded-full flex items-center justify-center font-bold text-lg">2</div>
+                                <div class="w-full">
+                                    <h4 class="font-bold text-slate-900 text-base mb-1">Upload File & Update</h4>
+                                    <p class="text-sm text-slate-600 mb-3">Unggah kembali file Excel yang sudah Anda perbarui.</p>
+                                    
+                                    <input type="file" wire:model.live="uploadFile" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-brand-primary file:text-white hover:file:bg-brand-primary-light transition-all border border-slate-300 rounded-xl bg-white shadow-sm cursor-pointer">
+                                    <div wire:loading wire:target="uploadFile" class="text-sm text-brand-primary mt-2 flex items-center gap-2 font-medium">
+                                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        Memproses file...
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -318,7 +350,7 @@
                     </div>
                     @endif
                 </div>
-                <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-2xl border-t border-slate-200">
+                <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200 flex-shrink-0">
                     <button type="button" wire:click="processUpload" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-brand-primary text-base font-bold text-white hover:bg-brand-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                         <svg wire:loading wire:target="processUpload" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span wire:loading.remove wire:target="processUpload">Submit & Update</span>
@@ -338,33 +370,36 @@
     <div class="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="closeEditDataModal"></div>
-            <div class="relative bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all my-8 max-w-2xl w-full border border-slate-200 z-10">
-                <form wire:submit.prevent="saveEditData">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <form wire:submit.prevent="saveEditData" class="relative bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all my-8 max-w-4xl w-full border border-slate-200 z-10 flex flex-col max-h-[90vh]">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex-shrink-0 rounded-t-2xl">
                         <div class="sm:flex sm:items-start mb-4 border-b border-slate-100 pb-4">
                             <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
                                 <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                             </div>
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                <h3 class="text-lg leading-6 font-bold text-slate-900">Edit Data Siswa</h3>
-                                <div class="mt-1 text-sm text-slate-500">Perbarui informasi detail siswa.</div>
+                                <h3 class="text-lg leading-6 font-bold text-slate-900">Edit Data Siswa Lengkap</h3>
+                                <div class="mt-1 text-sm text-slate-500">Perbarui informasi detail siswa (Identitas, Keluarga, Orang Tua).</div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    </div>
+                    
+                    <div class="px-4 sm:px-6 overflow-y-auto flex-1 custom-scrollbar pb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Section: Data Identitas -->
+                            <div class="md:col-span-2">
+                                <h4 class="font-bold text-slate-800 mb-2 text-sm">Data Identitas</h4>
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">NISN</label>
-                                <input type="text" wire:model="editDataNisn" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
-                                @error('editDataNisn') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                                <input type="text" wire:model="editDataNisn" disabled class="block w-full rounded-xl border border-slate-300 bg-slate-100 text-slate-500 px-3 py-2 cursor-not-allowed outline-none transition-all" title="Hanya Admin yang dapat mengubah NISN">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">NIS</label>
-                                <input type="text" wire:model="editDataNis" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
-                                @error('editDataNis') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                                <input type="text" wire:model="editDataNis" disabled class="block w-full rounded-xl border border-slate-300 bg-slate-100 text-slate-500 px-3 py-2 cursor-not-allowed outline-none transition-all" title="Hanya Admin yang dapat mengubah NIS">
                             </div>
                             <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                                <input type="text" wire:model="editDataName" required class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
-                                @error('editDataName') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
+                                <input type="text" wire:model="editDataName" disabled class="block w-full rounded-xl border border-slate-300 bg-slate-100 text-slate-500 px-3 py-2 cursor-not-allowed outline-none transition-all" title="Hanya Admin yang dapat mengubah Nama">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Tempat Lahir</label>
@@ -376,19 +411,123 @@
                                 <input type="date" wire:model="editDataBirthDate" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
                                 @error('editDataBirthDate') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Nomor HP</label>
-                                <input type="text" wire:model="editDataNoHp" placeholder="Contoh: 081234..." class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
-                                @error('editDataNoHp') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Alamat</label>
                                 <textarea wire:model="editDataAddress" rows="2" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all"></textarea>
                                 @error('editDataAddress') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
+
+                            <div class="md:col-span-2 mt-4 pt-4 border-t border-slate-100">
+                                <h4 class="font-bold text-slate-800 mb-4 text-sm">Data Sekolah & Status Keluarga</h4>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Kelamin</label>
+                                <select wire:model="editDataGender" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                    <option value="">Pilih</option>
+                                    <option value="L">Laki-laki</option>
+                                    <option value="P">Perempuan</option>
+                                </select>
+                                @error('editDataGender') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Agama</label>
+                                <select wire:model="editDataReligion" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                    <option value="">Pilih</option>
+                                    <option value="Islam">Islam</option>
+                                    <option value="Kristen">Kristen Protestan</option>
+                                    <option value="Katolik">Katolik</option>
+                                    <option value="Hindu">Hindu</option>
+                                    <option value="Buddha">Buddha</option>
+                                    <option value="Konghucu">Konghucu</option>
+                                </select>
+                                @error('editDataReligion') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Masuk</label>
+                                <input type="date" wire:model="editDataAdmissionDate" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataAdmissionDate') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Kelas Masuk</label>
+                                <input type="text" wire:model="editDataAdmissionClass" placeholder="Contoh: 7A" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataAdmissionClass') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Asal Sekolah (SD/MI)</label>
+                                <input type="text" wire:model="editDataPreviousSchool" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataPreviousSchool') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Status dalam Keluarga</label>
+                                <select wire:model="editDataFamilyStatus" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                    <option value="">Pilih</option>
+                                    <option value="Kandung">Anak Kandung</option>
+                                    <option value="Tiri">Anak Tiri</option>
+                                    <option value="Angkat">Anak Angkat</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                                @error('editDataFamilyStatus') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Anak Ke-</label>
+                                <input type="number" wire:model="editDataChildOrder" min="1" max="20" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataChildOrder') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-2 mt-4 pt-4 border-t border-slate-100">
+                                <h4 class="font-bold text-slate-800 mb-4 text-sm">Data Orang Tua / Wali</h4>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Ayah</label>
+                                <input type="text" wire:model="editDataNamaAyah" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataNamaAyah') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Pekerjaan Ayah</label>
+                                <input type="text" wire:model="editDataPekerjaanAyah" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataPekerjaanAyah') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Ibu</label>
+                                <input type="text" wire:model="editDataNamaIbu" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataNamaIbu') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Pekerjaan Ibu</label>
+                                <input type="text" wire:model="editDataPekerjaanIbu" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataPekerjaanIbu') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Wali (Opsional)</label>
+                                <input type="text" wire:model="editDataNamaWali" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataNamaWali') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Pekerjaan Wali</label>
+                                <input type="text" wire:model="editDataPekerjaanWali" class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataPekerjaanWali') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">No. HP Siswa</label>
+                                <input type="text" wire:model="editDataNoHp" placeholder="Contoh: 081234..." class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataNoHp') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">No. HP Orang Tua / Wali</label>
+                                <input type="text" wire:model="editDataNoHpOrtu" placeholder="Contoh: 081234..." class="block w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-3 py-2 focus:ring-2 outline-none transition-all">
+                                @error('editDataNoHpOrtu') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-2xl border-t border-slate-200">
+                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200 flex-shrink-0">
                         <button type="submit" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-bold text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-all">
                             <span wire:loading.remove wire:target="saveEditData">Simpan Perubahan</span>
                             <span wire:loading wire:target="saveEditData">Menyimpan...</span>
@@ -397,8 +536,7 @@
                             Batal
                         </button>
                     </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
     @endif

@@ -44,6 +44,23 @@ class DataSiswaList extends Component
     public $editDataBirthDate = '';
     public $editDataAddress = '';
     public $editDataNoHp = '';
+    
+    // Additional Full Biodata Fields
+    public $editDataGender = '';
+    public $editDataReligion = '';
+    public $editDataPreviousSchool = '';
+    public $editDataAdmissionDate = '';
+    public $editDataAdmissionClass = '';
+    public $editDataFamilyStatus = '';
+    public $editDataChildOrder = '';
+    
+    public $editDataNamaAyah = '';
+    public $editDataPekerjaanAyah = '';
+    public $editDataNamaIbu = '';
+    public $editDataPekerjaanIbu = '';
+    public $editDataNamaWali = '';
+    public $editDataPekerjaanWali = '';
+    public $editDataNoHpOrtu = '';
 
     // Edit No HP Only
     public $showEditNoHpModal = false;
@@ -229,6 +246,69 @@ class DataSiswaList extends Component
         $this->dispatch('open-url', url: $url);
     }
 
+    public function cetakBiodata(string $studentId)
+    {
+        $siswa = Siswa::find($studentId);
+        if (!$siswa) {
+            session()->flash('error', 'Data siswa tidak ditemukan.');
+            return;
+        }
+
+        $settings = \App\Models\PengaturanSekolah::first();
+        $kepsek = \App\Models\Guru::whereHas('jabatans', function ($q) {
+            $q->where('nama_jabatan', 'like', '%Kepala Sekolah%')
+              ->where(function ($q2) {
+                  $q2->whereNull('teacher_jabatan.tanggal_selesai')
+                     ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
+              });
+        })->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.biodata-siswa', [
+            'siswa' => $siswa,
+            'namaKepsek' => $kepsek ? $kepsek->name : ($settings?->principal_name ?? config('school.kepala_sekolah_nama')),
+            'nipKepsek' => $kepsek ? $kepsek->nip : ($settings?->principal_nip ?? config('school.kepala_sekolah_nip')),
+            'namaKota' => $settings?->tempat_rapor ?? ($settings?->kota ?? config('school.kota')),
+            'tanggalRapor' => $settings?->tanggal_rapor ? $settings->tanggal_rapor->format('Y-m-d') : now()->format('Y-m-d'),
+        ]);
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            'Biodata-' . \Illuminate\Support\Str::slug($siswa->name) . '.pdf'
+        );
+    }
+
+    public function cetakBiodataSemua()
+    {
+        $siswas = $this->getStudentsQuery()->get();
+        if ($siswas->isEmpty()) {
+            session()->flash('error', 'Tidak ada data siswa aktif di kelas ini.');
+            return;
+        }
+
+        $settings = \App\Models\PengaturanSekolah::first();
+        $kepsek = \App\Models\Guru::whereHas('jabatans', function ($q) {
+            $q->where('nama_jabatan', 'like', '%Kepala Sekolah%')
+              ->where(function ($q2) {
+                  $q2->whereNull('teacher_jabatan.tanggal_selesai')
+                     ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
+              });
+        })->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.biodata-siswa-batch', [
+            'siswas' => $siswas,
+            'namaKepsek' => $kepsek ? $kepsek->name : ($settings?->principal_name ?? config('school.kepala_sekolah_nama')),
+            'nipKepsek' => $kepsek ? $kepsek->nip : ($settings?->principal_nip ?? config('school.kepala_sekolah_nip')),
+            'namaKota' => $settings?->tempat_rapor ?? ($settings?->kota ?? config('school.kota')),
+            'tanggalRapor' => $settings?->tanggal_rapor ? $settings->tanggal_rapor->format('Y-m-d') : now()->format('Y-m-d'),
+        ]);
+
+        $kelasName = \App\Models\Kelas::find($this->selectedClassId)?->name ?? 'Kelas';
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            'Biodata-Kelas-' . \Illuminate\Support\Str::slug($kelasName) . '.pdf'
+        );
+    }
+
     // --- FITUR EXPORT / UPDATE EXCEL ---
 
     public function downloadDataExcel()
@@ -398,6 +478,22 @@ class DataSiswaList extends Component
             $this->editDataAddress = $student->address ?? '';
             $this->editDataNoHp = $student->no_hp ?? '';
             
+            $this->editDataGender = $student->gender ?? '';
+            $this->editDataReligion = $student->religion ?? '';
+            $this->editDataPreviousSchool = $student->previous_school ?? '';
+            $this->editDataAdmissionDate = $student->admission_date ? $student->admission_date->format('Y-m-d') : '';
+            $this->editDataAdmissionClass = $student->admission_class ?? '';
+            $this->editDataFamilyStatus = $student->family_status ?? '';
+            $this->editDataChildOrder = $student->child_order ?? '';
+            
+            $this->editDataNamaAyah = $student->nama_ayah ?? '';
+            $this->editDataPekerjaanAyah = $student->pekerjaan_ayah ?? '';
+            $this->editDataNamaIbu = $student->nama_ibu ?? '';
+            $this->editDataPekerjaanIbu = $student->pekerjaan_ibu ?? '';
+            $this->editDataNamaWali = $student->nama_wali ?? '';
+            $this->editDataPekerjaanWali = $student->pekerjaan_wali ?? '';
+            $this->editDataNoHpOrtu = $student->no_hp_orang_tua ?? '';
+            
             $this->showEditDataModal = true;
             $this->dispatch('modal-open');
         }
@@ -407,42 +503,75 @@ class DataSiswaList extends Component
     {
         $this->showEditDataModal = false;
         $this->editDataStudentId = null;
-        $this->reset(['editDataNisn', 'editDataNis', 'editDataName', 'editDataBirthPlace', 'editDataBirthDate', 'editDataAddress', 'editDataNoHp']);
+        $this->reset([
+            'editDataNisn', 'editDataNis', 'editDataName', 'editDataBirthPlace', 'editDataBirthDate', 'editDataAddress', 'editDataNoHp',
+            'editDataGender', 'editDataReligion', 'editDataPreviousSchool', 'editDataAdmissionDate', 'editDataAdmissionClass', 'editDataFamilyStatus', 'editDataChildOrder',
+            'editDataNamaAyah', 'editDataPekerjaanAyah', 'editDataNamaIbu', 'editDataPekerjaanIbu', 'editDataNamaWali', 'editDataPekerjaanWali', 'editDataNoHpOrtu'
+        ]);
         $this->dispatch('modal-close');
     }
 
     public function saveEditData()
     {
         $this->validate([
-            'editDataNisn' => 'nullable|string|max:50',
-            'editDataNis' => 'nullable|string|max:50',
-            'editDataName' => 'required|string|max:255',
             'editDataBirthPlace' => 'nullable|string|max:100',
             'editDataBirthDate' => 'nullable|date',
             'editDataAddress' => 'nullable|string|max:500',
             'editDataNoHp' => 'nullable|string|max:20',
+            'editDataGender' => 'nullable|in:L,P',
+            'editDataReligion' => 'nullable|string|max:50',
+            'editDataPreviousSchool' => 'nullable|string|max:255',
+            'editDataAdmissionDate' => 'nullable|date',
+            'editDataAdmissionClass' => 'nullable|string|max:20',
+            'editDataFamilyStatus' => 'nullable|string|max:50',
+            'editDataChildOrder' => 'nullable|integer|min:1|max:20',
+            'editDataNamaAyah' => 'nullable|string|max:255',
+            'editDataPekerjaanAyah' => 'nullable|string|max:255',
+            'editDataNamaIbu' => 'nullable|string|max:255',
+            'editDataPekerjaanIbu' => 'nullable|string|max:255',
+            'editDataNamaWali' => 'nullable|string|max:255',
+            'editDataPekerjaanWali' => 'nullable|string|max:255',
+            'editDataNoHpOrtu' => 'nullable|string|max:50',
         ]);
 
         if ($this->editDataStudentId) {
             $student = Siswa::find($this->editDataStudentId);
             if ($student) {
-                // Update User's name as well if they have an account
-                if ($student->user_id) {
-                    $user = \App\Models\User::find($student->user_id);
-                    if ($user) {
-                        $user->name = $this->editDataName;
-                        $user->save();
-                    }
-                }
-
-                $student->nisn = $this->editDataNisn;
-                $student->nis = $this->editDataNis;
-                $student->name = $this->editDataName;
+                // NISN, NIS, dan Name sekarang hanya bisa diubah melalui halaman Admin
                 $student->birth_place = $this->editDataBirthPlace;
                 $student->birth_date = $this->editDataBirthDate ?: null;
                 $student->address = $this->editDataAddress;
-                $student->no_hp = $this->editDataNoHp;
                 
+                // Normalisasi no_hp seperti sebelumnya
+                $hpSiswa = $this->editDataNoHp;
+                if (!empty($hpSiswa)) {
+                    $hpSiswa = preg_replace('/[^0-9]/', '', $hpSiswa);
+                    if (str_starts_with($hpSiswa, '0')) $hpSiswa = '62' . substr($hpSiswa, 1);
+                }
+                $student->no_hp = $hpSiswa ?: null;
+
+                $student->gender = $this->editDataGender ?: null;
+                $student->religion = $this->editDataReligion ?: null;
+                $student->previous_school = $this->editDataPreviousSchool;
+                $student->admission_date = $this->editDataAdmissionDate ?: null;
+                $student->admission_class = $this->editDataAdmissionClass;
+                $student->family_status = $this->editDataFamilyStatus ?: null;
+                $student->child_order = $this->editDataChildOrder ?: null;
+
+                $student->nama_ayah = $this->editDataNamaAyah;
+                $student->pekerjaan_ayah = $this->editDataPekerjaanAyah;
+                $student->nama_ibu = $this->editDataNamaIbu;
+                $student->pekerjaan_ibu = $this->editDataPekerjaanIbu;
+                $student->nama_wali = $this->editDataNamaWali;
+                $student->pekerjaan_wali = $this->editDataPekerjaanWali;
+                
+                $hpOrtu = $this->editDataNoHpOrtu;
+                if (!empty($hpOrtu)) {
+                    $hpOrtu = preg_replace('/[^0-9]/', '', $hpOrtu);
+                    if (str_starts_with($hpOrtu, '0')) $hpOrtu = '62' . substr($hpOrtu, 1);
+                }
+                $student->no_hp_orang_tua = $hpOrtu ?: null;
+
                 $student->save();
                 session()->flash('success', 'Data siswa berhasil diperbarui.');
             }

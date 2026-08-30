@@ -21,6 +21,10 @@ class PengaturanSekolah extends Model
         'hero_image_path',
         'login_background_path',
         'principal_name',
+        'principal_nip',
+        'kota',
+        'tempat_rapor',
+        'tanggal_rapor',
         'principal_signature_path',
         'checkin_time',
         'batas_scan_datang_time',
@@ -68,6 +72,7 @@ class PengaturanSekolah extends Model
         'maintenance_portal_perpustakaan' => 'boolean',
         'global_announcement_active'      => 'boolean',
         'is_barcode_setup_completed'      => 'boolean',
+        'tanggal_rapor'                   => 'date',
     ];
 
     // Tahun ajaran yang sedang aktif

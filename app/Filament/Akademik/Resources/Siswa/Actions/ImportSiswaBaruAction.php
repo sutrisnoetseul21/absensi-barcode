@@ -171,7 +171,7 @@ class ImportSiswaBaruAction extends Action
                                 $nisn     = trim((string)($row[0] ?? ''));
                                 $nis      = trim((string)($row[1] ?? ''));
                                 $name     = trim((string)($row[2] ?? ''));
-                                $kelas    = trim((string)($row[8] ?? ''));
+                                $kelas    = trim((string)($row[22] ?? ''));
 
                                 // Tentukan status preview
                                 [$statusHtml, $statusType] = $this->determinePreviewStatus(

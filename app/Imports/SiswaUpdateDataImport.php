@@ -62,43 +62,9 @@ class SiswaUpdateDataImport implements ToCollection
             // Cek perubahan
             $changes = [];
             
-            if ($nisn !== '' && $siswa->nisn !== $nisn) {
-                if (Siswa::where('nisn', $nisn)->where('id', '!=', $id)->exists()) {
-                    $this->results[] = [
-                        'nisn'         => $nisn,
-                        'name'         => $name,
-                        'status'       => 'skip',
-                        'status_label' => '❌ Duplikat NISN',
-                        'keterangan'   => "NISN {$nisn} sudah digunakan oleh siswa lain.",
-                    ];
-                    continue;
-                }
-                $siswa->nisn = $nisn;
-                $changes[] = 'NISN';
-            }
+            // Catatan: Pembaruan NISN, NIS, dan Nama dinonaktifkan (di-hidden/diabaikan)
+            // agar data sensitif/utama ini tidak berubah saat guru mengupdate biodata.
 
-            if ($nis !== '' && $siswa->nis !== $nis) {
-                if (Siswa::where('nis', $nis)->where('id', '!=', $id)->exists()) {
-                    $this->results[] = [
-                        'nisn'         => $nisn,
-                        'name'         => $name,
-                        'status'       => 'skip',
-                        'status_label' => '❌ Duplikat NIS',
-                        'keterangan'   => "NIS {$nis} sudah digunakan oleh siswa lain.",
-                    ];
-                    continue;
-                }
-                $siswa->nis = $nis;
-                $changes[] = 'NIS';
-            }
-
-            if ($name !== '' && $siswa->name !== $name) {
-                $siswa->name = $name;
-                if ($siswa->user) {
-                    $siswa->user->update(['name' => $name]);
-                }
-                $changes[] = 'Nama';
-            }
 
             if ($birth_place !== '' && $siswa->birth_place !== $birth_place) {
                 $siswa->birth_place = $birth_place;

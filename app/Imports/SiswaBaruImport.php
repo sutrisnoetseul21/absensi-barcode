@@ -12,9 +12,12 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 /**
  * Import Siswa Baru (PPDB) — mengisi tabel students + opsional student_enrollments.
  *
- * Kolom template (9 kolom):
- *   A: NISN  |  B: NIS  |  C: Nama Siswa  |  D: Tempat Lahir
- *   E: Tanggal Lahir  |  F: Alamat  |  G: No. HP  | H: Password  |  I: Kelas (Opsional)
+ * Kolom template (23 kolom):
+ *   A: NISN  |  B: NIS  |  C: Nama Siswa  |  D: Tempat Lahir  |  E: Tanggal Lahir
+ *   F: Alamat  |  G: No. HP Siswa  | H: Password  |  I: Jenis Kelamin  | J: Agama
+ *   K: Asal Sekolah  | L: Tanggal Masuk  | M: Kelas Masuk  | N: Status Keluarga
+ *   O: Anak Ke-  | P: Nama Ayah  | Q: Pekerjaan Ayah  | R: Nama Ibu  | S: Pekerjaan Ibu
+ *   T: Nama Wali  | U: Pekerjaan Wali  | V: No HP Ortu  | W: Kelas (Opsional)
  *
  * Aturan:
  *   - NISN atau NIS sudah ada di DB                  → SKIP + catat di laporan (status: skip)
@@ -59,16 +62,36 @@ class SiswaBaruImport implements ToCollection
         foreach ($rows as $index => $row) {
             if ($index === 0) continue; // skip header
 
-            $rawNisn      = trim((string)($row[0] ?? ''), " '\"\t\n\r\0\x0B");
-            $nisn         = preg_replace('/\D/', '', $rawNisn);
-            $nis          = trim((string)($row[1] ?? ''), " '\"\t\n\r\0\x0B");
-            $name         = trim((string)($row[2] ?? ''));
-            $birth_place  = trim((string)($row[3] ?? ''));
-            $birth_date   = $this->parseBirthDate(trim((string)($row[4] ?? '')));
-            $address      = trim((string)($row[5] ?? ''));
-            $no_hp        = trim((string)($row[6] ?? ''));
-            $passwordVal  = trim((string)($row[7] ?? ''));
-            $kelasName    = trim((string)($row[8] ?? ''));
+            $rawNisn         = trim((string)($row[0] ?? ''), " '\"\t\n\r\0\x0B");
+            $nisn            = preg_replace('/\D/', '', $rawNisn);
+            $nis             = trim((string)($row[1] ?? ''), " '\"\t\n\r\0\x0B");
+            $name            = trim((string)($row[2] ?? ''));
+            $birth_place     = trim((string)($row[3] ?? ''));
+            $birth_date      = $this->parseBirthDate(trim((string)($row[4] ?? '')));
+            $address         = trim((string)($row[5] ?? ''));
+            $no_hp           = trim((string)($row[6] ?? ''));
+            $passwordVal     = trim((string)($row[7] ?? ''));
+            
+            // Biodata Tambahan
+            $gender          = strtoupper(trim((string)($row[8] ?? '')));
+            $religion        = trim((string)($row[9] ?? ''));
+            $previous_school = trim((string)($row[10] ?? ''));
+            $admission_date  = $this->parseBirthDate(trim((string)($row[11] ?? '')));
+            $admission_class = trim((string)($row[12] ?? ''));
+            $family_status   = trim((string)($row[13] ?? ''));
+            $child_order_raw = trim((string)($row[14] ?? ''));
+            $child_order     = is_numeric($child_order_raw) ? (int)$child_order_raw : null;
+            
+            // Data Orang Tua / Wali
+            $nama_ayah       = trim((string)($row[15] ?? ''));
+            $pekerjaan_ayah  = trim((string)($row[16] ?? ''));
+            $nama_ibu        = trim((string)($row[17] ?? ''));
+            $pekerjaan_ibu   = trim((string)($row[18] ?? ''));
+            $nama_wali       = trim((string)($row[19] ?? ''));
+            $pekerjaan_wali  = trim((string)($row[20] ?? ''));
+            $no_hp_orang_tua = trim((string)($row[21] ?? ''));
+            
+            $kelasName       = trim((string)($row[22] ?? ''));
 
             // Baris kosong (NISN dan Nama kosong) → lewati tanpa laporan
             if ($nisn === '' && $name === '') {
@@ -145,14 +168,28 @@ class SiswaBaruImport implements ToCollection
             $user->assignRole('siswa');
 
             $siswa = Siswa::create([
-                'user_id'     => $user->id,
-                'nisn'        => $nisn,
-                'nis'         => $nis ?: null,
-                'name'        => $name,
-                'no_hp'       => $no_hp ?: null,
-                'birth_place' => $birth_place ?: null,
-                'birth_date'  => $birth_date,
-                'address'     => $address ?: null,
+                'user_id'         => $user->id,
+                'nisn'            => $nisn,
+                'nis'             => $nis ?: null,
+                'name'            => $name,
+                'no_hp'           => $no_hp ?: null,
+                'birth_place'     => $birth_place ?: null,
+                'birth_date'      => $birth_date,
+                'address'         => $address ?: null,
+                'gender'          => in_array($gender, ['L', 'P']) ? $gender : null,
+                'religion'        => $religion ?: null,
+                'previous_school' => $previous_school ?: null,
+                'admission_date'  => $admission_date,
+                'admission_class' => $admission_class ?: null,
+                'family_status'   => $family_status ?: null,
+                'child_order'     => $child_order,
+                'nama_ayah'       => $nama_ayah ?: null,
+                'pekerjaan_ayah'  => $pekerjaan_ayah ?: null,
+                'nama_ibu'        => $nama_ibu ?: null,
+                'pekerjaan_ibu'   => $pekerjaan_ibu ?: null,
+                'nama_wali'       => $nama_wali ?: null,
+                'pekerjaan_wali'  => $pekerjaan_wali ?: null,
+                'no_hp_orang_tua' => $no_hp_orang_tua ?: null,
             ]);
 
             // Tandai NISN sudah diproses agar baris berikutnya tidak duplikat

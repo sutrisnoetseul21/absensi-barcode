@@ -15,6 +15,32 @@ class EditSiswa extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('cetakBiodata')
+                ->label('Cetak Biodata')
+                ->icon('heroicon-o-printer')
+                ->color('info')
+                ->action(function (\App\Models\Siswa $record) {
+                    $kepsek = \App\Models\Guru::whereHas('jabatans', function ($q) {
+                        $q->where('nama_jabatan', 'like', '%Kepala Sekolah%')
+                          ->where(function ($q2) {
+                              $q2->whereNull('teacher_jabatan.tanggal_selesai')
+                                 ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
+                          });
+                    })->first();
+
+                    $settings = \App\Models\PengaturanSekolah::first();
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.biodata-siswa', [
+                        'siswa' => $record,
+                        'namaKepsek' => $kepsek ? $kepsek->name : ($settings?->principal_name ?? config('school.kepala_sekolah_nama')),
+                        'nipKepsek' => $kepsek ? $kepsek->nip : ($settings?->principal_nip ?? config('school.kepala_sekolah_nip')),
+                        'namaKota' => $settings?->tempat_rapor ?? ($settings?->kota ?? config('school.kota')),
+                        'tanggalRapor' => $settings?->tanggal_rapor ? $settings->tanggal_rapor->format('Y-m-d') : now()->format('Y-m-d'),
+                    ]);
+                    return response()->streamDownload(
+                        fn () => print($pdf->output()),
+                        'Biodata-' . \Illuminate\Support\Str::slug($record->name) . '.pdf'
+                    );
+                }),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),
