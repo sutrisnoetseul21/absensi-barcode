@@ -11,7 +11,7 @@ class RecipientResolverService
 {
     public function resolveOrtu(Siswa $student): ?string
     {
-        return $student->no_hp;
+        return $student->no_hp_orang_tua ?: $student->no_hp;
     }
 
     public function resolveWaliKelas(Siswa $student): ?string

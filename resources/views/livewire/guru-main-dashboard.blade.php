@@ -280,15 +280,15 @@
                         </span>
                     </div>
                     <h3 class="text-base font-bold text-slate-900 group-hover:text-violet-600 transition-colors">
-                        Cetak Kartu Siswa
+                        Data Siswa
                     </h3>
                     <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                        Cetak kartu presensi digital siswa per kelas binaan secara massal maupun individu.
+                        Kelola data siswa binaan Anda, perbarui via Excel, dan cetak kartu.
                     </p>
                 </div>
-                <a href="{{ route('portal-guru.cetak-kartu') }}" 
+                <a href="{{ route('portal-guru.data-siswa') }}" 
                    class="mt-4 w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-violet-600 hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200/60 hover:border-violet-600">
-                    Cetak Kartu
+                    Buka Data Siswa
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </a>
             </div>

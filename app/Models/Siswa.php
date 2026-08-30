@@ -37,11 +37,29 @@ class Siswa extends Authenticatable
         'photo_path',
         'status',
         'no_hp',
+        // Data profil tambahan
+        'gender',
+        'religion',
+        'previous_school',
+        'admission_date',
+        'admission_class',
+        'family_status',
+        'child_order',
+        // Data Orang Tua / Wali
+        'nama_ayah',
+        'pekerjaan_ayah',
+        'nama_ibu',
+        'pekerjaan_ibu',
+        'nama_wali',
+        'pekerjaan_wali',
+        'no_hp_orang_tua',
     ];
 
     protected $casts = [
-        'birth_date' => 'date',
-        'status'     => 'string',
+        'birth_date'     => 'date',
+        'admission_date' => 'date',
+        'status'         => 'string',
+        'child_order'    => 'integer',
     ];
 
     public function user()
@@ -94,7 +112,29 @@ class Siswa extends Authenticatable
         return $this->hasOne(StudentPresensiProfile::class, 'student_id');
     }
 
+    // Data orang tua / wali siswa
+    public function guardians(): HasMany
+    {
+        return $this->hasMany(StudentGuardian::class, 'student_id');
+    }
+
     protected function noHp(): Attribute
+    {
+        return Attribute::make(
+            set: function (?string $value) {
+                if (!$value) return null;
+                $digits = preg_replace('/\D/', '', $value);
+                if (str_starts_with($digits, '0')) {
+                    $digits = '62' . substr($digits, 1);
+                } elseif (!str_starts_with($digits, '62')) {
+                    $digits = '62' . $digits;
+                }
+                return $digits;
+            }
+        );
+    }
+
+    protected function noHpOrangTua(): Attribute
     {
         return Attribute::make(
             set: function (?string $value) {

@@ -181,13 +181,27 @@ Route::middleware('auth')->group(function () {
         );
     })->name('admin.import.download-laporan');
 
-    // Route Download Template Excel
+    // Route Download Template & Data Excel
     Route::get('/admin/siswa/download-template', function () {
         return \Maatwebsite\Excel\Facades\Excel::download(
             new \App\Exports\SiswaBaruTemplateExport,
             'template_siswa_baru.xlsx'
         );
     })->name('admin.siswa.download-template');
+
+    Route::get('/admin/siswa/download-data', function () {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SiswaUpdateDataExport,
+            'update_data_siswa.xlsx'
+        );
+    })->name('admin.siswa.download-data');
+
+    Route::get('/admin/siswa/download-nohp', function () {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SiswaUpdateNoHpExport,
+            'update_kontak_siswa.xlsx'
+        );
+    })->name('admin.siswa.download-nohp');
 
     Route::get('/admin/guru/download-template', function () {
         return \Maatwebsite\Excel\Facades\Excel::download(
@@ -238,7 +252,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/akademik', WaliKelasDashboard::class)->name('portal-guru.akademik');
         Route::get('/perpustakaan', \App\Livewire\GuruPerpustakaan::class)->name('portal-guru.perpustakaan');
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
-        Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-guru.cetak-kartu');
+        Route::get('/data-siswa', \App\Livewire\PortalGuru\DataSiswaList::class)->name('portal-guru.data-siswa');
         
         Route::get('/ijin-kehadiran', \App\Livewire\PortalGuru\IjinKehadiranList::class)->name('portal-guru.ijin');
         Route::get('/ijin-kehadiran/{id}', \App\Livewire\PortalGuru\IjinKehadiranDetail::class)->name('portal-guru.ijin.detail');

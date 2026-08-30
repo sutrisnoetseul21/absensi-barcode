@@ -36,10 +36,26 @@ class ImportSiswaBaruAction extends Action
             ->label('Import Siswa + Kelas')
             ->icon('heroicon-o-arrow-up-tray')
             ->color('success')
-            ->modalHeading('Import Siswa Baru (PPDB)')
-            ->modalDescription(new \Illuminate\Support\HtmlString('Unduh template Excel resmi: <a href="' . route('admin.siswa.download-template') . '" target="_blank" style="color: #2563eb; font-weight: 600; text-decoration: underline;">Download Template Siswa Baru (.xlsx)</a>'))
+            ->modalHeading('Import Siswa Baru (+ Kelas)')
+            ->modalDescription('Unggah berkas Excel data siswa baru. Siswa akan otomatis didaftarkan dan di-assign ke kelas sesuai tahun ajaran aktif.')
             ->modalWidth('5xl')
             ->form([
+                // ── Tombol Download Template Resmi ────────────────────────────
+                \Filament\Forms\Components\Placeholder::make('download_template_box')
+                    ->label('')
+                    ->content(new \Illuminate\Support\HtmlString('
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; margin-bottom: 4px;">
+                            <div>
+                                <span style="font-weight: 700; color: #1E40AF; display: block; font-size: 0.9rem;">Belum memiliki format template Excel?</span>
+                                <span style="font-size: 0.8rem; color: #3B82F6;">Unduh template resmi sistem yang sudah sesuai dengan kolom kelas dan data siswa.</span>
+                            </div>
+                            <a href="' . route('admin.siswa.download-template') . '" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background-color: #2563EB; color: white; border-radius: 6px; font-weight: 600; font-size: 0.825rem; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap;">
+                                <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Download Template Siswa Baru (.xlsx)
+                            </a>
+                        </div>
+                    ')),
+
                 // ── Cek TA Aktif ───────────────────────────────────────────────
                 \Filament\Forms\Components\Placeholder::make('info_ta_aktif')
                     ->label('')
@@ -75,7 +91,7 @@ class ImportSiswaBaruAction extends Action
                     ])
                     ->required()
                     ->live()
-                    ->helperText('Gunakan tombol "Template Siswa Baru" untuk mengunduh template yang benar.'),
+                    ->helperText('Unggah file Excel yang telah diisi sesuai format template di atas.'),
 
                 // ── Preview ────────────────────────────────────────────────────
                 \Filament\Forms\Components\Placeholder::make('preview')
