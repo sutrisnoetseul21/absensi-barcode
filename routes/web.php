@@ -16,6 +16,7 @@ use App\Http\Controllers\BerandaController;
 
 // Beranda Profil Sekolah (Halaman Publik Utama)
 Route::get('/', [BerandaController::class, 'index'])->name('beranda');
+Route::get('/home', [BerandaController::class, 'index'])->name('home');
 Route::get('/guru', [BerandaController::class, 'guru'])->name('guru.all');
 Route::get('/direktori-guru', [BerandaController::class, 'guru'])->name('beranda.guru');
 Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beranda.artikel');

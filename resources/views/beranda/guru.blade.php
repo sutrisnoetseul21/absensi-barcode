@@ -30,7 +30,7 @@
     <div class="container mx-auto px-4 relative z-10 text-center">
         <!-- Breadcrumb -->
         <div class="flex justify-center items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
-            <a href="{{ route('home') }}" class="text-slate-300 hover:text-brand-primary transition-colors">Beranda</a>
+            <a href="{{ route('beranda') }}" class="text-slate-300 hover:text-brand-primary transition-colors">Beranda</a>
             <span class="text-slate-600">/</span>
             <span class="text-brand-primary">Direktori</span>
         </div>
