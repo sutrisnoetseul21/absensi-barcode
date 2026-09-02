@@ -71,4 +71,47 @@ class BerandaController extends Controller
 
         return view('beranda.artikel', compact('artikel', 'recentPosts', 'sekolah', 'setting'));
     }
+
+    public function pengaduan(): View
+    {
+        $sekolah          = PengaturanSekolah::current();
+        $setting          = WebSetting::instance();
+        $pengaduanSetting = \App\Models\PengaduanSetting::instance();
+        $kategoris        = \App\Models\PengaduanKategori::orderBy('urutan', 'asc')->get();
+
+        return view('beranda.pengaduan', compact('sekolah', 'setting', 'pengaduanSetting', 'kategoris'));
+    }
+
+    public function pengaduanStore(\Illuminate\Http\Request $request): \Illuminate\Http\RedirectResponse
+    {
+        // Honeypot anti-spam
+        if ($request->filled('website')) {
+            return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim.');
+        }
+
+        $request->validate([
+            'nama'                  => 'required|string|max:255',
+            'email'                 => 'required|email|max:255',
+            'no_hp'                 => 'nullable|string|max:50',
+            'pengaduan_kategori_id' => 'required|exists:pengaduan_kategoris,id',
+            'isi_pengaduan'         => 'required|string|max:5000',
+        ], [
+            'nama.required'                  => 'Nama lengkap wajib diisi.',
+            'email.required'                 => 'Alamat email wajib diisi.',
+            'email.email'                    => 'Format email tidak valid.',
+            'pengaduan_kategori_id.required' => 'Silakan pilih kategori pengaduan.',
+            'isi_pengaduan.required'         => 'Isi pesan / pengaduan wajib diisi.',
+        ]);
+
+        \App\Models\Pengaduan::create([
+            'nama'                  => strip_tags($request->nama),
+            'email'                 => strip_tags($request->email),
+            'no_hp'                 => strip_tags($request->no_hp),
+            'pengaduan_kategori_id' => $request->pengaduan_kategori_id,
+            'isi_pengaduan'         => strip_tags($request->isi_pengaduan),
+            'status'                => 'menunggu',
+        ]);
+
+        return redirect()->back()->with('success', 'Terima kasih! Pesan dan aspirasi Anda telah kami terima dan akan segera ditindaklanjuti.');
+    }
 }

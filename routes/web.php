@@ -20,6 +20,8 @@ Route::get('/home', [BerandaController::class, 'index'])->name('home');
 Route::get('/guru', [BerandaController::class, 'guru'])->name('guru.all');
 Route::get('/direktori-guru', [BerandaController::class, 'guru'])->name('beranda.guru');
 Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beranda.artikel');
+Route::get('/pengaduan', [BerandaController::class, 'pengaduan'])->name('pengaduan.index');
+Route::post('/pengaduan', [BerandaController::class, 'pengaduanStore'])->name('pengaduan.store')->middleware('throttle:30,1');
 
 // ERP Portal Route (lama, dipertahankan)
 Route::get('/erp-portal', fn() => view('erp-portal'))->name('erp.portal');
