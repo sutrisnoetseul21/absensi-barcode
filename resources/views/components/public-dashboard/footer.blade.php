@@ -126,8 +126,7 @@
                     <p class="text-xs text-white/80 mb-4 leading-relaxed">
                         Sampaikan masukan, saran, atau pengaduan untuk peningkatan mutu layanan sekolah.
                     </p>
-                    <a href="{{ $setting?->link_pengaduan ?: route('pengaduan.index') }}" 
-                       target="{{ $setting?->link_pengaduan && str_starts_with($setting->link_pengaduan, 'http') ? '_blank' : '_self' }}"
+                    <a href="{{ route('pengaduan.index') }}" 
                        class="block w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-center text-xs rounded-xl shadow-md transition-all">
                         Tulis Pengaduan <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
                     </a>
