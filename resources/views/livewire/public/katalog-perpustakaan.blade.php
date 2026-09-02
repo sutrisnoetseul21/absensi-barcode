@@ -456,12 +456,8 @@
 
     </div>
 
-    <footer class="bg-slate-900 text-slate-400 py-8 mt-auto border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
-            <p>&copy; {{ date('Y') }} {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'SMPN 1 Majenang' }}. All rights reserved.</p>
-            <p class="mt-2 text-slate-500 text-xs">Sistem Informasi Perpustakaan Terpadu</p>
-        </div>
-    </footer>
+    {{-- ══════════════════ FOOTER ══════════════════ --}}
+    <x-public-dashboard.footer :pengaturanSekolah="$pengaturanSekolah" />
 
     <!-- ====================== MODAL POPUP BACA PDF ====================== -->
     <template x-teleport="body">
