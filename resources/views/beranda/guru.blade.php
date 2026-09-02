@@ -25,22 +25,28 @@
 
 <x-public-dashboard.navbar :pengaturanSekolah="$sekolah" />
 
-<!-- Header Section -->
-<div class="bg-slate-900 pt-32 pb-16 relative overflow-hidden border-b border-slate-800 mt-[70px]">
+<!-- Header Section (Dynamic Theme Color matching Footer) -->
+<div class="pt-32 pb-20 relative overflow-hidden text-white border-b-4 border-amber-400"
+     style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary, #059669) 85%, black 15%) 0%, color-mix(in srgb, var(--color-brand-secondary, #047857) 75%, black 35%) 100%);">
+    
+    {{-- Decorative Background Glow --}}
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-amber-400/10 blur-3xl pointer-events-none"></div>
+
     <div class="container mx-auto px-4 relative z-10 text-center">
         <!-- Breadcrumb -->
-        <div class="flex justify-center items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
-            <a href="{{ route('beranda') }}" class="text-slate-300 hover:text-brand-primary transition-colors">Beranda</a>
-            <span class="text-slate-600">/</span>
-            <span class="text-brand-primary">Direktori</span>
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-amber-300 uppercase tracking-wider mb-4 shadow-sm">
+            <a href="{{ route('beranda') }}" class="text-white hover:text-amber-300 transition-colors">Beranda</a>
+            <span class="text-white/40">/</span>
+            <span>Direktori PTK</span>
         </div>
 
-        <h1 class="text-3xl md:text-5xl font-serif font-bold text-white mb-4">
+        <h1 class="text-3xl md:text-5xl font-bold text-white mb-3 tracking-tight">
             Pendidik & Tenaga Kependidikan
         </h1>
-        <div class="w-24 h-1.5 bg-brand-primary mx-auto rounded-full mb-6"></div>
+        <div class="w-24 h-1.5 bg-amber-400 mx-auto rounded-full mb-4 shadow-sm"></div>
         
-        <p class="text-slate-300 text-lg max-w-2xl mx-auto leading-relaxed font-light">
+        <p class="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-medium">
             Mengenal lebih dekat sosok-sosok inspiratif yang membimbing siswa-siswi {{ $sekolah?->school_name ?? 'Sekolah' }} dengan hati dan dedikasi.
         </p>
     </div>
@@ -159,11 +165,8 @@
     </div>
 </div>
 
-<footer class="bg-slate-900 border-t border-slate-800 pt-16 pb-8 text-slate-400 mt-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p>&copy; {{ date('Y') }} {{ $sekolah?->school_name }}. Hak Cipta Dilindungi.</p>
-    </div>
-</footer>
+{{-- ══════════════════ FOOTER ══════════════════ --}}
+@include('beranda.sections.footer')
 
 @livewireScripts
 </body>
