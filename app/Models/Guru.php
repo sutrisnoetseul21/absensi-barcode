@@ -19,10 +19,26 @@ class Guru extends Authenticatable
     protected $fillable = [
         'user_id',
         'name',
+        'jenis_kelamin',
         'nip',
         'no_hp',
         'photo_path',
+        'facebook_url',
+        'instagram_url',
     ];
+
+    public function getAvatarUrlAttribute()
+    {
+        if ($this->photo_path) {
+            return asset('storage/' . $this->photo_path);
+        }
+
+        if ($this->jenis_kelamin === 'P') {
+            return asset('images/avatar-f.svg');
+        }
+
+        return asset('images/avatar-m.svg');
+    }
 
     public function user()
     {

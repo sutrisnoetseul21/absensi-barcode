@@ -12,9 +12,16 @@ use App\Livewire\ForceChangePassword;
 use App\Livewire\PublicDashboard;
 use App\Livewire\PublicDashboardV1;
 use App\Livewire\Public\KatalogPerpustakaan;
+use App\Http\Controllers\BerandaController;
 
-// ERP Portal Route
-Route::get('/', fn() => view('erp-portal'))->name('erp.portal');
+// Beranda Profil Sekolah (Halaman Publik Utama)
+Route::get('/', [BerandaController::class, 'index'])->name('beranda');
+Route::get('/guru', [BerandaController::class, 'guru'])->name('guru.all');
+Route::get('/direktori-guru', [BerandaController::class, 'guru'])->name('beranda.guru');
+Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beranda.artikel');
+
+// ERP Portal Route (lama, dipertahankan)
+Route::get('/erp-portal', fn() => view('erp-portal'))->name('erp.portal');
 
 // Hub Pemilihan Portal untuk pengguna yang sudah login
 Route::get('/pilih-portal', function () {

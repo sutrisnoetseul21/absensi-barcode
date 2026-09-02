@@ -1,66 +1,164 @@
 @props(['pengaturanSekolah' => null, 'alwaysDark' => false])
 
+@php
+    $webSetting = \App\Models\WebSetting::instance();
+    $linkPengaduan = $webSetting->link_pengaduan ?: url('/pengaduan');
+@endphp
+
 <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
-    x-data="{ scrolled: false, mobileMenuOpen: false, loginMenuOpenMobile: false }"
+    x-data="{ 
+        scrolled: false, 
+        mobileMenuOpen: false, 
+        mobileProfilOpen: false,
+        mobileLayananOpen: false
+    }"
     @scroll.window="scrolled = {{ $alwaysDark ? 'false' : 'window.scrollY > 30' }}"
-    :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-brand-primary-100/50 border-b border-slate-200/60' : (mobileMenuOpen ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/10' : 'bg-slate-950/40 backdrop-blur-sm border-b border-white/10')">
+    :class="scrolled ? 'bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/50 border-b border-slate-200/80 py-2' : (mobileMenuOpen ? 'bg-slate-950/90 backdrop-blur-2xl border-b border-white/10 py-3' : 'bg-slate-950/40 backdrop-blur-md border-b border-white/10 py-3.5')">
+    
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
-            <!-- Header Kiri: Logo & Nama Sekolah -->
-            <div class="flex items-center gap-3 group">
+        <div class="flex justify-between items-center h-16 sm:h-18">
+            
+            {{-- Header Kiri: Logo & Nama Sekolah --}}
+            <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 @if($pengaturanSekolah && $pengaturanSekolah->school_logo_path)
                     <div class="relative">
-                        <div class="absolute inset-0 bg-brand-primary-light/30 rounded-xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                        <div class="absolute inset-0 bg-brand-primary/30 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300"></div>
                         <img src="{{ asset('storage/' . $pengaturanSekolah->school_logo_path) }}" alt="Logo"
                             class="relative h-10 sm:h-12 w-auto object-contain drop-shadow-md">
                     </div>
+                @else
+                    <div class="w-10 h-10 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold text-lg shadow-md">
+                        <i class="fas fa-school"></i>
+                    </div>
                 @endif
                 <div>
-                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight leading-tight transition-colors duration-300"
-                        :class="scrolled ? 'text-slate-800' : 'text-white drop-shadow-md'">
-                        {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Digital' }}
+                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight leading-tight transition-colors duration-300"
+                        :class="scrolled ? 'text-slate-900' : 'text-white drop-shadow-md'">
+                        {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'Digital School' }}
                     </h1>
-                    <p class="text-xs font-medium transition-colors duration-300" :class="scrolled ? 'text-brand-primary' : 'text-brand-primary-100'">
-                        {{ request()->is('/') ? 'Sistem Informasi Terpadu' : (request()->is('perpustakaan') ? 'Perpustakaan Digital' : 'Sistem Presensi Digital') }}
+                    <p class="text-[11px] font-semibold transition-colors duration-300" :class="scrolled ? 'text-brand-primary' : 'text-amber-300'">
+                        {{ request()->is('/') ? 'Sistem Informasi Terpadu' : (request()->is('perpustakaan*') ? 'Perpustakaan Digital' : 'Sistem Presensi Digital') }}
                     </p>
                 </div>
-            </div>
+            </a>
 
-            <!-- Header Kanan: Menu Navigasi Desktop -->
-            <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 shrink-0">
+            {{-- Header Kanan: Menu Navigasi Desktop --}}
+            <nav class="hidden xl:flex items-center space-x-1 shrink-0">
+                
+                {{-- 1. Beranda --}}
                 <a href="{{ url('/') }}"
-                    class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                    :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                    <span class="flex items-center gap-1.5 whitespace-nowrap">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                        Home
-                    </span>
-                </a>
-                <a href="{{ url('/presensi') }}"
-                    class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                    :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                    <span class="flex items-center gap-1.5 whitespace-nowrap">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Presensi
-                    </span>
-                </a>
-                <a href="{{ url('/perpustakaan') }}"
-                    class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                    :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                    <span class="flex items-center gap-1.5 whitespace-nowrap">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                        Perpustakaan
+                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fas fa-home text-xs"></i> Beranda
                     </span>
                 </a>
 
+                {{-- 2. Profil (Dropdown Sub-Menu) --}}
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                        :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                        <span>Profil</span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                         @click.away="open = false"
+                         class="absolute left-0 mt-1 min-w-[230px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
+                         style="display: none;">
+                        <a href="{{ url('/') }}#tentang" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-history text-slate-400 w-4"></i> Sejarah Singkat
+                        </a>
+                        <a href="{{ url('/') }}#tentang" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-bullseye text-slate-400 w-4"></i> Visi & Misi Sekolah
+                        </a>
+                        <a href="{{ url('/') }}#sambutan" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-user-tie text-slate-400 w-4"></i> Sambutan Kepala Sekolah
+                        </a>
+                        <a href="{{ url('/') }}#tentang" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-sitemap text-slate-400 w-4"></i> Struktur Organisasi
+                        </a>
+                        <a href="{{ url('/') }}#prestasi" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
+                            <i class="fas fa-trophy text-amber-500 w-4"></i> Prestasi Sekolah
+                        </a>
+                    </div>
+                </div>
+
+                {{-- 3. Pendidik (Guru & Karyawan) --}}
+                <a href="{{ route('guru.all') }}"
+                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fas fa-chalkboard-teacher text-xs"></i> Pendidik
+                    </span>
+                </a>
+
+                {{-- 4. Layanan Publik (Dropdown Sub-Menu) --}}
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                        :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                        <span>Layanan Publik</span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                         @click.away="open = false"
+                         class="absolute left-0 mt-1 min-w-[240px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
+                         style="display: none;">
+                        <a href="{{ $linkPengaduan }}" target="{{ str_starts_with($linkPengaduan, 'http') ? '_blank' : '_self' }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-bullhorn text-amber-500 w-4"></i> Layanan Aspirasi & Pengaduan
+                        </a>
+                    </div>
+                </div>
+
+                {{-- 5. Alumni --}}
+                <a href="{{ url('/alumni') }}"
+                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fas fa-user-graduate text-xs"></i> Alumni
+                    </span>
+                </a>
+
+                {{-- 6. Presensi --}}
+                <a href="{{ url('/presensi') }}"
+                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fas fa-clock text-xs"></i> Presensi
+                    </span>
+                </a>
+
+                {{-- 7. Perpustakaan --}}
+                <a href="{{ url('/perpustakaan') }}"
+                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fas fa-book-reader text-xs"></i> Perpustakaan
+                    </span>
+                </a>
+
+                {{-- Separator --}}
+                <div class="h-5 w-px mx-1.5" :class="scrolled ? 'bg-slate-200' : 'bg-white/20'"></div>
+
+                {{-- 8. Login & Status Autentikasi --}}
                 @guest
-                    <a href="{{ url('/login') }}"
-                        class="relative group px-2.5 xl:px-3.5 py-2 rounded-xl font-semibold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 shrink-0"
-                        :class="scrolled ? 'text-slate-600 hover:text-brand-primary-dark hover:bg-brand-primary-50' : 'text-white/80 hover:text-white hover:bg-white/10'">
-                        <span class="flex items-center gap-1.5 whitespace-nowrap">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                            Login
-                        </span>
+                    <a href="{{ url('/pilih-portal') }}"
+                        class="px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap shadow-sm transition-all duration-200 flex items-center gap-1.5"
+                        :class="scrolled ? 'bg-brand-primary hover:opacity-90 text-white shadow-brand-primary/20' : 'bg-white text-slate-900 hover:bg-amber-300'">
+                        <i class="fas fa-sign-in-alt"></i> Login
                     </a>
                 @endguest
 
@@ -72,21 +170,19 @@
                         $accessiblePortals = $authUser->getAccessiblePortals();
                     @endphp
 
-                    <!-- User Profile & Logout Dropdown -->
-                    <div class="relative ml-1 xl:ml-2 shrink-0" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
+                    {{-- User Profile Dropdown --}}
+                    <div class="relative shrink-0" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
                         <button @click="userMenuOpen = !userMenuOpen" 
-                                class="flex items-center gap-2 py-1.5 px-2.5 xl:px-3 rounded-xl transition-all duration-200 border whitespace-nowrap shrink-0"
+                                class="flex items-center gap-2 py-1.5 px-3 rounded-xl transition-all duration-200 border whitespace-nowrap shrink-0"
                                 :class="scrolled ? 'bg-slate-100 border-slate-200 text-slate-800 hover:bg-slate-200' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'">
-                            <div class="w-7 h-7 rounded-lg bg-brand-primary text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
+                            <div class="w-7 h-7 rounded-lg bg-brand-primary text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
                                 {{ strtoupper(substr($authName, 0, 1)) }}
                             </div>
                             <div class="flex flex-col text-left whitespace-nowrap">
-                                <span class="text-xs font-bold leading-tight truncate max-w-[100px] xl:max-w-[130px] whitespace-nowrap">{{ $authName }}</span>
+                                <span class="text-xs font-bold leading-tight truncate max-w-[110px] whitespace-nowrap">{{ $authName }}</span>
                                 <span class="text-[10px] opacity-75 font-medium leading-none whitespace-nowrap">{{ $authRole }}</span>
                             </div>
-                            <svg class="w-3.5 h-3.5 opacity-75 transition-transform duration-200 shrink-0" :class="{ 'rotate-180': userMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }"></i>
                         </button>
 
                         <div x-show="userMenuOpen" 
@@ -103,7 +199,7 @@
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Login Sebagai:</p>
                                 <p class="text-sm font-bold text-slate-900 truncate">{{ $authName }}</p>
                                 <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary-50 text-brand-primary border border-brand-primary-100">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-brand-primary border border-emerald-100">
                                         {{ $authRole }}
                                     </span>
                                     @if($authUser->email)
@@ -119,23 +215,11 @@
                                         <a href="{{ url('/pilih-portal') }}" class="text-[10px] font-bold text-brand-primary hover:underline">Semua Portal</a>
                                     @endif
                                 </div>
-                                <div class="max-h-60 overflow-y-auto space-y-1 pr-0.5">
+                                <div class="max-h-60 overflow-y-auto space-y-1 pr-0.5 custom-scrollbar">
                                     @forelse($accessiblePortals as $portal)
-                                        <a href="{{ $portal['url'] }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 p-2 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/50 text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all">
-                                            <div class="p-1.5 rounded-lg {{ $portal['icon_bg'] ?? 'bg-indigo-100 text-indigo-600' }} shrink-0">
-                                                @if(($portal['icon'] ?? '') === 'shield')
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                                @elseif(($portal['icon'] ?? '') === 'user-group')
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                                @elseif(($portal['icon'] ?? '') === 'clock')
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                @elseif(($portal['icon'] ?? '') === 'book')
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                                @elseif(($portal['icon'] ?? '') === 'academic-cap')
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
-                                                @else
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                                @endif
+                                        <a href="{{ $portal['url'] }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 p-2 rounded-xl border border-transparent hover:border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all">
+                                            <div class="w-6 h-6 rounded-lg {{ $portal['icon_bg'] ?? 'bg-emerald-100 text-brand-primary' }} flex items-center justify-center shrink-0 text-xs">
+                                                <i class="fas fa-external-link-alt text-[10px]"></i>
                                             </div>
                                             <div class="flex flex-col text-left truncate">
                                                 <span class="truncate leading-tight">{{ $portal['name'] }}</span>
@@ -152,51 +236,40 @@
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
                                     <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
-                                        <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                        <i class="fas fa-sign-out-alt text-rose-500"></i>
                                         Keluar (Logout)
                                     </button>
                                 </form>
                             </div>
                         </div>
                     </div>
-                @endauth
 
-                <!-- Action Buttons: Presensi Digital & Cari Buku -->
-                @auth
+                    {{-- Tombol Presensi Digital (Hanya untuk Guru / Petugas / Admin) --}}
                     @if(!$authUser->hasRole('siswa'))
-                        <div class="flex items-center gap-2 ml-2 xl:ml-3">
-                            @if($authUser->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas']))
-                                <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}"
-                                    class="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary-light hover:to-brand-secondary-light text-white px-3 xl:px-4 py-2.5 rounded-xl font-bold text-xs xl:text-sm whitespace-nowrap shrink-0 shadow-lg shadow-brand-primary/30 transition-all duration-300 transform hover:scale-105 hover:shadow-brand-primary/50">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                                    Presensi Digital
-                                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse ml-1 shrink-0"></span>
-                                </a>
-                            @endif
-
-                            @if($authUser->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin']))
-                                <a href="{{ route('perpustakaan.kunjungan') }}"
-                                    class="flex items-center gap-2 bg-gradient-to-r from-brand-secondary to-brand-accent hover:from-brand-secondary-light hover:to-brand-accent-light text-white px-3 xl:px-4 py-2.5 rounded-xl font-bold text-xs xl:text-sm whitespace-nowrap shrink-0 shadow-lg shadow-brand-secondary/30 transition-all duration-300 transform hover:scale-105 hover:shadow-brand-secondary/50">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    Kunjungan Perpus
-                                </a>
-                            @endif
-                        </div>
+                        @if($authUser->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas', 'guru']))
+                            <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}"
+                                class="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white px-3.5 py-2 rounded-xl font-bold text-xs whitespace-nowrap shrink-0 shadow-md shadow-brand-primary/20 transition-all transform hover:scale-105">
+                                <i class="fas fa-qrcode text-sm"></i>
+                                Presensi Digital
+                                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse ml-0.5 shrink-0"></span>
+                            </a>
+                        @endif
                     @endif
                 @endauth
+
             </nav>
 
-            <!-- Mobile Menu Button -->
-            <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl transition-all duration-200 cursor-pointer"
-                :class="scrolled ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'"
+            {{-- Mobile Hamburger Button --}}
+            <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="xl:hidden p-2 rounded-xl transition-all duration-200 cursor-pointer"
+                :class="scrolled ? 'text-slate-800 hover:bg-slate-100' : 'text-white hover:bg-white/10'"
                 aria-label="Menu Navigasi">
-                <svg x-show="!mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                <svg x-show="mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i x-show="!mobileMenuOpen" class="fas fa-bars text-xl"></i>
+                <i x-show="mobileMenuOpen" class="fas fa-times text-xl" style="display: none;"></i>
             </button>
         </div>
     </div>
 
-    <!-- Mobile Dropdown Menu -->
+    {{-- Mobile Menu Drawer --}}
     <div x-show="mobileMenuOpen" 
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 -translate-y-2"
@@ -204,108 +277,106 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 -translate-y-2"
-         class="lg:hidden absolute top-full left-0 w-full backdrop-blur-xl border-b shadow-xl transition-colors duration-300 overflow-y-auto max-h-[80vh]"
-         :class="scrolled ? 'bg-white/95 border-slate-200' : 'bg-slate-950/90 border-white/10'"
+         class="xl:hidden absolute top-full left-0 w-full backdrop-blur-2xl border-b shadow-2xl transition-colors duration-300 overflow-y-auto max-h-[85vh]"
+         :class="scrolled ? 'bg-white/95 border-slate-200 text-slate-800' : 'bg-slate-950/95 border-white/10 text-white'"
          style="display: none;">
-        <div class="px-4 pt-2 pb-6 space-y-2">
-            <a href="{{ url('/') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-               :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                Home
-            </a>
-            <a href="{{ url('/presensi') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-               :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                Presensi
-            </a>
-            <a href="{{ url('/perpustakaan') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-               :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                Perpustakaan
+        
+        <div class="px-5 pt-3 pb-8 space-y-1.5">
+            
+            {{-- 1. Beranda --}}
+            <a href="{{ url('/') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                <i class="fas fa-home w-5 text-brand-primary"></i> Beranda
             </a>
 
-            @guest
-                <a href="{{ url('/login') }}" class="block px-4 py-3 rounded-xl font-semibold transition-colors"
-                   :class="scrolled ? 'text-slate-700 hover:bg-brand-primary-50 hover:text-brand-primary' : 'text-slate-200 hover:bg-white/10 hover:text-white'">
-                    Login
-                </a>
-            @endguest
+            {{-- 2. Profil (Accordion) --}}
+            <div>
+                <button type="button" @click="mobileProfilOpen = !mobileProfilOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                    :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                    <span class="flex items-center gap-2"><i class="fas fa-school w-5 text-brand-primary"></i> Profil</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileProfilOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="mobileProfilOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
+                    <a href="{{ url('/') }}#tentang" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Sejarah Singkat</a>
+                    <a href="{{ url('/') }}#tentang" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Visi & Misi Sekolah</a>
+                    <a href="{{ url('/') }}#sambutan" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Sambutan Kepala Sekolah</a>
+                    <a href="{{ url('/') }}#tentang" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Struktur Organisasi</a>
+                    <a href="{{ url('/') }}#prestasi" class="block py-2 text-xs font-semibold text-amber-400">Prestasi Sekolah</a>
+                </div>
+            </div>
 
-            @auth
-                @php
-                    $authUser = Auth::user();
-                    $authName = $authUser->display_name;
-                    $authRole = $authUser->role_badge;
-                    $accessiblePortals = $authUser->getAccessiblePortals();
-                @endphp
+            {{-- 3. Pendidik --}}
+            <a href="{{ route('guru.all') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                <i class="fas fa-chalkboard-teacher w-5 text-brand-primary"></i> Pendidik (PTK)
+            </a>
 
-                <div class="pt-3 border-t space-y-2" :class="scrolled ? 'border-slate-200' : 'border-white/10'">
-                    <div class="px-4 py-2.5 rounded-xl" :class="scrolled ? 'bg-brand-primary/10' : 'bg-white/10'">
-                        <p class="text-[10px] uppercase font-bold" :class="scrolled ? 'text-slate-400' : 'text-slate-400'">Login Sebagai:</p>
-                        <p class="text-sm font-bold" :class="scrolled ? 'text-slate-800' : 'text-white'">{{ $authName }}</p>
-                        <span class="inline-block mt-0.5 text-xs font-semibold" :class="scrolled ? 'text-brand-primary' : 'text-brand-primary-light'">{{ $authRole }}</span>
+            {{-- 4. Layanan Publik (Accordion) --}}
+            <div>
+                <button type="button" @click="mobileLayananOpen = !mobileLayananOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                    :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                    <span class="flex items-center gap-2"><i class="fas fa-concierge-bell w-5 text-brand-primary"></i> Layanan Publik</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileLayananOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="mobileLayananOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
+                    <a href="{{ $linkPengaduan }}" target="{{ str_starts_with($linkPengaduan, 'http') ? '_blank' : '_self' }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">
+                        Layanan Aspirasi & Pengaduan
+                    </a>
+                </div>
+            </div>
+
+            {{-- 5. Alumni --}}
+            <a href="{{ url('/alumni') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                <i class="fas fa-user-graduate w-5 text-brand-primary"></i> Alumni
+            </a>
+
+            {{-- 6. Presensi --}}
+            <a href="{{ url('/presensi') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                <i class="fas fa-clock w-5 text-brand-primary"></i> Presensi
+            </a>
+
+            {{-- 7. Perpustakaan --}}
+            <a href="{{ url('/perpustakaan') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                <i class="fas fa-book-reader w-5 text-brand-primary"></i> Perpustakaan
+            </a>
+
+            {{-- Auth Box Mobile --}}
+            <div class="pt-4 mt-4 border-t" :class="scrolled ? 'border-slate-200' : 'border-white/10'">
+                @guest
+                    <a href="{{ url('/pilih-portal') }}" class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm bg-brand-primary text-white shadow-md">
+                        <i class="fas fa-sign-in-alt"></i> Masuk / Login
+                    </a>
+                @endguest
+
+                @auth
+                    <div class="p-3.5 rounded-2xl mb-3" :class="scrolled ? 'bg-slate-100' : 'bg-white/10'">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Login Sebagai:</p>
+                        <p class="text-sm font-bold truncate">{{ $authName }}</p>
+                        <span class="inline-block mt-0.5 text-xs font-semibold text-brand-primary">{{ $authRole }}</span>
                     </div>
 
-                    <div class="flex items-center justify-between px-1 mt-2">
-                        <p class="text-[10px] font-bold uppercase" :class="scrolled ? 'text-slate-400' : 'text-slate-400'">Pintasan Akses:</p>
-                        @if(count($accessiblePortals) > 1)
-                            <a href="{{ url('/pilih-portal') }}" class="text-[10px] font-bold text-brand-primary hover:underline">Semua Portal</a>
-                        @endif
-                    </div>
-                    <div class="space-y-1.5">
-                        @forelse($accessiblePortals as $portal)
-                            <a href="{{ $portal['url'] }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all" :class="scrolled ? 'border-slate-100 hover:bg-slate-50 text-slate-700' : 'border-white/10 hover:bg-white/5 text-slate-200'">
-                                <div class="w-5 h-5 flex items-center justify-center shrink-0">
-                                    @if(($portal['icon'] ?? '') === 'shield')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                    @elseif(($portal['icon'] ?? '') === 'user-group')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                    @elseif(($portal['icon'] ?? '') === 'clock')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    @elseif(($portal['icon'] ?? '') === 'book')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                    @elseif(($portal['icon'] ?? '') === 'academic-cap')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
-                                    @else
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                    @endif
-                                </div>
-                                <div class="flex flex-col text-left truncate">
-                                    <span class="truncate leading-tight">{{ $portal['name'] }}</span>
-                                    <span class="text-[9px] opacity-75 font-normal leading-none mt-0.5">{{ $portal['badge'] }}</span>
-                                </div>
+                    @if(!$authUser->hasRole('siswa'))
+                        @if($authUser->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas', 'guru']))
+                            <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" 
+                               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md mb-2">
+                                <i class="fas fa-qrcode"></i> Presensi Digital
                             </a>
-                        @empty
-                            <p class="text-xs text-slate-400 p-2 text-center">Tidak ada pintasan aktif.</p>
-                        @endforelse
-                    </div>
+                        @endif
+                    @endif
 
-                    <form action="{{ route('logout') }}" method="POST" class="mt-3">
+                    <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full text-left px-4 py-3 rounded-xl font-bold flex items-center justify-between transition-colors"
-                                :class="scrolled ? 'text-rose-600 bg-rose-50 hover:bg-rose-100' : 'text-rose-400 bg-rose-500/10 hover:bg-rose-500/20'">
-                            Keluar (Logout)
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        <button type="submit" class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between text-rose-500 hover:bg-rose-50/20 transition-colors">
+                            <span>Keluar (Logout)</span>
+                            <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </form>
-                </div>
-            @endauth
+                @endauth
+            </div>
 
-            @auth
-                @if(!$authUser->hasRole('siswa'))
-                    <div class="grid grid-cols-1 gap-2 mt-4 pt-4 border-t" :class="scrolled ? 'border-slate-200' : 'border-white/10'">
-                        @if($authUser->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin']))
-                            <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" class="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-4 py-3 rounded-xl font-bold shadow-md shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-shadow">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                                Presensi Digital
-                            </a>
-                        @endif
-                        @if($authUser->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin']))
-                            <a href="{{ route('perpustakaan.kunjungan') }}" class="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-secondary to-brand-accent text-white px-4 py-3 rounded-xl font-bold shadow-md shadow-brand-secondary/20 hover:shadow-brand-secondary/40 transition-shadow">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                Kunjungan Perpus
-                            </a>
-                        @endif
-                    </div>
-                @endif
-            @endauth
         </div>
     </div>
 </header>

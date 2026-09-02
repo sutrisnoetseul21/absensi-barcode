@@ -33,6 +33,15 @@ class GuruForm
                     ->required()
                     ->maxLength(255),
 
+                Select::make('jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->options([
+                        'L' => 'Laki-laki',
+                        'P' => 'Perempuan',
+                    ])
+                    ->nullable()
+                    ->native(false),
+
                 TextInput::make('nip')
                     ->label('NIP')
                     ->placeholder('Nomor Induk Pegawai (opsional)')
@@ -65,6 +74,18 @@ class GuruForm
                         };
                     })
                     ->helperText('Format bebas, otomatis dinormalisasi ke 62xxx.')
+                    ->nullable(),
+
+                TextInput::make('facebook_url')
+                    ->label('Link Facebook')
+                    ->placeholder('https://facebook.com/username')
+                    ->url()
+                    ->nullable(),
+                    
+                TextInput::make('instagram_url')
+                    ->label('Link Instagram')
+                    ->placeholder('https://instagram.com/username')
+                    ->url()
                     ->nullable(),
 
                 TextInput::make('email')

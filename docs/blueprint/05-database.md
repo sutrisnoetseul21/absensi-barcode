@@ -507,3 +507,68 @@ invalid_scan_logs (standalone)
 > `no_hp` untuk akun dengan profil Guru/Siswa diambil dari tabel `teachers`/`students` (single source of truth). `users.no_hp` hanya dipakai untuk akun staff murni tanpa profil akademik. Disimpan dalam format normalisasi 62xxx (tanpa + atau 0 di depan) via model mutator, untuk kesiapan integrasi WA Gateway.
 
 **Index wajib:** `students.barcode_code` (unique), `students.nisn` (unique), `attendances.[class_id, academic_year_id, date]`
+
+---
+
+## Modul Profil Sekolah (Web Publik) - NEW ERP
+
+> Karena kebutuhan konten publik cukup banyak, modul Web Publik dipisah ke beberapa tabel agar terstruktur dan sesuai standar *Loose Coupling* ERP.
+
+### `web_settings` (Singleton)
+```
+- id (unsignedBigInteger, primary)
+- hero_image (string, nullable)
+- running_text (text, nullable)
+- nama_kepsek (string, nullable)
+- foto_kepsek (string, nullable)
+- sambutan_kepsek (text, nullable)
+- link_youtube (string, nullable)     → Link embed video Youtube
+- link_tiktok (string, nullable)      → Link embed video Tiktok
+- link_ig (string, nullable)
+- link_fb (string, nullable)
+- link_pengaduan (string, nullable)   → Link WA atau Form Layanan Pengaduan
+- stat_tenaga_kependidikan (integer)  → Input manual jika TU/Staff tidak ada di tabel Teacher
+- timestamps()
+```
+> **Catatan:** Untuk statistik (Jumlah Siswa, Pendidik, Rombel), sistem akan mengambil **langsung** dari tabel `students`, `teachers`, dan `classes` secara dinamis (otomatis terupdate).
+
+### `web_sarpras`
+```
+- id (uuid, primary)
+- nama_fasilitas (string)
+- foto (string, nullable)
+- deskripsi (string, nullable)
+- urutan (integer) default 0
+- timestamps()
+```
+
+### `web_artikels` (Berita & Pengumuman Publik)
+```
+- id (uuid, primary)
+- judul (string)
+- slug (string, unique)
+- tipe (enum: 'berita', 'pengumuman')
+- konten (text)
+- thumbnail (string, nullable)
+- is_published (boolean) default true
+- timestamps()
+```
+
+### `web_galeris`
+```
+- id (uuid, primary)
+- judul (string, nullable)
+- foto_path (string)
+- urutan (integer) default 0
+- timestamps()
+```
+
+### `web_widgets` (Link Terkait / Dapodik)
+```
+- id (uuid, primary)
+- nama_widget (string)
+- url_link (string)
+- icon (string, nullable) → Nama icon (misal: 'heroicon-o-link')
+- urutan (integer) default 0
+- timestamps()
+```

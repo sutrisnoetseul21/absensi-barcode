@@ -74,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
                 'Akademik',
                 'Presensi',
                 'Perpustakaan',
+                'Web Profil Sekolah',
                 'Pengaturan Sistem',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
