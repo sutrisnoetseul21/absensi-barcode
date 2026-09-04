@@ -6,9 +6,6 @@
     <title>{{ $pengaduanSetting->banner_title ?? 'Layanan Aspirasi & Pengaduan' }} — {{ $sekolah?->school_name ?? 'Sekolah' }}</title>
     <meta name="description" content="{{ $pengaduanSetting->banner_text ?? 'Layanan Aspirasi dan Pengaduan Online Sekolah' }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>

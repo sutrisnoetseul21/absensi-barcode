@@ -48,17 +48,28 @@ class SiswaLogin extends Component
 
             $student = $user->student;
             
-            // Cek apakah siswa punya enrollment aktif di tahun ajaran aktif
-            $hasActiveEnrollment = $student->enrollmentAktif()->exists();
-
-            if (!$hasActiveEnrollment) {
+            // Cek status khusus nonaktif
+            if (in_array($student->status, ['dikeluarkan', 'meninggal'])) {
                 Auth::guard('web')->logout();
                 RateLimiter::hit($key);
                 throw ValidationException::withMessages([
-                    'nisn' => 'Akun Anda tidak berstatus aktif pada tahun ajaran ini (Lulus/Pindah) atau belum didaftarkan di kelas manapun.',
+                    'nisn' => 'Akun siswa ini telah dinonaktifkan oleh pihak sekolah.',
                 ]);
             }
 
+            // Jika siswa berstatus aktif, pastikan memiliki enrollment
+            if ($student->status === 'aktif') {
+                $hasActiveEnrollment = $student->enrollmentAktif()->exists();
+                if (!$hasActiveEnrollment && !$student->enrollments()->exists()) {
+                    Auth::guard('web')->logout();
+                    RateLimiter::hit($key);
+                    throw ValidationException::withMessages([
+                        'nisn' => 'Akun Anda belum didaftarkan di kelas manapun pada tahun ajaran aktif ini.',
+                    ]);
+                }
+            }
+
+            // Siswa berstatus 'lulus' (Alumni) dan 'mutasi' diizinkan masuk ke portal khusus masing-masing!
             RateLimiter::clear($key);
             session()->regenerate();
 

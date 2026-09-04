@@ -19,9 +19,15 @@ Route::get('/', [BerandaController::class, 'index'])->name('beranda');
 Route::get('/home', [BerandaController::class, 'index'])->name('home');
 Route::get('/guru', [BerandaController::class, 'guru'])->name('guru.all');
 Route::get('/direktori-guru', [BerandaController::class, 'guru'])->name('beranda.guru');
+Route::get('/berita', [BerandaController::class, 'berita'])->name('berita.all');
+Route::get('/pengumuman', [BerandaController::class, 'pengumuman'])->name('pengumuman.all');
+Route::get('/prestasi', [BerandaController::class, 'prestasi'])->name('prestasi.all');
+Route::get('/galeri', [BerandaController::class, 'galeri'])->name('galeri.all');
 Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beranda.artikel');
 Route::get('/pengaduan', [BerandaController::class, 'pengaduan'])->name('pengaduan.index');
 Route::post('/pengaduan', [BerandaController::class, 'pengaduanStore'])->name('pengaduan.store')->middleware('throttle:30,1');
+Route::get('/alumni', [BerandaController::class, 'alumni'])->name('alumni.index');
+Route::post('/alumni', [BerandaController::class, 'alumniStore'])->name('alumni.store')->middleware('throttle:30,1');
 
 // ERP Portal Route (lama, dipertahankan)
 Route::get('/erp-portal', fn() => view('erp-portal'))->name('erp.portal');
@@ -297,6 +303,28 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
             request()->session()->regenerateToken();
             return redirect('/');
         })->name('portal-siswa.logout');
+    });
+});
+
+// Portal Web Sekolah Routes
+Route::prefix('portal-web')->group(function () {
+    Route::get('/login', \App\Livewire\PortalWeb\Login::class)->middleware('guest')->name('portal-web.login');
+
+    Route::middleware('auth.web')->group(function () {
+        Route::get('/', \App\Livewire\PortalWeb\Dashboard::class)->name('portal-web.dashboard');
+        Route::get('/artikel', \App\Livewire\PortalWeb\Artikel::class)->name('portal-web.artikel');
+        Route::get('/prestasi', \App\Livewire\PortalWeb\Prestasi::class)->name('portal-web.prestasi');
+        Route::get('/galeri', \App\Livewire\PortalWeb\Galeri::class)->name('portal-web.galeri');
+        Route::get('/alumni', \App\Livewire\PortalWeb\Alumni::class)->name('portal-web.alumni');
+        Route::get('/pelayanan', \App\Livewire\PortalWeb\Pelayanan::class)->name('portal-web.pelayanan');
+        Route::get('/pengaturan', \App\Livewire\PortalWeb\Pengaturan::class)->name('portal-web.pengaturan');
+
+        Route::post('/logout', function () {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/');
+        })->name('portal-web.logout');
     });
 });
 

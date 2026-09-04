@@ -14,12 +14,6 @@
         @endphp
         <link rel="icon" type="image/png" href="{{ $favicon }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         @php
@@ -56,12 +50,18 @@
             $user = Auth::guard('web')->user();
             $isPerpusRoute = request()->is('portal-perpustakaan*');
             $isPresensiRoute = request()->is('portal-presensi*') && !request()->is('portal-presensi/scan*');
+            $isWebRoute = request()->is('portal-web*');
 
             if($user && $user->hasRole('siswa')) {
                 $logoutRoute = route('portal-siswa.logout');
                 $userRole = 'Siswa';
                 $userName = $user->student?->nama ?? $user->name;
                 $activeDashboard = route('portal-siswa.dashboard');
+            } elseif($isWebRoute || ($user && $user->hasRole('admin_portal_web'))) {
+                $logoutRoute = route('portal-web.logout');
+                $userRole = 'Admin Web';
+                $userName = $user?->name ?? 'Admin';
+                $activeDashboard = route('portal-web.dashboard');
             } elseif($user && $user->hasRole('wali_kelas') && !$isPerpusRoute) {
                 $logoutRoute = route('portal-guru.logout');
                 $userRole = 'Guru';
@@ -132,7 +132,72 @@
             <!-- Sidebar Navigation -->
             <div class="flex-1 overflow-y-auto py-6 space-y-1.5 bg-white transition-all duration-300" :class="isCollapsed ? 'px-2' : 'px-4'">
                 
-                @if($isPerpusRoute)
+                @if($isWebRoute)
+                    @php
+                        $isDashboard  = request()->routeIs('portal-web.dashboard');
+                        $isArtikel    = request()->routeIs('portal-web.artikel');
+                        $isPrestasi   = request()->routeIs('portal-web.prestasi');
+                        $isGaleri     = request()->routeIs('portal-web.galeri');
+                        $isAlumni     = request()->routeIs('portal-web.alumni');
+                        $isPelayanan  = request()->routeIs('portal-web.pelayanan');
+                        $isPengaturan = request()->routeIs('portal-web.pengaturan');
+                        $activeClass  = 'bg-violet-50 text-violet-700 font-bold border-r-2 border-violet-600';
+                        $inactiveClass = 'text-slate-600 hover:bg-violet-50 hover:text-violet-700 font-semibold';
+                    @endphp
+
+                    {{-- SIDEBAR PORTAL WEB --}}
+                    <a href="{{ route('portal-web.dashboard') }}" :title="isCollapsed ? 'Dashboard Web' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isDashboard ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Dashboard Web</span>
+                    </a>
+
+                    <a href="{{ route('portal-web.artikel') }}" :title="isCollapsed ? 'Artikel & Pengumuman' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isArtikel ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Artikel & Pengumuman</span>
+                    </a>
+
+                    <a href="{{ route('portal-web.prestasi') }}" :title="isCollapsed ? 'Prestasi Sekolah' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPrestasi ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Prestasi Sekolah</span>
+                    </a>
+
+                    <a href="{{ route('portal-web.galeri') }}" :title="isCollapsed ? 'Galeri Foto' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isGaleri ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Galeri Foto</span>
+                    </a>
+
+                    <a href="{{ route('portal-web.alumni') }}" :title="isCollapsed ? 'Data Alumni' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isAlumni ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Data Alumni</span>
+                    </a>
+
+                    <a href="{{ route('portal-web.pelayanan') }}" :title="isCollapsed ? 'Pelayanan Publik' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPelayanan ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Pelayanan Publik</span>
+                    </a>
+
+                    <a href="{{ route('portal-web.pengaturan') }}" :title="isCollapsed ? 'Pengaturan Web' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPengaturan ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Pengaturan Web</span>
+                    </a>
+
+                    <!-- Divider & Link ke web publik -->
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <a href="{{ url('/') }}" target="_blank" :title="isCollapsed ? 'Lihat Web Publik' : ''"
+                           class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm text-slate-500 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all">
+                            <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span x-show="!isCollapsed" x-transition.opacity>Lihat Web Publik</span>
+                        </a>
+                    </div>
+
+                @elseif($isPerpusRoute)
                     @php
                         $isDashboard = request()->routeIs('portal-perpustakaan.dashboard');
                         $isBuku = request()->routeIs('portal-perpustakaan.buku');
@@ -404,6 +469,7 @@
 
                 @elseif($user && $user->hasRole('siswa'))
                     @php
+                        $student = $user->student;
                         $isDashboardActive = request()->routeIs('portal-siswa.dashboard');
                         $isAkademikActive = request()->routeIs('portal-siswa.akademik');
                         $isIjinKehadiranActive = request()->routeIs('portal-siswa.ijin') || request()->routeIs('portal-siswa.ijin.form');
@@ -412,55 +478,98 @@
                         $isProfilActive = request()->routeIs('portal-siswa.profil');
                     @endphp
 
-                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Siswa</p>
+                    @if($student && $student->isLulus())
+                        {{-- ── Menu Khusus Siswa Lulus (Alumni) ── --}}
+                        <p class="px-3 text-[11px] font-bold text-emerald-500 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Portal Alumni</p>
 
-                    <!-- Menu Dashboard Utama -->
-                    <a href="{{ route('portal-siswa.dashboard') }}" :title="isCollapsed ? 'Dashboard Utama' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
-                    </a>
+                        <!-- Menu Tracer Study -->
+                        <a href="{{ route('portal-siswa.dashboard') }}" :title="isCollapsed ? 'Tracer Study Alumni' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-600' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <i class="fas fa-graduation-cap text-base"></i>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Tracer Study Alumni</span>
+                        </a>
 
-                    <!-- Menu Presensi & Akademik -->
-                    <a href="{{ route('portal-siswa.akademik') }}" :title="isCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
-                    </a>
+                        <!-- Menu Profil Saya -->
+                        <a href="{{ route('portal-siswa.profil') }}" :title="isCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <i class="fas fa-user-circle text-base"></i>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Profil Saya</span>
+                        </a>
 
-                    <!-- Menu Pengajuan Ijin -->
-                    <a href="{{ route('portal-siswa.ijin') }}" :title="isCollapsed ? 'Pengajuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isIjinKehadiranActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Pengajuan Ijin</span>
-                    </a>
+                    @elseif($student && $student->isMutasi())
+                        {{-- ── Menu Khusus Siswa Mutasi ── --}}
+                        <p class="px-3 text-[11px] font-bold text-amber-500 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Portal Siswa Mutasi</p>
 
-                    <!-- Menu Perpustakaan -->
-                    <a href="{{ route('portal-siswa.perpustakaan') }}" :title="isCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Perpustakaan</span>
-                    </a>
+                        <!-- Menu Data Mutasi -->
+                        <a href="{{ route('portal-siswa.dashboard') }}" :title="isCollapsed ? 'Data Mutasi Siswa' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-amber-600 text-white font-bold shadow-lg shadow-amber-600/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-amber-100 group-hover:text-amber-600' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <i class="fas fa-school text-base"></i>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Data Mutasi Siswa</span>
+                        </a>
 
-                    <!-- Menu Cetak Kartu Siswa Mandiri -->
-                    <a href="{{ route('portal-siswa.cetak-kartu') }}" target="_blank" :title="isCollapsed ? 'Cetak Kartu Siswa' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isCetakKartuActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isCetakKartuActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Cetak Kartu Saya</span>
-                    </a>
+                        <!-- Menu Profil Saya -->
+                        <a href="{{ route('portal-siswa.profil') }}" :title="isCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <i class="fas fa-user-circle text-base"></i>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Profil Saya</span>
+                        </a>
 
-                    <!-- Menu Profil Saya -->
-                    <a href="{{ route('portal-siswa.profil') }}" :title="isCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Profil Saya</span>
-                    </a>
+                    @else
+                        {{-- ── Menu Lengkap Siswa Aktif Reguler ── --}}
+                        <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Siswa</p>
+
+                        <!-- Menu Dashboard Utama -->
+                        <a href="{{ route('portal-siswa.dashboard') }}" :title="isCollapsed ? 'Dashboard Utama' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboardActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isDashboardActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
+                        </a>
+
+                        <!-- Menu Presensi & Akademik -->
+                        <a href="{{ route('portal-siswa.akademik') }}" :title="isCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
+                        </a>
+
+                        <!-- Menu Pengajuan Ijin -->
+                        <a href="{{ route('portal-siswa.ijin') }}" :title="isCollapsed ? 'Pengajuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isIjinKehadiranActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Pengajuan Ijin</span>
+                        </a>
+
+                        <!-- Menu Perpustakaan -->
+                        <a href="{{ route('portal-siswa.perpustakaan') }}" :title="isCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Perpustakaan</span>
+                        </a>
+
+                        <!-- Menu Cetak Kartu Siswa Mandiri -->
+                        <a href="{{ route('portal-siswa.cetak-kartu') }}" target="_blank" :title="isCollapsed ? 'Cetak Kartu Siswa' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isCetakKartuActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isCetakKartuActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Cetak Kartu Saya</span>
+                        </a>
+
+                        <!-- Menu Profil Saya -->
+                        <a href="{{ route('portal-siswa.profil') }}" :title="isCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isProfilActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isProfilActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Profil Saya</span>
+                        </a>
+                    @endif
                 @else
                     @php
                         $isDashboardActive = request()->routeIs('portal-guru.dashboard');

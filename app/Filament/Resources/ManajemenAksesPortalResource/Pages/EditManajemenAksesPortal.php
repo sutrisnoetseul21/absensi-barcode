@@ -22,6 +22,7 @@ class EditManajemenAksesPortal extends EditRecord
         $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
         $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
         $data['akses_ijin_kehadiran'] = $user->hasRole('admin_ijin_kehadiran');
+        $data['akses_portal_web'] = $user->hasRole('admin_portal_web');
 
         if ($user->hasPermissionTo('portal_guru:akses_semua_kelas')) {
             $data['mode_akses_kelas'] = 'semua_kelas';
@@ -128,6 +129,16 @@ class EditManajemenAksesPortal extends EditRecord
             if (!$user->hasRole('admin_ijin_kehadiran')) $user->assignRole('admin_ijin_kehadiran');
         } else {
             if ($user->hasRole('admin_ijin_kehadiran')) $user->removeRole('admin_ijin_kehadiran');
+        }
+
+        // 5. Kelola Portal Web Sekolah
+        $hasAksesWeb = !empty($formData['akses_portal_web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_web', 'guard_name' => 'web']);
+
+        if ($hasAksesWeb) {
+            if (!$user->hasRole('admin_portal_web')) $user->assignRole('admin_portal_web');
+        } else {
+            if ($user->hasRole('admin_portal_web')) $user->removeRole('admin_portal_web');
         }
 
     }

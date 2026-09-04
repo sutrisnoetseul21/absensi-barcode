@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baca Online: {{ $buku->judul }} - Perpustakaan</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f1f5f9; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -210,10 +210,10 @@
         <div id="pdf-canvas-wrapper"></div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="{{ asset('vendor/pdfjs/pdf.min.js') }}"></script>
     <script>
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('vendor/pdfjs/pdf.worker.min.js') }}";
 
         const pdfUrl = "{{ asset('storage/' . $buku->file_pdf) }}";
         let pdfDoc = null, currentPage = 1, totalPages = 0, scale = 1.3, rendering = false;
@@ -227,7 +227,7 @@
 
         pdfjsLib.getDocument({
             url: pdfUrl,
-            cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+            cMapUrl: "{{ asset('vendor/pdfjs/cmaps/') }}/",
             cMapPacked: true
         }).promise.then(pdf => {
             pdfDoc = pdf;

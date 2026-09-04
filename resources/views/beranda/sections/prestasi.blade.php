@@ -1,6 +1,6 @@
 {{-- ══════════════════ PRESTASI SISWA & SEKOLAH (1 KOLOM FULL) ══════════════════ --}}
 @if($prestasis->count())
-<section id="prestasi" class="mb-16 relative overflow-hidden" 
+<section id="prestasi" class="mb-16 relative overflow-hidden scroll-mt-28" 
          x-data="{ 
              modalOpen: false,
              activeItem: null,
@@ -90,6 +90,15 @@
                 </div>
             </div>
         @endforeach
+    </div>
+
+    {{-- CTA Lihat Semua Prestasi --}}
+    <div class="text-center mt-10" data-aos="fade-up">
+        <a href="{{ route('prestasi.all') }}" 
+           class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:border-brand-primary hover:text-brand-primary shadow-sm hover:shadow-md transition-all">
+            <span>Lihat Semua Prestasi</span>
+            <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
     </div>
 
     {{-- MODAL POP-UP INTERAKTIF (ALPINE.JS) --}}

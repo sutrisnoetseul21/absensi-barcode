@@ -6,9 +6,6 @@
     <title>{{ $artikel->judul }} — {{ $sekolah?->school_name ?? 'Sekolah' }}</title>
     <meta name="description" content="{{ $artikel->meta_description ?? Str::limit(strip_tags($artikel->konten), 160) }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         .prose-content img { max-width: 100%; border-radius: 1rem; margin: 1.5rem 0; }
@@ -36,7 +33,11 @@
     <nav class="flex items-center gap-2 text-xs text-slate-400 mb-8">
         <a href="{{ route('beranda') }}" class="hover:text-brand-primary transition-colors">Beranda</a>
         <span>/</span>
-        <span class="capitalize text-slate-500">{{ $artikel->tipe }}</span>
+        @if(Route::has($artikel->tipe . '.all'))
+            <a href="{{ route($artikel->tipe . '.all') }}" class="hover:text-brand-primary transition-colors capitalize text-slate-500">{{ $artikel->tipe }}</a>
+        @else
+            <span class="capitalize text-slate-500">{{ $artikel->tipe }}</span>
+        @endif
         <span>/</span>
         <span class="text-slate-700 font-semibold truncate max-w-xs">{{ $artikel->judul }}</span>
     </nav>
@@ -61,52 +62,51 @@
                 {{-- Meta Info --}}
                 <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-400 mb-8 border-b border-slate-100 pb-6">
                     <span class="flex items-center gap-2">
-                        <i class="far fa-calendar-alt text-amber-500"></i>
-                        {{ ($artikel->published_at ?? $artikel->created_at)?->isoFormat('D MMMM YYYY') }}
+                        <i class="far fa-calendar-alt text-brand-primary"></i>
+                        {{ ($artikel->published_at ?? $artikel->created_at)->isoFormat('dddd, D MMMM Y') }}
                     </span>
                     <span class="flex items-center gap-2">
-                        <i class="far fa-folder text-amber-500"></i>
-                        {{ ucfirst($artikel->tipe) }}
+                        <i class="far fa-clock text-brand-primary"></i>
+                        {{ ($artikel->published_at ?? $artikel->created_at)->format('H:i') }} WIB
                     </span>
                     <span class="flex items-center gap-2">
-                        <i class="far fa-user text-amber-500"></i>
+                        <i class="far fa-user text-brand-primary"></i>
                         Admin Sekolah
                     </span>
                 </div>
 
-                {{-- Gambar Cover Utama --}}
+                {{-- Gambar Cover / Thumbnail --}}
                 @if($artikel->thumbnail)
-                    <div class="rounded-2xl overflow-hidden mb-8 shadow-sm bg-slate-100 max-h-[450px]">
-                        <img src="{{ asset('storage/' . $artikel->thumbnail) }}" 
-                             alt="{{ $artikel->judul }}" 
-                             class="w-full h-full object-cover">
+                    <div class="mb-8 rounded-2xl overflow-hidden shadow-sm aspect-video bg-slate-100">
+                        <img src="{{ asset('storage/' . $artikel->thumbnail) }}" alt="{{ $artikel->judul }}" class="w-full h-full object-cover">
                     </div>
                 @endif
 
-                {{-- Isi Tulisan --}}
-                <div class="prose max-w-none text-slate-700 prose-content text-base sm:text-lg">
+                {{-- Konten Teks --}}
+                <div class="prose-content text-slate-700 text-sm sm:text-base leading-relaxed break-words">
                     {!! $artikel->konten !!}
                 </div>
 
-                {{-- Tombol Bagikan --}}
-                <div class="mt-12 pt-8 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h4 class="font-bold text-slate-800 text-sm mb-1">Bagikan tulisan ini:</h4>
-                        <p class="text-xs text-slate-400">Sebarkan informasi ini kepada yang lain</p>
-                    </div>
+                {{-- Tombol Kembali --}}
+                <div class="mt-12 pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                    @if(Route::has($artikel->tipe . '.all'))
+                        <a href="{{ route($artikel->tipe . '.all') }}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-brand-primary transition-colors bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-xl">
+                            <i class="fas fa-arrow-left"></i> Kembali ke Daftar {{ ucfirst($artikel->tipe) }}
+                        </a>
+                    @else
+                        <a href="{{ route('beranda') }}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-brand-primary transition-colors bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-xl">
+                            <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+                        </a>
+                    @endif
+
                     <div class="flex items-center gap-2">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all shadow-sm">
-                            <i class="fab fa-facebook-f text-sm"></i>
+                        <span class="text-xs text-slate-400 font-medium">Bagikan:</span>
+                        <a href="https://api.whatsapp.com/send?text={{ urlencode($artikel->judul . ' ' . url()->current()) }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white flex items-center justify-center text-xs transition-colors" title="Bagikan ke WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
                         </a>
-                        <a href="https://api.whatsapp.com/send?text={{ urlencode($artikel->judul . ' ' . url()->current()) }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white flex items-center justify-center transition-all shadow-sm">
-                            <i class="fab fa-whatsapp text-sm"></i>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center text-xs transition-colors" title="Bagikan ke Facebook">
+                            <i class="fab fa-facebook-f"></i>
                         </a>
-                        <a href="https://twitter.com/intent/tweet?text={{ urlencode($artikel->judul) }}&url={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-full bg-sky-50 text-sky-500 hover:bg-sky-500 hover:text-white flex items-center justify-center transition-all shadow-sm">
-                            <i class="fab fa-twitter text-sm"></i>
-                        </a>
-                        <button onclick="navigator.clipboard.writeText(window.location.href); alert('Tautan berhasil disalin!');" class="w-9 h-9 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-700 hover:text-white flex items-center justify-center transition-all shadow-sm" title="Salin Tautan">
-                            <i class="fas fa-link text-sm"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -122,7 +122,7 @@
                     <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
                         <i class="fas fa-newspaper text-brand-primary"></i> Berita Lainnya
                     </h3>
-                    <a href="{{ route('beranda') }}#berita" class="text-xs font-bold text-brand-primary hover:underline">
+                    <a href="{{ route('berita.all') }}" class="text-xs font-bold text-brand-primary hover:underline">
                         Lihat Semua
                     </a>
                 </div>

@@ -127,6 +127,14 @@ class ManajemenAksesPortalResource extends Resource
                             ->label('Izinkan Akses Manajemen Ijin Kehadiran')
                             ->helperText('Jika diaktifkan, pengguna dapat melihat dan menyetujui pengajuan ijin/sakit siswa di menu Presensi.'),
                     ])->columns(1),
+
+                Section::make('Akses Portal Web Sekolah (/portal-web)')
+                    ->description('Atur izin admin ini untuk mengelola konten web publik sekolah: berita, pengumuman, prestasi, galeri, alumni, dan layanan publik.')
+                    ->schema([
+                        Toggle::make('akses_portal_web')
+                            ->label('Izinkan Akses Portal Web Sekolah')
+                            ->helperText('Jika diaktifkan, pengguna mendapat role Admin Portal Web dan dapat mengakses command center konten web sekolah.'),
+                    ])->columns(1),
             ])
             ->statePath('data');
     }

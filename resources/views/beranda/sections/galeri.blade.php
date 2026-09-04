@@ -1,6 +1,6 @@
 {{-- ══════════════════ GALERI KEGIATAN ══════════════════ --}}
 @if($galeris->count())
-<section id="galeri" class="mb-16">
+<section id="galeri" class="mb-16 scroll-mt-28">
 
     <div class="text-center mb-10" data-aos="fade-up">
         <span class="text-brand-primary font-bold tracking-wider uppercase text-sm">Dokumentasi</span>
@@ -38,12 +38,18 @@
         @endforeach
     </div>
 
+    {{-- CTA Lihat Semua Galeri --}}
+    <div class="text-center mt-10" data-aos="fade-up">
+        <a href="{{ route('galeri.all') }}" 
+           class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:border-brand-primary hover:text-brand-primary shadow-sm hover:shadow-md transition-all">
+            <span>Lihat Semua Galeri Foto</span>
+            <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
+    </div>
+
 </section>
 @endif
 
-{{-- GLightbox CDN --}}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         GLightbox({

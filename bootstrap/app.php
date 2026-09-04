@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.siswa'    => \App\Http\Middleware\EnsureIsSiswa::class,
             'auth.perpus'   => \App\Http\Middleware\EnsureIsPetugasPerpustakaan::class,
             'auth.presensi' => \App\Http\Middleware\EnsureIsPetugasPresensi::class,
+            'auth.web'      => \App\Http\Middleware\EnsureIsAdminWeb::class,
             'maintenance'   => \App\Http\Middleware\CheckPortalMaintenance::class,
         ]);
 

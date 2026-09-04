@@ -107,18 +107,18 @@
                 </ul>
             </div>
             
-            {{-- Layanan Pengaduan & Aspirasi (4 Kolom) --}}
+            {{-- Layanan Publik (Pengaduan & Aspirasi) (4 Kolom) --}}
             <div class="md:col-span-3 lg:col-span-3">
                 <div class="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-lg">
                     <h4 class="text-white font-bold mb-2 flex items-center gap-2 text-sm">
-                        <span class="text-lg">📣</span> Layanan Pengaduan
+                        <span class="text-lg">📣</span> Layanan Publik
                     </h4>
                     <p class="text-xs text-white/80 mb-4 leading-relaxed">
                         Sampaikan masukan, saran, atau pengaduan untuk peningkatan mutu layanan sekolah.
                     </p>
                     <a href="{{ route('pengaduan.index') }}" 
                        class="block w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-center text-xs rounded-xl shadow-md transition-all">
-                        Tulis Pengaduan <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
+                        Buka Layanan Publik <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
                     </a>
                 </div>
             </div>

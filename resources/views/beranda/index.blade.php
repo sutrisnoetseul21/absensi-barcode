@@ -6,10 +6,6 @@
     <title>{{ $sekolah?->school_name ?? 'Beranda Sekolah' }}</title>
     <meta name="description" content="Portal Resmi {{ $sekolah?->school_name ?? 'Sekolah' }}. Informasi profil, fasilitas, berita, dan layanan sekolah.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -99,7 +95,6 @@
     updateClock(); setInterval(updateClock, 1000);
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if(document.querySelector('.guru-slider')) {

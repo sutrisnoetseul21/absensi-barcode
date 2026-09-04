@@ -84,12 +84,60 @@ class SiswaMutasiResource extends Resource
                             . ' (TA ' . ($lastEnrollment->tahunAjaran?->name ?? '—') . ')';
                     }),
 
+                TextColumn::make('tujuan_mutasi')
+                    ->label('Sekolah / Instansi Tujuan')
+                    ->searchable()
+                    ->placeholder('Belum diisi siswa')
+                    ->weight('semibold')
+                    ->color('primary'),
+
+                TextColumn::make('alasan_mutasi')
+                    ->label('Alasan Kepindahan')
+                    ->placeholder('-')
+                    ->limit(30)
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('tanggal_mutasi')
+                    ->label('Tgl Mutasi')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->placeholder('-'),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->color('warning'),
             ])
             ->recordActions([
+                // Update Data Tujuan Mutasi
+                Action::make('edit_tujuan_mutasi')
+                    ->label('Edit Data Mutasi')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('info')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('tujuan_mutasi')
+                            ->label('Nama Sekolah Tujuan')
+                            ->required()
+                            ->maxLength(255),
+                        \Filament\Forms\Components\DatePicker::make('tanggal_mutasi')
+                            ->label('Tanggal Mutasi'),
+                        \Filament\Forms\Components\Textarea::make('alasan_mutasi')
+                            ->label('Alasan Kepindahan')
+                            ->rows(3),
+                    ])
+                    ->fillForm(fn (Siswa $record): array => [
+                        'tujuan_mutasi' => $record->tujuan_mutasi,
+                        'tanggal_mutasi' => $record->tanggal_mutasi,
+                        'alasan_mutasi' => $record->alasan_mutasi,
+                    ])
+                    ->action(function (Siswa $record, array $data): void {
+                        $record->update($data);
+                        Notification::make()
+                            ->title('Data Mutasi Diperbarui')
+                            ->success()
+                            ->send();
+                    }),
+
                 // Kembalikan ke Aktif jika siswa kembali masuk
                 Action::make('aktifkan_kembali')
                     ->label('Aktifkan Kembali')

@@ -85,12 +85,81 @@ class SiswaLulusResource extends Resource
                             . ' (TA ' . ($lastEnrollment->tahunAjaran?->name ?? '—') . ')';
                     }),
 
+                TextColumn::make('status_melanjutkan')
+                    ->label('Melanjutkan')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state ? 'Melanjutkan' : 'Belum Terdata / Kerja')
+                    ->color(fn ($state) => $state ? 'success' : 'gray'),
+
+                TextColumn::make('jenjangLanjutan.nama_jenjang')
+                    ->label('Jenjang')
+                    ->badge()
+                    ->color('primary')
+                    ->placeholder('-'),
+
+                TextColumn::make('nama_sekolah_lanjutan')
+                    ->label('Sekolah / Kampus Lanjutan')
+                    ->searchable()
+                    ->placeholder('-')
+                    ->limit(25),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->color('success'),
             ])
             ->recordActions([
+                // Update Tracer Study
+                Action::make('edit_tracer_study')
+                    ->label('Tracer Study')
+                    ->icon('heroicon-o-academic-cap')
+                    ->color('info')
+                    ->form([
+                        \Filament\Forms\Components\Toggle::make('status_melanjutkan')
+                            ->label('Melanjutkan Pendidikan')
+                            ->reactive(),
+                        \Filament\Forms\Components\Select::make('jenjang_lanjutan_id')
+                            ->label('Jenjang Lanjutan')
+                            ->relationship('jenjangLanjutan', 'nama_jenjang')
+                            ->visible(fn ($get) => (bool) $get('status_melanjutkan')),
+                        \Filament\Forms\Components\TextInput::make('nama_sekolah_lanjutan')
+                            ->label('Nama Sekolah / Instansi Lanjutan')
+                            ->visible(fn ($get) => (bool) $get('status_melanjutkan')),
+                        \Filament\Forms\Components\TextInput::make('tahun_lulus_override')
+                            ->label('Tahun Lulus')
+                            ->numeric(),
+                    ])
+                    ->fillForm(fn (Siswa $record): array => [
+                        'status_melanjutkan' => $record->status_melanjutkan,
+                        'jenjang_lanjutan_id' => $record->jenjang_lanjutan_id,
+                        'nama_sekolah_lanjutan' => $record->nama_sekolah_lanjutan,
+                        'tahun_lulus_override' => $record->tahun_lulus_override ?? date('Y'),
+                    ])
+                    ->action(function (Siswa $record, array $data): void {
+                        $record->update($data);
+
+                        // Sinkronkan ke tabel alumnis
+                        \App\Models\Alumni::updateOrCreate(
+                            ['student_id' => $record->id],
+                            [
+                                'source' => 'sistem',
+                                'nisn' => $record->nisn,
+                                'nama' => $record->name,
+                                'jenis_kelamin' => $record->gender === 'P' ? 'P' : 'L',
+                                'tahun_lulus' => $data['tahun_lulus_override'] ?? date('Y'),
+                                'melanjutkan' => (bool) ($data['status_melanjutkan'] ?? false),
+                                'jenjang_id' => $data['status_melanjutkan'] ? ($data['jenjang_lanjutan_id'] ?? null) : null,
+                                'nama_sekolah' => $data['status_melanjutkan'] ? ($data['nama_sekolah_lanjutan'] ?? null) : null,
+                                'foto' => $record->photo_path,
+                            ]
+                        );
+
+                        Notification::make()
+                            ->title('Data Tracer Study Diperbarui')
+                            ->success()
+                            ->send();
+                    }),
+
                 // Batalkan kelulusan (kembalikan ke Aktif)
                 Action::make('batalkan_kelulusan')
                     ->label('Aktifkan Kembali')

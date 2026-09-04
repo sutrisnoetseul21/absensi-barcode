@@ -290,6 +290,22 @@ class User extends Authenticatable implements FilamentUser
             ];
         }
 
+        // 6. Portal Web Sekolah (/portal-web)
+        if ($isSuper || $this->hasRole('admin_portal_web')) {
+            $portals[] = [
+                'id'    => 'portal_web',
+                'name'  => 'Portal Web',
+                'url'   => url('/portal-web'),
+                'desc'  => 'Command center untuk mengelola artikel, berita, pengumuman, prestasi, dan halaman depan sekolah.',
+                'badge' => 'Admin Web',
+                'badge_color' => 'bg-violet-500/20 text-violet-200 border-violet-400/30',
+                'gradient' => 'from-violet-600 to-fuchsia-700',
+                'icon_bg'  => 'bg-violet-500/20 text-violet-300 group-hover:bg-violet-500 group-hover:text-white',
+                'border_hover' => 'hover:border-violet-400/50 hover:shadow-violet-500/20',
+                'icon'  => 'globe-alt',
+            ];
+        }
+
         return $portals;
     }
 

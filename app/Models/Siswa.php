@@ -53,14 +53,41 @@ class Siswa extends Authenticatable
         'nama_wali',
         'pekerjaan_wali',
         'no_hp_orang_tua',
+        // Data Mutasi
+        'tujuan_mutasi',
+        'alasan_mutasi',
+        'tanggal_mutasi',
+        // Data Tracer Study (Alumni)
+        'status_melanjutkan',
+        'jenjang_lanjutan_id',
+        'nama_sekolah_lanjutan',
+        'tahun_lulus_override',
     ];
 
     protected $casts = [
-        'birth_date'     => 'date',
-        'admission_date' => 'date',
-        'status'         => 'string',
-        'child_order'    => 'integer',
+        'birth_date'          => 'date',
+        'admission_date'      => 'date',
+        'tanggal_mutasi'      => 'date',
+        'status_melanjutkan'  => 'boolean',
+        'tahun_lulus_override'=> 'integer',
+        'status'              => 'string',
+        'child_order'         => 'integer',
     ];
+
+    public function jenjangLanjutan(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\AlumniJenjang::class, 'jenjang_lanjutan_id');
+    }
+
+    public function isLulus(): bool
+    {
+        return $this->status === 'lulus';
+    }
+
+    public function isMutasi(): bool
+    {
+        return in_array($this->status, ['mutasi', 'mutasi_keluar']);
+    }
 
     public function user()
     {

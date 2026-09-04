@@ -15,10 +15,16 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@fontsource/inter": "^5.3.0",
+        "@fontsource/plus-jakarta-sans": "^5.3.0",
+        "@fortawesome/fontawesome-free": "^7.3.1",
         "@fullcalendar/core": "^6.1.21",
         "@fullcalendar/daygrid": "^6.1.21",
         "@fullcalendar/interaction": "^6.1.21",
         "chart.js": "^4.5.1",
-        "html5-qrcode": "^2.3.8"
+        "glightbox": "^3.3.1",
+        "html5-qrcode": "^2.3.8",
+        "pdfjs-dist": "^3.11.174",
+        "swiper": "^14.2.0"
     }
 }

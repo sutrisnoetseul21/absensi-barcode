@@ -1,5 +1,5 @@
 {{-- ══════════════════ BERITA & PENGUMUMAN (2 KOLOM SEJAJAR) ══════════════════ --}}
-<section id="berita" class="mb-16">
+<section id="berita" class="mb-16 scroll-mt-28">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
         
         {{-- Kolom Kiri: Berita Terbaru (Mini Berita) --}}
@@ -12,6 +12,9 @@
                     </div>
                     <h3 class="font-bold text-slate-800 text-lg leading-tight">Berita Terbaru</h3>
                 </div>
+                <a href="{{ route('berita.all') }}" class="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1">
+                    Semua Berita <i class="fas fa-arrow-right text-[10px]"></i>
+                </a>
             </div>
             
             {{-- Konten Daftar Berita --}}
@@ -57,12 +60,18 @@
         </div>
 
         {{-- Kolom Kanan: Pengumuman Terbaru --}}
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 border-t-4 border-t-brand-primary p-6 md:p-8 flex flex-col h-full">
+        <div id="pengumuman" class="scroll-mt-28 bg-white rounded-3xl shadow-sm border border-slate-100 border-t-4 border-t-brand-primary p-6 md:p-8 flex flex-col h-full">
             {{-- Header Pengumuman --}}
-            <div class="text-center mb-6 pb-2">
-                <span class="text-brand-primary font-bold tracking-wider uppercase text-xs">Informasi Penting</span>
-                <h3 class="text-xl font-bold text-slate-800 mt-1">Pengumuman Terbaru</h3>
-                <div class="w-16 h-1 bg-brand-primary mx-auto mt-2 rounded-full"></div>
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-lg leading-tight">Pengumuman Terbaru</h3>
+                </div>
+                <a href="{{ route('pengumuman.all') }}" class="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1">
+                    Semua Pengumuman <i class="fas fa-arrow-right text-[10px]"></i>
+                </a>
             </div>
 
             {{-- Konten Daftar Pengumuman --}}
