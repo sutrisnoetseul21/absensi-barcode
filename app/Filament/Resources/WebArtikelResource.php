@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WebArtikelResource\Pages;
 use App\Models\WebArtikel;
+use App\Filament\Components\TinyEditor;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -38,7 +39,11 @@ class WebArtikelResource extends Resource
                         'pengumuman' => 'Pengumuman',
                     ])
                     ->required(),
-                Forms\Components\RichEditor::make('konten')
+                TinyEditor::make('konten')
+                    ->label('Konten Artikel / Pengumuman')
+                    ->helperText('Tuliskan isi artikel lengkap dengan format teks, gambar, tabel, atau video.')
+                    ->height(450)
+                    ->uploadDirectory('web-artikel/editor')
                     ->required()
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('thumbnail')
@@ -87,7 +92,8 @@ class WebArtikelResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
+                \Filament\Actions\EditAction::make()
+                    ->modalWidth('5xl'),
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

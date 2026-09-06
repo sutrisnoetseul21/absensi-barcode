@@ -25,7 +25,7 @@ class Dashboard extends Component
         $totalPrestasi   = WebArtikel::where('tipe', 'prestasi')->where('is_published', true)->count();
         $totalGaleri     = WebGaleri::count();
         $totalAlumni     = Alumni::count();
-        $totalPelayanan  = WebQuickLink::where('is_active', true)->count();
+        $totalAksesCepat = WebQuickLink::where('is_active', true)->count();
 
         // Konten terbaru
         $artikelTerbaru  = WebArtikel::whereIn('tipe', ['berita', 'pengumuman'])
@@ -58,7 +58,7 @@ class Dashboard extends Component
             'totalPrestasi'   => $totalPrestasi,
             'totalGaleri'     => $totalGaleri,
             'totalAlumni'     => $totalAlumni,
-            'totalPelayanan'  => $totalPelayanan,
+            'totalAksesCepat' => $totalAksesCepat,
             'artikelTerbaru'  => $artikelTerbaru,
             'presensiHariIni' => $presensiHariIni,
         ])->title('Dashboard Portal Web');

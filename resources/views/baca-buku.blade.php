@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baca Online: {{ $buku->judul }} - Perpustakaan</title>
+    @php
+        $sekolah = \App\Models\PengaturanSekolah::current();
+        $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }

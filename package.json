@@ -25,6 +25,8 @@
         "glightbox": "^3.3.1",
         "html5-qrcode": "^2.3.8",
         "pdfjs-dist": "^3.11.174",
-        "swiper": "^14.2.0"
+        "swiper": "^14.2.0",
+        "tinymce": "^8.9.0",
+        "trix": "^2.1.19"
     }
 }

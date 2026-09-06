@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prestasi Siswa & Sekolah — {{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    <title>{{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    @php
+        $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     <meta name="description" content="Hall of Fame dan catatan prestasi membanggakan yang diraih siswa-siswi serta sekolah {{ $sekolah?->school_name ?? 'Sekolah' }}.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -17,6 +21,7 @@
             }
         </style>
     @endif
+    @livewireStyles
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col"
       x-data="{ 
@@ -110,7 +115,7 @@
                      title: '{{ addslashes($item->judul) }}',
                      date: '{{ ($item->published_at ?? $item->created_at)?->isoFormat('D MMMM YYYY') }}',
                      img: '{{ $item->thumbnail ? asset('storage/' . $item->thumbnail) : '' }}',
-                     desc: '{{ addslashes(strip_tags($item->konten)) }}',
+                     desc: {{ json_encode(strip_tags($item->konten)) }},
                      link: '{{ route('beranda.artikel', $item->slug) }}'
                  })">
                 
@@ -251,5 +256,6 @@
 {{-- ══════════════════ FOOTER ══════════════════ --}}
 @include('beranda.sections.footer')
 
+@livewireScripts
 </body>
 </html>

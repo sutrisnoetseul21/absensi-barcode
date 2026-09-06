@@ -33,6 +33,6 @@ class PortalPresensiDashboard extends Component
             'izin' => $izin,
             'sakit' => $sakit,
             'alpa' => $alpa,
-        ])->title('Dashboard Portal Absensi');
+        ])->title('Dashboard Portal Presensi');
     }
 }

@@ -15,6 +15,16 @@
         <link rel="icon" type="image/png" href="{{ $favicon }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <style>
+            [x-cloak] { display: none !important; }
+            .tox-tinymce-aux, .tox-silver-sink { z-index: 99999 !important; }
+            trix-toolbar [data-trix-button-group="file-tools"] { display: none; }
+            trix-editor { min-height: 150px; background: white; }
+            trix-editor ul, .trix-content ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+            trix-editor ol, .trix-content ol { list-style-type: decimal !important; padding-left: 1.5rem !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+            trix-editor a, .trix-content a { color: #2563eb; text-decoration: underline; }
+            trix-editor strong, .trix-content strong { font-weight: bold; }
+        </style>
 
         @php
             $themeSettings = \App\Models\PengaturanSekolah::current();
@@ -51,38 +61,70 @@
             $isPerpusRoute = request()->is('portal-perpustakaan*');
             $isPresensiRoute = request()->is('portal-presensi*') && !request()->is('portal-presensi/scan*');
             $isWebRoute = request()->is('portal-web*');
+            $isGuruRoute = request()->is('portal-guru*');
+            $isSiswaRoute = request()->is('portal-siswa*');
 
-            if($user && $user->hasRole('siswa')) {
-                $logoutRoute = route('portal-siswa.logout');
+            $isSuper = $user && ($user->isSuperAdmin() || $user->hasRole('super_admin'));
+
+            // Tentukan Judul Portal yang sedang aktif
+            if ($isWebRoute) {
+                $currentPortalTitle = 'Portal Web';
+            } elseif ($isPerpusRoute) {
+                $currentPortalTitle = 'Portal Perpustakaan';
+            } elseif ($isPresensiRoute) {
+                $currentPortalTitle = 'Portal Presensi';
+            } elseif ($isGuruRoute) {
+                $currentPortalTitle = 'Portal Guru';
+            } elseif ($isSiswaRoute || ($user && $user->hasRole('siswa'))) {
+                $currentPortalTitle = 'Portal Siswa';
+            } else {
+                $currentPortalTitle = 'Portal ERP';
+            }
+
+            // Tentukan Hak Akses Nyata Pengguna
+            if ($user && $user->hasRole('siswa')) {
                 $userRole = 'Siswa';
                 $userName = $user->student?->nama ?? $user->name;
+                $logoutRoute = route('portal-siswa.logout');
                 $activeDashboard = route('portal-siswa.dashboard');
-            } elseif($isWebRoute || ($user && $user->hasRole('admin_portal_web'))) {
-                $logoutRoute = route('portal-web.logout');
+            } elseif ($isSuper) {
+                $userRole = 'Super Admin';
+                $userName = $user?->name ?? 'Admin';
+                $logoutRoute = $isWebRoute ? route('portal-web.logout') : ($isPerpusRoute ? route('portal-perpustakaan.logout') : ($isPresensiRoute ? route('portal-presensi.logout') : ($isGuruRoute ? route('portal-guru.logout') : '/')));
+                $activeDashboard = $isWebRoute ? route('portal-web.dashboard') : ($isPerpusRoute ? route('portal-perpustakaan.dashboard') : ($isPresensiRoute ? route('portal-presensi.dashboard') : ($isGuruRoute ? route('portal-guru.dashboard') : '/admin')));
+            } elseif ($user && $user->hasRole('admin_portal_web')) {
                 $userRole = 'Admin Web';
                 $userName = $user?->name ?? 'Admin';
+                $logoutRoute = route('portal-web.logout');
                 $activeDashboard = route('portal-web.dashboard');
-            } elseif($user && $user->hasRole('wali_kelas') && !$isPerpusRoute) {
-                $logoutRoute = route('portal-guru.logout');
+            } elseif ($user && ($user->hasRole(['wali_kelas', 'guru']) || $user->teacher)) {
                 $userRole = 'Guru';
                 $userName = $user->teacher?->nama ?? $user->name;
+                $logoutRoute = route('portal-guru.logout');
                 $activeDashboard = route('portal-guru.dashboard');
-            } elseif($isPerpusRoute || ($user && ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan')))) {
-                $logoutRoute = route('portal-perpustakaan.logout');
+            } elseif ($user && ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan'))) {
                 $userRole = 'Petugas Perpustakaan';
                 $userName = $user?->name ?? 'Petugas';
+                $logoutRoute = route('portal-perpustakaan.logout');
                 $activeDashboard = route('portal-perpustakaan.dashboard');
-            } elseif($isPresensiRoute || ($user && $user->hasRole('admin_portal_presensi'))) {
-                $logoutRoute = route('portal-presensi.logout') ?? '/';
-                $userRole = 'Admin Presensi';
+            } elseif ($user && ($user->hasRole('admin_portal_presensi') || $user->hasRole('petugas_presensi'))) {
+                $userRole = 'Petugas Presensi';
                 $userName = $user?->name ?? 'Admin';
+                $logoutRoute = route('portal-presensi.logout') ?? '/';
                 $activeDashboard = route('portal-presensi.dashboard');
             } else {
-                $logoutRoute = '/';
                 $userRole = 'Staff';
                 $userName = $user?->name ?? 'Tamu';
+                $logoutRoute = '/';
                 $activeDashboard = '/';
             }
+
+            // Akses Multi Portal
+            $canAccessGuru = $isSuper || ($user && ($user->hasRole(['wali_kelas', 'guru']) || $user->teacher));
+            $canAccessPresensi = $isSuper || ($user && ($user->hasRole(['admin_portal_presensi', 'petugas_presensi']) || $user->roles->contains(fn($r) => str_starts_with($r->name, 'admin_presensi'))));
+            $canAccessPerpus = $isSuper || ($user && ($user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']) || $user->roles->contains(fn($r) => str_contains($r->name, 'admin_perpustakaan'))));
+            $canAccessWeb = $isSuper || ($user && $user->hasRole('admin_portal_web'));
+            $hasMultiplePortals = $isSuper || collect([$canAccessGuru, $canAccessPresensi, $canAccessPerpus, $canAccessWeb])->filter()->count() > 1;
         @endphp
 
         <!-- Mobile sidebar backdrop -->
@@ -119,7 +161,7 @@
                     @endif
                     <div class="flex flex-col" x-show="!isCollapsed" x-transition.opacity>
                         <span class="font-extrabold text-white text-base leading-tight truncate w-36 tracking-tight">{{ $sekolah?->school_name ?? 'ERP Sekolah' }}</span>
-                        <span class="text-[10px] text-indigo-100 font-bold tracking-widest uppercase opacity-90 truncate">Portal {{ $userRole }}</span>
+                        <span class="text-[10px] text-indigo-100 font-bold tracking-widest uppercase opacity-90 truncate">{{ $currentPortalTitle }}</span>
                     </div>
                 </div>
 
@@ -138,8 +180,11 @@
                         $isArtikel    = request()->routeIs('portal-web.artikel');
                         $isPrestasi   = request()->routeIs('portal-web.prestasi');
                         $isGaleri     = request()->routeIs('portal-web.galeri');
-                        $isAlumni     = request()->routeIs('portal-web.alumni');
-                        $isPelayanan  = request()->routeIs('portal-web.pelayanan');
+                        $isAlumni     = request()->routeIs('portal-web.alumni*');
+                        $isAksesCepat = request()->routeIs('portal-web.akses-cepat');
+                        $isPelayanan  = request()->routeIs('portal-web.pelayanan.*');
+                        $isSarpras    = request()->routeIs('portal-web.sarpras');
+                        $isStatistik  = request()->routeIs('portal-web.statistik');
                         $isPengaturan = request()->routeIs('portal-web.pengaturan');
                         $activeClass  = 'bg-violet-50 text-violet-700 font-bold border-r-2 border-violet-600';
                         $inactiveClass = 'text-slate-600 hover:bg-violet-50 hover:text-violet-700 font-semibold';
@@ -170,17 +215,60 @@
                         <span x-show="!isCollapsed" x-transition.opacity>Galeri Foto</span>
                     </a>
 
-                    <a href="{{ route('portal-web.alumni') }}" :title="isCollapsed ? 'Data Alumni' : ''"
-                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isAlumni ? $activeClass : $inactiveClass }}">
-                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-                        <span x-show="!isCollapsed" x-transition.opacity>Data Alumni</span>
+                    <!-- Sub Menu Data Alumni -->
+                    <div x-data="{ open: {{ $isAlumni ? 'true' : 'false' }} }" class="space-y-1">
+                        <button @click="open = !open" :title="isCollapsed ? 'Data Alumni' : ''"
+                                class="w-full flex items-center justify-between gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isAlumni ? 'bg-slate-50 text-slate-800 font-bold' : $inactiveClass }}">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                                <span x-show="!isCollapsed" x-transition.opacity>Data Alumni</span>
+                            </div>
+                            <svg x-show="!isCollapsed" :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        
+                        <div x-show="open && !isCollapsed" x-collapse class="pl-11 pr-3 space-y-1 mt-1">
+                            <a href="{{ route('portal-web.alumni') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.alumni') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Data Tracer Alumni</a>
+                            <a href="{{ route('portal-web.alumni.jenjang') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.alumni.jenjang') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Pilihan Jenjang</a>
+                            <a href="{{ route('portal-web.alumni.pengaturan') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.alumni.pengaturan') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Pengaturan Tracer</a>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('portal-web.sarpras') }}" :title="isCollapsed ? 'Sarana & Prasarana' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isSarpras ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Sarana & Prasarana</span>
                     </a>
 
-                    <a href="{{ route('portal-web.pelayanan') }}" :title="isCollapsed ? 'Pelayanan Publik' : ''"
-                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPelayanan ? $activeClass : $inactiveClass }}">
-                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <span x-show="!isCollapsed" x-transition.opacity>Pelayanan Publik</span>
+                    <a href="{{ route('portal-web.akses-cepat') }}" :title="isCollapsed ? 'Akses Cepat' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isAksesCepat ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Akses Cepat</span>
                     </a>
+
+                    <a href="{{ route('portal-web.statistik') }}" :title="isCollapsed ? 'Statistik & Info' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isStatistik ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Statistik & Info</span>
+                    </a>
+
+                    <!-- Sub Menu Pelayanan Publik -->
+                    <div x-data="{ open: {{ $isPelayanan ? 'true' : 'false' }} }" class="space-y-1">
+                        <button @click="open = !open" :title="isCollapsed ? 'Pelayanan Publik' : ''"
+                                class="w-full flex items-center justify-between gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPelayanan ? 'bg-slate-50 text-slate-800 font-bold' : $inactiveClass }}">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span x-show="!isCollapsed" x-transition.opacity>Pelayanan Publik</span>
+                            </div>
+                            <svg x-show="!isCollapsed" :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        
+                        <div x-show="open && !isCollapsed" x-collapse class="pl-11 pr-3 space-y-1 mt-1">
+                            <a href="{{ route('portal-web.pelayanan.halaman') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.halaman') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Halaman Layanan</a>
+                            <a href="{{ route('portal-web.pelayanan.data') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.data') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Data Pengaduan</a>
+                            <a href="{{ route('portal-web.pelayanan.kategori') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.kategori') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Kategori</a>
+                            <a href="{{ route('portal-web.pelayanan.pengaturan') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.pengaturan') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Pengaturan Layanan</a>
+                        </div>
+                    </div>
 
                     <a href="{{ route('portal-web.pengaturan') }}" :title="isCollapsed ? 'Pengaturan Web' : ''"
                        class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPengaturan ? $activeClass : $inactiveClass }}">
@@ -188,14 +276,7 @@
                         <span x-show="!isCollapsed" x-transition.opacity>Pengaturan Web</span>
                     </a>
 
-                    <!-- Divider & Link ke web publik -->
-                    <div class="mt-4 pt-4 border-t border-slate-100">
-                        <a href="{{ url('/') }}" target="_blank" :title="isCollapsed ? 'Lihat Web Publik' : ''"
-                           class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm text-slate-500 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all">
-                            <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                            <span x-show="!isCollapsed" x-transition.opacity>Lihat Web Publik</span>
-                        </a>
-                    </div>
+                    @include('components.portal-sidebar-shortcuts')
 
                 @elseif($isPerpusRoute)
                     @php
@@ -311,38 +392,7 @@
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Cetak Kartu</span>
                     </a>
 
-                    <!-- Section Pintasan Portal Lain (Kondisional) -->
-                    @if($user && ($user->hasRole(['wali_kelas', 'admin_portal_presensi', 'super_admin'])))
-                        <div class="pt-4 mt-4 border-t border-slate-100">
-                            <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 truncate" x-show="!isCollapsed" x-transition.opacity>Pintasan Portal Terkait</p>
-
-                            @if($user->hasRole(['wali_kelas', 'super_admin']))
-                                <a href="{{ route('portal-guru.dashboard') }}" :title="isCollapsed ? 'Portal Guru' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-indigo-100 text-indigo-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Portal Guru</span>
-                                </a>
-                            @endif
-
-                            @if($user->hasRole(['admin_portal_presensi', 'super_admin']))
-                                <a href="{{ route('portal-presensi.dashboard') }}" :title="isCollapsed ? 'Portal Presensi' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-amber-50 hover:text-amber-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-amber-100 text-amber-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Portal Presensi</span>
-                                </a>
-                            @endif
-
-                            <a href="{{ route('portal-perpustakaan.sirkulasi-kiosk') }}" target="_blank" :title="isCollapsed ? 'Sirkulasi Kiosk' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 text-xs font-semibold transition-all">
-                                <div class="p-1 rounded-lg bg-cyan-100 text-cyan-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg></div>
-                                <span x-show="!isCollapsed" x-transition.opacity>Sirkulasi Kiosk</span>
-                            </a>
-
-                            @if($user->hasRole('super_admin'))
-                                <a href="{{ url('/admin') }}" :title="isCollapsed ? 'Panel Admin' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-purple-100 text-purple-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Panel Admin</span>
-                                </a>
-                            @endif
-                        </div>
-                    @endif
+                    @include('components.portal-sidebar-shortcuts')
 
                 @elseif($isPresensiRoute)
                     @php
@@ -434,38 +484,7 @@
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Setting Notifikasi WA</span>
                     </a>
 
-                    <!-- Section Pintasan Portal Lain (Kondisional) -->
-                    @if($user && ($user->hasRole(['wali_kelas', 'petugas_perpustakaan', 'admin_perpustakaan', 'super_admin'])))
-                        <div class="pt-4 mt-4 border-t border-slate-100">
-                            <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 truncate" x-show="!isCollapsed" x-transition.opacity>Pintasan Portal Terkait</p>
-
-                            @if($user->hasRole(['wali_kelas', 'super_admin']))
-                                <a href="{{ route('portal-guru.dashboard') }}" :title="isCollapsed ? 'Portal Guru' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-indigo-100 text-indigo-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Portal Guru</span>
-                                </a>
-                            @endif
-
-                            @if($user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin']))
-                                <a href="{{ route('portal-perpustakaan.dashboard') }}" :title="isCollapsed ? 'Portal Perpustakaan' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-cyan-100 text-cyan-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Portal Perpustakaan</span>
-                                </a>
-                            @endif
-
-                            <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" target="_blank" :title="isCollapsed ? 'Kiosk Scan' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-700 text-xs font-semibold transition-all">
-                                <div class="p-1 rounded-lg bg-blue-100 text-blue-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg></div>
-                                <span x-show="!isCollapsed" x-transition.opacity>Kiosk Scan</span>
-                            </a>
-
-                            @if($user->hasRole('super_admin'))
-                                <a href="{{ url('/admin') }}" :title="isCollapsed ? 'Panel Admin' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-purple-100 text-purple-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Panel Admin</span>
-                                </a>
-                            @endif
-                        </div>
-                    @endif
+                    @include('components.portal-sidebar-shortcuts')
 
                 @elseif($user && $user->hasRole('siswa'))
                     @php
@@ -633,40 +652,7 @@
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Profil Saya</span>
                     </a>
 
-                    <!-- Section Akses Portal Terkait (Jika Punya Role Lain) -->
-                    @if($user && ($user->hasRole(['admin_portal_presensi', 'petugas_presensi', 'petugas_perpustakaan', 'admin_perpustakaan', 'super_admin', 'wali_kelas']) || $user->teacher))
-                        <div class="pt-4 mt-4 border-t border-slate-100">
-                            <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 truncate" x-show="!isCollapsed" x-transition.opacity>Akses Portal Terkait</p>
-
-                            @if($user->hasRole(['admin_portal_presensi', 'petugas_presensi', 'super_admin']))
-                                <a href="{{ route('portal-presensi.dashboard') }}" :title="isCollapsed ? 'Portal Presensi' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-amber-50 hover:text-amber-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-amber-100 text-amber-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Portal Presensi</span>
-                                </a>
-                            @endif
-
-                            @if($user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin']))
-                                <a href="{{ route('portal-perpustakaan.dashboard') }}" :title="isCollapsed ? 'Portal Perpustakaan' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-cyan-100 text-cyan-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Portal Perpustakaan</span>
-                                </a>
-                            @endif
-
-                            @if($user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas']) || $user->teacher)
-                                <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" target="_blank" :title="isCollapsed ? 'Kiosk Scan' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-blue-100 text-blue-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Kiosk Scan</span>
-                                </a>
-                            @endif
-
-                            @if($user->hasRole('super_admin'))
-                                <a href="{{ url('/admin') }}" :title="isCollapsed ? 'Panel Admin' : ''" class="flex items-center gap-3 py-2 px-3 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 text-xs font-semibold transition-all">
-                                    <div class="p-1 rounded-lg bg-purple-100 text-purple-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></div>
-                                    <span x-show="!isCollapsed" x-transition.opacity>Panel Admin</span>
-                                </a>
-                            @endif
-                        </div>
-                    @endif
+                    @include('components.portal-sidebar-shortcuts')
                 @endif
             </div>
 
@@ -709,166 +695,258 @@
                             :title="isCollapsed ? 'Perluas Sidebar' : 'Kecilkan Sidebar'">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
+
+                    <div class="hidden sm:flex items-center gap-2">
+                        <span class="text-sm font-extrabold text-slate-800 tracking-tight">{{ $currentPortalTitle }}</span>
+                    </div>
                 </div>
 
-                <!-- User Profile & Logout Dropdown -->
-                <div class="relative" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
-                    <button @click="userMenuOpen = !userMenuOpen" 
-                            class="flex items-center gap-3 py-1.5 px-3 rounded-2xl border border-slate-200/80 hover:border-brand-primary/40 hover:bg-slate-50 transition-all focus:outline-none shadow-xs group">
-                        @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
-                            <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs">
-                        @elseif($user && $user->teacher?->photo_path)
-                            <img src="{{ asset('storage/' . $user->teacher->photo_path) }}" alt="{{ $userName }}" class="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs">
-                        @else
-                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                                {{ strtoupper(substr($userName, 0, 1)) }}
-                            </div>
-                        @endif
-                        <div class="hidden sm:flex flex-col text-left">
-                            <span class="text-xs font-bold text-slate-800 leading-snug group-hover:text-brand-primary transition-colors">{{ $userName }}</span>
-                            <span class="text-[10px] text-slate-500 font-medium leading-none">{{ $userRole }}</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Topbar Quick Action Pills (Desktop) -->
+                    <div class="hidden md:flex items-center gap-1.5">
+                        <a href="{{ url('/') }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all shadow-2xs">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span>Web Utama</span>
+                        </a>
 
-                    <!-- Dropdown Menu -->
-                    <div x-show="userMenuOpen" 
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                         x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                         class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-2 z-50 overflow-hidden" 
-                         style="display: none;">
-                        
-                        <!-- User Info Header -->
-                        <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center gap-3">
+                        @if($hasMultiplePortals)
+                            <a href="{{ url('/pilih-portal') }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                <span>Pilih Portal</span>
+                            </a>
+                        @endif
+
+                        @if($isSuper)
+                            <a href="{{ url('/admin') }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-xl transition-all shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                <span>Panel Admin</span>
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- User Profile & Logout Dropdown -->
+                    <div class="relative" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
+                        <button @click="userMenuOpen = !userMenuOpen" 
+                                class="flex items-center gap-3 py-1.5 px-3 rounded-2xl border border-slate-200/80 hover:border-brand-primary/40 hover:bg-slate-50 transition-all focus:outline-none shadow-xs group">
                             @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
-                                <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs">
+                                <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs">
                             @elseif($user && $user->teacher?->photo_path)
-                                <img src="{{ asset('storage/' . $user->teacher->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs">
+                                <img src="{{ asset('storage/' . $user->teacher->photo_path) }}" alt="{{ $userName }}" class="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-xs">
                             @else
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold text-xs flex items-center justify-center shadow-xs">
                                     {{ strtoupper(substr($userName, 0, 1)) }}
                                 </div>
                             @endif
-                            <div class="flex flex-col min-w-0">
-                                <span class="text-sm font-bold text-slate-900 truncate">{{ $userName }}</span>
-                                <span class="text-xs text-slate-500 font-medium truncate">{{ $userRole }}</span>
+                            <div class="hidden sm:flex flex-col text-left">
+                                <span class="text-xs font-bold text-slate-800 leading-snug group-hover:text-brand-primary transition-colors">{{ $userName }}</span>
+                                <span class="text-[10px] text-slate-500 font-medium leading-none">{{ $userRole }}</span>
                             </div>
-                        </div>
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
 
-                        <!-- Halaman Utama Link -->
-                        <div class="px-3 pt-3 pb-1">
-                            <a href="{{ url('/') }}" class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 hover:bg-brand-primary/10 border border-slate-100 hover:border-brand-primary/30 transition-colors group">
-                                <div class="p-1.5 bg-white rounded-lg shadow-xs group-hover:bg-brand-primary group-hover:text-white text-slate-500 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-slate-800 group-hover:text-brand-primary transition-colors">Beranda</span>
-                                    <span class="text-[10px] text-slate-500">Kembali ke halaman utama</span>
-                                </div>
-                            </a>
-                        </div>
-                        
-                        <div class="border-t border-slate-100 mx-3 my-1"></div>
-
-                        <!-- Menu Navigation Items (Static) -->
-                        <div class="px-3 py-2">
-                            <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1.5 px-1">Pintasan Akses</p>
-                            <div class="max-h-60 overflow-y-auto space-y-1 pr-0.5">
-                                
-                                @if($user && $user->hasRole('siswa'))
-                                    <a href="{{ route('portal-siswa.dashboard') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
-                                        <div class="p-1.5 rounded-lg bg-blue-100 text-blue-600">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                                        </div>
-                                        <span>Dashboard Siswa</span>
-                                    </a>
-
-                                    <a href="{{ route('portal-siswa.profil') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/50 text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all">
-                                        <div class="p-1.5 rounded-lg bg-indigo-100 text-indigo-600">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                        </div>
-                                        <span>Profil Saya</span>
-                                    </a>
-
-                                    <a href="{{ route('portal-siswa.cetak-kartu') }}" target="_blank" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-violet-100 hover:bg-violet-50/50 text-xs font-semibold text-slate-700 hover:text-violet-700 transition-all">
-                                        <div class="p-1.5 rounded-lg bg-violet-100 text-violet-600">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
-                                        </div>
-                                        <span>Cetak Kartu Saya</span>
-                                    </a>
+                        <!-- Dropdown Menu -->
+                        <div x-show="userMenuOpen" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                             class="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-2 z-50 overflow-hidden" 
+                             style="display: none;">
+                            
+                            <!-- User Info Header -->
+                            <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center gap-3">
+                                @if($user && $user->hasRole('siswa') && $user->student?->photo_path)
+                                    <img src="{{ asset('storage/' . $user->student->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs">
+                                @elseif($user && $user->teacher?->photo_path)
+                                    <img src="{{ asset('storage/' . $user->teacher->photo_path) }}" alt="{{ $userName }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs">
                                 @else
-                                    @if($user && ($user->hasRole(['wali_kelas', 'super_admin']) || $user->teacher))
-                                        <a href="{{ route('portal-guru.dashboard') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/50 text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all">
-                                            <div class="p-1.5 rounded-lg bg-indigo-100 text-indigo-600">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                                        {{ strtoupper(substr($userName, 0, 1)) }}
+                                    </div>
+                                @endif
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-sm font-bold text-slate-900 truncate">{{ $userName }}</span>
+                                    <span class="text-xs font-semibold text-brand-primary truncate">{{ $userRole }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Hub Akses Utama -->
+                            <div class="px-3 pt-2 pb-1 space-y-1">
+                                @if($hasMultiplePortals)
+                                    <a href="{{ url('/pilih-portal') }}" class="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-xs font-semibold text-slate-700 transition-colors group">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="p-1.5 bg-white rounded-lg shadow-xs text-indigo-600">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                            </div>
+                                            <span class="group-hover:text-slate-900">Pilih Portal ERP</span>
+                                        </div>
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </a>
+                                @endif
+
+                                @if($isSuper)
+                                    <a href="{{ url('/admin') }}" class="flex items-center justify-between p-2 rounded-xl bg-purple-50/70 hover:bg-purple-100/70 border border-purple-100 text-xs font-semibold text-purple-800 transition-colors group">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="p-1.5 bg-white rounded-lg shadow-xs text-purple-600">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                            </div>
+                                            <span>Panel Admin</span>
+                                        </div>
+                                        <span class="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-bold">Master</span>
+                                    </a>
+                                @endif
+
+                                <a href="{{ url('/') }}" target="_blank" class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-600 transition-colors group">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="p-1.5 bg-slate-100 rounded-lg text-slate-500 group-hover:text-slate-700">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        </div>
+                                        <span>Web Utama Sekolah</span>
+                                    </div>
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                            </div>
+                            
+                            <div class="border-t border-slate-100 mx-3 my-1"></div>
+
+                            <!-- Pintasan Modul & Portal -->
+                            <div class="px-3 py-1.5">
+                                <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1.5 px-1">Pintasan Portal & Modul</p>
+                                <div class="max-h-56 overflow-y-auto space-y-1 pr-0.5">
+                                    @if($user && $user->hasRole('siswa'))
+                                        <a href="{{ route('portal-siswa.dashboard') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
+                                            <div class="p-1.5 rounded-lg bg-blue-100 text-blue-600">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                                             </div>
-                                            <span>Dashboard Guru</span>
+                                            <span>Dashboard Siswa</span>
                                         </a>
 
-                                        <a href="{{ route('portal-guru.profil') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/50 text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all">
+                                        <a href="{{ route('portal-siswa.profil') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/50 text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all">
                                             <div class="p-1.5 rounded-lg bg-indigo-100 text-indigo-600">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                             </div>
                                             <span>Profil Saya</span>
                                         </a>
-                                    @endif
 
-                                    @if($user && $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin']))
-                                        <a href="{{ url('/portal-perpustakaan') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-emerald-100 hover:bg-emerald-50/50 text-xs font-semibold text-slate-700 hover:text-emerald-700 transition-all">
-                                            <div class="p-1.5 rounded-lg bg-emerald-100 text-emerald-600">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                        <a href="{{ route('portal-siswa.cetak-kartu') }}" target="_blank" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-violet-100 hover:bg-violet-50/50 text-xs font-semibold text-slate-700 hover:text-violet-700 transition-all">
+                                            <div class="p-1.5 rounded-lg bg-violet-100 text-violet-600">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
                                             </div>
-                                            <span>Portal Perpustakaan</span>
+                                            <span>Cetak Kartu Saya</span>
                                         </a>
-                                    @endif
+                                    @else
+                                        {{-- Portal Web --}}
+                                        @if($canAccessWeb)
+                                            <a href="{{ route('portal-web.dashboard') }}" @click="userMenuOpen = false"
+                                               class="flex items-center justify-between p-2 rounded-xl {{ $isWebRoute ? 'bg-violet-50 text-violet-700 font-bold border border-violet-200/80' : 'hover:bg-slate-50 text-slate-700 font-semibold border border-transparent' }} text-xs transition-all">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="p-1.5 rounded-lg {{ $isWebRoute ? 'bg-violet-600 text-white' : 'bg-violet-100 text-violet-600' }}">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                                    </div>
+                                                    <span>Portal Web</span>
+                                                </div>
+                                                @if($isWebRoute)
+                                                    <span class="text-[9px] bg-violet-200 text-violet-800 px-1.5 py-0.5 rounded font-bold">Aktif</span>
+                                                @endif
+                                            </a>
+                                        @endif
 
-                                    @if($user && $user->hasRole(['admin_portal_presensi', 'super_admin']))
-                                        <a href="{{ url('/portal-presensi') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-amber-100 hover:bg-amber-50/50 text-xs font-semibold text-slate-700 hover:text-amber-700 transition-all">
-                                            <div class="p-1.5 rounded-lg bg-amber-100 text-amber-600">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            </div>
-                                            <span>Portal Presensi</span>
-                                        </a>
-                                        
-                                        <div class="border-t border-slate-100 my-1 mx-2"></div>
-                                    @endif
+                                        {{-- Portal Presensi --}}
+                                        @if($canAccessPresensi)
+                                            <a href="{{ route('portal-presensi.dashboard') }}" @click="userMenuOpen = false"
+                                               class="flex items-center justify-between p-2 rounded-xl {{ $isPresensiRoute ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200/80' : 'hover:bg-slate-50 text-slate-700 font-semibold border border-transparent' }} text-xs transition-all">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="p-1.5 rounded-lg {{ $isPresensiRoute ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-600' }}">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    </div>
+                                                    <span>Portal Presensi</span>
+                                                </div>
+                                                @if($isPresensiRoute)
+                                                    <span class="text-[9px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-bold">Aktif</span>
+                                                @endif
+                                            </a>
+                                        @endif
 
-                                    @if($user && ($user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas']) || $user->teacher))
-                                        <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" target="_blank" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
-                                            <div class="p-1.5 rounded-lg bg-blue-100 text-blue-600">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
-                                            </div>
-                                            <span>Presensi Digital</span>
-                                        </a>
-                                    @endif
+                                        {{-- Portal Perpustakaan --}}
+                                        @if($canAccessPerpus)
+                                            <a href="{{ route('portal-perpustakaan.dashboard') }}" @click="userMenuOpen = false"
+                                               class="flex items-center justify-between p-2 rounded-xl {{ $isPerpusRoute ? 'bg-cyan-50 text-cyan-700 font-bold border border-cyan-200/80' : 'hover:bg-slate-50 text-slate-700 font-semibold border border-transparent' }} text-xs transition-all">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="p-1.5 rounded-lg {{ $isPerpusRoute ? 'bg-cyan-600 text-white' : 'bg-cyan-100 text-cyan-600' }}">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                                    </div>
+                                                    <span>Portal Perpustakaan</span>
+                                                </div>
+                                                @if($isPerpusRoute)
+                                                    <span class="text-[9px] bg-cyan-200 text-cyan-800 px-1.5 py-0.5 rounded font-bold">Aktif</span>
+                                                @endif
+                                            </a>
+                                        @endif
 
-                                    @if($user && $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin']))
-                                        <a href="{{ route('perpustakaan.kunjungan') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-purple-100 hover:bg-purple-50/50 text-xs font-semibold text-slate-700 hover:text-purple-700 transition-all">
-                                            <div class="p-1.5 rounded-lg bg-purple-100 text-purple-600">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                            </div>
-                                            <span>Kunjungan Perpustakaan</span>
-                                        </a>
+                                        {{-- Portal Guru --}}
+                                        @if($canAccessGuru)
+                                            <a href="{{ route('portal-guru.dashboard') }}" @click="userMenuOpen = false"
+                                               class="flex items-center justify-between p-2 rounded-xl {{ $isGuruRoute ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200/80' : 'hover:bg-slate-50 text-slate-700 font-semibold border border-transparent' }} text-xs transition-all">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="p-1.5 rounded-lg {{ $isGuruRoute ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600' }}">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                                    </div>
+                                                    <span>Portal Guru</span>
+                                                </div>
+                                                @if($isGuruRoute)
+                                                    <span class="text-[9px] bg-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded font-bold">Aktif</span>
+                                                @endif
+                                            </a>
+
+                                            @if($user && $user->teacher)
+                                                <a href="{{ route('portal-guru.profil') }}" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all">
+                                                    <div class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                                    </div>
+                                                    <span>Profil Saya (Guru)</span>
+                                                </a>
+                                            @endif
+                                        @endif
+
+                                        {{-- Kiosk & Layanan Digital --}}
+                                        @if($canAccessPresensi || ($user && $user->teacher))
+                                            <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" target="_blank" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl hover:bg-blue-50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all">
+                                                <div class="p-1.5 rounded-lg bg-blue-100 text-blue-600">
+                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                                </div>
+                                                <span>Presensi Digital (Kiosk)</span>
+                                            </a>
+                                        @endif
+
+                                        @if($canAccessPerpus)
+                                            <a href="{{ route('perpustakaan.kunjungan') }}" target="_blank" @click="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl hover:bg-purple-50 text-xs font-semibold text-slate-700 hover:text-purple-700 transition-all">
+                                                <div class="p-1.5 rounded-lg bg-purple-100 text-purple-600">
+                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                                </div>
+                                                <span>Kunjungan Perpustakaan</span>
+                                            </a>
+                                        @endif
                                     @endif
-                                @endif
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Logout Section -->
-                        <div class="pt-1 mt-1 border-t border-slate-100 px-1.5">
-                            <form action="{{ $logoutRoute }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
-                                    <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                                    Keluar Portal
-                                </button>
-                            </form>
+                            <!-- Logout Section -->
+                            <div class="pt-1 mt-1 border-t border-slate-100 px-1.5">
+                                <form action="{{ $logoutRoute }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
+                                        <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                        Keluar Portal
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -21,13 +21,14 @@ class Pengaturan extends Component
     public string $link_tiktok = '';
     public string $link_ig = '';
     public string $link_fb = '';
-    public string $link_pengaduan = '';
     public int $stat_tenaga_kependidikan = 0;
 
     public $hero_image = null;
     public $foto_kepsek = null;
+    public $struktur_organisasi = null;
     public ?string $existingHeroImage = null;
     public ?string $existingFotoKepsek = null;
+    public ?string $existingStrukturOrganisasi = null;
 
     protected function rules(): array
     {
@@ -42,30 +43,30 @@ class Pengaturan extends Component
             'link_tiktok'              => 'nullable|url|max:500',
             'link_ig'                  => 'nullable|url|max:500',
             'link_fb'                  => 'nullable|url|max:500',
-            'link_pengaduan'           => 'nullable|url|max:500',
             'stat_tenaga_kependidikan' => 'integer|min:0',
             'hero_image'               => 'nullable|image|max:5120',
             'foto_kepsek'              => 'nullable|image|max:2048',
+            'struktur_organisasi'      => 'nullable|image|max:5120',
         ];
     }
 
     public function mount(): void
     {
         $setting = WebSetting::instance();
-        $this->running_text             = $setting->running_text ?? '';
-        $this->profil_singkat           = $setting->profil_singkat ?? '';
-        $this->visi                     = $setting->visi ?? '';
-        $this->misi                     = $setting->misi ?? '';
-        $this->kutipan_kepsek           = $setting->kutipan_kepsek ?? '';
-        $this->sambutan_kepsek          = $setting->sambutan_kepsek ?? '';
-        $this->link_youtube             = $setting->link_youtube ?? '';
-        $this->link_tiktok              = $setting->link_tiktok ?? '';
-        $this->link_ig                  = $setting->link_ig ?? '';
-        $this->link_fb                  = $setting->link_fb ?? '';
-        $this->link_pengaduan           = $setting->link_pengaduan ?? '';
-        $this->stat_tenaga_kependidikan = $setting->stat_tenaga_kependidikan ?? 0;
-        $this->existingHeroImage        = $setting->hero_image;
-        $this->existingFotoKepsek       = $setting->foto_kepsek;
+        $this->running_text                 = $setting->running_text ?? '';
+        $this->profil_singkat               = $setting->profil_singkat ?? '';
+        $this->visi                         = $setting->visi ?? '';
+        $this->misi                         = $setting->misi ?? '';
+        $this->kutipan_kepsek               = $setting->kutipan_kepsek ?? '';
+        $this->sambutan_kepsek              = $setting->sambutan_kepsek ?? '';
+        $this->link_youtube                 = $setting->link_youtube ?? '';
+        $this->link_tiktok                  = $setting->link_tiktok ?? '';
+        $this->link_ig                      = $setting->link_ig ?? '';
+        $this->link_fb                      = $setting->link_fb ?? '';
+        $this->stat_tenaga_kependidikan     = $setting->stat_tenaga_kependidikan ?? 0;
+        $this->existingHeroImage            = $setting->hero_image;
+        $this->existingFotoKepsek           = $setting->foto_kepsek;
+        $this->existingStrukturOrganisasi   = $setting->struktur_organisasi;
     }
 
     public function save(): void
@@ -85,7 +86,6 @@ class Pengaturan extends Component
             'link_tiktok'              => $this->link_tiktok ?: null,
             'link_ig'                  => $this->link_ig ?: null,
             'link_fb'                  => $this->link_fb ?: null,
-            'link_pengaduan'           => $this->link_pengaduan ?: null,
             'stat_tenaga_kependidikan' => $this->stat_tenaga_kependidikan,
         ];
 
@@ -95,12 +95,18 @@ class Pengaturan extends Component
         if ($this->foto_kepsek) {
             $data['foto_kepsek'] = $this->foto_kepsek->store('web-profil', 'public');
         }
+        if ($this->struktur_organisasi) {
+            $data['struktur_organisasi'] = $this->struktur_organisasi->store('web-profil', 'public');
+        }
 
         $setting->update($data);
-        $this->existingHeroImage  = $setting->fresh()->hero_image;
-        $this->existingFotoKepsek = $setting->fresh()->foto_kepsek;
-        $this->hero_image  = null;
-        $this->foto_kepsek = null;
+        $fresh = $setting->fresh();
+        $this->existingHeroImage          = $fresh->hero_image;
+        $this->existingFotoKepsek         = $fresh->foto_kepsek;
+        $this->existingStrukturOrganisasi = $fresh->struktur_organisasi;
+        $this->hero_image          = null;
+        $this->foto_kepsek         = null;
+        $this->struktur_organisasi = null;
 
         session()->flash('success', 'Pengaturan web berhasil disimpan.');
     }

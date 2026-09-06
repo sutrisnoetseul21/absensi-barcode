@@ -15,8 +15,8 @@ class Galeri extends Component
     public string $search = '';
     public bool $showModal = false;
     public bool $showDeleteModal = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+    public ?string $editingId = null;
+    public ?string $deletingId = null;
 
     public string $judul = '';
     public string $keterangan = '';
@@ -38,7 +38,7 @@ class Galeri extends Component
 
     public function openCreate(): void { $this->resetForm(); $this->showModal = true; }
 
-    public function openEdit(int $id): void
+    public function openEdit(string $id): void
     {
         $item = WebGaleri::findOrFail($id);
         $this->editingId    = $item->id;
@@ -77,7 +77,7 @@ class Galeri extends Component
         session()->flash('success', 'Foto galeri berhasil disimpan.');
     }
 
-    public function confirmDelete(int $id): void { $this->deletingId = $id; $this->showDeleteModal = true; }
+    public function confirmDelete(string $id): void { $this->deletingId = $id; $this->showDeleteModal = true; }
 
     public function delete(): void
     {

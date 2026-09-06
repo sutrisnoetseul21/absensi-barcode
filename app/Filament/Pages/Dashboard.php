@@ -21,23 +21,36 @@ class Dashboard extends BaseDashboard
         $kalenderService = app(KalenderSekolahService::class);
         $isHariSekolahGlobal = $kalenderService->isHariSekolah($today);
 
-        if (!$isHariSekolahGlobal) {
-            return [];
-        }
+        $actions = [
+            Action::make('web_utama')
+                ->label('Web Utama')
+                ->icon('heroicon-o-globe-alt')
+                ->color('gray')
+                ->url(url('/'))
+                ->openUrlInNewTab(),
+            Action::make('pilih_portal')
+                ->label('Pilih Portal ERP')
+                ->icon('heroicon-o-squares-2x2')
+                ->color('info')
+                ->url(url('/pilih-portal')),
+            Action::make('portal_web')
+                ->label('Portal Web')
+                ->icon('heroicon-o-computer-desktop')
+                ->color('primary')
+                ->url(url('/portal-web')),
+        ];
 
-        $dateStr = $today->translatedFormat('l, d F Y');
+        if ($isHariSekolahGlobal) {
+            $dateStr = $today->translatedFormat('l, d F Y');
 
-        return [
-            Action::make('proses_alpa_massal')
+            $actions[] = Action::make('proses_alpa_massal')
                 ->label('Tandai Alpa (Hari Ini)')
                 ->icon('heroicon-o-exclamation-triangle')
-                ->color($isHariSekolahGlobal ? 'warning' : 'danger')
+                ->color('warning')
                 ->requiresConfirmation()
                 ->modalHeading('Konfirmasi Proses Alpa Massal')
                 ->modalDescription(new HtmlString(
-                    $isHariSekolahGlobal
-                        ? "Anda akan mencatat status <b>Alpa</b> untuk semua siswa aktif yang belum absen hari ini ({$dateStr}). Lanjutkan?"
-                        : "<div class='text-danger-600 font-bold mb-2'>⚠️ PERINGATAN: Hari ini direkomendasikan sebagai HARI LIBUR / AKHIR PEKAN.</div>Anda yakin ingin tetap memproses Alpa untuk hari ini ({$dateStr})?"
+                    "Anda akan mencatat status <b>Alpa</b> untuk semua siswa aktif yang belum absen hari ini ({$dateStr}). Lanjutkan?"
                 ))
                 ->modalSubmitActionLabel('Ya, Tetap Lanjutkan')
                 ->action(function () {
@@ -66,8 +79,10 @@ class Dashboard extends BaseDashboard
                         }
                         $notification->send();
                     }
-                }),
-        ];
+                });
+        }
+
+        return $actions;
     }
 
     public function getWidgets(): array

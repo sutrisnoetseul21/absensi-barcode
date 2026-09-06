@@ -7,7 +7,7 @@ use App\Models\WebSetting;
 use App\Models\WebSarpra;
 use App\Models\WebArtikel;
 use App\Models\WebGaleri;
-use App\Models\WebWidget;
+
 use App\Models\WebStatistic;
 use App\Models\WebQuickLink;
 use App\Models\Guru;
@@ -24,7 +24,7 @@ class BerandaController extends Controller
         $setting      = WebSetting::instance();
         $sarpras      = WebSarpra::orderBy('urutan')->get();
         $galeris      = WebGaleri::orderBy('urutan')->get();
-        $widgets      = WebWidget::orderBy('urutan')->get();
+
         $artikels     = WebArtikel::published()->where('tipe', 'berita')->latest('published_at')->take(6)->get();
         $pengumumans  = WebArtikel::published()->where('tipe', 'pengumuman')->latest('published_at')->take(6)->get();
         $prestasis    = WebArtikel::published()->where('tipe', 'prestasi')->latest('published_at')->take(8)->get();
@@ -40,7 +40,7 @@ class BerandaController extends Controller
             'setting',
             'sarpras',
             'galeris',
-            'widgets',
+
             'artikels',
             'pengumumans',
             'prestasis',
@@ -49,6 +49,16 @@ class BerandaController extends Controller
             'quickLinks',
             'gurus',
         ));
+    }
+
+    public function profil(): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+        
+        $artikels = WebArtikel::published()->where('tipe', 'berita')->latest('published_at')->take(4)->get();
+        
+        return view('beranda.profil', compact('sekolah', 'setting', 'artikels'));
     }
 
     public function guru(): View
@@ -308,5 +318,34 @@ class BerandaController extends Controller
         );
 
         return redirect()->back()->with('success', 'Terima kasih! Data tracer study Anda telah berhasil disimpan.');
+    }
+
+    public function layananPublikIndex(): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+
+        $semuaLayanan = \App\Models\WebHalamanLayanan::where('is_active', true)
+            ->orderBy('urutan')
+            ->get();
+
+        return view('beranda.layanan-publik-index', compact('sekolah', 'setting', 'semuaLayanan'));
+    }
+
+    public function halamanLayanan(string $slug): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+
+        $halaman = \App\Models\WebHalamanLayanan::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $semuaLayanan = \App\Models\WebHalamanLayanan::where('is_active', true)
+            ->where('id', '!=', $halaman->id)
+            ->orderBy('urutan')
+            ->get();
+
+        return view('beranda.layanan-publik', compact('sekolah', 'setting', 'halaman', 'semuaLayanan'));
     }
 }

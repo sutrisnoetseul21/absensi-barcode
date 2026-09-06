@@ -13,7 +13,8 @@ class ManageWebArtikels extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->modalWidth('5xl'),
         ];
     }
 }

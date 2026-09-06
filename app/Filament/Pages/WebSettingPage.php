@@ -2,12 +2,17 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Pages\Page;
+use App\Filament\Components\TinyEditor;
 use App\Models\WebSetting;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
 
 class WebSettingPage extends Page implements HasForms
 {
@@ -29,79 +34,115 @@ class WebSettingPage extends Page implements HasForms
         $this->form->fill($setting->toArray());
     }
 
-    public function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Hero & Sambutan')
-                    ->columns(2)
-                    ->schema([
-                        Forms\Components\FileUpload::make('hero_image')
-                            ->label('Hero Image (Banner)')
-                            ->image()
-                            ->directory('web-profil')
-                            ->disk('public')
-                            ->imageEditor()
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('running_text')
-                            ->label('Running Text')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
-                        Forms\Components\FileUpload::make('foto_kepsek')
-                            ->label('Foto Kepala Sekolah')
-                            ->image()
-                            ->directory('web-profil')
-                            ->disk('public')
-                            ->imageEditor(),
-                        Forms\Components\Textarea::make('kutipan_kepsek')
-                            ->label('Kutipan Singkat Kepala Sekolah')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('profil_singkat')
-                            ->label('Profil Singkat Sekolah')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('visi')
-                            ->label('Visi Sekolah')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('misi')
-                            ->label('Misi Sekolah')
-                            ->helperText('Gunakan tombol Enter untuk memisahkan setiap poin misi.')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
-                        Forms\Components\RichEditor::make('sambutan_kepsek')
-                            ->label('Sambutan Kepala Sekolah')
-                            ->columnSpanFull(),
-                    ]),
-                \Filament\Schemas\Components\Section::make('Sosial Media & Pengaduan')
-                    ->columns(2)
-                    ->schema([
-                        Forms\Components\TextInput::make('link_youtube')
-                            ->label('Link YouTube')
-                            ->url(),
-                        Forms\Components\TextInput::make('link_tiktok')
-                            ->label('Link TikTok')
-                            ->url(),
-                        Forms\Components\TextInput::make('link_ig')
-                            ->label('Link Instagram')
-                            ->url(),
-                        Forms\Components\TextInput::make('link_fb')
-                            ->label('Link Facebook')
-                            ->url(),
-                        Forms\Components\TextInput::make('link_pengaduan')
-                            ->label('Link Layanan Pengaduan')
-                            ->url()
-                            ->columnSpanFull(),
-                    ]),
-                \Filament\Schemas\Components\Section::make('Statistik Tambahan')
-                    ->schema([
-                        Forms\Components\TextInput::make('stat_tenaga_kependidikan')
-                            ->label('Jumlah Tenaga Kependidikan (Tendik)')
-                            ->numeric()
-                            ->default(0)
-                            ->required(),
-                    ]),
+                Tabs::make('Pengaturan Web Profil')
+                    ->tabs([
+                        Tab::make('Hero & Beranda')
+                            ->icon('heroicon-o-home')
+                            ->schema([
+                                Forms\Components\FileUpload::make('hero_image')
+                                    ->label('Hero Image (Banner Utama Beranda)')
+                                    ->image()
+                                    ->directory('web-profil')
+                                    ->disk('public')
+                                    ->imageEditor()
+                                    ->columnSpanFull(),
+                                Forms\Components\Textarea::make('running_text')
+                                    ->label('Running Text Pengumuman')
+                                    ->placeholder('Teks berjalan yang tampil di bawah navbar beranda...')
+                                    ->maxLength(65535)
+                                    ->columnSpanFull(),
+                                Forms\Components\FileUpload::make('foto_kepsek')
+                                    ->label('Foto Kepala Sekolah')
+                                    ->image()
+                                    ->directory('web-profil')
+                                    ->disk('public')
+                                    ->imageEditor(),
+                                Forms\Components\Textarea::make('kutipan_kepsek')
+                                    ->label('Kutipan Singkat Kepala Sekolah')
+                                    ->placeholder('Kutipan singkat yang tampil di samping foto kepala sekolah...')
+                                    ->maxLength(65535)
+                                    ->columnSpanFull(),
+                                TinyEditor::make('sambutan_kepsek')
+                                    ->label('Sambutan Kepala Sekolah')
+                                    ->helperText('Amanat atau sambutan lengkap dari Kepala Sekolah.')
+                                    ->height(400)
+                                    ->uploadDirectory('web-profil/editor')
+                                    ->columnSpanFull(),
+                                Forms\Components\FileUpload::make('struktur_organisasi')
+                                    ->label('Bagan Struktur Organisasi Sekolah')
+                                    ->image()
+                                    ->directory('web-profil')
+                                    ->disk('public')
+                                    ->imageEditor()
+                                    ->helperText('Unggah bagan struktur organisasi yang tampil di halaman Profil Sekolah.')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2),
+
+                        Tab::make('Profil, Visi & Misi')
+                            ->icon('heroicon-o-academic-cap')
+                            ->schema([
+                                TinyEditor::make('profil_singkat')
+                                    ->label('Profil Singkat & Sejarah Sekolah')
+                                    ->helperText('Ringkasan profil atau sejarah sekolah yang tampil di beranda dan halaman profil.')
+                                    ->height(280)
+                                    ->uploadDirectory('web-profil/editor')
+                                    ->columnSpanFull(),
+                                TinyEditor::make('visi')
+                                    ->label('Visi Sekolah')
+                                    ->helperText('Visi sekolah dapat diformat tebal, miring, atau paragraf.')
+                                    ->height(220)
+                                    ->uploadDirectory('web-profil/editor')
+                                    ->columnSpanFull(),
+                                TinyEditor::make('misi')
+                                    ->label('Misi Sekolah')
+                                    ->helperText('Dapat berupa daftar poin (bullet/numbered list) atau paragraf.')
+                                    ->height(300)
+                                    ->uploadDirectory('web-profil/editor')
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Tab::make('Sosial Media & Statistik')
+                            ->icon('heroicon-o-share')
+                            ->schema([
+                                Section::make('Tautan Media Sosial Resmi')
+                                    ->description('Tautan media sosial resmi sekolah yang tampil pada header dan footer website.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('link_youtube')
+                                            ->label('Link YouTube')
+                                            ->placeholder('https://youtube.com/@sekolah')
+                                            ->url(),
+                                        Forms\Components\TextInput::make('link_tiktok')
+                                            ->label('Link TikTok')
+                                            ->placeholder('https://tiktok.com/@sekolah')
+                                            ->url(),
+                                        Forms\Components\TextInput::make('link_ig')
+                                            ->label('Link Instagram')
+                                            ->placeholder('https://instagram.com/sekolah')
+                                            ->url(),
+                                        Forms\Components\TextInput::make('link_fb')
+                                            ->label('Link Facebook')
+                                            ->placeholder('https://facebook.com/sekolah')
+                                            ->url(),
+                                    ]),
+                                Section::make('Statistik Tambahan')
+                                    ->description('Statistik pendukung pada profil beranda sekolah.')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('stat_tenaga_kependidikan')
+                                            ->label('Jumlah Tenaga Kependidikan (Tendik)')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->required(),
+                                    ]),
+                            ]),
+                    ])
+                    ->persistTabInQueryString()
+                    ->columnSpanFull(),
             ])
             ->statePath('data');
     }
@@ -114,7 +155,7 @@ class WebSettingPage extends Page implements HasForms
 
         Notification::make()
             ->success()
-            ->title('Pengaturan berhasil disimpan')
+            ->title('Pengaturan Web Profil berhasil disimpan')
             ->send();
     }
 }

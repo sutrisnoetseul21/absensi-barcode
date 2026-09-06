@@ -72,10 +72,10 @@
                         <td class="px-5 py-3.5 text-slate-500 text-xs">{{ $artikel->created_at?->format('d/m/Y') }}</td>
                         <td class="px-5 py-3.5">
                             <div class="flex items-center justify-end gap-2">
-                                <button wire:click="openEdit({{ $artikel->id }})" class="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="Edit">
+                                <button wire:click="openEdit('{{ $artikel->id }}')" class="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
-                                <button wire:click="confirmDelete({{ $artikel->id }})" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                <button wire:click="confirmDelete('{{ $artikel->id }}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
@@ -101,57 +101,73 @@
 
     {{-- Modal Tambah/Edit --}}
     @if($showModal)
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-start justify-center pt-12 px-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" wire:click.stop>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-                <h3 class="font-extrabold text-slate-900 text-lg">{{ $editingId ? 'Edit Artikel' : 'Tambah Artikel Baru' }}</h3>
-                <button wire:click="$set('showModal', false)" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-start justify-center pt-8 pb-12 px-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto" @click.stop>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center font-bold text-base shadow-sm">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-lg leading-tight">{{ $editingId ? 'Edit Artikel' : 'Tambah Artikel Baru' }}</h3>
+                        <p class="text-xs text-slate-500">Tulis dan publikasikan konten berita atau pengumuman sekolah</p>
+                    </div>
+                </div>
+                <button wire:click="$set('showModal', false)" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <form wire:submit="save" class="p-6 space-y-4">
+            <form wire:submit="save" class="p-6 space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Judul *</label>
-                    <input type="text" wire:model="judul" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none" placeholder="Judul artikel...">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Judul Artikel <span class="text-rose-500">*</span></label>
+                    <input type="text" wire:model="judul" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all placeholder:text-slate-400" placeholder="Masukkan judul artikel...">
                     @error('judul') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Tipe *</label>
-                        <select wire:model="tipe" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 outline-none cursor-pointer">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Tipe <span class="text-rose-500">*</span></label>
+                        <select wire:model="tipe" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 outline-none cursor-pointer bg-white transition-all">
                             <option value="berita">Berita</option>
                             <option value="pengumuman">Pengumuman</option>
                         </select>
+                        @error('tipe') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Status *</label>
-                        <select wire:model="is_published" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 outline-none cursor-pointer">
-                            <option value="1">Published</option>
-                            <option value="0">Draft</option>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Status Publikasi <span class="text-rose-500">*</span></label>
+                        <select wire:model="is_published" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 outline-none cursor-pointer bg-white transition-all">
+                            <option value="1">Published (Terbit Langsung)</option>
+                            <option value="0">Draft (Simpan Konsep)</option>
                         </select>
+                        @error('is_published') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Konten *</label>
-                    <textarea wire:model="konten" rows="6" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none resize-none" placeholder="Isi konten artikel..."></textarea>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Konten Artikel <span class="text-rose-500">*</span></label>
+                    <div wire:ignore wire:key="portal-artikel-editor-wrapper-{{ $editingId ?? 'create' }}" x-data="portalWebTinyMCE(@entangle('konten'), 'portal-artikel-editor-{{ $editingId ?? 'create' }}', 420)" class="rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-violet-400 focus-within:border-violet-400 transition-all bg-white shadow-inner">
+                        <textarea x-ref="editor" id="portal-artikel-editor-{{ $editingId ?? 'create' }}" class="w-full"></textarea>
+                    </div>
                     @error('konten') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Foto Cover</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Foto Cover / Thumbnail</label>
                     @if($existingFoto)
-                        <div class="mb-2">
-                            <img src="{{ asset('storage/' . $existingFoto) }}" class="h-20 w-auto rounded-lg object-cover border border-slate-200">
-                            <p class="text-xs text-slate-400 mt-1">Foto saat ini. Upload baru untuk mengganti.</p>
+                        <div class="mb-3 flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <img src="{{ asset('storage/' . $existingFoto) }}" class="h-16 w-24 rounded-lg object-cover border border-slate-200 shadow-sm">
+                            <div class="text-xs text-slate-500">
+                                <span class="font-semibold text-slate-700 block">Thumbnail Saat Ini</span>
+                                Unggah foto baru di bawah jika ingin mengganti.
+                            </div>
                         </div>
                     @endif
-                    <input type="file" wire:model="foto" accept="image/*" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                    <input type="file" wire:model="foto" accept="image/*" class="w-full text-sm text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 transition-all">
+                    <div wire:loading wire:target="foto" class="text-xs text-violet-600 mt-1 font-semibold"><i class="fas fa-spinner fa-spin"></i> Mengunggah file gambar...</div>
                     @error('foto') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
-                    <button type="button" wire:click="$set('showModal', false)" class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Batal</button>
-                    <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors flex items-center gap-2" wire:loading.attr="disabled">
-                        <span wire:loading.remove>Simpan</span>
-                        <span wire:loading class="flex items-center gap-1"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Menyimpan...</span>
+                <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" wire:click="$set('showModal', false)" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors shadow-md shadow-violet-500/20 flex items-center gap-2" wire:loading.attr="disabled">
+                        <span wire:loading.remove><i class="fas fa-check mr-1"></i> Simpan Artikel</span>
+                        <span wire:loading class="flex items-center gap-1.5"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Menyimpan...</span>
                     </button>
                 </div>
             </form>

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AlumniResource\Pages;
 use App\Filament\Resources\AlumniResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
+use Filament\Schemas\Components\Tabs\Tab;
 
 class ManageAlumnis extends ManageRecords
 {
@@ -23,12 +24,12 @@ class ManageAlumnis extends ManageRecords
     public function getTabs(): array
     {
         return [
-            'semua' => \Filament\Resources\Components\Tab::make('Semua Alumni')
+            'semua' => Tab::make('Semua Alumni')
                 ->badge(\App\Models\Alumni::count()),
-            'sistem' => \Filament\Resources\Components\Tab::make('Lulusan Sistem')
+            'sistem' => Tab::make('Lulusan Sistem')
                 ->badge(\App\Models\Alumni::where('source', 'sistem')->count())
                 ->modifyQueryUsing(fn ($query) => $query->where('source', 'sistem')),
-            'mandiri' => \Filament\Resources\Components\Tab::make('Alumni Lama (Web)')
+            'mandiri' => Tab::make('Alumni Lama (Web)')
                 ->badge(\App\Models\Alumni::where('source', 'web_mandiri')->count())
                 ->modifyQueryUsing(fn ($query) => $query->where('source', 'web_mandiri')),
         ];

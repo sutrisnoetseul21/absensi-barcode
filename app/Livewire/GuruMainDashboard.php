@@ -25,6 +25,7 @@ class GuruMainDashboard extends Component
     // Multi-Portal Access Flags
     public $hasPresensiAccess = false;
     public $hasPerpusAccess = false;
+    public $hasWebAccess = false;
     public $isSuperAdmin = false;
 
     public function mount()
@@ -36,6 +37,7 @@ class GuruMainDashboard extends Component
         $this->isSuperAdmin = $user->hasRole('super_admin');
         $this->hasPresensiAccess = $this->isSuperAdmin || $user->hasRole(['admin_portal_presensi', 'petugas_presensi']);
         $this->hasPerpusAccess = $this->isSuperAdmin || $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
+        $this->hasWebAccess = $this->isSuperAdmin || $user->hasRole('admin_portal_web');
 
         // Fetch announcements
         $this->activeAnnouncements = Pengumuman::aktifSekarang()->latest()->get();

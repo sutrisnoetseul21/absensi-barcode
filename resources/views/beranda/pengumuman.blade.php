@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengumuman Resmi — {{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    <title>{{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    @php
+        $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     <meta name="description" content="Informasi penting, edaran resmi, dan pengumuman kegiatan {{ $sekolah?->school_name ?? 'Sekolah' }}.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -17,6 +21,7 @@
             }
         </style>
     @endif
+    @livewireStyles
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
@@ -151,5 +156,6 @@
 {{-- ══════════════════ FOOTER ══════════════════ --}}
 @include('beranda.sections.footer')
 
+@livewireScripts
 </body>
 </html>

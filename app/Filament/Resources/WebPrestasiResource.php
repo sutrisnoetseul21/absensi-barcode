@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WebPrestasiResource\Pages;
 use App\Models\WebArtikel;
+use App\Filament\Components\TinyEditor;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -39,9 +40,11 @@ class WebPrestasiResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->columnSpanFull(),
-                Forms\Components\RichEditor::make('konten')
+                TinyEditor::make('konten')
                     ->label('Detail & Cerita Capaian Prestasi')
-                    ->placeholder('Tuliskan nama siswa/tim peraih, nama pembimbing, penyelenggara, dan deskripsi perlombaan...')
+                    ->helperText('Tuliskan nama siswa/tim peraih, nama pembimbing, penyelenggara, dan deskripsi perlombaan...')
+                    ->height(400)
+                    ->uploadDirectory('web-artikel/editor')
                     ->required()
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('thumbnail')
@@ -86,7 +89,8 @@ class WebPrestasiResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make(),
+                \Filament\Actions\EditAction::make()
+                    ->modalWidth('5xl'),
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

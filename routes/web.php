@@ -16,6 +16,7 @@ use App\Http\Controllers\BerandaController;
 
 // Beranda Profil Sekolah (Halaman Publik Utama)
 Route::get('/', [BerandaController::class, 'index'])->name('beranda');
+Route::get('/profil', [BerandaController::class, 'profil'])->name('beranda.profil');
 Route::get('/home', [BerandaController::class, 'index'])->name('home');
 Route::get('/guru', [BerandaController::class, 'guru'])->name('guru.all');
 Route::get('/direktori-guru', [BerandaController::class, 'guru'])->name('beranda.guru');
@@ -26,6 +27,8 @@ Route::get('/galeri', [BerandaController::class, 'galeri'])->name('galeri.all');
 Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beranda.artikel');
 Route::get('/pengaduan', [BerandaController::class, 'pengaduan'])->name('pengaduan.index');
 Route::post('/pengaduan', [BerandaController::class, 'pengaduanStore'])->name('pengaduan.store')->middleware('throttle:30,1');
+Route::get('/layanan-publik', [BerandaController::class, 'layananPublikIndex'])->name('beranda.layanan.index');
+Route::get('/layanan-publik/{slug}', [BerandaController::class, 'halamanLayanan'])->name('beranda.layanan');
 Route::get('/alumni', [BerandaController::class, 'alumni'])->name('alumni.index');
 Route::post('/alumni', [BerandaController::class, 'alumniStore'])->name('alumni.store')->middleware('throttle:30,1');
 
@@ -55,6 +58,11 @@ Route::get('/presensi/display', PublicDashboard::class)->name('public.display');
 Route::get('/api/katalog-buku-cache', [\App\Http\Controllers\Api\KatalogApiController::class, 'getCatalogJson'])
     ->middleware('throttle:120,1')
     ->name('api.katalog-buku.cache');
+
+// TinyMCE Editor Image Upload
+Route::post('/admin/tinymce-upload', [\App\Http\Controllers\Admin\TinyMCEUploadController::class, 'upload'])
+    ->middleware(['web', 'auth'])
+    ->name('admin.tinymce.upload');
 
 // Dashboard Publik Perpustakaan
 Route::get('/perpustakaan', KatalogPerpustakaan::class)
@@ -316,8 +324,19 @@ Route::prefix('portal-web')->group(function () {
         Route::get('/prestasi', \App\Livewire\PortalWeb\Prestasi::class)->name('portal-web.prestasi');
         Route::get('/galeri', \App\Livewire\PortalWeb\Galeri::class)->name('portal-web.galeri');
         Route::get('/alumni', \App\Livewire\PortalWeb\Alumni::class)->name('portal-web.alumni');
-        Route::get('/pelayanan', \App\Livewire\PortalWeb\Pelayanan::class)->name('portal-web.pelayanan');
+        Route::get('/alumni/jenjang', \App\Livewire\PortalWeb\AlumniJenjang::class)->name('portal-web.alumni.jenjang');
+        Route::get('/alumni/pengaturan', \App\Livewire\PortalWeb\AlumniSetting::class)->name('portal-web.alumni.pengaturan');
+        Route::get('/akses-cepat', \App\Livewire\PortalWeb\AksesCepat::class)->name('portal-web.akses-cepat');
+        Route::get('/sarpras', \App\Livewire\PortalWeb\Sarpras::class)->name('portal-web.sarpras');
+        Route::get('/statistik', \App\Livewire\PortalWeb\Statistik::class)->name('portal-web.statistik');
         Route::get('/pengaturan', \App\Livewire\PortalWeb\Pengaturan::class)->name('portal-web.pengaturan');
+
+        Route::prefix('pelayanan')->name('portal-web.pelayanan.')->group(function () {
+            Route::get('/data', \App\Livewire\PortalWeb\PengaduanData::class)->name('data');
+            Route::get('/kategori', \App\Livewire\PortalWeb\PengaduanKategori::class)->name('kategori');
+            Route::get('/halaman', \App\Livewire\PortalWeb\HalamanLayanan::class)->name('halaman');
+            Route::get('/pengaturan', \App\Livewire\PortalWeb\PengaduanSetting::class)->name('pengaturan');
+        });
 
         Route::post('/logout', function () {
             Auth::guard('web')->logout();

@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $pengaduanSetting->banner_title ?? 'Layanan Aspirasi & Pengaduan' }} — {{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    <title>{{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    @php
+        $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     <meta name="description" content="{{ $pengaduanSetting->banner_text ?? 'Layanan Aspirasi dan Pengaduan Online Sekolah' }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -163,25 +167,28 @@
 
                         {{-- Kategori Pengaduan --}}
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
                                 Kategori {{ $pengaduanSetting->module_name ?? 'Pengaduan' }} <span class="text-rose-500">*</span>
                             </label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 pointer-events-none">
-                                    <i class="fas fa-tag text-xs"></i>
-                                </span>
-                                <select name="pengaduan_kategori_id" required
-                                        class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary transition appearance-none">
-                                    <option value="">-- Pilih Jenis Kategori --</option>
-                                    @foreach($kategoris as $kategori)
-                                        <option value="{{ $kategori->id }}" {{ old('pengaduan_kategori_id') == $kategori->id ? 'selected' : '' }}>
-                                            {{ $kategori->nama_kategori }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 pointer-events-none">
-                                    <i class="fas fa-chevron-down text-xs"></i>
-                                </span>
+                            
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                @foreach($kategoris as $kategori)
+                                    @php
+                                        // Auto-assign emoji based on category name
+                                        $icon = '📝';
+                                        $nama = strtolower($kategori->nama_kategori);
+                                        if (str_contains($nama, 'saran')) $icon = '💡';
+                                        elseif (str_contains($nama, 'pengaduan')) $icon = '📢';
+                                        elseif (str_contains($nama, 'pertanyaan')) $icon = '❓';
+                                    @endphp
+                                    <label class="relative cursor-pointer group">
+                                        <input type="radio" name="pengaduan_kategori_id" value="{{ $kategori->id }}" required class="peer sr-only" {{ old('pengaduan_kategori_id') == $kategori->id ? 'checked' : '' }}>
+                                        <div class="h-full bg-white border-2 border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all duration-200 peer-checked:border-brand-primary peer-checked:bg-blue-50/50 hover:border-slate-300">
+                                            <span class="text-3xl mb-2 transition-transform duration-200 group-hover:scale-110 peer-checked:scale-110">{{ $icon }}</span>
+                                            <span class="text-xs sm:text-sm font-bold text-slate-600 group-hover:text-slate-800 peer-checked:text-brand-primary transition-colors">{{ $kategori->nama_kategori }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
                             </div>
                         </div>
 

@@ -150,6 +150,6 @@ class KatalogPerpustakaan extends Component
             'pengunjungHariIni' => $pengunjungHariIni,
             'pengaturanSekolah' => $pengaturanSekolah,
             'activeLoans' => $this->activeLoans,
-        ])->title('Perpustakaan Digital ' . ($pengaturanSekolah->school_name ?? ''));
+        ])->title($pengaturanSekolah->school_name ?? 'Sekolah');
     }
 }

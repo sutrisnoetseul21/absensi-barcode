@@ -3,14 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $artikel->judul }} — {{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    <title>{{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    @php
+        $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     <meta name="description" content="{{ $artikel->meta_description ?? Str::limit(strip_tags($artikel->konten), 160) }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .prose-content img { max-width: 100%; border-radius: 1rem; margin: 1.5rem 0; }
+        .prose-content img { max-width: 100%; height: auto; border-radius: 1rem; margin: 1.5rem 0; }
         .prose-content p { line-height: 1.8; margin-bottom: 1.25rem; color: #334155; }
-        .prose-content h2, .prose-content h3 { font-weight: 700; color: #1e293b; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose-content h1, .prose-content h2, .prose-content h3, .prose-content h4 { font-weight: 700; color: #1e293b; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+        .prose-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+        .prose-content li { margin-bottom: 0.5rem; line-height: 1.7; color: #334155; }
+        .prose-content table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .prose-content th, .prose-content td { border: 1px solid #cbd5e1; padding: 0.75rem; }
+        .prose-content th { background-color: #f8fafc; font-weight: 600; color: #1e293b; }
+        .prose-content blockquote { border-left: 4px solid #f59e0b; padding-left: 1rem; font-style: italic; color: #64748b; margin: 1.5rem 0; }
+        .prose-content a { color: var(--color-brand-primary, #2563eb); text-decoration: underline; }
     </style>
 
     @if($sekolah)
@@ -21,6 +33,7 @@
             }
         </style>
     @endif
+    @livewireStyles
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-primary-light selection:text-brand-primary-dark min-h-screen flex flex-col">
 
@@ -163,5 +176,6 @@
 {{-- ══════════════════ FOOTER ══════════════════ --}}
 @include('beranda.sections.footer')
 
+@livewireScripts
 </body>
 </html>

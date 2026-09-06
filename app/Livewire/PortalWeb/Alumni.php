@@ -17,8 +17,8 @@ class Alumni extends Component
     public string $filterTahun = '';
     public bool $showModal = false;
     public bool $showDeleteModal = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+    public ?string $editingId = null;
+    public ?string $deletingId = null;
 
     public string $nama = '';
     public string $nisn = '';
@@ -51,7 +51,7 @@ class Alumni extends Component
 
     public function openCreate(): void { $this->resetForm(); $this->showModal = true; }
 
-    public function openEdit(int $id): void
+    public function openEdit(string $id): void
     {
         $item = AlumniModel::findOrFail($id);
         $this->editingId    = $item->id;
@@ -101,7 +101,7 @@ class Alumni extends Component
         session()->flash('success', 'Data alumni berhasil disimpan.');
     }
 
-    public function confirmDelete(int $id): void { $this->deletingId = $id; $this->showDeleteModal = true; }
+    public function confirmDelete(string $id): void { $this->deletingId = $id; $this->showDeleteModal = true; }
 
     public function delete(): void
     {

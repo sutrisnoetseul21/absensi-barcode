@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $sekolah?->school_name ?? 'Beranda Sekolah' }}</title>
+    <title>{{ $sekolah?->school_name ?? 'Sekolah' }}</title>
+    @php
+        $favicon = $sekolah?->school_logo_path ? asset('storage/' . $sekolah->school_logo_path) : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     <meta name="description" content="Portal Resmi {{ $sekolah?->school_name ?? 'Sekolah' }}. Informasi profil, fasilitas, berita, dan layanan sekolah.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>

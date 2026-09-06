@@ -237,7 +237,7 @@
                             {{ $pengaturanSekolah ? $pengaturanSekolah->school_name : 'SMPN 1 Majenang' }}
                         </h1>
                         <p class="text-xs font-medium transition-colors duration-300" :class="scrolled ? 'text-indigo-600' : 'text-indigo-200'">
-                            Sistem Presensi Digital
+                            Sistem Informasi Terpadu
                         </p>
                     </div>
                 </div>

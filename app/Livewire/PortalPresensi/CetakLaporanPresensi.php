@@ -273,6 +273,6 @@ class CetakLaporanPresensi extends Component
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        return view('livewire.portal-presensi.cetak-laporan-presensi')->title('Cetak Laporan Presensi - Portal Absensi');
+        return view('livewire.portal-presensi.cetak-laporan-presensi')->title('Cetak Laporan Presensi - Portal Presensi');
     }
 }

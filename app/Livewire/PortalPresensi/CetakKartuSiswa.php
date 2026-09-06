@@ -200,6 +200,6 @@ class CetakKartuSiswa extends Component
     {
         return view('livewire.portal-presensi.cetak-kartu-siswa', [
             'students' => $this->students
-        ])->title('Cetak Kartu Siswa - Portal Absensi');
+        ])->title('Cetak Kartu Siswa - Portal Presensi');
     }
 }

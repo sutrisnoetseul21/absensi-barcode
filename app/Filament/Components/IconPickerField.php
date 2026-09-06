@@ -79,6 +79,20 @@ class IconPickerField
             'fas fa-bus'             => '🚌 Bus',
             'fas fa-mosque'          => '🕌 Masjid',
             'fas fa-pray'            => '🙏 Doa',
+            // Fasilitas & Sarana Prasarana
+            'fas fa-flask'           => '🧪 Lab Kimia / Sains',
+            'fas fa-microscope'      => '🔬 Mikroskop / Lab Biologi',
+            'fas fa-basketball-ball' => '🏀 Bola Basket / Lapangan',
+            'fas fa-futbol'          => '⚽ Sepak Bola / Lapangan',
+            'fas fa-volleyball-ball' => '🏐 Bola Voli / Lapangan',
+            'fas fa-utensils'        => '🍽️ Kantin / Makan',
+            'fas fa-store'           => '🏪 Koperasi / Toko',
+            'fas fa-restroom'        => '🚻 Toilet / WC',
+            'fas fa-tree'            => '🌳 Taman / Lingkungan',
+            'fas fa-car'             => '🚗 Parkir Mobil',
+            'fas fa-motorcycle'      => '🏍️ Parkir Motor',
+            'fas fa-music'           => '🎵 Ruang Musik / Seni',
+            'fas fa-palette'         => '🎨 Ruang Seni Rupa',
         ];
     }
 

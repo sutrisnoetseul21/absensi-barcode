@@ -14,6 +14,7 @@ class ManageWebPrestasis extends ManageRecords
     {
         return [
             Actions\CreateAction::make()
+                ->modalWidth('5xl')
                 ->mutateFormDataUsing(function (array $data): array {
                     $data['tipe'] = 'prestasi';
                     return $data;

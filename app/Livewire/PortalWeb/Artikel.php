@@ -19,8 +19,8 @@ class Artikel extends Component
     // Form fields
     public bool $showModal = false;
     public bool $showDeleteModal = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+    public ?string $editingId = null;
+    public ?string $deletingId = null;
 
     public string $judul = '';
     public string $tipe = 'berita';
@@ -49,7 +49,7 @@ class Artikel extends Component
         $this->showModal = true;
     }
 
-    public function openEdit(int $id): void
+    public function openEdit(string $id): void
     {
         $artikel = WebArtikel::findOrFail($id);
         $this->editingId   = $artikel->id;
@@ -94,7 +94,7 @@ class Artikel extends Component
         session()->flash('success', 'Artikel berhasil ' . ($this->editingId ? 'diperbarui' : 'disimpan') . '.');
     }
 
-    public function confirmDelete(int $id): void
+    public function confirmDelete(string $id): void
     {
         $this->deletingId = $id;
         $this->showDeleteModal = true;

@@ -34,7 +34,7 @@
     </div>
 
     <!-- Multi-Portal Access Cards (Jika memiliki akses ke Portal lain) -->
-    @if($hasPresensiAccess || $hasPerpusAccess || $isSuperAdmin)
+    @if($hasPresensiAccess || $hasPerpusAccess || $hasWebAccess || $isSuperAdmin)
         <div class="space-y-3">
             <div class="flex items-center justify-between">
                 <div>
@@ -120,9 +120,43 @@
                             </a>
                         </div>
                     </div>
+                <!-- Card 3: Portal Web Sekolah -->
+                @if($hasWebAccess)
+                    <div class="bg-gradient-to-br from-white to-violet-50/40 rounded-2xl p-5 border border-violet-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-md shadow-violet-600/20 group-hover:scale-105 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                    </svg>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-violet-100 text-violet-800 border border-violet-200">
+                                    Admin Web
+                                </span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-violet-700 transition-colors">
+                                Portal Publikasi Web
+                            </h3>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Kelola artikel berita, pengumuman sekolah, prestasi siswa, galeri dokumentasi kegiatan, dan data alumni.
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-violet-100 flex items-center gap-2">
+                            <a href="{{ route('portal-web.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm transition-colors">
+                                Buka Portal Web
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
+                            <a href="{{ url('/') }}" 
+                               target="_blank"
+                               title="Lihat Web Publik"
+                               class="py-2 px-3 rounded-xl bg-white hover:bg-violet-50 border border-violet-200 text-violet-700 text-xs font-bold transition-colors">
+                                Web Utama
+                            </a>
+                        </div>
+                    </div>
                 @endif
 
-                <!-- Card 3: Panel Admin Filament (Super Admin Only) -->
+                <!-- Card 4: Panel Admin Filament (Super Admin Only) -->
                 @if($isSuperAdmin)
                     <div class="bg-gradient-to-br from-white to-purple-50/40 rounded-2xl p-5 border border-purple-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
                         <div>

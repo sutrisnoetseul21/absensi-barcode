@@ -14,7 +14,16 @@
                 <div class="text-slate-600 leading-relaxed text-justify space-y-3 overflow-hidden transition-all duration-700 max-h-[180px]"
                      :style="expanded ? 'max-height: 5000px' : 'max-height: 180px'">
                     @if($setting->profil_singkat)
-                        {!! nl2br(e($setting->profil_singkat)) !!}
+                        @php
+                            $isProfilHtml = strip_tags($setting->profil_singkat) !== $setting->profil_singkat;
+                        @endphp
+                        @if($isProfilHtml)
+                            <div class="rich-content-profil prose prose-slate max-w-none text-slate-600 leading-relaxed text-justify">
+                                {!! $setting->profil_singkat !!}
+                            </div>
+                        @else
+                            {!! nl2br(e($setting->profil_singkat)) !!}
+                        @endif
                     @else
                         <p>Belum ada profil singkat yang diisi.</p>
                     @endif
@@ -49,9 +58,24 @@
                     </div>
                     <h3 class="text-2xl font-bold text-brand-primary-900">Visi Sekolah</h3>
                 </div>
-                <p class="text-lg font-serif text-slate-800 italic leading-relaxed">
-                    "{{ $setting->visi ?? 'Belum ada visi yang diisi.' }}"
-                </p>
+                @if($setting->visi)
+                    @php
+                        $isVisiHtml = strip_tags($setting->visi) !== $setting->visi;
+                    @endphp
+                    @if($isVisiHtml)
+                        <div class="text-lg font-serif text-slate-800 italic leading-relaxed rich-content-visi">
+                            {!! $setting->visi !!}
+                        </div>
+                    @else
+                        <p class="text-lg font-serif text-slate-800 italic leading-relaxed">
+                            "{{ $setting->visi }}"
+                        </p>
+                    @endif
+                @else
+                    <p class="text-lg font-serif text-slate-800 italic leading-relaxed">
+                        "Belum ada visi yang diisi."
+                    </p>
+                @endif
             </div>
 
             <!-- Misi -->
@@ -63,25 +87,51 @@
                     <h3 class="text-2xl font-bold text-slate-900">Misi Sekolah</h3>
                 </div>
                 
-                <div class="grid md:grid-cols-1 gap-4">
-                    @if($setting->misi)
-                        @foreach(explode("\n", $setting->misi) as $misi)
-                            @if(trim($misi) != '')
-                            <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-brand-primary-200 transition-colors">
-                                <svg class="w-5 h-5 text-brand-secondary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span class="text-slate-700 leading-relaxed">{{ trim($misi) }}</span>
-                            </div>
-                            @endif
-                        @endforeach
+                @if($setting->misi)
+                    @php
+                        $isHtml = strip_tags($setting->misi) !== $setting->misi;
+                    @endphp
+                    @if($isHtml)
+                        <div class="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm text-slate-700 leading-relaxed text-base rich-content-misi">
+                            {!! $setting->misi !!}
+                        </div>
                     @else
-                        <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
-                            <span class="text-slate-500">Belum ada misi yang diisi.</span>
+                        <div class="grid md:grid-cols-1 gap-4">
+                            @foreach(explode("\n", $setting->misi) as $misi)
+                                @if(trim($misi) != '')
+                                <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-brand-primary-200 transition-colors">
+                                    <svg class="w-5 h-5 text-brand-secondary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span class="text-slate-700 leading-relaxed">{{ trim($misi) }}</span>
+                                </div>
+                                @endif
+                            @endforeach
                         </div>
                     @endif
-                </div>
+                @else
+                    <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <span class="text-slate-500">Belum ada misi yang diisi.</span>
+                    </div>
+                @endif
             </div>
         </div>
         
     </div>
+    
+    <style>
+        .rich-content-misi ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .rich-content-misi ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .rich-content-misi li { margin-bottom: 0.6rem; line-height: 1.7; }
+        .rich-content-misi p { margin-bottom: 0.75rem; line-height: 1.7; }
+        .rich-content-misi p:last-child { margin-bottom: 0; }
+
+        .rich-content-profil p { margin-bottom: 0.75rem; line-height: 1.7; }
+        .rich-content-profil p:last-child { margin-bottom: 0; }
+        .rich-content-profil ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .rich-content-profil ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .rich-content-profil li { margin-bottom: 0.4rem; }
+
+        .rich-content-visi p { margin-bottom: 0.5rem; }
+        .rich-content-visi p:last-child { margin-bottom: 0; }
+    </style>
 </section>
 @endif

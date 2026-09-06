@@ -250,6 +250,6 @@ class InputPresensiManual extends Component
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        return view('livewire.portal-presensi.input-presensi-manual')->title('Input Presensi Manual - Portal Absensi');
+        return view('livewire.portal-presensi.input-presensi-manual')->title('Input Presensi Manual - Portal Presensi');
     }
 }

@@ -1,9 +1,14 @@
+@php
+    $pengaturanSekolah = \App\Models\PengaturanSekolah::current();
+    $favicon = $pengaturanSekolah?->school_logo_path ? asset('storage/' . $pengaturanSekolah->school_logo_path) : asset('favicon.ico');
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Informasi Terpadu (ERP) Sekolah</title>
+    <title>{{ $pengaturanSekolah?->school_name ?? 'Sekolah' }}</title>
+    <link rel="icon" type="image/png" href="{{ $favicon }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -13,7 +18,6 @@
 <body class="antialiased text-slate-100">
 
 @php
-    $pengaturanSekolah = \App\Models\PengaturanSekolah::current();
     $authUser = Auth::user();
     $accessiblePortals = $authUser ? $authUser->getAccessiblePortals() : [];
 @endphp

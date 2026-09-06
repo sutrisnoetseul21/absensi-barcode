@@ -18,7 +18,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Filament\Widgets\QuickLinksWidget;
+use Filament\Navigation\NavigationItem;
+use Filament\Navigation\MenuItem;
+use Filament\View\PanelsRenderHook;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -40,30 +42,65 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(function () {
                 try {
                     $name = \App\Models\PengaturanSekolah::current()?->school_name;
-                    return $name ? 'Sistem Presensi Digital ' . $name : 'Sistem Presensi Digital';
+                    return $name ?: 'Nama Sekolah';
                 } catch (\Exception $e) {
-                    return 'Sistem Presensi Digital';
+                    return 'Nama Sekolah';
                 }
             })
             ->brandLogo(function () {
                 try {
                     $logo = \App\Models\PengaturanSekolah::current()?->school_logo_path;
-                    $name = \App\Models\PengaturanSekolah::current()?->school_name;
-                    $title = $name ? 'Sistem Presensi Digital ' . $name : 'Sistem Presensi Digital';
+                    $name = \App\Models\PengaturanSekolah::current()?->school_name ?? 'Nama Sekolah';
                     
                     if ($logo) {
                         return new \Illuminate\Support\HtmlString('
-                            <div class="flex items-center gap-2">
-                                <img src="' . asset('storage/' . $logo) . '" alt="Logo" style="height: 2rem; width: auto;" />
-                                <span class="font-bold text-lg leading-tight">' . $title . '</span>
+                            <div class="flex items-center gap-2.5">
+                                <img src="' . asset('storage/' . $logo) . '" alt="Logo" class="h-8 w-auto object-contain" />
+                                <span class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">' . e($name) . '</span>
                             </div>
                         ');
                     }
-                    return null;
+                    return new \Illuminate\Support\HtmlString('
+                        <span class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">' . e($name) . '</span>
+                    ');
                 } catch (\Exception $e) {
                     return null;
                 }
             })
+            ->brandLogoHeight('2.25rem')
+            ->navigationItems([
+                NavigationItem::make('Web Utama')
+                    ->url(fn (): string => url('/'))
+                    ->icon('heroicon-o-globe-alt')
+                    ->group('Akses Portal & Web')
+                    ->sort(900)
+                    ->openUrlInNewTab(),
+                NavigationItem::make('Pilih Portal ERP')
+                    ->url(fn (): string => url('/pilih-portal'))
+                    ->icon('heroicon-o-squares-2x2')
+                    ->group('Akses Portal & Web')
+                    ->sort(901),
+                NavigationItem::make('Portal Web Profil')
+                    ->url(fn (): string => url('/portal-web'))
+                    ->icon('heroicon-o-computer-desktop')
+                    ->group('Akses Portal & Web')
+                    ->sort(902),
+            ])
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Lihat Web Utama')
+                    ->url(fn (): string => url('/'))
+                    ->icon('heroicon-o-globe-alt')
+                    ->openUrlInNewTab(),
+                MenuItem::make()
+                    ->label('Pilih Portal ERP')
+                    ->url(fn (): string => url('/pilih-portal'))
+                    ->icon('heroicon-o-squares-2x2'),
+                MenuItem::make()
+                    ->label('Portal Web Profil')
+                    ->url(fn (): string => url('/portal-web'))
+                    ->icon('heroicon-o-computer-desktop'),
+            ])
             ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->profile()
             ->colors([
@@ -76,6 +113,7 @@ class AdminPanelProvider extends PanelProvider
                 'Perpustakaan',
                 'Web Profil Sekolah',
                 'Pengaturan Sistem',
+                'Akses Portal & Web',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverResources(in: app_path('Filament/Akademik/Resources'), for: 'App\Filament\Akademik\Resources')
@@ -119,6 +157,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => view('filament.hooks.topbar-quick-links')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): \Illuminate\Support\HtmlString => new \Illuminate\Support\HtmlString('<script src="' . asset('vendor/tinymce/tinymce.min.js') . '"></script>')
+            );
     }
 }
