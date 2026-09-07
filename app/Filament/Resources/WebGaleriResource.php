@@ -24,15 +24,28 @@ class WebGaleriResource extends Resource
         return $schema
             ->components([
                 Forms\Components\TextInput::make('judul')
+                    ->label('Judul Foto')
                     ->maxLength(255)
                     ->columnSpanFull(),
+                Forms\Components\Textarea::make('keterangan')
+                    ->label('Keterangan / Deskripsi')
+                    ->rows(3)
+                    ->maxLength(1000)
+                    ->nullable()
+                    ->columnSpanFull(),
                 Forms\Components\FileUpload::make('foto_path')
+                    ->label('Berkas Foto')
                     ->required()
                     ->image()
                     ->disk('public')
                     ->directory('web-galeri')
                     ->imageEditor()
                     ->maxSize(10240)
+                    ->columnSpanFull(),
+                Forms\Components\TextInput::make('urutan')
+                    ->label('Urutan')
+                    ->numeric()
+                    ->default(0)
                     ->columnSpanFull(),
             ]);
     }
