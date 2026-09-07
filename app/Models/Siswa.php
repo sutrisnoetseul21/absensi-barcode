@@ -104,6 +104,19 @@ class Siswa extends Authenticatable
         return $this->presensiProfile?->barcode_active ?? false;
     }
 
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->photo_path)) {
+            return asset('storage/' . $this->photo_path);
+        }
+
+        if ($this->gender === 'P') {
+            return asset('images/avatar-f.svg');
+        }
+
+        return asset('images/avatar-m.svg');
+    }
+
 
     // Semua riwayat enrollment (kelas per tahun ajaran)
     public function enrollments(): HasMany

@@ -120,6 +120,8 @@
                             </a>
                         </div>
                     </div>
+                @endif
+
                 <!-- Card 3: Portal Web Sekolah -->
                 @if($hasWebAccess)
                     <div class="bg-gradient-to-br from-white to-violet-50/40 rounded-2xl p-5 border border-violet-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">

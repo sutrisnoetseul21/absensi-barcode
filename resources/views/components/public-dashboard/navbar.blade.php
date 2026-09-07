@@ -1,12 +1,20 @@
 @props(['pengaturanSekolah' => null, 'alwaysDark' => false])
 
+@php
+    $halamanAkademikList = \App\Models\WebHalamanAkademik::where('is_active', true)->orderBy('urutan')->get();
+    $halamanLayananList = \App\Models\WebHalamanLayanan::where('is_active', true)->orderBy('urutan')->get();
+@endphp
 
 <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
     x-data="{ 
         scrolled: {{ $alwaysDark ? 'false' : '(window.scrollY > 30)' }}, 
         mobileMenuOpen: false, 
         mobileProfilOpen: false,
-        mobileInfoOpen: false
+        mobileInfoOpen: false,
+        mobileWargaOpen: false,
+        mobileAkademikOpen: false,
+        mobileAplikasiOpen: false,
+        mobileLayananOpen: false
     }"
     x-init="scrolled = {{ $alwaysDark ? 'false' : '(window.scrollY > 30)' }}"
     @scroll.window="scrolled = {{ $alwaysDark ? 'false' : 'window.scrollY > 30' }}"
@@ -81,13 +89,82 @@
                         <a href="{{ url('/profil') }}#struktur" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
                             <i class="fas fa-sitemap text-slate-400 w-4"></i> Struktur Organisasi
                         </a>
-                        <a href="{{ route('guru.all') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
-                            <i class="fas fa-chalkboard-teacher text-slate-400 w-4"></i> Pendidik dan Tenaga Kependidikan
+                    </div>
+                </div>
+
+                {{-- 3. Warga Sekolah (Dropdown Sub-Menu: Guru & Staf, Siswa, Alumni) --}}
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                        :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-users text-xs"></i> Warga Sekolah
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                         @click.away="open = false"
+                         class="absolute left-0 mt-1 min-w-[230px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
+                         style="display: none;">
+                        <a href="{{ route('guru.all') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-chalkboard-teacher text-slate-400 w-4"></i> Guru & Staf
+                        </a>
+                        <a href="{{ route('siswa.all') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
+                            <i class="fas fa-user-graduate text-slate-400 w-4"></i> Siswa
+                        </a>
+                        <a href="{{ route('alumni.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
+                            <i class="fas fa-graduation-cap text-slate-400 w-4"></i> Alumni
                         </a>
                     </div>
                 </div>
 
-                {{-- 3. Informasi (Dropdown Sub-Menu: Berita, Pengumuman, Prestasi) --}}
+                {{-- 4. Akademik (Dropdown Sub-Menu: Portal Akademik & Halaman Dinamis) --}}
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                        :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-graduation-cap text-xs"></i> Akademik
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                         @click.away="open = false"
+                         class="absolute left-0 mt-1 min-w-[250px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
+                         style="display: none;">
+                        <a href="{{ route('beranda.akademik.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-brand-primary bg-emerald-50/50 hover:bg-emerald-50 transition-colors">
+                            <i class="fas fa-th-large w-4"></i> Pusat Informasi Akademik
+                        </a>
+                        @foreach($halamanAkademikList as $itemAkademik)
+                            <a href="{{ route('beranda.akademik', $itemAkademik->slug) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
+                                @if(str_contains(strtolower($itemAkademik->kategori ?? ''), 'kalender') || str_contains(strtolower($itemAkademik->judul), 'kalender'))
+                                    <i class="fas fa-calendar-alt text-amber-500 w-4"></i>
+                                @elseif(str_contains(strtolower($itemAkademik->kategori ?? ''), 'kurikulum') || str_contains(strtolower($itemAkademik->judul), 'kurikulum'))
+                                    <i class="fas fa-book text-emerald-500 w-4"></i>
+                                @elseif(str_contains(strtolower($itemAkademik->kategori ?? ''), 'jadwal') || str_contains(strtolower($itemAkademik->judul), 'jadwal'))
+                                    <i class="fas fa-clock text-blue-500 w-4"></i>
+                                @else
+                                    <i class="fas fa-file-alt text-slate-400 w-4"></i>
+                                @endif
+                                <span class="truncate">{{ $itemAkademik->judul }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- 5. Informasi (Dropdown Sub-Menu: Berita, Pengumuman, Prestasi, Galeri) --}}
                 <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                     <button type="button" @click="open = !open" 
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
@@ -119,38 +196,78 @@
                         <a href="{{ route('galeri.all') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
                             <i class="fas fa-images text-indigo-500 w-4"></i> Galeri
                         </a>
+                    </div>
+                </div>
+
+                {{-- 5. Aplikasi (Dropdown Sub-Menu: Presensi & Perpustakaan) --}}
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                        :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-th-large text-xs"></i> Aplikasi
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                         @click.away="open = false"
+                         class="absolute left-0 mt-1 min-w-[210px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
+                         style="display: none;">
+                        <a href="{{ url('/presensi') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
+                            <i class="fas fa-clock text-amber-500 w-4"></i> Presensi
+                        </a>
                         <a href="{{ url('/perpustakaan') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
                             <i class="fas fa-book-reader text-emerald-500 w-4"></i> Perpustakaan
                         </a>
                     </div>
                 </div>
 
-                {{-- 4. Presensi --}}
-                <a href="{{ url('/presensi') }}"
-                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
-                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fas fa-clock text-xs"></i> Presensi
-                    </span>
-                </a>
+                {{-- 7. Pelayanan Publik (Dropdown Sub-Menu: Portal Layanan + Halaman Standar Layanan Dinamis) --}}
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
+                        :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-bullhorn text-xs"></i> Pelayanan Publik
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                         @click.away="open = false"
+                         class="absolute right-0 mt-1 min-w-[260px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
+                         style="display: none;">
+                        {{-- Link Utama: Portal Pelayanan Publik --}}
+                        <a href="{{ route('beranda.layanan.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-brand-primary bg-blue-50/60 hover:bg-blue-50 transition-colors">
+                            <i class="fas fa-th-large w-4"></i> Pusat Pelayanan Publik
+                        </a>
 
-                {{-- 5. Pelayanan Publik (Direct Link tanpa submenu) --}}
-                <a href="{{ route('beranda.layanan.index') }}"
-                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
-                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fas fa-bullhorn text-xs"></i> Pelayanan Publik
-                    </span>
-                </a>
+                        {{-- Halaman Dinamis Standar Layanan --}}
+                        @foreach($halamanLayananList as $itemLayanan)
+                            <a href="{{ route('beranda.layanan', $itemLayanan->slug) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
+                                <i class="fas fa-file-contract text-blue-500 w-4"></i>
+                                <span class="truncate">{{ $itemLayanan->judul }}</span>
+                            </a>
+                        @endforeach
 
-                {{-- 6. Alumni --}}
-                <a href="{{ url('/alumni') }}"
-                    class="relative group px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
-                    :class="scrolled ? 'text-slate-700 hover:text-brand-primary hover:bg-slate-100' : 'text-white/90 hover:text-white hover:bg-white/10'">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fas fa-user-graduate text-xs"></i> Alumni
-                    </span>
-                </a>
+                        {{-- Layanan Aspirasi & Pengaduan --}}
+                        <a href="{{ route('pengaduan.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-rose-600 transition-colors border-t border-slate-50">
+                            <i class="fas fa-comment-dots text-rose-500 w-4"></i>
+                            <span class="truncate">Layanan Aspirasi & Pengaduan</span>
+                        </a>
+                    </div>
+                </div>
 
                 {{-- Separator --}}
                 <div class="h-5 w-px mx-1.5" :class="scrolled ? 'bg-slate-200' : 'bg-white/20'"></div>
@@ -231,6 +348,17 @@
                                     @empty
                                         <p class="text-xs text-slate-400 p-2 text-center">Tidak ada pintasan aktif.</p>
                                     @endforelse
+                                    @if(!$authUser->hasRole('siswa') && $authUser->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas', 'guru']))
+                                        <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" @click="userMenuOpen = false" class="flex items-center gap-2.5 p-2 rounded-xl border border-transparent hover:border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all">
+                                            <div class="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-xs">
+                                                <i class="fas fa-qrcode text-[10px]"></i>
+                                            </div>
+                                            <div class="flex flex-col text-left truncate">
+                                                <span class="truncate leading-tight">Presensi Digital (Kiosk)</span>
+                                                <span class="text-[9px] text-slate-400 font-normal leading-none mt-0.5">Scan Barcode / QR</span>
+                                            </div>
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
 
@@ -245,18 +373,6 @@
                             </div>
                         </div>
                     </div>
-
-                    {{-- Tombol Presensi Digital (Hanya untuk Guru / Petugas / Admin) --}}
-                    @if(!$authUser->hasRole('siswa'))
-                        @if($authUser->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas', 'guru']))
-                            <a href="{{ $pengaturanSekolah?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}"
-                                class="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white px-3.5 py-2 rounded-xl font-bold text-xs whitespace-nowrap shrink-0 shadow-md shadow-brand-primary/20 transition-all transform hover:scale-105">
-                                <i class="fas fa-qrcode text-sm"></i>
-                                Presensi Digital
-                                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse ml-0.5 shrink-0"></span>
-                            </a>
-                        @endif
-                    @endif
                 @endauth
 
             </nav>
@@ -303,11 +419,41 @@
                     <a href="{{ url('/profil') }}#visimisi" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Visi & Misi Sekolah</a>
                     <a href="{{ url('/profil') }}#sambutan" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Sambutan Kepala Sekolah</a>
                     <a href="{{ url('/profil') }}#struktur" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Struktur Organisasi</a>
-                    <a href="{{ route('guru.all') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20">Pendidik dan Tenaga Kependidikan</a>
                 </div>
             </div>
 
-            {{-- 3. Informasi (Accordion) --}}
+            {{-- 3. Warga Sekolah (Accordion) --}}
+            <div>
+                <button type="button" @click="mobileWargaOpen = !mobileWargaOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                    :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                    <span class="flex items-center gap-2"><i class="fas fa-users w-5 text-brand-primary"></i> Warga Sekolah</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileWargaOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="mobileWargaOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
+                    <a href="{{ route('guru.all') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Guru & Staf</a>
+                    <a href="{{ route('siswa.all') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Siswa</a>
+                    <a href="{{ route('alumni.index') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20">Alumni</a>
+                </div>
+            </div>
+
+            {{-- 4. Akademik (Accordion) --}}
+            <div>
+                <button type="button" @click="mobileAkademikOpen = !mobileAkademikOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                    :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                    <span class="flex items-center gap-2"><i class="fas fa-graduation-cap w-5 text-brand-primary"></i> Akademik</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileAkademikOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="mobileAkademikOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
+                    <a href="{{ route('beranda.akademik.index') }}" class="block py-2 text-xs font-bold text-amber-400">Pusat Informasi Akademik</a>
+                    @foreach($halamanAkademikList as $itemAkademik)
+                        <a href="{{ route('beranda.akademik', $itemAkademik->slug) }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20">
+                            {{ $itemAkademik->judul }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- 5. Informasi (Accordion) --}}
             <div>
                 <button type="button" @click="mobileInfoOpen = !mobileInfoOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
                     :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
@@ -319,27 +465,41 @@
                     <a href="{{ route('pengumuman.all') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Pengumuman</a>
                     <a href="{{ route('prestasi.all') }}" class="block py-2 text-xs font-semibold text-amber-400">Prestasi</a>
                     <a href="{{ route('galeri.all') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Galeri</a>
+                </div>
+            </div>
+
+            {{-- 6. Aplikasi (Accordion) --}}
+            <div>
+                <button type="button" @click="mobileAplikasiOpen = !mobileAplikasiOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                    :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                    <span class="flex items-center gap-2"><i class="fas fa-th-large w-5 text-brand-primary"></i> Aplikasi</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileAplikasiOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="mobileAplikasiOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
+                    <a href="{{ url('/presensi') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Presensi</a>
                     <a href="{{ url('/perpustakaan') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Perpustakaan</a>
                 </div>
             </div>
 
-            {{-- 4. Presensi --}}
-            <a href="{{ url('/presensi') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
-               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
-                <i class="fas fa-clock w-5 text-brand-primary"></i> Presensi
-            </a>
-
-            {{-- 5. Pelayanan Publik (Direct Link) --}}
-            <a href="{{ route('beranda.layanan.index') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
-               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
-                <i class="fas fa-bullhorn w-5 text-brand-primary"></i> Pelayanan Publik
-            </a>
-
-            {{-- 6. Alumni --}}
-            <a href="{{ url('/alumni') }}" class="block px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
-               :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
-                <i class="fas fa-user-graduate w-5 text-brand-primary"></i> Alumni
-            </a>
+            {{-- 7. Pelayanan Publik (Accordion) --}}
+            <div>
+                <button type="button" @click="mobileLayananOpen = !mobileLayananOpen" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                    :class="scrolled ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-white'">
+                    <span class="flex items-center gap-2"><i class="fas fa-bullhorn w-5 text-brand-primary"></i> Pelayanan Publik</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileLayananOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="mobileLayananOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
+                    <a href="{{ route('beranda.layanan.index') }}" class="block py-2 text-xs font-bold text-amber-400">Pusat Pelayanan Publik</a>
+                    @foreach($halamanLayananList as $itemLayanan)
+                        <a href="{{ route('beranda.layanan', $itemLayanan->slug) }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20">
+                            {{ $itemLayanan->judul }}
+                        </a>
+                    @endforeach
+                    <a href="{{ route('pengaduan.index') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20 text-rose-300">
+                        Layanan Aspirasi & Pengaduan
+                    </a>
+                </div>
+            </div>
 
             {{-- Auth Box Mobile --}}
             <div class="pt-4 mt-4 border-t" :class="scrolled ? 'border-slate-200' : 'border-white/10'">

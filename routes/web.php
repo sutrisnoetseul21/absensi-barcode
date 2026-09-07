@@ -20,6 +20,8 @@ Route::get('/profil', [BerandaController::class, 'profil'])->name('beranda.profi
 Route::get('/home', [BerandaController::class, 'index'])->name('home');
 Route::get('/guru', [BerandaController::class, 'guru'])->name('guru.all');
 Route::get('/direktori-guru', [BerandaController::class, 'guru'])->name('beranda.guru');
+Route::get('/siswa', [BerandaController::class, 'siswa'])->name('siswa.all');
+Route::get('/direktori-siswa', [BerandaController::class, 'siswa'])->name('beranda.siswa');
 Route::get('/berita', [BerandaController::class, 'berita'])->name('berita.all');
 Route::get('/pengumuman', [BerandaController::class, 'pengumuman'])->name('pengumuman.all');
 Route::get('/prestasi', [BerandaController::class, 'prestasi'])->name('prestasi.all');
@@ -27,6 +29,8 @@ Route::get('/galeri', [BerandaController::class, 'galeri'])->name('galeri.all');
 Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beranda.artikel');
 Route::get('/pengaduan', [BerandaController::class, 'pengaduan'])->name('pengaduan.index');
 Route::post('/pengaduan', [BerandaController::class, 'pengaduanStore'])->name('pengaduan.store')->middleware('throttle:30,1');
+Route::get('/akademik', [BerandaController::class, 'akademikIndex'])->name('beranda.akademik.index');
+Route::get('/akademik/{slug}', [BerandaController::class, 'halamanAkademik'])->name('beranda.akademik');
 Route::get('/layanan-publik', [BerandaController::class, 'layananPublikIndex'])->name('beranda.layanan.index');
 Route::get('/layanan-publik/{slug}', [BerandaController::class, 'halamanLayanan'])->name('beranda.layanan');
 Route::get('/alumni', [BerandaController::class, 'alumni'])->name('alumni.index');

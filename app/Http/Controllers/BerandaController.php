@@ -11,8 +11,12 @@ use App\Models\WebGaleri;
 use App\Models\WebStatistic;
 use App\Models\WebQuickLink;
 use App\Models\Guru;
+use App\Models\Siswa;
+use App\Models\Kelas;
+use App\Models\TahunAjaran;
 use App\Services\HomepageStatsService;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class BerandaController extends Controller
 {
@@ -70,6 +74,59 @@ class BerandaController extends Controller
             ->paginate(12);
 
         return view('beranda.guru', compact('sekolah', 'setting', 'teachers'));
+    }
+
+    public function siswa(Request $request): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+
+        $activeYearId = $sekolah?->academic_year_id_active ?? TahunAjaran::where('status', 'aktif')->value('id');
+        $activeYear = $activeYearId ? TahunAjaran::find($activeYearId) : null;
+
+        // Daftar kelas yang memiliki siswa aktif di tahun ajaran aktif
+        $kelasList = Kelas::whereHas('enrollments', function ($q) use ($activeYearId) {
+            if ($activeYearId) {
+                $q->where('academic_year_id', $activeYearId);
+            }
+            $q->where('status', 'aktif');
+        })->orderBy('grade_level')->orderBy('name')->get();
+
+        $selectedKelas = $request->query('kelas');
+        $search = trim($request->query('search', ''));
+
+        $query = Siswa::where('status', 'aktif')
+            ->whereHas('enrollments', function ($q) use ($activeYearId, $selectedKelas) {
+                if ($activeYearId) {
+                    $q->where('academic_year_id', $activeYearId);
+                }
+                $q->where('status', 'aktif');
+                if (!empty($selectedKelas)) {
+                    $q->where(function ($k) use ($selectedKelas) {
+                        $k->where('class_id', $selectedKelas)
+                          ->orWhereHas('kelas', fn ($ck) => $ck->where('name', $selectedKelas));
+                    });
+                }
+            })
+            ->with(['enrollments' => function ($q) use ($activeYearId) {
+                if ($activeYearId) {
+                    $q->where('academic_year_id', $activeYearId);
+                }
+                $q->where('status', 'aktif')->with('kelas');
+            }]);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $query->orderBy('name')->paginate(32)->withQueryString();
+        $totalSiswaCount = $students->total();
+
+        return view('beranda.siswa', compact('sekolah', 'setting', 'activeYear', 'kelasList', 'students', 'selectedKelas', 'search', 'totalSiswaCount'));
     }
 
     public function berita(\Illuminate\Http\Request $request): View
@@ -347,5 +404,34 @@ class BerandaController extends Controller
             ->get();
 
         return view('beranda.layanan-publik', compact('sekolah', 'setting', 'halaman', 'semuaLayanan'));
+    }
+
+    public function akademikIndex(): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+
+        $semuaAkademik = \App\Models\WebHalamanAkademik::where('is_active', true)
+            ->orderBy('urutan')
+            ->get();
+
+        return view('beranda.akademik-index', compact('sekolah', 'setting', 'semuaAkademik'));
+    }
+
+    public function halamanAkademik(string $slug): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+
+        $halaman = \App\Models\WebHalamanAkademik::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $semuaAkademik = \App\Models\WebHalamanAkademik::where('is_active', true)
+            ->where('id', '!=', $halaman->id)
+            ->orderBy('urutan')
+            ->get();
+
+        return view('beranda.akademik', compact('sekolah', 'setting', 'halaman', 'semuaAkademik'));
     }
 }
