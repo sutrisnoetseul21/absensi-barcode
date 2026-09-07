@@ -7,17 +7,17 @@
 
         {{-- Tab Switcher --}}
         <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl flex-wrap">
-            <button type="button" @click="activeTab = 'beranda'"
+            <button type="button" @click="activeTab = 'beranda'; $nextTick(() => window.dispatchEvent(new Event('resize')))"
                     :class="activeTab === 'beranda' ? 'bg-white text-violet-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
                     class="px-3.5 py-2 rounded-lg text-xs transition-all flex items-center gap-2">
                 <i class="fas fa-home"></i> Hero & Beranda
             </button>
-            <button type="button" @click="activeTab = 'profil'"
+            <button type="button" @click="activeTab = 'profil'; $nextTick(() => window.dispatchEvent(new Event('resize')))"
                     :class="activeTab === 'profil' ? 'bg-white text-violet-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
                     class="px-3.5 py-2 rounded-lg text-xs transition-all flex items-center gap-2">
                 <i class="fas fa-graduation-cap"></i> Profil, Visi & Misi
             </button>
-            <button type="button" @click="activeTab = 'sosmed'"
+            <button type="button" @click="activeTab = 'sosmed'; $nextTick(() => window.dispatchEvent(new Event('resize')))"
                     :class="activeTab === 'sosmed' ? 'bg-white text-violet-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
                     class="px-3.5 py-2 rounded-lg text-xs transition-all flex items-center gap-2">
                 <i class="fas fa-share-alt"></i> Sosial Media & Tendik
@@ -196,7 +196,7 @@
                 <div class="pt-2 border-t border-slate-100">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Sambutan Lengkap Kepala Sekolah</label>
                     <div wire:ignore wire:key="portal-sambutan-editor-wrapper" x-data="portalWebTinyMCE(@entangle('sambutan_kepsek'), 'portal-sambutan-editor', 350)" class="rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-violet-400 focus-within:border-violet-400 transition-all bg-white shadow-inner">
-                        <textarea x-ref="editor" id="portal-sambutan-editor" class="w-full"></textarea>
+                        <textarea x-ref="editor" id="portal-sambutan-editor" class="w-full">{!! $sambutan_kepsek !!}</textarea>
                     </div>
                     @error('sambutan_kepsek') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
@@ -228,21 +228,33 @@
                     <p class="text-xs text-slate-500 mt-0.5">Uraian ringkas profil, arah tujuan, dan misi sekolah.</p>
                 </div>
 
+                {{-- Profil Singkat --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Profil Singkat & Sejarah Sekolah</label>
-                    <textarea wire:model="profil_singkat" rows="5" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-violet-400 outline-none leading-relaxed" placeholder="Tuliskan profil singkat atau sejarah sekolah..."></textarea>
+                    <p class="text-xs text-slate-400 mb-2">Ringkasan profil atau sejarah sekolah yang tampil di beranda dan halaman profil.</p>
+                    <div wire:ignore wire:key="portal-profil-editor-wrapper" x-data="portalWebTinyMCE(@entangle('profil_singkat'), 'portal-profil-editor', 280)" class="rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-violet-400 focus-within:border-violet-400 transition-all bg-white shadow-inner">
+                        <textarea x-ref="editor" id="portal-profil-editor" class="w-full">{!! $profil_singkat !!}</textarea>
+                    </div>
                     @error('profil_singkat') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- Visi Sekolah --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Visi Sekolah</label>
-                    <textarea wire:model="visi" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-violet-400 outline-none leading-relaxed" placeholder="Visi sekolah..."></textarea>
+                    <p class="text-xs text-slate-400 mb-2">Visi sekolah dapat diformat tebal, miring, atau paragraf.</p>
+                    <div wire:ignore wire:key="portal-visi-editor-wrapper" x-data="portalWebTinyMCE(@entangle('visi'), 'portal-visi-editor', 220)" class="rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-violet-400 focus-within:border-violet-400 transition-all bg-white shadow-inner">
+                        <textarea x-ref="editor" id="portal-visi-editor" class="w-full">{!! $visi !!}</textarea>
+                    </div>
                     @error('visi') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- Misi Sekolah --}}
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Misi Sekolah</label>
-                    <textarea wire:model="misi" rows="6" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-violet-400 outline-none leading-relaxed" placeholder="Tuliskan misi sekolah (satu baris per poin misi)..."></textarea>
+                    <p class="text-xs text-slate-400 mb-2">Dapat berupa daftar poin (bullet / numbered list) atau paragraf.</p>
+                    <div wire:ignore wire:key="portal-misi-editor-wrapper" x-data="portalWebTinyMCE(@entangle('misi'), 'portal-misi-editor', 300)" class="rounded-xl overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-violet-400 focus-within:border-violet-400 transition-all bg-white shadow-inner">
+                        <textarea x-ref="editor" id="portal-misi-editor" class="w-full">{!! $misi !!}</textarea>
+                    </div>
                     @error('misi') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>

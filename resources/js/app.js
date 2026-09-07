@@ -94,8 +94,7 @@ window.portalWebTinyMCE = function(model, customId = null, customHeight = 450) {
                     }
 
                     const form = el.closest('form');
-                    if (form && !form._tinymce_submit_bound) {
-                        form._tinymce_submit_bound = true;
+                    if (form) {
                         form.addEventListener('submit', () => {
                             if (this.editorInstance) {
                                 this.value = this.editorInstance.getContent();
@@ -222,12 +221,13 @@ window.portalWebTinyMCE = function(model, customId = null, customHeight = 450) {
                             this.editorInstance = editor;
 
                             editor.on('init', () => {
-                                if (this.value) {
-                                    editor.setContent(this.value);
+                                const initialContent = this.value || (el ? el.value : '') || '';
+                                if (initialContent) {
+                                    editor.setContent(initialContent);
                                 }
                             });
 
-                            editor.on('change keyup blur undo redo SetContent ExecCommand', () => {
+                            editor.on('input change keyup blur undo redo', () => {
                                 this.value = editor.getContent();
                             });
                         }

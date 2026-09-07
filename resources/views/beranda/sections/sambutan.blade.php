@@ -1,5 +1,5 @@
 {{-- ══════════════════ SAMBUTAN KEPALA SEKOLAH ══════════════════ --}}
-@if($setting->sambutan_kepsek)
+@if($setting->sambutan_kepsek || $setting->foto_kepsek || $setting->kutipan_kepsek)
 <section id="tentang" class="mb-16">
     <div class="flex flex-col lg:flex-row gap-12 items-start">
         
@@ -49,7 +49,11 @@
                     <!-- Teks Konten -->
                     <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed text-sm md:text-base text-justify overflow-hidden transition-all duration-700 max-h-[100px]"
                          :style="expanded ? 'max-height: 5000px' : 'max-height: 100px'">
-                        {!! $setting->sambutan_kepsek !!}
+                        @if($setting->sambutan_kepsek)
+                            {!! $setting->sambutan_kepsek !!}
+                        @else
+                            <p class="text-slate-400 italic">Sambutan Kepala Sekolah belum ditambahkan.</p>
+                        @endif
                     </div>
                     
                     <!-- Gradient Overlay jika belum di-expand -->
