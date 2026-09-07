@@ -30,6 +30,8 @@ Route::get('/berita/{slug}', [BerandaController::class, 'artikel'])->name('beran
 Route::get('/pengaduan', [BerandaController::class, 'pengaduan'])->name('pengaduan.index');
 Route::post('/pengaduan', [BerandaController::class, 'pengaduanStore'])->name('pengaduan.store')->middleware('throttle:30,1');
 Route::get('/akademik', [BerandaController::class, 'akademikIndex'])->name('beranda.akademik.index');
+Route::get('/akademik/microsite', [BerandaController::class, 'microsite'])->name('beranda.microsite');
+Route::get('/microsite', fn() => redirect()->route('beranda.microsite'));
 Route::get('/akademik/{slug}', [BerandaController::class, 'halamanAkademik'])->name('beranda.akademik');
 Route::get('/layanan-publik', [BerandaController::class, 'layananPublikIndex'])->name('beranda.layanan.index');
 Route::get('/layanan-publik/{slug}', [BerandaController::class, 'halamanLayanan'])->name('beranda.layanan');
@@ -326,6 +328,7 @@ Route::prefix('portal-web')->group(function () {
         Route::get('/', \App\Livewire\PortalWeb\Dashboard::class)->name('portal-web.dashboard');
         Route::get('/artikel', \App\Livewire\PortalWeb\Artikel::class)->name('portal-web.artikel');
         Route::get('/akademik', \App\Livewire\PortalWeb\HalamanAkademik::class)->name('portal-web.akademik');
+        Route::get('/microsite', \App\Livewire\PortalWeb\Microsite::class)->name('portal-web.microsite');
         Route::get('/prestasi', \App\Livewire\PortalWeb\Prestasi::class)->name('portal-web.prestasi');
         Route::get('/galeri', \App\Livewire\PortalWeb\Galeri::class)->name('portal-web.galeri');
         Route::get('/alumni', \App\Livewire\PortalWeb\Alumni::class)->name('portal-web.alumni');

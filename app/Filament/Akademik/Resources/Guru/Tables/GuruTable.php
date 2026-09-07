@@ -57,6 +57,14 @@ class GuruTable
                     ->copyable()
                     ->copyMessage('Email disalin'),
 
+                TextColumn::make('microsite_url')
+                    ->label('Microsite')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url(fn ($record) => $record->microsite_url, shouldOpenInNewTab: true)
+                    ->formatStateUsing(fn ($state) => $state ? 'Buka Link' : '—')
+                    ->color(fn ($state) => $state ? 'primary' : 'gray')
+                    ->toggleable(),
+
                 IconColumn::make('user.must_change_password')
                     ->label('Ganti Password?')
                     ->boolean()

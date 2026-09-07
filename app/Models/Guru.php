@@ -25,6 +25,7 @@ class Guru extends Authenticatable
         'photo_path',
         'facebook_url',
         'instagram_url',
+        'microsite_url',
     ];
 
     public function getAvatarUrlAttribute()

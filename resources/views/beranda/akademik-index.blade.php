@@ -170,6 +170,14 @@
                     </h4>
 
                     <div class="space-y-2.5">
+                        <a href="{{ route('beranda.microsite') }}" class="flex items-center justify-between p-3 rounded-2xl bg-violet-50/70 hover:bg-violet-100/70 hover:text-violet-800 border border-violet-100 transition-all text-xs font-bold text-violet-800 group">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fas fa-globe text-violet-600 w-4"></i>
+                                <span>Microsite Sekolah & Guru</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-[10px] text-violet-400 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+
                         <a href="{{ url('/presensi') }}" class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 hover:text-brand-primary border border-slate-100 transition-all text-xs font-bold text-slate-700 group">
                             <div class="flex items-center gap-2.5">
                                 <i class="fas fa-clock text-amber-500 w-4"></i>

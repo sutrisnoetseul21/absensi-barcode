@@ -434,4 +434,48 @@ class BerandaController extends Controller
 
         return view('beranda.akademik', compact('sekolah', 'setting', 'halaman', 'semuaAkademik'));
     }
+
+    public function microsite(Request $request): View
+    {
+        $sekolah = PengaturanSekolah::current();
+        $setting = WebSetting::instance();
+
+        $micrositesSekolah = \App\Models\WebMicrosite::where('is_active', true)
+            ->orderBy('urutan')
+            ->get();
+
+        $search = $request->query('search');
+        $filter = $request->query('filter', 'semua');
+
+        $guruQuery = Guru::with(['user', 'jabatans', 'kelasAjarans.kelas', 'pengajarans.mataPelajaran', 'pengajarans.kelasAjaran.kelas']);
+
+        if ($search) {
+            $guruQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhereHas('pengajarans.mataPelajaran', function ($sub) use ($search) {
+                      $sub->where('nama_mapel', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($filter === 'ada') {
+            $guruQuery->whereNotNull('microsite_url')->where('microsite_url', '!=', '');
+        }
+
+        $gurus = $guruQuery->orderByRaw('CASE WHEN microsite_url IS NOT NULL AND microsite_url != "" THEN 0 ELSE 1 END')
+            ->orderBy('name')
+            ->get();
+
+        $totalGuruMicrosite = Guru::whereNotNull('microsite_url')->where('microsite_url', '!=', '')->count();
+
+        return view('beranda.microsite', compact(
+            'sekolah',
+            'setting',
+            'micrositesSekolah',
+            'gurus',
+            'totalGuruMicrosite',
+            'search',
+            'filter'
+        ));
+    }
 }

@@ -30,6 +30,7 @@ class GuruProfil extends Component
     // Editable Contact Info
     public $no_hp;
     public $email;
+    public $microsite_url;
 
     // Photo
     public $photo;
@@ -53,6 +54,7 @@ class GuruProfil extends Component
         $this->no_hp = $this->teacher->no_hp ?: $this->user->no_hp;
         $this->email = $this->user->email;
         $this->photo_path = $this->teacher->photo_path;
+        $this->microsite_url = $this->teacher->microsite_url;
 
         // Fetch academic assignment for active academic year
         $activeYear = TahunAjaran::where('status', 'aktif')->first();
@@ -92,11 +94,14 @@ class GuruProfil extends Component
         $this->validate([
             'email' => 'required|email|max:255|unique:users,email,' . $this->user->id,
             'no_hp' => 'nullable|string|max:20',
+            'microsite_url' => 'nullable|url|max:500',
         ], [
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
             'no_hp.max' => 'Nomor HP maksimal 20 karakter.',
+            'microsite_url.url' => 'Format tautan microsite tidak valid. Pastikan diawali dengan http:// atau https://',
+            'microsite_url.max' => 'Tautan microsite maksimal 500 karakter.',
         ]);
 
         $this->user->update([
@@ -106,9 +111,10 @@ class GuruProfil extends Component
 
         $this->teacher->update([
             'no_hp' => $this->no_hp,
+            'microsite_url' => $this->microsite_url,
         ]);
 
-        session()->flash('success_contact', 'Informasi kontak berhasil diperbarui!');
+        session()->flash('success_contact', 'Informasi kontak dan tautan microsite berhasil diperbarui!');
     }
 
     public function updatePhoto()

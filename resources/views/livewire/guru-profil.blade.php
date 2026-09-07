@@ -75,6 +75,13 @@
                             <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80 shadow-xs">
                                 <span class="text-slate-400">Email:</span> <strong class="font-bold text-slate-900">{{ $email }}</strong>
                             </span>
+
+                            @if($microsite_url)
+                                <a href="{{ $microsite_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200/80 shadow-xs hover:bg-violet-100 transition-colors">
+                                    <svg class="w-3.5 h-3.5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                    Microsite Aktif
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -280,9 +287,32 @@
                         </div>
                     </div>
 
+                    <!-- Link Microsite Guru -->
+                    <div class="pt-3 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                Link Microsite Guru (Canva / Google Sites / Portofolio / S.id / Linktree)
+                            </label>
+                            @if($microsite_url)
+                                <a href="{{ $microsite_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-bold text-violet-600 hover:text-violet-800 bg-violet-50 hover:bg-violet-100 px-2.5 py-1 rounded-lg transition-colors">
+                                    <span>Buka Tautan</span>
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                            @endif
+                        </div>
+                        <input type="url" wire:model.live="microsite_url" 
+                               placeholder="Contoh: https://sites.google.com/view/nama-guru atau https://canva.com/design/..."
+                               class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 focus:border-violet-500 focus:bg-white rounded-2xl text-xs font-medium text-slate-800 transition-all outline-none">
+                        @error('microsite_url') <span class="text-rose-500 text-[11px] font-semibold mt-1 block">{{ $message }}</span> @enderror
+                        <p class="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                            Tautan ini ditampilkan di menu <strong>Akademik > Microsite Sekolah</strong> pada website resmi agar siswa dan umum dapat mengakses materi belajar atau modul digital Anda.
+                        </p>
+                    </div>
+
                     <div class="pt-4 flex justify-end">
                         <button type="submit" wire:loading.attr="disabled" class="py-2.5 px-6 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-2xl text-xs font-bold shadow-md shadow-brand-primary/20 transition-all flex items-center gap-2">
-                            <span wire:loading.remove wire:target="updateContact">Simpan Perubahan Kontak</span>
+                            <span wire:loading.remove wire:target="updateContact">Simpan Informasi Kontak & Microsite</span>
                             <span wire:loading wire:target="updateContact">Menyimpan...</span>
                         </button>
                     </div>

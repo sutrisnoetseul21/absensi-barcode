@@ -161,6 +161,10 @@
                                 <span class="truncate">{{ $itemAkademik->judul }}</span>
                             </a>
                         @endforeach
+                        <a href="{{ route('beranda.microsite') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-brand-primary bg-emerald-50/50 hover:bg-emerald-100/70 transition-colors border-t border-slate-100">
+                            <i class="fas fa-globe text-brand-primary w-4"></i>
+                            <span>Microsite Sekolah</span>
+                        </a>
                     </div>
                 </div>
 
@@ -450,6 +454,9 @@
                             {{ $itemAkademik->judul }}
                         </a>
                     @endforeach
+                    <a href="{{ route('beranda.microsite') }}" class="block py-2 text-xs font-bold text-amber-300 border-t border-slate-200/20">
+                        <i class="fas fa-globe mr-1.5"></i> Microsite Sekolah
+                    </a>
                 </div>
             </div>
 

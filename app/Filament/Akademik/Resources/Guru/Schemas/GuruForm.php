@@ -88,6 +88,13 @@ class GuruForm
                     ->url()
                     ->nullable(),
 
+                TextInput::make('microsite_url')
+                    ->label('Link Microsite Guru')
+                    ->placeholder('https://sites.google.com/view/... atau Canva / S.id')
+                    ->url()
+                    ->helperText('Tautan situs portofolio atau materi ajar digital guru (ditampilkan di menu publik Microsite).')
+                    ->nullable(),
+
                 TextInput::make('email')
                     ->label('Email Login')
                     ->email()
