@@ -79,7 +79,7 @@
             </div>
 
             <!-- Misi -->
-            <div>
+            <div x-data="{ expanded: false }">
                 <div class="flex items-center gap-4 mb-6">
                     <div class="w-12 h-12 bg-brand-secondary-50 rounded-full flex items-center justify-center text-brand-secondary text-2xl shadow-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -91,22 +91,43 @@
                     @php
                         $isHtml = strip_tags($setting->misi) !== $setting->misi;
                     @endphp
-                    @if($isHtml)
-                        <div class="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm text-slate-700 leading-relaxed text-base rich-content-misi">
-                            {!! $setting->misi !!}
-                        </div>
-                    @else
-                        <div class="grid md:grid-cols-1 gap-4">
-                            @foreach(explode("\n", $setting->misi) as $misi)
-                                @if(trim($misi) != '')
-                                <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-brand-primary-200 transition-colors">
-                                    <svg class="w-5 h-5 text-brand-secondary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span class="text-slate-700 leading-relaxed">{{ trim($misi) }}</span>
+                    <div class="relative">
+                        <div class="overflow-hidden transition-all duration-700 max-h-[180px]"
+                             :style="expanded ? 'max-height: 5000px' : 'max-height: 180px'">
+                            @if($isHtml)
+                                <div class="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm text-slate-700 leading-relaxed text-base rich-content-misi">
+                                    {!! $setting->misi !!}
                                 </div>
-                                @endif
-                            @endforeach
+                            @else
+                                <div class="grid md:grid-cols-1 gap-4">
+                                    @foreach(explode("\n", $setting->misi) as $misi)
+                                        @if(trim($misi) != '')
+                                        <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-brand-primary-200 transition-colors">
+                                            <svg class="w-5 h-5 text-brand-secondary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span class="text-slate-700 leading-relaxed">{{ trim($misi) }}</span>
+                                        </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
-                    @endif
+
+                        <!-- Gradient overlay jika belum di-expand -->
+                        <div x-show="!expanded" x-cloak
+                             class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-b-2xl">
+                        </div>
+                    </div>
+
+                    <!-- Tombol Read More -->
+                    <button @click="expanded = !expanded"
+                            class="mt-3 flex items-center gap-2 text-brand-primary font-bold text-sm hover:text-brand-secondary transition-colors group">
+                        <span x-text="expanded ? 'Tampilkan Lebih Sedikit' : 'Baca Selengkapnya'">Baca Selengkapnya</span>
+                        <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-y-0.5"
+                             :class="expanded ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
                 @else
                     <div class="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
                         <span class="text-slate-500">Belum ada misi yang diisi.</span>

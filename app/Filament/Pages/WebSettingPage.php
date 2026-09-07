@@ -82,6 +82,12 @@ class WebSettingPage extends Page implements HasForms
                                     ->height(400)
                                     ->uploadDirectory('web-profil/editor')
                                     ->columnSpanFull(),
+                                Forms\Components\TextInput::make('link_youtube')
+                                    ->label('Video YouTube Beranda (Profil / Kegiatan Sekolah)')
+                                    ->placeholder('https://www.youtube.com/watch?v=xxxxxxxxx')
+                                    ->helperText('Tautan video YouTube yang di-embed langsung pada widget beranda dan tautan footer.')
+                                    ->url()
+                                    ->columnSpanFull(),
                                 Forms\Components\FileUpload::make('struktur_organisasi')
                                     ->label('Bagan Struktur Organisasi Sekolah')
                                     ->image()

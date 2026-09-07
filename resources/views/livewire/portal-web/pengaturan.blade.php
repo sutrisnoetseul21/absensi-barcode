@@ -201,6 +201,82 @@
                     @error('sambutan_kepsek') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- Video YouTube Beranda (Profil / Kegiatan) --}}
+                <div class="pt-4 border-t border-slate-100" x-data="{
+                    ytUrl: @entangle('link_youtube').live,
+                    getYtId() {
+                        if (!this.ytUrl) return null;
+                        const match = this.ytUrl.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&?/\s]{11})/i);
+                        return match ? match[1] : null;
+                    }
+                }">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Video YouTube Beranda (Profil / Kegiatan Sekolah)
+                        </label>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
+                            <i class="fab fa-youtube"></i> Widget Video Beranda
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-3">
+                        Tautan video YouTube yang di-embed pada widget Beranda (di sebelah kanan informasi & statistik). Masukkan URL video lengkap atau link share.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+                        <div class="md:col-span-7 space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">URL Video YouTube</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-red-500">
+                                        <i class="fab fa-youtube text-lg"></i>
+                                    </div>
+                                    <input type="url" wire:model.live="link_youtube"
+                                           class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-violet-400 outline-none bg-white"
+                                           placeholder="https://www.youtube.com/watch?v=xxxxxxxxx atau https://youtu.be/xxxxxxxxx">
+                                </div>
+                                @error('link_youtube') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                                <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fas fa-lightbulb text-amber-500"></i> Contoh Format Tautan yang Didukung:
+                                </div>
+                                <ul class="list-disc list-inside text-[11px] text-slate-500 space-y-0.5">
+                                    <li><code>https://www.youtube.com/watch?v=R7uGUQPaqf0</code></li>
+                                    <li><code>https://youtu.be/R7uGUQPaqf0</code></li>
+                                    <li><code>https://www.youtube.com/embed/R7uGUQPaqf0</code></li>
+                                </ul>
+                                <p class="text-[11px] text-violet-600 font-medium pt-1">
+                                    <i class="fas fa-info-circle"></i> Tautan ini juga otomatis disinkronkan ke ikon YouTube di footer dan menu media sosial.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Live Preview Video Embed -->
+                        <div class="md:col-span-5">
+                            <span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Preview Video di Beranda</span>
+                            <template x-if="getYtId()">
+                                <div class="rounded-xl overflow-hidden shadow-md border-2 border-slate-300 aspect-video bg-black relative">
+                                    <iframe class="w-full h-full"
+                                            :src="'https://www.youtube.com/embed/' + getYtId()"
+                                            title="Preview Video YouTube"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen>
+                                    </iframe>
+                                </div>
+                            </template>
+                            <template x-if="!getYtId()">
+                                <div class="rounded-xl border-2 border-dashed border-slate-300 p-6 text-center text-slate-400 flex flex-col items-center justify-center aspect-video bg-white shadow-inner">
+                                    <i class="fab fa-youtube text-4xl mb-2 text-slate-300"></i>
+                                    <span class="text-xs font-medium">Video belum disetel</span>
+                                    <span class="text-[10px] text-slate-400 mt-0.5">Masukkan link video YouTube di samping</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Bagan Struktur Organisasi --}}
                 <div class="pt-2 border-t border-slate-100">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Bagan Struktur Organisasi Sekolah</label>
