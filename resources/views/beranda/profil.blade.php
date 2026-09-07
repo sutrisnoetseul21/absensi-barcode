@@ -321,9 +321,9 @@
                             <div class="px-6 pb-6 pt-2 border-t border-slate-100 mt-2">
                                 <div class="flex flex-col md:flex-row gap-6 items-start">
                                     <div class="w-full md:w-48 shrink-0 flex flex-col items-center text-center p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                        <div class="w-32 h-40 rounded-xl overflow-hidden shadow-sm bg-slate-200 mb-3 border border-slate-200">
+                                        <div class="w-32 aspect-[3/4] rounded-xl overflow-hidden shadow-sm bg-slate-200 mb-3 border border-slate-200">
                                             @if($setting?->foto_kepsek)
-                                                <img src="{{ asset('storage/' . $setting->foto_kepsek) }}" alt="Kepala Sekolah" class="w-full h-full object-cover">
+                                                <img src="{{ asset('storage/' . $setting->foto_kepsek) }}" alt="Kepala Sekolah" class="w-full h-full object-cover" style="object-position: center {{ $setting->posisi_foto_kepsek ?? 'top' }};">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-slate-400">
                                                     <i class="fas fa-user-tie text-4xl"></i>

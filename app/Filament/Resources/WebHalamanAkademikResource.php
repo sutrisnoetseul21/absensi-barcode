@@ -20,7 +20,7 @@ class WebHalamanAkademikResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
+    protected static string|\UnitEnum|null $navigationGroup = 'Web Profil Sekolah';
 
     protected static ?string $navigationLabel = 'Halaman Akademik';
 
@@ -30,7 +30,7 @@ class WebHalamanAkademikResource extends Resource
 
     protected static ?string $slug = 'akademik/halaman';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {

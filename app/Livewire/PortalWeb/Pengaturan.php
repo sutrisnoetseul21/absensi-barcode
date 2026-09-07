@@ -23,6 +23,8 @@ class Pengaturan extends Component
     public string $link_fb = '';
     public int $stat_tenaga_kependidikan = 0;
 
+    public string $posisi_foto_kepsek = 'top';
+
     public $hero_image = null;
     public $foto_kepsek = null;
     public $struktur_organisasi = null;
@@ -44,6 +46,7 @@ class Pengaturan extends Component
             'link_ig'                  => 'nullable|url|max:500',
             'link_fb'                  => 'nullable|url|max:500',
             'stat_tenaga_kependidikan' => 'integer|min:0',
+            'posisi_foto_kepsek'       => 'nullable|string|max:50',
             'hero_image'               => 'nullable|image|max:5120',
             'foto_kepsek'              => 'nullable|image|max:2048',
             'struktur_organisasi'      => 'nullable|image|max:5120',
@@ -64,6 +67,7 @@ class Pengaturan extends Component
         $this->link_ig                      = $setting->link_ig ?? '';
         $this->link_fb                      = $setting->link_fb ?? '';
         $this->stat_tenaga_kependidikan     = $setting->stat_tenaga_kependidikan ?? 0;
+        $this->posisi_foto_kepsek           = $setting->posisi_foto_kepsek ?? 'top';
         $this->existingHeroImage            = $setting->hero_image;
         $this->existingFotoKepsek           = $setting->foto_kepsek;
         $this->existingStrukturOrganisasi   = $setting->struktur_organisasi;
@@ -87,6 +91,7 @@ class Pengaturan extends Component
             'link_ig'                  => $this->link_ig ?: null,
             'link_fb'                  => $this->link_fb ?: null,
             'stat_tenaga_kependidikan' => $this->stat_tenaga_kependidikan,
+            'posisi_foto_kepsek'       => $this->posisi_foto_kepsek ?: 'top',
         ];
 
         if ($this->hero_image) {

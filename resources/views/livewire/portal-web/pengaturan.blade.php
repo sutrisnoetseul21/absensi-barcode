@@ -64,20 +64,131 @@
                 </div>
 
                 {{-- Foto & Kutipan Kepsek --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Foto Kepala Sekolah</label>
-                        @if($existingFotoKepsek)
-                            <img src="{{ asset('storage/' . $existingFotoKepsek) }}" class="h-24 w-24 rounded-2xl object-cover mb-2 border-2 border-slate-200 shadow-sm">
-                        @endif
-                        <input type="file" wire:model="foto_kepsek" accept="image/*" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-600 hover:file:bg-slate-100">
-                        <div wire:loading wire:target="foto_kepsek" class="text-xs text-violet-600 mt-1"><i class="fas fa-spinner fa-spin"></i> Mengunggah foto kepsek...</div>
-                        @error('foto_kepsek') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-100">
+                    <div class="lg:col-span-7" x-data="{
+                        posisi: @entangle('posisi_foto_kepsek').live,
+                        get cssPosisi() {
+                            if (this.posisi === 'top') return '0%';
+                            if (this.posisi === 'center') return '50%';
+                            if (this.posisi === 'bottom') return '100%';
+                            return this.posisi || '0%';
+                        },
+                        get sliderVal() {
+                            if (this.posisi === 'top') return 0;
+                            if (this.posisi === 'center') return 50;
+                            if (this.posisi === 'bottom') return 100;
+                            let val = parseInt(this.posisi);
+                            return isNaN(val) ? 0 : val;
+                        },
+                        setPreset(val) {
+                            this.posisi = val;
+                        },
+                        setSlider(e) {
+                            this.posisi = e.target.value + '%';
+                        }
+                    }">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                Foto Kepala Sekolah
+                            </label>
+                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                <i class="fas fa-portrait"></i> Format Potret 3:4 (Pasfoto Resmi)
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">
+                            Proporsional untuk foto rasio 3x4 atau 2x3. Sesuaikan posisi fokus vertikal agar jilbab & kepala tampil utuh tanpa terpotong.
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row gap-5 items-start bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+                            <!-- Live Interactive 3:4 Preview Card -->
+                            <div class="w-40 sm:w-44 aspect-[3/4] rounded-2xl overflow-hidden shadow-md border-2 border-slate-300 relative bg-slate-200 shrink-0 select-none">
+                                @if($foto_kepsek)
+                                    <img src="{{ $foto_kepsek->temporaryUrl() }}" alt="Preview Baru" class="w-full h-full object-cover transition-all duration-150" :style="'object-position: center ' + cssPosisi">
+                                    <span class="absolute top-2 left-2 bg-violet-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                                        Foto Baru
+                                    </span>
+                                @elseif($existingFotoKepsek)
+                                    <img src="{{ asset('storage/' . $existingFotoKepsek) }}" alt="Preview Saat Ini" class="w-full h-full object-cover transition-all duration-150" :style="'object-position: center ' + cssPosisi">
+                                    <span class="absolute top-2 left-2 bg-slate-900/70 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow">
+                                        3:4 Potret
+                                    </span>
+                                @else
+                                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                                        <i class="fas fa-user-tie text-4xl mb-2 text-slate-300"></i>
+                                        <span class="text-xs font-medium">Belum ada foto</span>
+                                    </div>
+                                @endif
+                                <span class="absolute bottom-2 inset-x-2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] text-center py-0.5 rounded font-mono shadow" x-text="'Fokus: ' + cssPosisi"></span>
+                            </div>
+
+                            <!-- Controls & Sliders -->
+                            <div class="flex-1 w-full space-y-3.5">
+                                <div>
+                                    <span class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                        Pilihan Fokus Cepat (Preset)
+                                    </span>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <button type="button" @click="setPreset('top')"
+                                            class="px-2.5 py-1.5 text-xs rounded-lg border transition-all text-center flex flex-col items-center justify-center gap-0.5"
+                                            :class="cssPosisi === '0%' ? 'bg-violet-600 text-white border-violet-600 font-bold shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'">
+                                            <i class="fas fa-arrow-up text-[10px]"></i>
+                                            <span>Atas (Kepala)</span>
+                                        </button>
+                                        <button type="button" @click="setPreset('center')"
+                                            class="px-2.5 py-1.5 text-xs rounded-lg border transition-all text-center flex flex-col items-center justify-center gap-0.5"
+                                            :class="cssPosisi === '50%' ? 'bg-violet-600 text-white border-violet-600 font-bold shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'">
+                                            <i class="fas fa-arrows-alt-v text-[10px]"></i>
+                                            <span>Tengah</span>
+                                        </button>
+                                        <button type="button" @click="setPreset('bottom')"
+                                            class="px-2.5 py-1.5 text-xs rounded-lg border transition-all text-center flex flex-col items-center justify-center gap-0.5"
+                                            :class="cssPosisi === '100%' ? 'bg-violet-600 text-white border-violet-600 font-bold shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'">
+                                            <i class="fas fa-arrow-down text-[10px]"></i>
+                                            <span>Bawah</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Slider fine-tuning -->
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="font-semibold text-slate-700">Geser Presisi Vertikal:</span>
+                                        <span class="font-mono font-bold text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200" x-text="cssPosisi"></span>
+                                    </div>
+                                    <input type="range" min="0" max="100" step="1" :value="sliderVal" @input="setSlider"
+                                        class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600">
+                                    <div class="flex justify-between text-[10px] text-slate-400 font-medium">
+                                        <span>0% (Kepala / Jilbab)</span>
+                                        <span>50% (Tengah)</span>
+                                        <span>100% (Bawah)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Upload File Input -->
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Ganti Foto Baru</label>
+                                    <input type="file" wire:model="foto_kepsek" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-100 file:text-violet-700 hover:file:bg-violet-200">
+                                    <div wire:loading wire:target="foto_kepsek" class="text-xs text-violet-600 mt-1"><i class="fas fa-spinner fa-spin"></i> Mengunggah foto kepsek...</div>
+                                    @error('foto_kepsek') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Kutipan Singkat Kepala Sekolah</label>
-                        <textarea wire:model="kutipan_kepsek" rows="4" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="Kutipan singkat yang tampil di samping foto kepala sekolah..."></textarea>
-                        @error('kutipan_kepsek') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+
+                    <div class="lg:col-span-5 flex flex-col justify-between">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Kutipan Singkat Kepala Sekolah</label>
+                            <textarea wire:model="kutipan_kepsek" rows="5" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="Kutipan singkat yang tampil di samping foto kepala sekolah..."></textarea>
+                            @error('kutipan_kepsek') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="mt-4 p-3.5 rounded-xl bg-violet-50/60 border border-violet-100 text-xs text-slate-600 flex items-start gap-2.5">
+                            <i class="fas fa-info-circle text-violet-500 text-sm mt-0.5 shrink-0"></i>
+                            <div>
+                                <span class="font-bold text-slate-800">Tampilan di Beranda:</span>
+                                Foto akan tampil dengan rasio potret 3:4 dengan kutipan singkat melayang di pojok foto pada website sekolah.
+                            </div>
+                        </div>
                     </div>
                 </div>
 

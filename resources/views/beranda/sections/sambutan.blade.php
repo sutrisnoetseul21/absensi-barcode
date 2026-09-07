@@ -10,9 +10,9 @@
                     $fotoKepsek = $setting->foto_kepsek ? asset('storage/'.$setting->foto_kepsek) : null;
                 @endphp
                 @if($fotoKepsek)
-                    <img src="{{ $fotoKepsek }}" alt="Kepala Sekolah" class="rounded-2xl shadow-2xl w-full object-cover h-[450px] bg-slate-100 transform transition duration-500 group-hover:scale-[1.01]">
+                    <img src="{{ $fotoKepsek }}" alt="Kepala Sekolah" class="rounded-2xl shadow-2xl w-full aspect-[3/4] object-cover bg-slate-100 transform transition duration-500 group-hover:scale-[1.01]" style="object-position: center {{ $setting->posisi_foto_kepsek ?? 'top' }};">
                 @else
-                    <div class="rounded-2xl shadow-2xl w-full h-[450px] bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 transform transition duration-500 group-hover:scale-[1.01]">
+                    <div class="rounded-2xl shadow-2xl w-full aspect-[3/4] bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 transform transition duration-500 group-hover:scale-[1.01]">
                         <svg class="w-20 h-20 mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <span>Belum ada foto</span>
                     </div>

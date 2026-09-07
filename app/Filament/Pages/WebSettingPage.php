@@ -60,7 +60,17 @@ class WebSettingPage extends Page implements HasForms
                                     ->image()
                                     ->directory('web-profil')
                                     ->disk('public')
-                                    ->imageEditor(),
+                                    ->imageEditor()
+                                    ->helperText('Gunakan foto portrait resmi (rasio 3x4 / 2x3).'),
+                                Forms\Components\Select::make('posisi_foto_kepsek')
+                                    ->label('Posisi Fokus Vertikal Foto')
+                                    ->options([
+                                        'top'    => 'Fokus Atas (Kepala / Jilbab)',
+                                        'center' => 'Fokus Tengah (Badan)',
+                                        'bottom' => 'Fokus Bawah',
+                                    ])
+                                    ->default('top')
+                                    ->helperText('Pilih posisi fokus agar foto proporsional portrait 3:4 dan kepala/jilbab tidak terpotong.'),
                                 Forms\Components\Textarea::make('kutipan_kepsek')
                                     ->label('Kutipan Singkat Kepala Sekolah')
                                     ->placeholder('Kutipan singkat yang tampil di samping foto kepala sekolah...')

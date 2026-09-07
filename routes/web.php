@@ -325,6 +325,7 @@ Route::prefix('portal-web')->group(function () {
     Route::middleware('auth.web')->group(function () {
         Route::get('/', \App\Livewire\PortalWeb\Dashboard::class)->name('portal-web.dashboard');
         Route::get('/artikel', \App\Livewire\PortalWeb\Artikel::class)->name('portal-web.artikel');
+        Route::get('/akademik', \App\Livewire\PortalWeb\HalamanAkademik::class)->name('portal-web.akademik');
         Route::get('/prestasi', \App\Livewire\PortalWeb\Prestasi::class)->name('portal-web.prestasi');
         Route::get('/galeri', \App\Livewire\PortalWeb\Galeri::class)->name('portal-web.galeri');
         Route::get('/alumni', \App\Livewire\PortalWeb\Alumni::class)->name('portal-web.alumni');
