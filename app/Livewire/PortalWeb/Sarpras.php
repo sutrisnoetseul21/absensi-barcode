@@ -97,7 +97,7 @@ class Sarpras extends Component
     {
         $sarpras = WebSarpra::when($this->search, fn($q) => $q->where('nama_fasilitas', 'like', '%' . $this->search . '%'))
             ->orderBy('urutan')->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(24);
 
         $availableIcons = \App\Filament\Components\IconPickerField::icons();
 
