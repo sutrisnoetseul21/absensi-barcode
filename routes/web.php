@@ -35,6 +35,7 @@ Route::get('/microsite', fn() => redirect()->route('beranda.microsite'));
 Route::get('/akademik/{slug}', [BerandaController::class, 'halamanAkademik'])->name('beranda.akademik');
 Route::get('/layanan-publik', [BerandaController::class, 'layananPublikIndex'])->name('beranda.layanan.index');
 Route::get('/layanan-publik/{slug}', [BerandaController::class, 'halamanLayanan'])->name('beranda.layanan');
+Route::get('/faq', [BerandaController::class, 'faq'])->name('beranda.faq');
 Route::get('/alumni', [BerandaController::class, 'alumni'])->name('alumni.index');
 Route::post('/alumni', [BerandaController::class, 'alumniStore'])->name('alumni.store')->middleware('throttle:30,1');
 
@@ -336,6 +337,7 @@ Route::prefix('portal-web')->group(function () {
         Route::get('/alumni/pengaturan', \App\Livewire\PortalWeb\AlumniSetting::class)->name('portal-web.alumni.pengaturan');
         Route::get('/akses-cepat', \App\Livewire\PortalWeb\AksesCepat::class)->name('portal-web.akses-cepat');
         Route::get('/sarpras', \App\Livewire\PortalWeb\Sarpras::class)->name('portal-web.sarpras');
+        Route::get('/pilar-keunggulan', \App\Livewire\PortalWeb\PilarKeunggulan::class)->name('portal-web.pilar-keunggulan');
         Route::get('/statistik', \App\Livewire\PortalWeb\Statistik::class)->name('portal-web.statistik');
         Route::get('/pengaturan', \App\Livewire\PortalWeb\Pengaturan::class)->name('portal-web.pengaturan');
 
@@ -343,6 +345,7 @@ Route::prefix('portal-web')->group(function () {
             Route::get('/data', \App\Livewire\PortalWeb\PengaduanData::class)->name('data');
             Route::get('/kategori', \App\Livewire\PortalWeb\PengaduanKategori::class)->name('kategori');
             Route::get('/halaman', \App\Livewire\PortalWeb\HalamanLayanan::class)->name('halaman');
+            Route::get('/faq', \App\Livewire\PortalWeb\FaqSetting::class)->name('faq');
             Route::get('/pengaturan', \App\Livewire\PortalWeb\PengaduanSetting::class)->name('pengaturan');
         });
 

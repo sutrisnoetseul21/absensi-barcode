@@ -186,6 +186,7 @@
                         $isAksesCepat = request()->routeIs('portal-web.akses-cepat');
                         $isPelayanan  = request()->routeIs('portal-web.pelayanan.*');
                         $isSarpras    = request()->routeIs('portal-web.sarpras');
+                        $isPilar      = request()->routeIs('portal-web.pilar-keunggulan');
                         $isStatistik  = request()->routeIs('portal-web.statistik');
                         $isPengaturan = request()->routeIs('portal-web.pengaturan');
                         $activeClass  = 'bg-violet-50 text-violet-700 font-bold border-r-2 border-violet-600';
@@ -253,6 +254,12 @@
                         <span x-show="!isCollapsed" x-transition.opacity>Sarana & Prasarana</span>
                     </a>
 
+                    <a href="{{ route('portal-web.pilar-keunggulan') }}" :title="isCollapsed ? 'Pilar Keunggulan' : ''"
+                       class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isPilar ? $activeClass : $inactiveClass }}">
+                        <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                        <span x-show="!isCollapsed" x-transition.opacity>Pilar Keunggulan</span>
+                    </a>
+
                     <a href="{{ route('portal-web.akses-cepat') }}" :title="isCollapsed ? 'Akses Cepat' : ''"
                        class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isAksesCepat ? $activeClass : $inactiveClass }}">
                         <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
@@ -280,6 +287,7 @@
                             <a href="{{ route('portal-web.pelayanan.halaman') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.halaman') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Halaman Layanan</a>
                             <a href="{{ route('portal-web.pelayanan.data') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.data') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Data Pengaduan</a>
                             <a href="{{ route('portal-web.pelayanan.kategori') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.kategori') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Kategori</a>
+                            <a href="{{ route('portal-web.pelayanan.faq') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.faq') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">FAQ Sekolah</a>
                             <a href="{{ route('portal-web.pelayanan.pengaturan') }}" class="block py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('portal-web.pelayanan.pengaturan') ? 'text-violet-700 font-bold' : 'text-slate-500 hover:text-violet-600' }}">Pengaturan Layanan</a>
                         </div>
                     </div>

@@ -270,6 +270,12 @@
                             <i class="fas fa-comment-dots text-rose-500 w-4"></i>
                             <span class="truncate">Layanan Aspirasi & Pengaduan</span>
                         </a>
+
+                        {{-- FAQ Sekolah --}}
+                        <a href="{{ route('beranda.faq') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-amber-500 transition-colors border-t border-slate-50">
+                            <i class="far fa-question-circle text-amber-500 w-4"></i>
+                            <span class="truncate">FAQ Sekolah</span>
+                        </a>
                     </div>
                 </div>
 
@@ -504,6 +510,9 @@
                     @endforeach
                     <a href="{{ route('pengaduan.index') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20 text-rose-300">
                         Layanan Aspirasi & Pengaduan
+                    </a>
+                    <a href="{{ route('beranda.faq') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100 border-t border-slate-200/20 text-amber-300">
+                        FAQ Sekolah
                     </a>
                 </div>
             </div>

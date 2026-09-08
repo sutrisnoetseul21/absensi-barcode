@@ -217,6 +217,28 @@
                     </div>
                 </div>
 
+                {{-- FAQ Sekolah Banner Card (Sesuai Referensi) --}}
+                <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 mt-6 relative overflow-hidden group hover:border-brand-primary/40 hover:shadow-md transition-all">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0 text-2xl group-hover:scale-110 transition-transform">
+                                <i class="far fa-question-circle"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">FAQ SEKOLAH</h3>
+                                <p class="text-slate-500 text-sm leading-relaxed mt-1 max-w-xl">
+                                    Temukan jawaban cepat tentang SPMB, layanan administrasi, kegiatan siswa, dan fasilitas sekolah.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="shrink-0 w-full sm:w-auto">
+                            <a href="{{ route('beranda.faq') }}" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-50 text-brand-primary hover:bg-brand-primary hover:text-white text-xs font-bold uppercase tracking-wider transition-all shadow-xs">
+                                BUKA FAQ <i class="fas fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Right Column: Sidebar (Visi Misi, Maklumat, Pengaduan & Lapor) -->

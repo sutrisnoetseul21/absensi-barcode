@@ -8,6 +8,8 @@ use App\Models\WebSarpra;
 use App\Models\WebArtikel;
 use App\Models\WebGaleri;
 
+use App\Models\WebPillar;
+use App\Models\WebFaq;
 use App\Models\WebStatistic;
 use App\Models\WebQuickLink;
 use App\Models\Guru;
@@ -28,6 +30,7 @@ class BerandaController extends Controller
         $setting      = WebSetting::instance();
         $sarpras      = WebSarpra::orderBy('urutan')->get();
         $galeris      = WebGaleri::orderBy('urutan')->get();
+        $pillars      = WebPillar::active()->get();
 
         $artikels     = WebArtikel::published()->where('tipe', 'berita')->latest('published_at')->take(6)->get();
         $pengumumans  = WebArtikel::published()->where('tipe', 'pengumuman')->latest('published_at')->take(6)->get();
@@ -44,6 +47,7 @@ class BerandaController extends Controller
             'setting',
             'sarpras',
             'galeris',
+            'pillars',
 
             'artikels',
             'pengumumans',
@@ -477,5 +481,20 @@ class BerandaController extends Controller
             'search',
             'filter'
         ));
+    }
+
+    public function faq(Request $request): View
+    {
+        $sekolah   = PengaturanSekolah::current();
+        $setting   = WebSetting::instance();
+        $faqs      = WebFaq::active()->get();
+        $kategoris = WebFaq::where('is_active', true)
+            ->whereNotNull('kategori')
+            ->orderBy('urutan')
+            ->pluck('kategori')
+            ->unique()
+            ->values();
+
+        return view('beranda.faq', compact('sekolah', 'setting', 'faqs', 'kategoris'));
     }
 }
