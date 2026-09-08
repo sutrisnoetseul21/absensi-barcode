@@ -116,7 +116,7 @@
                     @endif
                     <div class="relative w-full">
                         <input type="text" name="search" value="{{ $search }}" 
-                               placeholder="Cari nama / NISN..." 
+                               placeholder="Cari nama / NIS..." 
                                class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-all text-slate-800 placeholder-slate-400">
                         <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         @if(!empty($search))
@@ -172,7 +172,6 @@
                      @click="openModal({
                          name: '{{ addslashes($siswa->name) }}',
                          kelas: '{{ addslashes($namaKelas) }}',
-                         nisn: '{{ addslashes($siswa->nisn ?? '-') }}',
                          nis: '{{ addslashes($siswa->nis ?? '-') }}',
                          gender: '{{ addslashes($genderLabel) }}',
                          status: '{{ addslashes(ucfirst($siswa->status)) }}',
@@ -211,12 +210,8 @@
                         <h3 class="text-base font-bold text-slate-800 leading-snug mb-1 line-clamp-1 group-hover:text-brand-primary transition-colors">
                             {{ $siswa->name }}
                         </h3>
-                        <div class="flex items-center justify-center gap-1.5 text-slate-400 text-xs font-semibold">
-                            <span>NISN: <span class="text-slate-600 font-mono">{{ $siswa->nisn ?? '-' }}</span></span>
-                            @if($siswa->nis)
-                                <span>&bull;</span>
-                                <span>NIS: <span class="text-slate-600 font-mono">{{ $siswa->nis }}</span></span>
-                            @endif
+                        <div class="flex items-center justify-center text-slate-500 text-xs font-semibold">
+                            <span>NIS: <span class="text-slate-700 font-mono font-bold">{{ $siswa->nis ?? '-' }}</span></span>
                         </div>
                     </div>
                 </div>
@@ -287,14 +282,13 @@
                 </div>
 
                 <div class="space-y-3 text-xs">
-                    <!-- NISN & NIS -->
-                    <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">NISN</p>
-                            <p class="font-mono font-bold text-slate-800 text-sm" x-text="activeStudent?.nisn || '-'"></p>
+                    <!-- NIS -->
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center text-slate-600 shadow-sm border border-slate-100">
+                            <i class="fas fa-id-card text-xs"></i>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">NIS</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">NIS (Nomor Induk Siswa)</p>
                             <p class="font-mono font-bold text-slate-800 text-sm" x-text="activeStudent?.nis || '-'"></p>
                         </div>
                     </div>
