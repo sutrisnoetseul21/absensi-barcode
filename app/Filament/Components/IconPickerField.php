@@ -53,6 +53,7 @@ class IconPickerField
             'fas fa-envelope'        => '✉️ Email',
             'fas fa-phone'           => '📞 Telepon',
             'fas fa-comment'         => '💬 Komentar',
+            'fas fa-comments'        => '💬 Ruang BK / Konseling',
             'fas fa-bullhorn'        => '📢 Pengumuman',
             'fab fa-whatsapp'        => '💬 WhatsApp',
             // Teknologi
@@ -89,6 +90,7 @@ class IconPickerField
             'fas fa-store'           => '🏪 Koperasi / Toko',
             'fas fa-restroom'        => '🚻 Toilet / WC',
             'fas fa-tree'            => '🌳 Taman / Lingkungan',
+            'fas fa-water'           => '💧 Kolam Ikan / Air',
             'fas fa-car'             => '🚗 Parkir Mobil',
             'fas fa-motorcycle'      => '🏍️ Parkir Motor',
             'fas fa-music'           => '🎵 Ruang Musik / Seni',

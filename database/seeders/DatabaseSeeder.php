@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             RoleAkademikSeeder::class,
             RolePresensiSeeder::class,
             RolePerpustakaanSeeder::class,
+            WebSarpraSeeder::class,
         ]);
 
         // Akun Admin Filament
