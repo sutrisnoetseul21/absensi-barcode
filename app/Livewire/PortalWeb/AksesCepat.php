@@ -20,7 +20,7 @@ class AksesCepat extends Component
     public string $title = '';
     public string $description = '';
     public string $url = '';
-    public string $icon = 'link';
+    public string $icon = 'fas fa-link';
     public string $color_class = 'bg-blue-500';
     public bool $is_active = true;
     public int $order = 0;
@@ -31,8 +31,8 @@ class AksesCepat extends Component
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
             'url'         => 'required|url|max:500',
-            'icon'        => 'nullable|string|max:100',
-            'color_class' => 'nullable|string|max:100',
+            'icon'        => 'required|string|max:100',
+            'color_class' => 'required|string|max:100',
             'is_active'   => 'boolean',
             'order'       => 'integer|min:0',
         ];
@@ -40,7 +40,12 @@ class AksesCepat extends Component
 
     public function updatedSearch(): void { $this->resetPage(); }
 
-    public function openCreate(): void { $this->resetForm(); $this->showModal = true; }
+    public function openCreate(): void 
+    { 
+        $this->resetForm(); 
+        $this->order = (WebQuickLink::max('order') ?? 0) + 1;
+        $this->showModal = true; 
+    }
 
     public function openEdit(string $id): void
     {
@@ -49,11 +54,22 @@ class AksesCepat extends Component
         $this->title       = $item->title;
         $this->description = $item->description ?? '';
         $this->url         = $item->url;
-        $this->icon        = $item->icon ?? 'link';
+        $this->icon        = $item->icon ?? 'fas fa-link';
+        // Normalize if icon was saved without 'fa' prefix
+        if (!str_starts_with($this->icon, 'fa')) {
+            $this->icon = 'fas fa-' . $this->icon;
+        }
         $this->color_class = $item->color_class ?? 'bg-blue-500';
         $this->is_active   = (bool) $item->is_active;
         $this->order       = $item->order ?? 0;
         $this->showModal   = true;
+    }
+
+    public function toggleActive(string|int $id): void
+    {
+        $item = WebQuickLink::findOrFail($id);
+        $item->update(['is_active' => !$item->is_active]);
+        session()->flash('success', 'Status ' . $item->title . ' berhasil diperbarui.');
     }
 
     public function save(): void
@@ -87,7 +103,7 @@ class AksesCepat extends Component
     {
         if ($this->deletingId) {
             WebQuickLink::findOrFail($this->deletingId)->delete();
-            session()->flash('success', 'Layanan berhasil dihapus.');
+            session()->flash('success', 'Akses Cepat berhasil dihapus.');
         }
         $this->showDeleteModal = false;
         $this->deletingId = null;
@@ -95,18 +111,42 @@ class AksesCepat extends Component
 
     private function resetForm(): void
     {
-        $this->editingId = null; $this->title = ''; $this->description = '';
-        $this->url = ''; $this->icon = 'link'; $this->color_class = 'bg-blue-500';
-        $this->is_active = true; $this->order = 0;
+        $this->editingId = null; 
+        $this->title = ''; 
+        $this->description = '';
+        $this->url = ''; 
+        $this->icon = 'fas fa-link'; 
+        $this->color_class = 'bg-blue-500';
+        $this->is_active = true; 
+        $this->order = 0;
     }
 
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        $pelayanans = WebQuickLink::when($this->search, fn($q) => $q->where('title', 'like', '%' . $this->search . '%'))
+        $pelayanans = WebQuickLink::when($this->search, fn($q) => $q->where('title', 'like', '%' . $this->search . '%')->orWhere('url', 'like', '%' . $this->search . '%'))
             ->orderBy('order')->orderBy('title')
-            ->paginate(20);
+            ->paginate(25);
 
-        return view('livewire.portal-web.akses-cepat', compact('pelayanans'))->title('Akses Cepat — Portal Web');
+        $availableIcons = \App\Filament\Components\IconPickerField::icons();
+
+        $colorOptions = [
+            'bg-blue-500'    => '🔵 Biru (Blue)',
+            'bg-emerald-500' => '🟢 Hijau (Emerald)',
+            'bg-green-500'   => '🍃 Hijau Segar (Green)',
+            'bg-violet-500'  => '🟣 Ungu (Violet)',
+            'bg-purple-500'  => '🪻 Ungu Pekat (Purple)',
+            'bg-amber-500'   => '🟡 Kuning / Emas (Amber)',
+            'bg-orange-500'  => '🟠 Oranye (Orange)',
+            'bg-rose-500'    => '🔴 Merah Mawar (Rose)',
+            'bg-red-500'     => '🛑 Merah Terang (Red)',
+            'bg-teal-500'    => '🩵 Tosca (Teal)',
+            'bg-cyan-500'    => '🔷 Cyan (Cyan)',
+            'bg-indigo-500'  => '🌀 Nila (Indigo)',
+            'bg-pink-500'    => '🌸 Merah Muda (Pink)',
+            'bg-slate-600'   => '⬛ Abu-abu (Slate)',
+        ];
+
+        return view('livewire.portal-web.akses-cepat', compact('pelayanans', 'availableIcons', 'colorOptions'))->title('Akses Cepat — Portal Web');
     }
 }

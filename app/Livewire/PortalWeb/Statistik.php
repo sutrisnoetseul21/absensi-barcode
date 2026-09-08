@@ -4,10 +4,13 @@ namespace App\Livewire\PortalWeb;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 use App\Models\WebStatistic;
 
 class Statistik extends Component
 {
+    use WithPagination;
+
     public string $search = '';
     public bool $showModal = false;
     public bool $showDeleteModal = false;
@@ -29,6 +32,11 @@ class Statistik extends Component
         ];
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
     public function openCreate(): void
     {
         $this->resetForm();
@@ -40,7 +48,10 @@ class Statistik extends Component
     {
         $item = WebStatistic::findOrFail($id);
         $this->editingId = $item->id;
-        $this->icon      = $item->icon;
+        $this->icon      = $item->icon ?: 'fas fa-chart-bar';
+        if (!str_starts_with($this->icon, 'fa')) {
+            $this->icon = 'fas fa-' . $this->icon;
+        }
         $this->value     = $item->value;
         $this->label     = $item->label;
         $this->order     = (int) $item->order;
@@ -96,9 +107,11 @@ class Statistik extends Component
                   ->orWhere('value', 'like', '%' . $this->search . '%');
             })
             ->orderBy('order')
-            ->get();
+            ->paginate(25);
 
-        return view('livewire.portal-web.statistik', compact('statistics'))
+        $availableIcons = \App\Filament\Components\IconPickerField::icons();
+
+        return view('livewire.portal-web.statistik', compact('statistics', 'availableIcons'))
             ->title('Statistik & Info Web — Portal Web');
     }
 }
