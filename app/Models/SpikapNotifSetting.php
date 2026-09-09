@@ -29,9 +29,60 @@ class SpikapNotifSetting extends Model
      */
     public static function instance(): self
     {
-        $setting = static::firstOrCreate(
-            ['id' => 1],
-            [
+        try {
+            $setting = static::firstOrCreate(
+                ['id' => 1],
+                [
+                    'nama_aplikasi' => 'SPIKAP',
+                    'sub_judul' => 'Anti-Perundungan & Pengaduan Siswa',
+                    'penjelasan_aplikasi' => 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA',
+                    'slug_url' => 'spikap',
+                    'recipients' => ['wali_kelas', 'kepala_sekolah'],
+                    'emergency_handlers' => ['wali_kelas', 'kepala_sekolah'],
+                    'notify_guru_laporan_biasa' => true,
+                    'notify_siswa_apresiasi' => true,
+                    'notify_siswa_tindak_lanjut' => true,
+                    'target_penerima_siswa' => ['siswa'],
+                ]
+            );
+
+            $updates = [];
+            if ($setting->nama_aplikasi === null) {
+                $updates['nama_aplikasi'] = 'SPIKAP';
+            }
+            if ($setting->sub_judul === null) {
+                $updates['sub_judul'] = 'Anti-Perundungan & Pengaduan Siswa';
+            }
+            if ($setting->penjelasan_aplikasi === null) {
+                $updates['penjelasan_aplikasi'] = 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA';
+            }
+            if ($setting->slug_url === null) {
+                $updates['slug_url'] = 'spikap';
+            }
+            if ($setting->emergency_handlers === null) {
+                $updates['emergency_handlers'] = ['wali_kelas', 'kepala_sekolah'];
+            }
+            if ($setting->notify_guru_laporan_biasa === null) {
+                $updates['notify_guru_laporan_biasa'] = true;
+            }
+            if ($setting->notify_siswa_apresiasi === null) {
+                $updates['notify_siswa_apresiasi'] = true;
+            }
+            if ($setting->notify_siswa_tindak_lanjut === null) {
+                $updates['notify_siswa_tindak_lanjut'] = true;
+            }
+            if ($setting->target_penerima_siswa === null) {
+                $updates['target_penerima_siswa'] = ['siswa'];
+            }
+
+            if (!empty($updates)) {
+                $setting->update($updates);
+            }
+
+            return $setting;
+        } catch (\Throwable $e) {
+            return new self([
+                'id' => 1,
                 'nama_aplikasi' => 'SPIKAP',
                 'sub_judul' => 'Anti-Perundungan & Pengaduan Siswa',
                 'penjelasan_aplikasi' => 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA',
@@ -42,43 +93,8 @@ class SpikapNotifSetting extends Model
                 'notify_siswa_apresiasi' => true,
                 'notify_siswa_tindak_lanjut' => true,
                 'target_penerima_siswa' => ['siswa'],
-            ]
-        );
-
-        $updates = [];
-        if ($setting->nama_aplikasi === null) {
-            $updates['nama_aplikasi'] = 'SPIKAP';
+            ]);
         }
-        if ($setting->sub_judul === null) {
-            $updates['sub_judul'] = 'Anti-Perundungan & Pengaduan Siswa';
-        }
-        if ($setting->penjelasan_aplikasi === null) {
-            $updates['penjelasan_aplikasi'] = 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA';
-        }
-        if ($setting->slug_url === null) {
-            $updates['slug_url'] = 'spikap';
-        }
-        if ($setting->emergency_handlers === null) {
-            $updates['emergency_handlers'] = ['wali_kelas', 'kepala_sekolah'];
-        }
-        if ($setting->notify_guru_laporan_biasa === null) {
-            $updates['notify_guru_laporan_biasa'] = true;
-        }
-        if ($setting->notify_siswa_apresiasi === null) {
-            $updates['notify_siswa_apresiasi'] = true;
-        }
-        if ($setting->notify_siswa_tindak_lanjut === null) {
-            $updates['notify_siswa_tindak_lanjut'] = true;
-        }
-        if ($setting->target_penerima_siswa === null) {
-            $updates['target_penerima_siswa'] = ['siswa'];
-        }
-
-        if (!empty($updates)) {
-            $setting->update($updates);
-        }
-
-        return $setting;
     }
 
     protected static function booted(): void
