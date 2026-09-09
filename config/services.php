@@ -40,4 +40,8 @@ return [
         'secret_key' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    'whatsapp' => [
+        'spikap_test_mode' => env('SPIKAP_WA_TEST_MODE', false),
+    ],
+
 ];

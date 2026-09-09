@@ -20,6 +20,40 @@ class WhatsAppGatewayService
         string $recipientType = 'unknown',
         ?int $logId = null
     ): bool {
+        // Mode Pengujian Aman SPIKAP (Mencegah pesan test terkirim ke WhatsApp fisik penerima saat testing)
+        $isSpikapTestMode = filter_var(config('services.whatsapp.spikap_test_mode', env('SPIKAP_WA_TEST_MODE', false)), FILTER_VALIDATE_BOOLEAN);
+        if ($isSpikapTestMode && $relatedType === 'spikap_laporan') {
+            $status = 'sent';
+            $payload = json_encode([
+                'info' => 'MOCKED_SUCCESS: Mode pengujian aktif (SPIKAP_WA_TEST_MODE=true). Panggilan gateway WhatsApp dilewati.',
+                'target_number' => $toNumber,
+                'recipient_type' => $recipientType,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            if ($logId) {
+                WhatsAppNotificationLog::where('id', $logId)->update([
+                    'status' => $status,
+                    'response_payload' => $payload,
+                    'sent_at' => now(),
+                ]);
+            } else {
+                WhatsAppNotificationLog::create([
+                    'module' => 'spikap',
+                    'recipient_type' => $recipientType,
+                    'recipient_number' => $toNumber,
+                    'message' => $message,
+                    'status' => $status,
+                    'response_payload' => $payload,
+                    'related_type' => $relatedType,
+                    'related_id' => $relatedId,
+                    'sent_at' => now(),
+                ]);
+            }
+
+            return true;
+        }
+
         $setting = WhatsAppSetting::current();
 
         if (!$setting->is_active) {

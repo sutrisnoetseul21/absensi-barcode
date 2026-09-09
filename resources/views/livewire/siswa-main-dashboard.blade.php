@@ -274,7 +274,7 @@
                 <p class="text-xs text-slate-500 mt-0.5">Akses cepat ke seluruh layanan dan modul portal siswa:</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 
                 <!-- Shortcut 1: Presensi & Akademik -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col justify-between group">
@@ -370,7 +370,39 @@
                     </a>
                 </div>
 
-                <!-- Shortcut 5: Profil Saya -->
+                <!-- Shortcut 5: SPIKAP (Anti-Perundungan) -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-rose-200 transition-all flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            @if($spikapAktifCount > 0)
+                                <span class="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-xl">
+                                    <span class="relative flex h-2 w-2">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                    </span>
+                                    {{ $spikapAktifCount }} Diproses
+                                </span>
+                            @else
+                                <span class="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-xl">
+                                    Aduan Siswa
+                                </span>
+                            @endif
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-rose-600 transition-colors">SPIKAP Anti-Bullying</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">Layanan pelaporan dan penanganan kasus perundungan siswa yang aman & terpercaya.</p>
+                    </div>
+                    <a href="{{ route('portal-siswa.spikap') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-rose-600 hover:text-rose-700 pt-3 border-t border-slate-100">
+                        <span>Lapor / Riwayat</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+
+                <!-- Shortcut 6: Profil Saya -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
                     <div>
                         <div class="flex items-center justify-between mb-3">

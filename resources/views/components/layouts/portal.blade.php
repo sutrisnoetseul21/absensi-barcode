@@ -517,6 +517,7 @@
                         $isPerpustakaanActive = request()->routeIs('portal-siswa.perpustakaan');
                         $isCetakKartuActive = request()->routeIs('portal-siswa.cetak-kartu');
                         $isProfilActive = request()->routeIs('portal-siswa.profil');
+                        $isSpikapActive = request()->routeIs('portal-siswa.spikap') || request()->routeIs('portal-siswa.spikap.form');
                     @endphp
 
                     @if($student && $student->isLulus())
@@ -587,6 +588,16 @@
                             <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Pengajuan Ijin</span>
                         </a>
 
+                        <!-- Menu SPIKAP — Anti-Perundungan -->
+                        <a href="{{ route('portal-siswa.spikap') }}" :title="isCollapsed ? 'SPIKAP Anti-Perundungan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSpikapActive ? 'bg-rose-600 text-white font-bold shadow-lg shadow-rose-500/30' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isSpikapActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-rose-100 group-hover:text-rose-600' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l1.664 1.664M21 21l-1.5-1.5m-5.485-1.242L12 17.25 4.5 21V8.742m.164-4.078a2.15 2.15 0 011.743-1.342 48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185V19.5M4.664 4.664L19.5 19.5" />
+                                </svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>SPIKAP</span>
+                        </a>
+
                         <!-- Menu Perpustakaan -->
                         <a href="{{ route('portal-siswa.perpustakaan') }}" :title="isCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                             <div class="p-1.5 rounded-lg {{ $isPerpustakaanActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
@@ -652,6 +663,17 @@
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                         </div>
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Persetujuan Ijin</span>
+                    </a>
+
+                    @php
+                        $isSpikapGuruActive = request()->routeIs('portal-guru.spikap*');
+                    @endphp
+                    <!-- Menu SPIKAP (Guru/Wali/BK/KS) -->
+                    <a href="{{ route('portal-guru.spikap') }}" :title="isCollapsed ? 'SPIKAP (Aduan Siswa)' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSpikapGuruActive ? 'bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/30' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isSpikapGuruActive ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100 group-hover:text-rose-700' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>SPIKAP (Aduan)</span>
                     </a>
 
                     <!-- Menu Perpustakaan Guru -->

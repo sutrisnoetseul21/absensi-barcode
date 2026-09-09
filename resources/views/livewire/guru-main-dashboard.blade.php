@@ -204,7 +204,7 @@
             <p class="text-xs text-slate-500 mt-0.5">Akses cepat ke modul operasional harian guru dan wali kelas:</p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             
             <!-- Shortcut 1: Presensi & Akademik -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col justify-between group">
@@ -328,6 +328,46 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </a>
             </div>
+
+            <!-- Shortcut: SPIKAP (Aduan Siswa) -->
+            @if($hasSpikapAccess)
+                <div class="bg-white rounded-2xl p-5 border {{ $spikapDaruratCount > 0 ? 'border-rose-300 ring-2 ring-rose-500/20 bg-rose-50/10' : 'border-slate-200/80' }} shadow-sm hover:shadow-md hover:border-rose-200 transition-all flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-12 h-12 rounded-2xl {{ $spikapDaruratCount > 0 ? 'bg-rose-500 text-white animate-pulse' : 'bg-rose-50 text-rose-600' }} flex items-center justify-center group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            @if($spikapDaruratCount > 0)
+                                <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-xl border border-rose-300">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                                    🚨 {{ $spikapDaruratCount }} Darurat
+                                </span>
+                            @elseif($spikapAktifCount > 0)
+                                <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                                    {{ $spikapAktifCount }} Aktif
+                                </span>
+                            @else
+                                <span class="text-xs font-semibold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60">
+                                    {{ $spikapCount }} Laporan
+                                </span>
+                            @endif
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
+                            SPIKAP Anti-Bullying
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                            Layanan penanganan perundungan siswa, pantau aduan masuk, dan investigasi.
+                        </p>
+                    </div>
+                    <a href="{{ route('portal-guru.spikap') }}" 
+                       class="mt-4 w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-rose-600 hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200/60 hover:border-rose-600">
+                        Buka SPIKAP
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                </div>
+            @endif
 
             <!-- Shortcut 5: Profil Saya -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">

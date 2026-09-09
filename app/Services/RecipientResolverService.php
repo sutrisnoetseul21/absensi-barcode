@@ -41,8 +41,19 @@ class RecipientResolverService
 
     public function resolveByJabatan(string $namaJabatan): array
     {
-        return Guru::whereHas('jabatans', function ($query) use ($namaJabatan) {
-            $query->where('nama_jabatan', $namaJabatan);
+        $normalized = match (strtolower(str_replace('_', ' ', $namaJabatan))) {
+            'kepala sekolah' => 'Kepala Sekolah',
+            'guru bk'        => 'Guru BK',
+            'waka kurikulum' => 'Waka Kurikulum',
+            'waka kesiswaan' => 'Waka Kesiswaan',
+            'waka sarpras'   => 'Waka Sarpras',
+            'waka humas'     => 'Waka Humas',
+            default          => $namaJabatan,
+        };
+
+        return Guru::whereHas('jabatans', function ($query) use ($namaJabatan, $normalized) {
+            $query->where('nama_jabatan', $namaJabatan)
+                  ->orWhere('nama_jabatan', $normalized);
         })
         ->whereNotNull('no_hp')
         ->where('no_hp', '!=', '')
@@ -71,6 +82,14 @@ class RecipientResolverService
                 if ($hp && !isset($seenNumbers[$hp])) {
                     $resolved[] = ['number' => $hp, 'type' => 'wali_kelas'];
                     $seenNumbers[$hp] = true;
+                }
+            } elseif ($key === 'kepala_sekolah') {
+                $jabatansHp = $this->resolveByJabatan('Kepala Sekolah');
+                foreach ($jabatansHp as $hp) {
+                    if ($hp && !isset($seenNumbers[$hp])) {
+                        $resolved[] = ['number' => $hp, 'type' => 'kepala_sekolah'];
+                        $seenNumbers[$hp] = true;
+                    }
                 }
             } else {
                 // Jabatan (misal 'Guru BK')

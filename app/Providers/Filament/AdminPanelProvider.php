@@ -111,6 +111,7 @@ class AdminPanelProvider extends PanelProvider
                 'Akademik',
                 'Presensi',
                 'Perpustakaan',
+                'SPIKAP',
                 'Web Profil Sekolah',
                 'Pengaturan Sistem',
                 'Akses Portal & Web',

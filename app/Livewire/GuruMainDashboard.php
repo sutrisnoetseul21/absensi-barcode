@@ -22,6 +22,12 @@ class GuruMainDashboard extends Component
     public $approvedLeaveRequestsCount = 0;
     public $rejectedLeaveRequestsCount = 0;
 
+    // SPIKAP Status Flags & Metrics
+    public $hasSpikapAccess = false;
+    public $spikapCount = 0;
+    public $spikapAktifCount = 0;
+    public $spikapDaruratCount = 0;
+
     // Multi-Portal Access Flags
     public $hasPresensiAccess = false;
     public $hasPerpusAccess = false;
@@ -38,6 +44,18 @@ class GuruMainDashboard extends Component
         $this->hasPresensiAccess = $this->isSuperAdmin || $user->hasRole(['admin_portal_presensi', 'petugas_presensi']);
         $this->hasPerpusAccess = $this->isSuperAdmin || $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
         $this->hasWebAccess = $this->isSuperAdmin || $user->hasRole('admin_portal_web');
+
+        // Check SPIKAP Access & Metrics
+        $this->hasSpikapAccess = $user->hasAnyRole(['super_admin', 'spikap_admin', 'spikap_guru_bk', 'spikap_kepala_sekolah'])
+            || $user->isGuruBk()
+            || $user->isKepalaSekolah()
+            || ($user->hasRole('wali_kelas') && $this->teacher !== null);
+
+        if ($this->hasSpikapAccess) {
+            $this->spikapCount = \App\Models\SpikapLaporan::forUser($user)->count();
+            $this->spikapAktifCount = \App\Models\SpikapLaporan::forUser($user)->aktif()->count();
+            $this->spikapDaruratCount = \App\Models\SpikapLaporan::forUser($user)->darurat()->aktif()->count();
+        }
 
         // Fetch announcements
         $this->activeAnnouncements = Pengumuman::aktifSekarang()->latest()->get();

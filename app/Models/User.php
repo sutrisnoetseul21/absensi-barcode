@@ -90,10 +90,10 @@ class User extends Authenticatable implements FilamentUser
 
         $panelId = $panel->getId();
         
-        // Panel utama 'admin' (Bisa diakses oleh semua jenis admin)
+        // Panel utama 'admin' (Bisa diakses oleh semua jenis admin dan spikap_admin)
         if ($panelId === 'admin') {
             return $this->roles->contains(function ($role) {
-                return str_starts_with($role->name, 'admin_');
+                return str_starts_with($role->name, 'admin_') || $role->name === 'spikap_admin';
             });
         }
 
@@ -115,6 +115,24 @@ class User extends Authenticatable implements FilamentUser
     public function isSuperAdmin(): bool
     {
         return (bool) $this->is_super_admin || $this->hasRole('super_admin');
+    }
+
+    /**
+     * Cek apakah user adalah Guru BK (berdasarkan role SPIKAP atau jabatan aktif di sekolah).
+     */
+    public function isGuruBk(): bool
+    {
+        return $this->hasRole('spikap_guru_bk')
+            || ($this->teacher !== null && $this->teacher->hasJabatan(['Guru BK', 'BK']));
+    }
+
+    /**
+     * Cek apakah user adalah Kepala Sekolah (berdasarkan role SPIKAP atau jabatan aktif di sekolah).
+     */
+    public function isKepalaSekolah(): bool
+    {
+        return $this->hasRole('spikap_kepala_sekolah')
+            || ($this->teacher !== null && $this->teacher->hasJabatan(['Kepala Sekolah']));
     }
 
     // Absensi yang discan oleh admin ini

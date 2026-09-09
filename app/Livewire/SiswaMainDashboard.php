@@ -23,6 +23,8 @@ class SiswaMainDashboard extends Component
     public $approvedIjinCount = 0;
     public $rejectedIjinCount = 0;
     public $totalIjinCount = 0;
+    public $spikapLaporanCount = 0;
+    public $spikapAktifCount = 0;
     public $kelasName = '-';
 
     // Form Properties untuk Alumni (Tracer Study)
@@ -86,6 +88,13 @@ class SiswaMainDashboard extends Component
                     ->count();
 
                 $this->totalIjinCount = LeaveRequest::where('student_id', $this->student->id)
+                    ->count();
+
+                $this->spikapLaporanCount = \App\Models\SpikapLaporan::where('student_id', $this->student->id)
+                    ->count();
+
+                $this->spikapAktifCount = \App\Models\SpikapLaporan::where('student_id', $this->student->id)
+                    ->aktif()
                     ->count();
             }
         }

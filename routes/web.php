@@ -296,6 +296,13 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
             return redirect('/');
         })->name('portal-guru.logout');
     });
+
+    // SPIKAP Guru Routes (Dijaga oleh middleware khusus auth.spikap-guru)
+    Route::middleware('auth.spikap-guru')->group(function () {
+        Route::get('/spikap', \App\Livewire\PortalGuru\SpikapInbox::class)->name('portal-guru.spikap');
+        Route::get('/spikap/analitik', \App\Livewire\PortalGuru\SpikapAnalitik::class)->name('portal-guru.spikap.analitik');
+        Route::get('/spikap/{id}', \App\Livewire\PortalGuru\SpikapDetail::class)->name('portal-guru.spikap.detail');
+    });
 });
 
 // Siswa Routes (Portal Siswa)
@@ -311,6 +318,11 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
         
         Route::get('/ijin-kehadiran', \App\Livewire\PortalSiswa\IjinKehadiranList::class)->name('portal-siswa.ijin');
         Route::get('/ijin-kehadiran/form/{id?}', \App\Livewire\PortalSiswa\IjinKehadiranForm::class)->name('portal-siswa.ijin.form');
+
+        // SPIKAP — Anti-Perundungan
+        Route::get('/spikap', \App\Livewire\PortalSiswa\SpikapLaporanList::class)->name('portal-siswa.spikap');
+        Route::get('/spikap/form', \App\Livewire\PortalSiswa\SpikapLaporanForm::class)->name('portal-siswa.spikap.form');
+
         
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
@@ -319,6 +331,12 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
             return redirect('/');
         })->name('portal-siswa.logout');
     });
+});
+
+// SPIKAP Lampiran Routes (Akses file bukti dengan proteksi auth & authorization)
+Route::middleware('auth')->prefix('spikap/lampiran')->name('spikap.lampiran.')->group(function () {
+    Route::get('/{lampiran}', [\App\Http\Controllers\SpikapLampiranController::class, 'show'])->name('show');
+    Route::get('/{lampiran}/download', [\App\Http\Controllers\SpikapLampiranController::class, 'download'])->name('download');
 });
 
 // Portal Web Sekolah Routes

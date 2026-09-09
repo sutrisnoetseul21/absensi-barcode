@@ -80,6 +80,27 @@ class Guru extends Authenticatable
         return $this->hasMany(TeacherJabatan::class, 'teacher_id');
     }
 
+    /**
+     * Cek apakah guru ini memegang jabatan tertentu yang masih aktif.
+     */
+    public function hasJabatan(string|array $jabatanNames): bool
+    {
+        $names = (array) $jabatanNames;
+        return $this->jabatans()
+            ->where(function ($q) {
+                $q->whereNull('teacher_jabatan.tanggal_selesai')
+                  ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
+            })
+            ->where(function ($q) use ($names) {
+                $q->where(function ($sub) use ($names) {
+                    foreach ($names as $name) {
+                        $sub->orWhere('nama_jabatan', 'like', "%{$name}%");
+                    }
+                });
+            })
+            ->exists();
+    }
+
     public function pengajarans(): HasMany
     {
         return $this->hasMany(Pengajaran::class, 'teacher_id');
