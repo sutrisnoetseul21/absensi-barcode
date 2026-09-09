@@ -172,14 +172,32 @@ class SpikapLaporanForm extends Component
             Log::info("SPIKAP: laporan #{$laporan->id} ({$this->sifat_laporan}) dibuat oleh siswa #{$this->student->id}");
         });
 
-        // 5. Trigger notifikasi WhatsApp jika laporan darurat
+        // 5. Trigger notifikasi WhatsApp
         if ($this->laporanIdBaru) {
             $laporanBaru = SpikapLaporan::find($this->laporanIdBaru);
-            if ($laporanBaru && $laporanBaru->sifat_laporan === 'darurat') {
+            if ($laporanBaru) {
+                $notifService = app(\App\Services\SpikapNotificationService::class);
+
+                // A. Notifikasi ke Guru / Pihak Sekolah
+                if ($laporanBaru->sifat_laporan === 'darurat') {
+                    try {
+                        $notifService->sendEmergencyNotification($laporanBaru);
+                    } catch (\Exception $e) {
+                        Log::error("SPIKAP: gagal mengirim notifikasi WA darurat untuk laporan #{$laporanBaru->id}: " . $e->getMessage());
+                    }
+                } elseif ($laporanBaru->sifat_laporan === 'biasa') {
+                    try {
+                        $notifService->sendBiasaNotificationToGuru($laporanBaru);
+                    } catch (\Exception $e) {
+                        Log::error("SPIKAP: gagal mengirim notifikasi WA laporan biasa untuk laporan #{$laporanBaru->id}: " . $e->getMessage());
+                    }
+                }
+
+                // B. Notifikasi Konfirmasi & Apresiasi ke Siswa dan/atau Orang Tua
                 try {
-                    app(\App\Services\SpikapNotificationService::class)->sendEmergencyNotification($laporanBaru);
+                    $notifService->sendApresiasiNotificationToSiswaDanOrtu($laporanBaru);
                 } catch (\Exception $e) {
-                    Log::error("SPIKAP: gagal mengirim notifikasi WA darurat untuk laporan #{$laporanBaru->id}: " . $e->getMessage());
+                    Log::error("SPIKAP: gagal mengirim notifikasi WA apresiasi ke siswa/ortu untuk laporan #{$laporanBaru->id}: " . $e->getMessage());
                 }
             }
         }

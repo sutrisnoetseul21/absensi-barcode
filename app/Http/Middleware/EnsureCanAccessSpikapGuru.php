@@ -22,18 +22,8 @@ class EnsureCanAccessSpikapGuru
 
         $user = Auth::user();
 
-        // 1. Cek role khusus dengan hak akses langsung: Super Admin, SPIKAP Admin, Guru BK, Kepala Sekolah (via role atau jabatan)
-        $hasDirectRole = $user->hasAnyRole([
-            'super_admin',
-            'spikap_admin',
-            'spikap_guru_bk',
-            'spikap_kepala_sekolah',
-        ]) || $user->isGuruBk() || $user->isKepalaSekolah();
-
-        // 2. Cek Wali Kelas (wajib memiliki record teacher/guru aktif)
-        $isWaliKelasWithTeacher = $user->hasAnyRole(['spikap_wali_kelas', 'wali_kelas']) && $user->teacher !== null;
-
-        if (!$hasDirectRole && !$isWaliKelasWithTeacher) {
+        // Cek hak akses menggunakan method terpusat canAccessSpikapGuru()
+        if (!$user->canAccessSpikapGuru()) {
             abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk mengakses modul SPIKAP Guru.');
         }
 

@@ -21,29 +21,17 @@ class EditManajemenAksesPortal extends EditRecord
         $data['akses_portal_perpustakaan'] = $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
         $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
         $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
-        $data['akses_ijin_kehadiran'] = $user->hasRole('admin_ijin_kehadiran');
         $data['akses_portal_web'] = $user->hasRole('admin_portal_web');
+        $data['bypass_semua_kelas'] = $user->hasPermissionTo('portal_guru:akses_semua_kelas');
 
-        if ($user->hasPermissionTo('portal_guru:akses_semua_kelas')) {
-            $data['mode_akses_kelas'] = 'semua_kelas';
-            $data['kelas_pilihan_ids'] = [];
-        } else {
-            $pantauClassIds = [];
-            if ($user->teacher && $activeYearId) {
-                $pantauClassIds = $user->teacher->kelasPantau()
-                    ->where('academic_year_id', $activeYearId)
-                    ->pluck('class_id')
-                    ->toArray();
-            }
-
-            if (count($pantauClassIds) > 0) {
-                $data['mode_akses_kelas'] = 'kelas_tertentu';
-                $data['kelas_pilihan_ids'] = $pantauClassIds;
-            } else {
-                $data['mode_akses_kelas'] = 'wali_kelas_saja';
-                $data['kelas_pilihan_ids'] = [];
-            }
+        $pantauClassIds = [];
+        if ($user->teacher && $activeYearId) {
+            $pantauClassIds = $user->teacher->kelasPantau()
+                ->where('academic_year_id', $activeYearId)
+                ->pluck('class_id')
+                ->toArray();
         }
+        $data['kelas_binaan_bk_ids'] = $pantauClassIds;
 
         return $data;
     }
@@ -67,18 +55,20 @@ class EditManajemenAksesPortal extends EditRecord
             }
         }
 
-        $modeAkses = $formData['mode_akses_kelas'] ?? 'wali_kelas_saja';
-        if ($hasAksesGuru && $modeAkses === 'semua_kelas') {
+        // Bypass Semua Kelas
+        $bypassSemua = !empty($formData['bypass_semua_kelas']);
+        if ($hasAksesGuru && $bypassSemua) {
             $user->givePermissionTo('portal_guru:akses_semua_kelas');
         } else {
             $user->revokePermissionTo('portal_guru:akses_semua_kelas');
         }
 
-        // Sync mode kelas pantau
+        // Sync kelas binaan BK (jika user adalah Guru BK)
         if ($user->teacher && $activeYearId) {
-            if ($hasAksesGuru && $modeAkses === 'kelas_tertentu') {
-                $selectedClassIds = $formData['kelas_pilihan_ids'] ?? [];
-                
+            $isBk = $user->isGuruBk() || $user->teacher->hasJabatan(['Guru BK', 'BK']);
+            if ($hasAksesGuru && $isBk) {
+                $selectedClassIds = $formData['kelas_binaan_bk_ids'] ?? [];
+
                 // Hapus yang lama di tahun ini
                 $user->teacher->kelasPantau()->where('academic_year_id', $activeYearId)->delete();
 
@@ -90,8 +80,8 @@ class EditManajemenAksesPortal extends EditRecord
                         'academic_year_id' => $activeYearId,
                     ]);
                 }
-            } else {
-                // Jika ganti ke mode lain, bersihkan data kelas pantau
+            } elseif (!$isBk) {
+                // Jika bukan Guru BK, bersihkan data kelas pantau jika ada
                 $user->teacher->kelasPantau()->where('academic_year_id', $activeYearId)->delete();
             }
         }
@@ -109,13 +99,11 @@ class EditManajemenAksesPortal extends EditRecord
             }
         }
 
-        // 3 & 4. Kelola Portal Presensi (Admin & Kiosk)
+        // 3. Kelola Portal Presensi (Admin & Kiosk)
         $hasAksesDashboardPresensi = !empty($formData['akses_dashboard_presensi']);
-        $hasAksesIjinKehadiran = !empty($formData['akses_ijin_kehadiran']);
         
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'petugas_presensi', 'guard_name' => 'web']);
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_presensi', 'guard_name' => 'web']);
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_ijin_kehadiran', 'guard_name' => 'web']);
 
         if ($hasAksesDashboardPresensi) {
             if (!$user->hasRole('admin_portal_presensi')) $user->assignRole('admin_portal_presensi');
@@ -123,12 +111,6 @@ class EditManajemenAksesPortal extends EditRecord
         } else {
             if ($user->hasRole('admin_portal_presensi')) $user->removeRole('admin_portal_presensi');
             if ($user->hasRole('petugas_presensi')) $user->removeRole('petugas_presensi');
-        }
-
-        if ($hasAksesIjinKehadiran) {
-            if (!$user->hasRole('admin_ijin_kehadiran')) $user->assignRole('admin_ijin_kehadiran');
-        } else {
-            if ($user->hasRole('admin_ijin_kehadiran')) $user->removeRole('admin_ijin_kehadiran');
         }
 
         // 5. Kelola Portal Web Sekolah

@@ -25,8 +25,35 @@ class IjinKehadiranDetail extends Component
 
     public function mount($id)
     {
+        $user = Auth::user();
+        $isWk = $user && $user->isWaliKelasMurni();
+        $isBkWithClasses = $user && $user->isGuruBk() && $user->teacher?->kelasPantau()->exists();
+
+        if (!$isWk && !$isBkWithClasses) {
+            abort(403, 'Akses ditolak: Menu permohonan ijin hanya untuk Wali Kelas dan Guru BK.');
+        }
+
         $this->recordId = $id;
         $this->loadRequest();
+    }
+
+    public function canApproveOrReject(): bool
+    {
+        $user = Auth::user();
+        if (!$user) return false;
+
+        if ($user->hasRole(['super_admin', 'admin_presensi'])) {
+            return true;
+        }
+
+        $teacher = $user->teacher;
+        if (!$teacher) return false;
+
+        $studentClassId = $this->request->student?->enrollmentAktif?->class_id;
+        if (!$studentClassId) return false;
+
+        $kelasWaliIds = $teacher->kelasAjarans()->pluck('class_id')->toArray();
+        return in_array($studentClassId, $kelasWaliIds);
     }
 
     protected function loadRequest()
@@ -50,6 +77,10 @@ class IjinKehadiranDetail extends Component
 
     public function approve(LeaveRequestService $service)
     {
+        if (!$this->canApproveOrReject()) {
+            abort(403, 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak menyetujui permohonan ijin.');
+        }
+
         if ($this->request->status === 'approved') return;
 
         $user = auth()->user();
@@ -88,6 +119,10 @@ class IjinKehadiranDetail extends Component
 
     public function reject(LeaveRequestService $service)
     {
+        if (!$this->canApproveOrReject()) {
+            abort(403, 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak menolak permohonan ijin.');
+        }
+
         $this->validate([
             'reason' => 'required|string|min:3'
         ], [
@@ -136,6 +171,10 @@ class IjinKehadiranDetail extends Component
 
     public function resetToPending(LeaveRequestService $service)
     {
+        if (!$this->canApproveOrReject()) {
+            abort(403, 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak mengubah status permohonan ijin.');
+        }
+
         $this->validate([
             'reason' => 'required|string|min:3'
         ], [

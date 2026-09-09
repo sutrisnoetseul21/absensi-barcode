@@ -120,31 +120,86 @@ class SpikapLaporan extends Model
             return $query;
         }
 
-        $isKs = $user->isKepalaSekolah();
-        $isBk = $user->isGuruBk();
-        $isWk = $user->hasAnyRole(['spikap_wali_kelas', 'wali_kelas']);
+        $emergencyHandlers = SpikapNotifSetting::instance()->getActiveEmergencyHandlers();
+        $allowWkDarurat   = in_array('wali_kelas', $emergencyHandlers);
+        $allowKsDarurat   = in_array('kepala_sekolah', $emergencyHandlers);
+        $allowBkDarurat   = in_array('guru_bk', $emergencyHandlers);
+        $allowWakaDarurat = in_array('waka_kesiswaan', $emergencyHandlers);
 
-        // Kepala Sekolah melihat semua laporan darurat + read-only semua laporan
+        $isKs   = $user->isKepalaSekolah();
+        $isBk   = $user->isGuruBk();
+        $isWk   = $user->isWaliKelasMurni();
+        $isWaka = $user->isWakaKesiswaan();
+
+        // Kepala Sekolah melihat semua laporan (supervisory monitoring)
         if ($isKs) {
             return $query;
         }
 
-        return $query->where(function ($q) use ($user, $isBk, $isWk) {
+        return $query->where(function ($q) use ($user, $isBk, $isWk, $isWaka, $allowWkDarurat, $allowBkDarurat, $allowWakaDarurat) {
             $hasCondition = false;
 
-            // Guru BK melihat laporan biasa yang ditujukan ke Guru BK
-            if ($isBk) {
-                $q->where(function ($sub) {
-                    $sub->where('sifat_laporan', 'biasa')
-                        ->where('tujuan_penerima', 'guru_bk');
+            // Guru BK melihat:
+            // 1) Laporan biasa yang ditujukan ke Guru BK (dari siswa di kelas binaan BK / pantau)
+            // 2) Laporan darurat (jika guru_bk diaktifkan di emergency_handlers, dari siswa kelas binaan BK)
+            if ($isBk && $user->teacher) {
+                $hasBkRestriction = !$user->bypass_semua_kelas;
+                $currentYear = \App\Models\TahunAjaran::aktif()->first();
+
+                $bkClassIds = $user->teacher->kelasPantau()
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->pluck('class_id')
+                    ->toArray();
+                $wkClassIds = $user->teacher->kelasAjarans()
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->pluck('class_id')
+                    ->toArray();
+                $accessibleClassIds = array_unique(array_merge($bkClassIds, $wkClassIds));
+
+                $method = $hasCondition ? 'orWhere' : 'where';
+                $q->$method(function ($sub) use ($allowBkDarurat, $hasBkRestriction, $accessibleClassIds, $currentYear) {
+                    if ($hasBkRestriction) {
+                        if (empty($accessibleClassIds)) {
+                            $sub->whereRaw('1 = 0');
+                            return;
+                        }
+                        $studentIds = \App\Models\EnrollmentSiswa::whereIn('class_id', $accessibleClassIds)
+                            ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                            ->pluck('student_id')
+                            ->toArray();
+                        $sub->whereIn('student_id', $studentIds);
+                    }
+
+                    $sub->where(function ($b) use ($allowBkDarurat) {
+                        $b->where(function ($normal) {
+                            $normal->where('sifat_laporan', 'biasa')
+                                   ->where('tujuan_penerima', 'guru_bk');
+                        });
+                        if ($allowBkDarurat) {
+                            $b->orWhere('sifat_laporan', 'darurat');
+                        }
+                    });
                 });
                 $hasCondition = true;
             }
 
-            // Wali Kelas melihat laporan biasa ke WK + laporan darurat dari siswa kelasnya
+            // Waka Kesiswaan melihat:
+            // Laporan darurat (jika waka_kesiswaan diaktifkan di emergency_handlers)
+            if ($isWaka && $allowWakaDarurat) {
+                $method = $hasCondition ? 'orWhere' : 'where';
+                $q->$method(function ($sub) {
+                    $sub->where('sifat_laporan', 'darurat');
+                });
+                $hasCondition = true;
+            }
+
+            // Wali Kelas melihat:
+            // 1) Laporan biasa ke WK dari siswa kelas binaannya
+            // 2) Laporan darurat dari siswa kelas binaannya (jika wali_kelas diaktifkan di emergency_handlers)
             if ($isWk && $user->teacher) {
+                $hasWkRestriction = !$user->bypass_semua_kelas;
                 $currentYear = \App\Models\TahunAjaran::aktif()->first();
-                $classIds = \App\Models\KelasAjaran::where('teacher_id', $user->teacher->id)
+                $classIds = $user->teacher->kelasAjarans()
                     ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
                     ->pluck('class_id')
                     ->toArray();
@@ -155,14 +210,20 @@ class SpikapLaporan extends Model
                     ->toArray();
 
                 $method = $hasCondition ? 'orWhere' : 'where';
-                $q->$method(function ($sub) use ($studentIds) {
-                    $sub->whereIn('student_id', $studentIds)
-                        ->where(function ($w) {
-                            $w->where(function ($b) {
-                                $b->where('sifat_laporan', 'biasa')
-                                  ->where('tujuan_penerima', 'wali_kelas');
-                            })->orWhere('sifat_laporan', 'darurat');
+                $q->$method(function ($sub) use ($studentIds, $allowWkDarurat, $hasWkRestriction) {
+                    if ($hasWkRestriction) {
+                        $sub->whereIn('student_id', $studentIds);
+                    }
+
+                    $sub->where(function ($w) use ($allowWkDarurat) {
+                        $w->where(function ($b) {
+                            $b->where('sifat_laporan', 'biasa')
+                              ->where('tujuan_penerima', 'wali_kelas');
                         });
+                        if ($allowWkDarurat) {
+                            $w->orWhere('sifat_laporan', 'darurat');
+                        }
+                    });
                 });
                 $hasCondition = true;
             }
@@ -186,42 +247,118 @@ class SpikapLaporan extends Model
             return true;
         }
 
-        $isKs = $user->isKepalaSekolah();
-        $isBk = $user->isGuruBk();
-        $isWk = $user->hasAnyRole(['spikap_wali_kelas', 'wali_kelas']);
+        $isKs   = $user->isKepalaSekolah();
+        $isBk   = $user->isGuruBk();
+        $isWk   = $user->isWaliKelasMurni();
+        $isWaka = $user->isWakaKesiswaan();
 
-        if (!$user->can('spikap.update_status') && !$isKs && !$isBk && !$isWk) {
+        // 1. PENANGANAN LAPORAN DARURAT (Mengikuti konfigurasi emergency_handlers)
+        if ($this->sifat_laporan === 'darurat') {
+            $emergencyHandlers = SpikapNotifSetting::instance()->getActiveEmergencyHandlers();
+
+            // Kepala Sekolah
+            if (in_array('kepala_sekolah', $emergencyHandlers) && $isKs) {
+                return true;
+            }
+
+            // Guru BK (sesuai kelas binaan BK / kelas pantau)
+            if (in_array('guru_bk', $emergencyHandlers) && $isBk && $user->teacher) {
+                if ($user->bypass_semua_kelas) {
+                    return true;
+                }
+                $currentYear = \App\Models\TahunAjaran::aktif()->first();
+                $bkClassIds = $user->teacher->kelasPantau()
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->pluck('class_id')
+                    ->toArray();
+                $wkClassIds = $user->teacher->kelasAjarans()
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->pluck('class_id')
+                    ->toArray();
+                $accessibleClassIds = array_unique(array_merge($bkClassIds, $wkClassIds));
+
+                if (!empty($accessibleClassIds)) {
+                    $isStudentInClass = \App\Models\EnrollmentSiswa::whereIn('class_id', $accessibleClassIds)
+                        ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                        ->where('student_id', $this->student_id)
+                        ->exists();
+
+                    if ($isStudentInClass) {
+                        return true;
+                    }
+                }
+            }
+
+            // Waka Kesiswaan
+            if (in_array('waka_kesiswaan', $emergencyHandlers) && $isWaka) {
+                return true;
+            }
+
+            // Wali Kelas (wajib merupakan wali kelas dari rombel siswa pelapor)
+            if (in_array('wali_kelas', $emergencyHandlers) && $isWk && $user->teacher) {
+                if ($user->bypass_semua_kelas) {
+                    return true;
+                }
+                $currentYear = \App\Models\TahunAjaran::aktif()->first();
+                $classIds = $user->teacher->kelasAjarans()
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->pluck('class_id')
+                    ->toArray();
+
+                $isStudentInClass = \App\Models\EnrollmentSiswa::whereIn('class_id', $classIds)
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->where('student_id', $this->student_id)
+                    ->exists();
+
+                if ($isStudentInClass) {
+                    return true;
+                }
+            }
+
             return false;
         }
 
-        // Kepala sekolah: berhak update status laporan darurat
-        if ($isKs && $this->sifat_laporan === 'darurat') {
-            return true;
-        }
-
-        // Guru BK: berhak update status laporan biasa yang ditujukan ke BK
-        if ($isBk && $this->sifat_laporan === 'biasa' && $this->tujuan_penerima === 'guru_bk') {
-            return true;
-        }
-
-        // Wali Kelas: berhak update laporan darurat atau biasa ke WK dari siswa kelasnya
-        if ($isWk && $user->teacher) {
+        // 2. PENANGANAN LAPORAN BIASA
+        // Guru BK: berhak update status laporan biasa yang ditujukan ke BK (sesuai kelas binaan BK)
+        if ($isBk && $user->teacher && $this->sifat_laporan === 'biasa' && $this->tujuan_penerima === 'guru_bk') {
+            if ($user->bypass_semua_kelas) {
+                return true;
+            }
             $currentYear = \App\Models\TahunAjaran::aktif()->first();
-            $classIds = \App\Models\KelasAjaran::where('teacher_id', $user->teacher->id)
+            $bkClassIds = $user->teacher->kelasPantau()
+                ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                ->pluck('class_id')
+                ->toArray();
+            $wkClassIds = $user->teacher->kelasAjarans()
+                ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                ->pluck('class_id')
+                ->toArray();
+            $accessibleClassIds = array_unique(array_merge($bkClassIds, $wkClassIds));
+
+            if (!empty($accessibleClassIds)) {
+                return \App\Models\EnrollmentSiswa::whereIn('class_id', $accessibleClassIds)
+                    ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
+                    ->where('student_id', $this->student_id)
+                    ->exists();
+            }
+            return false;
+        }
+
+        // Wali Kelas: berhak update laporan biasa ke WK dari siswa kelasnya
+        if ($isWk && $user->teacher && $this->sifat_laporan === 'biasa' && $this->tujuan_penerima === 'wali_kelas') {
+            if ($user->bypass_semua_kelas) {
+                return true;
+            }
+            $currentYear = \App\Models\TahunAjaran::aktif()->first();
+            $classIds = $user->teacher->kelasAjarans()
                 ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
                 ->pluck('class_id')
                 ->toArray();
 
-            $isStudentInClass = \App\Models\EnrollmentSiswa::whereIn('class_id', $classIds)
+            return \App\Models\EnrollmentSiswa::whereIn('class_id', $classIds)
                 ->when($currentYear, fn($cy) => $cy->where('academic_year_id', $currentYear->id))
                 ->where('student_id', $this->student_id)
                 ->exists();
-
-            if ($isStudentInClass) {
-                if ($this->sifat_laporan === 'darurat' || ($this->sifat_laporan === 'biasa' && $this->tujuan_penerima === 'wali_kelas')) {
-                    return true;
-                }
-            }
         }
 
         return false;

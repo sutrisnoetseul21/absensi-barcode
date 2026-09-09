@@ -642,6 +642,7 @@
                     </a>
 
                     <!-- Menu Presensi & Akademik -->
+                    @if($user?->isWaliKelasAktif())
                     <a href="{{ route('portal-guru.akademik') }}" :title="isCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -656,25 +657,30 @@
                         </div>
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Data Siswa</span>
                     </a>
+                    @endif
 
                     <!-- Menu Persetujuan Ijin -->
+                    @if($user?->isWaliKelasMurni() || ($user?->isGuruBk() && $user->teacher?->kelasPantau()->exists()))
                     <a href="{{ route('portal-guru.ijin') }}" :title="isCollapsed ? 'Persetujuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isIjinKehadiranActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                         </div>
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Persetujuan Ijin</span>
                     </a>
+                    @endif
 
                     @php
                         $isSpikapGuruActive = request()->routeIs('portal-guru.spikap*');
                     @endphp
                     <!-- Menu SPIKAP (Guru/Wali/BK/KS) -->
+                    @if($user?->canAccessSpikapGuru())
                     <a href="{{ route('portal-guru.spikap') }}" :title="isCollapsed ? 'SPIKAP (Aduan Siswa)' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSpikapGuruActive ? 'bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/30' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isSpikapGuruActive ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100 group-hover:text-rose-700' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         </div>
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>SPIKAP (Aduan)</span>
                     </a>
+                    @endif
 
                     <!-- Menu Perpustakaan Guru -->
                     <a href="{{ route('portal-guru.perpustakaan') }}" :title="isCollapsed ? 'Perpustakaan' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPerpustakaanActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">

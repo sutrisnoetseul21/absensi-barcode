@@ -131,7 +131,17 @@
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Aksi</h3>
                 
-                @if($request->status === 'pending')
+                @if(!$this->canApproveOrReject())
+                    <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-800">
+                        <svg class="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="text-sm">
+                            <strong class="font-semibold block mb-1">Akses Mode Pantau (Read-Only)</strong>
+                            Persetujuan atau penolakan permohonan ijin siswa hanya dapat diproses oleh <strong>Wali Kelas Utama</strong> dari siswa yang bersangkutan.
+                        </div>
+                    </div>
+                @elseif($request->status === 'pending')
                     <div class="flex flex-col sm:flex-row gap-3">
                         <button wire:click="approve" onclick="confirm('Apakah Anda yakin ingin MENYETUJUI pengajuan ini? Data presensi akan otomatis digenerate.') || event.stopImmediatePropagation()" class="flex-1 px-4 py-2.5 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>

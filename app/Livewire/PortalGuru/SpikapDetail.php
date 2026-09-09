@@ -91,6 +91,17 @@ class SpikapDetail extends Component
             );
         });
 
+        // 3. Kirim notifikasi WA perkembangan status ke siswa dan/atau orang tua
+        try {
+            app(\App\Services\SpikapNotificationService::class)->sendStatusUpdateNotificationToSiswaDanOrtu(
+                $laporan,
+                $this->statusBaru,
+                $catatanTrim ?: null
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("SPIKAP: gagal kirim WA status update ke siswa/ortu: " . $e->getMessage());
+        }
+
         $this->catatan = '';
         session()->flash('success', 'Status laporan berhasil diperbarui dan dicatat ke dalam riwayat penanganan.');
     }

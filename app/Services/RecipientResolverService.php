@@ -39,6 +39,74 @@ class RecipientResolverService
         return null;
     }
 
+    /**
+     * Dapatkan nomor HP Guru BK pembina kelas siswa (kelasPantau),
+     * atau fallback ke seluruh Guru BK jika belum dipetakan.
+     */
+    public function resolveGuruBk(Siswa $student): array
+    {
+        $currentYear = TahunAjaran::aktif()->first();
+        if (!$currentYear) {
+            return $this->resolveByJabatan('Guru BK');
+        }
+
+        $enrollment = $student->enrollments()->where('academic_year_id', $currentYear->id)->first();
+        if (!$enrollment) {
+            return $this->resolveByJabatan('Guru BK');
+        }
+
+        // Cari Guru BK yang membina kelas siswa (kelasPantau)
+        $bkHpNumbers = Guru::whereHas('kelasPantau', function ($q) use ($enrollment, $currentYear) {
+            $q->where('class_id', $enrollment->class_id)
+              ->where('academic_year_id', $currentYear->id);
+        })
+        ->whereNotNull('no_hp')
+        ->where('no_hp', '!=', '')
+        ->pluck('no_hp')
+        ->toArray();
+
+        // Jika belum ada pemetaan kelas khusus, fallback ke seluruh Guru BK
+        if (empty($bkHpNumbers)) {
+            $bkHpNumbers = $this->resolveByJabatan('Guru BK');
+        }
+
+        return array_values(array_unique($bkHpNumbers));
+    }
+
+    /**
+     * Resolve nomor HP siswa dan/atau orang tua berdasarkan target pilihan.
+     * Format: [['number' => '08...', 'type' => 'siswa'|'orang_tua']]
+     */
+    public function resolveKontakSiswa(Siswa $student, array $targets): array
+    {
+        $contacts = [];
+        $seen = [];
+
+        if (in_array('siswa', $targets)) {
+            $noHpSiswa = trim($student->no_hp ?? '');
+            if ($noHpSiswa && !isset($seen[$noHpSiswa])) {
+                $contacts[] = [
+                    'number' => $noHpSiswa,
+                    'type'   => 'siswa',
+                ];
+                $seen[$noHpSiswa] = true;
+            }
+        }
+
+        if (in_array('orang_tua', $targets)) {
+            $noHpOrtu = trim($student->no_hp_orang_tua ?? '');
+            if ($noHpOrtu && !isset($seen[$noHpOrtu])) {
+                $contacts[] = [
+                    'number' => $noHpOrtu,
+                    'type'   => 'orang_tua',
+                ];
+                $seen[$noHpOrtu] = true;
+            }
+        }
+
+        return $contacts;
+    }
+
     public function resolveByJabatan(string $namaJabatan): array
     {
         $normalized = match (strtolower(str_replace('_', ' ', $namaJabatan))) {

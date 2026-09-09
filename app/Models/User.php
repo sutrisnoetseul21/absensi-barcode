@@ -135,6 +135,91 @@ class User extends Authenticatable implements FilamentUser
             || ($this->teacher !== null && $this->teacher->hasJabatan(['Kepala Sekolah']));
     }
 
+    /**
+     * Cek apakah user memiliki penugasan kelas aktif (Wali Kelas atau Kelas Pantau).
+     * Digunakan untuk akses Presensi & Akademik dan Data Siswa.
+     */
+    public function isWaliKelasAktif(): bool
+    {
+        if ($this->isSuperAdmin() || $this->hasRole('admin_presensi') || $this->can('portal_guru:akses_semua_kelas')) {
+            return true;
+        }
+
+        if (!$this->teacher) {
+            return false;
+        }
+
+        $activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
+        if (!$activeYear) {
+            return false;
+        }
+
+        $hasKelasWali = $this->teacher->kelasAjarans()
+            ->where('academic_year_id', $activeYear->id)
+            ->exists();
+
+        $hasKelasPantau = $this->teacher->kelasPantau()
+            ->where('academic_year_id', $activeYear->id)
+            ->exists();
+
+        return $hasKelasWali || $hasKelasPantau;
+    }
+
+    /**
+     * Cek apakah user adalah Wali Kelas murni yang memiliki kelas binaan aktif.
+     * Digunakan untuk persetujuan ijin kehadiran siswa dan aduan SPIKAP siswa kelasnya.
+     */
+    public function isWaliKelasMurni(): bool
+    {
+        if ($this->isSuperAdmin() || $this->hasRole('admin_presensi') || $this->can('portal_guru:akses_semua_kelas')) {
+            return true;
+        }
+
+        if (!$this->teacher) {
+            return false;
+        }
+
+        $activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
+        if (!$activeYear) {
+            return false;
+        }
+
+        return $this->teacher->kelasAjarans()
+            ->where('academic_year_id', $activeYear->id)
+            ->exists();
+    }
+
+    /**
+     * Cek apakah user adalah Waka Kesiswaan (berdasarkan jabatan aktif di sekolah).
+     */
+    public function isWakaKesiswaan(): bool
+    {
+        return $this->teacher !== null && $this->teacher->hasJabatan([
+            'Waka Kesiswaan',
+            'Wakil Kepala Sekolah Bidang Kesiswaan',
+            'Wakil Kepala Sekolah Bagian Kesiswaan',
+            'Kesiswaan',
+        ]);
+    }
+
+    /**
+     * Cek apakah user memiliki hak akses ke modul SPIKAP Guru.
+     * Diizinkan untuk Super Admin, SPIKAP Admin, Guru BK, Kepala Sekolah, Wali Kelas aktif,
+     * serta Waka Kesiswaan (jika diaktifkan di pengaturan penanganan darurat SPIKAP).
+     */
+    public function canAccessSpikapGuru(): bool
+    {
+        if ($this->hasAnyRole(['super_admin', 'spikap_admin', 'spikap_guru_bk', 'spikap_kepala_sekolah'])
+            || $this->isGuruBk()
+            || $this->isKepalaSekolah()
+            || $this->isWaliKelasMurni()) {
+            return true;
+        }
+
+        $handlers = \App\Models\SpikapNotifSetting::instance()->getActiveEmergencyHandlers();
+        return in_array('waka_kesiswaan', $handlers) && $this->isWakaKesiswaan();
+    }
+
     // Absensi yang discan oleh admin ini
     public function absensisScanned(): HasMany
     {

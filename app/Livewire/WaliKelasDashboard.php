@@ -50,6 +50,11 @@ class WaliKelasDashboard extends Component
 
     public function mount()
     {
+        $user = Auth::user();
+        if (!$user || !$user->isWaliKelasAktif()) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan kelas binaan aktif.');
+        }
+
         $this->academicYears  = TahunAjaran::where('status', 'aktif')->orderBy('start_year', 'desc')->get();
 
         $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();

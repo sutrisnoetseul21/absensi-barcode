@@ -22,6 +22,11 @@ class GuruMainDashboard extends Component
     public $approvedLeaveRequestsCount = 0;
     public $rejectedLeaveRequestsCount = 0;
 
+    // Guru Role & Assignment Flags
+    public $isWaliKelasAktif = false;
+    public $isWaliKelasMurni = false;
+    public $canAccessIjin = false;
+
     // SPIKAP Status Flags & Metrics
     public $hasSpikapAccess = false;
     public $spikapCount = 0;
@@ -39,6 +44,11 @@ class GuruMainDashboard extends Component
         $user = Auth::user();
         $this->teacher = $user->teacher;
 
+        // Check Guru Assignment Flags
+        $this->isWaliKelasAktif = $user->isWaliKelasAktif();
+        $this->isWaliKelasMurni = $user->isWaliKelasMurni();
+        $this->canAccessIjin = $this->isWaliKelasMurni || ($user->isGuruBk() && $this->teacher?->kelasPantau()->exists());
+
         // Check Multi-Portal Permissions
         $this->isSuperAdmin = $user->hasRole('super_admin');
         $this->hasPresensiAccess = $this->isSuperAdmin || $user->hasRole(['admin_portal_presensi', 'petugas_presensi']);
@@ -46,10 +56,7 @@ class GuruMainDashboard extends Component
         $this->hasWebAccess = $this->isSuperAdmin || $user->hasRole('admin_portal_web');
 
         // Check SPIKAP Access & Metrics
-        $this->hasSpikapAccess = $user->hasAnyRole(['super_admin', 'spikap_admin', 'spikap_guru_bk', 'spikap_kepala_sekolah'])
-            || $user->isGuruBk()
-            || $user->isKepalaSekolah()
-            || ($user->hasRole('wali_kelas') && $this->teacher !== null);
+        $this->hasSpikapAccess = $user->canAccessSpikapGuru();
 
         if ($this->hasSpikapAccess) {
             $this->spikapCount = \App\Models\SpikapLaporan::forUser($user)->count();

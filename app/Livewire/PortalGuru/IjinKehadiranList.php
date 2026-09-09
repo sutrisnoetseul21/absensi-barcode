@@ -29,7 +29,15 @@ class IjinKehadiranList extends Component
 
     public function mount()
     {
-        $this->teacher = Auth::user()->teacher;
+        $user = Auth::user();
+        $isWk = $user && $user->isWaliKelasMurni();
+        $isBkWithClasses = $user && $user->isGuruBk() && $user->teacher?->kelasPantau()->exists();
+
+        if (!$isWk && !$isBkWithClasses) {
+            abort(403, 'Akses ditolak: Menu permohonan ijin hanya untuk Wali Kelas dan Guru BK.');
+        }
+
+        $this->teacher = $user->teacher;
         
         if ($this->teacher) {
             // Dapatkan kelas Wali Kelas

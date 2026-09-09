@@ -87,26 +87,29 @@ class ManajemenAksesPortalResource extends Resource
                             })
                             ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
 
-                        Select::make('mode_akses_kelas')
-                            ->label('Tipe Akses Kelas')
-                            ->options([
-                                'wali_kelas_saja' => '1. Hanya Kelas Utama (Sesuai Data Wali Kelas)',
-                                'kelas_tertentu'   => '2. Tambahan Akses Kelas Pantau (Misal: Guru BK)',
-                                'semua_kelas'      => '3. Akses Semua Kelas (Bypass Mode)',
-                            ])
-                            ->default('wali_kelas_saja')
-                            ->visible(fn ($get) => (bool) $get('akses_portal_guru'))
-                            ->live(),
+                        Toggle::make('bypass_semua_kelas')
+                            ->label('Akses Semua Kelas (Bypass Mode)')
+                            ->helperText('Hanya aktifkan jika guru ini diberi hak khusus untuk memantau presensi seluruh kelas di sekolah.')
+                            ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
+                    ])->columns(1),
 
-                        Select::make('kelas_pilihan_ids')
-                            ->label('Pilih Tambahan Kelas Pantau (Tahun Ajaran Aktif)')
+                Section::make('Akses Kelas Binaan BK (Khusus Guru BK)')
+                    ->description('Tentukan daftar kelas binaan yang ditangani oleh Guru BK ini pada tahun ajaran aktif. Guru BK akan dapat memantau presensi dan menangani aduan SPIKAP dari siswa di kelas-kelas ini.')
+                    ->schema([
+                        Select::make('kelas_binaan_bk_ids')
+                            ->label('Pilih Kelas Binaan BK (Tahun Ajaran Aktif)')
                             ->options($kelasOptions)
                             ->multiple()
                             ->searchable()
                             ->preload()
-                            ->helperText('Pilih kelas tambahan yang boleh dipantau oleh guru ini (misal untuk Guru BK). Data kelas utama (Wali Kelas) tidak akan terhapus.')
-                            ->visible(fn ($get) => (bool) $get('akses_portal_guru') && $get('mode_akses_kelas') === 'kelas_tertentu'),
-                    ])->columns(1),
+                            ->helperText('Pilih rombel/kelas yang dibina oleh Guru BK ini (misal: 7A, 7B, 7C). Aduan SPIKAP dan pantauan presensi Guru BK akan dibatasi pada kelas yang dipilih.')
+                    ])
+                    ->visible(function ($record, $get) {
+                        if (!$get('akses_portal_guru')) return false;
+                        if (!$record) return false;
+                        return $record->isGuruBk() || ($record->teacher !== null && $record->teacher->hasJabatan(['Guru BK', 'BK']));
+                    })
+                    ->columns(1),
 
                 Section::make('Akses Portal Perpustakaan (/portal-perpustakaan)')
                     ->description('Atur izin staf / guru ini untuk mengakses dan mengelola sistem sirkulasi perpustakaan.')
@@ -117,15 +120,11 @@ class ManajemenAksesPortalResource extends Resource
                     ])->columns(1),
 
                 Section::make('Akses Manajemen Presensi (/portal-presensi)')
-                    ->description('Atur izin staf / admin ini untuk mengakses Dashboard Manajemen Presensi dan Ijin Kehadiran. (Catatan: Semua Guru otomatis mendapatkan akses Kiosk Presensi).')
+                    ->description('Atur izin staf / admin ini untuk mengakses Dashboard Manajemen Presensi. (Catatan: Semua Guru otomatis mendapatkan akses Kiosk Presensi).')
                     ->schema([
                         Toggle::make('akses_dashboard_presensi')
                             ->label('Izinkan Akses Portal Presensi')
                             ->helperText('Jika diaktifkan, pengguna akan menjadi Admin Presensi yang dapat mengelola rekapitulasi (otomatis mendapatkan akses Kiosk).'),
-                            
-                        Toggle::make('akses_ijin_kehadiran')
-                            ->label('Izinkan Akses Manajemen Ijin Kehadiran')
-                            ->helperText('Jika diaktifkan, pengguna dapat melihat dan menyetujui pengajuan ijin/sakit siswa di menu Presensi.'),
                     ])->columns(1),
 
                 Section::make('Akses Portal Web Sekolah (/portal-web)')
@@ -196,12 +195,6 @@ class ManajemenAksesPortalResource extends Resource
                     ->label('Akses Portal Presensi')
                     ->badge()
                     ->state(fn (User $record): string => $record->hasRole(['admin_portal_presensi']) ? 'Admin Presensi' : 'Tidak Aktif')
-                    ->color(fn (string $state): string => str_contains($state, 'Admin') ? 'success' : 'gray'),
-                    
-                TextColumn::make('status_ijin_kehadiran')
-                    ->label('Akses Ijin Kehadiran')
-                    ->badge()
-                    ->state(fn (User $record): string => $record->hasRole(['admin_ijin_kehadiran']) ? 'Admin Ijin' : 'Tidak Aktif')
                     ->color(fn (string $state): string => str_contains($state, 'Admin') ? 'success' : 'gray'),
             ])
             ->actions([

@@ -382,6 +382,16 @@ class SpikapLaporanResource extends Resource
                             $user->id
                         );
 
+                        try {
+                            app(\App\Services\SpikapNotificationService::class)->sendStatusUpdateNotificationToSiswaDanOrtu(
+                                $record,
+                                $newStatus,
+                                $catatan
+                            );
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error("SPIKAP: gagal kirim WA status update dari Filament: " . $e->getMessage());
+                        }
+
                         Notification::make()
                             ->success()
                             ->title('Status Laporan Berhasil Diperbarui')
