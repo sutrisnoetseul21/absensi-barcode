@@ -1,3 +1,7 @@
+@php
+    $spikapSetting = \App\Models\SpikapNotifSetting::instance();
+@endphp
+
 <div class="max-w-5xl mx-auto space-y-6 pb-12">
 
     {{-- ── Header ─────────────────────────────────────────────────────── --}}
@@ -12,12 +16,12 @@
             </a>
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Buat Laporan SPIKAP</h1>
+                    <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Buat Laporan {{ $spikapSetting->getNamaAplikasi() }}</h1>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
                         Formulir Digital
                     </span>
                 </div>
-                <p class="text-slate-500 text-sm mt-0.5">Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA</p>
+                <p class="text-slate-500 text-sm mt-0.5">{{ $spikapSetting->getPenjelasanAplikasi() }}</p>
             </div>
         </div>
 

@@ -274,8 +274,24 @@ Route::middleware('auth')->group(function () {
 });
 
 
+// Resolve dynamic slug for SPIKAP / Modul Aduan
+$spikapSlug = 'spikap';
+try {
+    if (\Illuminate\Support\Facades\Schema::hasTable('spikap_notif_settings')) {
+        $setting = \App\Models\SpikapNotifSetting::first();
+        if ($setting) {
+            $spikapSlug = $setting->getSlugUrl();
+        }
+    }
+} catch (\Throwable $e) {
+    $spikapSlug = 'spikap';
+}
+if (empty($spikapSlug)) {
+    $spikapSlug = 'spikap';
+}
+
 // Wali Kelas Routes (Portal Guru)
-Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () {
+Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () use ($spikapSlug) {
     Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('portal-guru.login');
     
     Route::middleware('auth.wali')->group(function () {
@@ -298,18 +314,25 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
     });
 
     // SPIKAP Guru Routes (Dijaga oleh middleware khusus auth.spikap-guru)
-    Route::middleware('auth.spikap-guru')->group(function () {
-        Route::get('/spikap', \App\Livewire\PortalGuru\SpikapInbox::class)->name('portal-guru.spikap');
-        Route::get('/spikap/analitik', \App\Livewire\PortalGuru\SpikapAnalitik::class)->name('portal-guru.spikap.analitik');
-        Route::get('/spikap/{id}', \App\Livewire\PortalGuru\SpikapDetail::class)->name('portal-guru.spikap.detail');
+    Route::middleware('auth.spikap-guru')->group(function () use ($spikapSlug) {
+        Route::get("/{$spikapSlug}", \App\Livewire\PortalGuru\SpikapInbox::class)->name('portal-guru.spikap');
+        Route::get("/{$spikapSlug}/analitik", \App\Livewire\PortalGuru\SpikapAnalitik::class)->name('portal-guru.spikap.analitik');
+        Route::get("/{$spikapSlug}/{id}", \App\Livewire\PortalGuru\SpikapDetail::class)->name('portal-guru.spikap.detail');
+
+        // Fallback auto-redirect jika slug bukan 'spikap' (mencegah broken link lama)
+        if ($spikapSlug !== 'spikap') {
+            Route::get('/spikap', fn() => redirect()->route('portal-guru.spikap'));
+            Route::get('/spikap/analitik', fn() => redirect()->route('portal-guru.spikap.analitik'));
+            Route::get('/spikap/{id}', fn($id) => redirect()->route('portal-guru.spikap.detail', $id));
+        }
     });
 });
 
 // Siswa Routes (Portal Siswa)
-Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function () {
+Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function () use ($spikapSlug) {
     Route::get('/login', SiswaLogin::class)->middleware('guest')->name('portal-siswa.login');
     
-    Route::middleware('auth.siswa')->group(function () {
+    Route::middleware('auth.siswa')->group(function () use ($spikapSlug) {
         Route::get('/', \App\Livewire\SiswaMainDashboard::class)->name('portal-siswa.dashboard');
         Route::get('/akademik', SiswaDashboard::class)->name('portal-siswa.akademik');
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
@@ -319,9 +342,15 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
         Route::get('/ijin-kehadiran', \App\Livewire\PortalSiswa\IjinKehadiranList::class)->name('portal-siswa.ijin');
         Route::get('/ijin-kehadiran/form/{id?}', \App\Livewire\PortalSiswa\IjinKehadiranForm::class)->name('portal-siswa.ijin.form');
 
-        // SPIKAP — Anti-Perundungan
-        Route::get('/spikap', \App\Livewire\PortalSiswa\SpikapLaporanList::class)->name('portal-siswa.spikap');
-        Route::get('/spikap/form', \App\Livewire\PortalSiswa\SpikapLaporanForm::class)->name('portal-siswa.spikap.form');
+        // SPIKAP — Anti-Perundungan / Modul Aduan Siswa
+        Route::get("/{$spikapSlug}", \App\Livewire\PortalSiswa\SpikapLaporanList::class)->name('portal-siswa.spikap');
+        Route::get("/{$spikapSlug}/form", \App\Livewire\PortalSiswa\SpikapLaporanForm::class)->name('portal-siswa.spikap.form');
+
+        // Fallback auto-redirect jika slug bukan 'spikap' (mencegah broken link lama)
+        if ($spikapSlug !== 'spikap') {
+            Route::get('/spikap', fn() => redirect()->route('portal-siswa.spikap'));
+            Route::get('/spikap/form', fn() => redirect()->route('portal-siswa.spikap.form'));
+        }
 
         
         Route::post('/logout', function () {

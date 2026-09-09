@@ -371,6 +371,7 @@
                 </div>
 
                 <!-- Shortcut 5: SPIKAP (Anti-Perundungan) -->
+                @php $spikapSetting = \App\Models\SpikapNotifSetting::instance(); @endphp
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-rose-200 transition-all flex flex-col justify-between group">
                     <div>
                         <div class="flex items-center justify-between mb-3">
@@ -393,7 +394,7 @@
                                 </span>
                             @endif
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-rose-600 transition-colors">SPIKAP Anti-Bullying</h3>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-rose-600 transition-colors">{{ $spikapSetting->getNamaAplikasi() }} ({{ $spikapSetting->getSubJudul() }})</h3>
                         <p class="text-xs text-slate-500 mt-1 line-clamp-2">Layanan pelaporan dan penanganan kasus perundungan siswa yang aman & terpercaya.</p>
                     </div>
                     <a href="{{ route('portal-siswa.spikap') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-rose-600 hover:text-rose-700 pt-3 border-t border-slate-100">

@@ -339,6 +339,7 @@
 
             <!-- Shortcut: SPIKAP (Aduan Siswa) -->
             @if($hasSpikapAccess)
+                @php $spikapSetting = \App\Models\SpikapNotifSetting::instance(); @endphp
                 <div class="bg-white rounded-2xl p-5 border {{ $spikapDaruratCount > 0 ? 'border-rose-300 ring-2 ring-rose-500/20 bg-rose-50/10' : 'border-slate-200/80' }} shadow-sm hover:shadow-md hover:border-rose-200 transition-all flex flex-col justify-between group">
                     <div>
                         <div class="flex items-center justify-between mb-3">
@@ -363,7 +364,7 @@
                             @endif
                         </div>
                         <h3 class="text-base font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
-                            SPIKAP Anti-Bullying
+                            {{ $spikapSetting->getNamaAplikasi() }} ({{ $spikapSetting->getSubJudul() }})
                         </h3>
                         <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
                             Layanan penanganan perundungan siswa, pantau aduan masuk, dan investigasi.
@@ -371,7 +372,7 @@
                     </div>
                     <a href="{{ route('portal-guru.spikap') }}" 
                        class="mt-4 w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-rose-600 hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200/60 hover:border-rose-600">
-                        Buka SPIKAP
+                        Buka {{ $spikapSetting->getNamaAplikasi() }}
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </a>
                 </div>

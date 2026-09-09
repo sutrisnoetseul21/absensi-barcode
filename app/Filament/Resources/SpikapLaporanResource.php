@@ -32,17 +32,38 @@ class SpikapLaporanResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-exclamation';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'SPIKAP';
-
     protected static ?string $navigationLabel = 'Laporan Kasus';
-
-    protected static ?string $pluralModelLabel = 'Laporan Kasus SPIKAP';
-
-    protected static ?string $modelLabel = 'Laporan SPIKAP';
 
     protected static ?string $slug = 'spikap/laporan';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        try {
+            return \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi();
+        } catch (\Throwable $e) {
+            return 'SPIKAP';
+        }
+    }
+
+    public static function getModelLabel(): string
+    {
+        try {
+            return 'Laporan ' . \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi();
+        } catch (\Throwable $e) {
+            return 'Laporan SPIKAP';
+        }
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        try {
+            return 'Laporan Kasus ' . \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi();
+        } catch (\Throwable $e) {
+            return 'Laporan Kasus SPIKAP';
+        }
+    }
 
     public static function canViewAny(): bool
     {

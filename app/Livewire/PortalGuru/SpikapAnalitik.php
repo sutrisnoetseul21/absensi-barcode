@@ -214,11 +214,13 @@ class SpikapAnalitik extends Component
         $metrics = $this->getMetrics();
         $chartData = $this->getChartData();
 
+        $namaApp = \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi();
+
         return view('livewire.portal-guru.spikap-analitik', [
             'metrics'   => $metrics,
             'chartData' => $chartData,
         ])->layout('components.layouts.portal', [
-            'title' => 'Dashboard Analitik Pola Perundungan — SPIKAP',
+            'title' => "Dashboard Analitik Pola Perundungan — {$namaApp}",
         ]);
     }
 }

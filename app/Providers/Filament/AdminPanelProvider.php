@@ -111,7 +111,7 @@ class AdminPanelProvider extends PanelProvider
                 'Akademik',
                 'Presensi',
                 'Perpustakaan',
-                'SPIKAP',
+                \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi(),
                 'Web Profil Sekolah',
                 'Pengaturan Sistem',
                 'Akses Portal & Web',

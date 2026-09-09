@@ -32,6 +32,10 @@ class SpikapNotifSetting extends Model
         $setting = static::firstOrCreate(
             ['id' => 1],
             [
+                'nama_aplikasi' => 'SPIKAP',
+                'sub_judul' => 'Anti-Perundungan & Pengaduan Siswa',
+                'penjelasan_aplikasi' => 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA',
+                'slug_url' => 'spikap',
                 'recipients' => ['wali_kelas', 'kepala_sekolah'],
                 'emergency_handlers' => ['wali_kelas', 'kepala_sekolah'],
                 'notify_guru_laporan_biasa' => true,
@@ -42,6 +46,18 @@ class SpikapNotifSetting extends Model
         );
 
         $updates = [];
+        if ($setting->nama_aplikasi === null) {
+            $updates['nama_aplikasi'] = 'SPIKAP';
+        }
+        if ($setting->sub_judul === null) {
+            $updates['sub_judul'] = 'Anti-Perundungan & Pengaduan Siswa';
+        }
+        if ($setting->penjelasan_aplikasi === null) {
+            $updates['penjelasan_aplikasi'] = 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA';
+        }
+        if ($setting->slug_url === null) {
+            $updates['slug_url'] = 'spikap';
+        }
         if ($setting->emergency_handlers === null) {
             $updates['emergency_handlers'] = ['wali_kelas', 'kepala_sekolah'];
         }
@@ -63,6 +79,19 @@ class SpikapNotifSetting extends Model
         }
 
         return $setting;
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function ($model) {
+            if ($model->wasChanged('slug_url') || $model->wasChanged('nama_aplikasi')) {
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('route:clear');
+                } catch (\Throwable $e) {
+                    // Ignore CLI/cache failure
+                }
+            }
+        });
     }
 
     /**
@@ -104,5 +133,33 @@ class SpikapNotifSetting extends Model
     public function getTargetPenerimaSiswa(): array
     {
         return $this->target_penerima_siswa ?? ['siswa'];
+    }
+
+    public function getNamaAplikasi(): string
+    {
+        return trim($this->nama_aplikasi ?? '') ?: 'SPIKAP';
+    }
+
+    public function getSubJudul(): string
+    {
+        return trim($this->sub_judul ?? '') ?: 'Anti-Perundungan & Pengaduan Siswa';
+    }
+
+    public function getPenjelasanAplikasi(): string
+    {
+        return trim($this->penjelasan_aplikasi ?? '') ?: 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA';
+    }
+
+    public function getSlugUrl(): string
+    {
+        $customSlug = trim($this->slug_url ?? '');
+        $namaAppSlug = \Illuminate\Support\Str::slug($this->getNamaAplikasi());
+
+        // Jika slug kosong atau masih bernilai default 'spikap' padahal nama aplikasi sudah diubah
+        if (empty($customSlug) || ($customSlug === 'spikap' && $namaAppSlug !== 'spikap')) {
+            return $namaAppSlug ?: 'spikap';
+        }
+
+        return \Illuminate\Support\Str::slug($customSlug) ?: 'spikap';
     }
 }

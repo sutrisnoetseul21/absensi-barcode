@@ -1,10 +1,14 @@
+@php
+    $spikapSetting = \App\Models\SpikapNotifSetting::instance();
+@endphp
+
 <div class="max-w-5xl mx-auto space-y-6 pb-12">
 
     {{-- ── Header ─────────────────────────────────────────────────────── --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Riwayat Laporan SPIKAP</h1>
-            <p class="text-slate-500 text-sm mt-0.5">Pantau alur dan perkembangan status laporan anti-perundungan kamu secara transparan.</p>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Riwayat Laporan {{ $spikapSetting->getNamaAplikasi() }}</h1>
+            <p class="text-slate-500 text-sm mt-0.5">Pantau alur dan perkembangan status laporan {{ strtolower($spikapSetting->getSubJudul()) }} kamu secara transparan.</p>
         </div>
         <a href="{{ route('portal-siswa.spikap.form') }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 text-white text-sm font-bold rounded-xl shadow-md shadow-rose-500/25 hover:bg-rose-700 transition-colors shrink-0">
@@ -212,7 +216,7 @@
             </div>
             <div>
                 <p class="font-semibold text-slate-700">Belum ada laporan</p>
-                <p class="text-sm text-slate-400 mt-1">Kamu belum pernah membuat laporan SPIKAP. Jika ada kejadian yang perlu dilaporkan, klik tombol di atas.</p>
+                <p class="text-sm text-slate-400 mt-1">Kamu belum pernah membuat laporan {{ $spikapSetting->getNamaAplikasi() }}. Jika ada kejadian yang perlu dilaporkan, klik tombol di atas.</p>
             </div>
         </div>
     @endforelse

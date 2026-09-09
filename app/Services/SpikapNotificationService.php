@@ -66,7 +66,8 @@ class SpikapNotificationService
         $waktuObj  = $laporan->created_at ?? now();
         $waktu     = $waktuObj->translatedFormat('d F Y, H:i') . ' WIB';
 
-        $pesan = "🚨 *LAPORAN DARURAT SPIKAP*\n"
+        $namaApp   = $setting->getNamaAplikasi();
+        $pesan = "🚨 *LAPORAN DARURAT {$namaApp}*\n"
                . "Dari: {$namaSiswa}\n"
                . "Kelas: {$namaKelas}\n"
                . "Jenis: {$jenis}\n"
@@ -176,7 +177,8 @@ class SpikapNotificationService
         $waktuObj    = $laporan->created_at ?? now();
         $waktu       = $waktuObj->translatedFormat('d F Y, H:i') . ' WIB';
 
-        $pesan = "📋 *LAPORAN SPIKAP BARU*\n"
+        $namaApp   = $setting->getNamaAplikasi();
+        $pesan = "📋 *LAPORAN {$namaApp} BARU*\n"
                . "Tujuan: {$tujuanLabel}\n"
                . "Dari: {$namaSiswa}\n"
                . "Kelas: {$namaKelas}\n"
@@ -246,20 +248,22 @@ class SpikapNotificationService
 
         $dispatched = [];
 
+        $namaApp = $setting->getNamaAplikasi();
+
         foreach ($contacts as $contact) {
             $toNumber = $contact['number'];
             $type     = $contact['type'];
 
             if ($type === 'siswa') {
                 $pesan = "Halo *{$namaSiswa}*,\n\n"
-                       . "Terima kasih atas keberanianmu telah melapor di SPIKAP. Laporanmu (*{$jenis}*) telah berhasil kami terima dengan aman dan rahasia.\n\n"
+                       . "Terima kasih atas keberanianmu telah melapor di {$namaApp}. Laporanmu (*{$jenis}*) telah berhasil kami terima dengan aman dan rahasia.\n\n"
                        . "Pihak sekolah ({$tujuanLabel}) akan segera meninjau dan menindaklanjuti laporan ini. Tetap tenang dan selalu jaga keselamatan dirimu. Kami ada bersamamu.\n\n"
-                       . "_Pesan otomatis Layanan SPIKAP Sekolah_";
+                       . "_Pesan otomatis Layanan {$namaApp} Sekolah_";
             } else {
                 $pesan = "Yth. Orang Tua/Wali dari *{$namaSiswa}*,\n\n"
-                       . "Pemberitahuan bahwa ananda telah menyampaikan aduan melalui layanan SPIKAP sekolah (*{$jenis}*). Laporan telah tercatat dengan aman dan sedang dalam penanganan pihak sekolah ({$tujuanLabel}).\n\n"
+                       . "Pemberitahuan bahwa ananda telah menyampaikan aduan melalui layanan {$namaApp} sekolah (*{$jenis}*). Laporan telah tercatat dengan aman dan sedang dalam penanganan pihak sekolah ({$tujuanLabel}).\n\n"
                        . "Sekolah berkomitmen menjaga keselamatan dan kenyamanan setiap siswa.\n\n"
-                       . "_Layanan Bimbingan & Konseling SPIKAP Sekolah_";
+                       . "_Layanan Bimbingan & Konseling {$namaApp} Sekolah_";
             }
 
             $log = WhatsAppNotificationLog::create([
@@ -322,22 +326,24 @@ class SpikapNotificationService
         $catatanText = $catatan ? "\n📝 *Catatan Petugas:* " . $catatan : "";
         $dispatched  = [];
 
+        $namaApp = $setting->getNamaAplikasi();
+
         foreach ($contacts as $contact) {
             $toNumber = $contact['number'];
             $type     = $contact['type'];
 
             if ($type === 'siswa') {
                 $pesan = "Halo *{$namaSiswa}*,\n\n"
-                       . "Ada perkembangan terbaru mengenai laporan SPIKAP yang kamu kirimkan:\n\n"
+                       . "Ada perkembangan terbaru mengenai laporan {$namaApp} yang kamu kirimkan:\n\n"
                        . "📌 *Status:* {$statusLabel}{$catatanText}\n\n"
                        . "Kamu juga dapat melihat riwayat lengkap perkembangan kasusmu di Portal Siswa.\n\n"
-                       . "_Layanan SPIKAP Sekolah_";
+                       . "_Layanan {$namaApp} Sekolah_";
             } else {
                 $pesan = "Yth. Orang Tua/Wali dari *{$namaSiswa}*,\n\n"
-                       . "Kami menginformasikan perkembangan penanganan atas laporan SPIKAP ananda *{$namaSiswa}*:\n\n"
+                       . "Kami menginformasikan perkembangan penanganan atas laporan {$namaApp} ananda *{$namaSiswa}*:\n\n"
                        . "📌 *Status:* {$statusLabel}{$catatanText}\n\n"
                        . "Terima kasih atas perhatian dan kerja samanya dalam mendampingi ananda.\n\n"
-                       . "_Layanan Bimbingan & Konseling SPIKAP Sekolah_";
+                       . "_Layanan Bimbingan & Konseling {$namaApp} Sekolah_";
             }
 
             $log = WhatsAppNotificationLog::create([

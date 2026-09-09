@@ -1,3 +1,7 @@
+@php
+    $spikapSetting = \App\Models\SpikapNotifSetting::instance();
+@endphp
+
 <div class="space-y-6 pb-12">
 
     {{-- ── Header ─────────────────────────────────────────────────────── --}}
@@ -10,8 +14,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Inbox Laporan SPIKAP</h1>
-                    <p class="text-slate-500 text-sm">Sistem Pelaporan dan Penanganan Kasus Perundungan Siswa</p>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Inbox Laporan {{ $spikapSetting->getNamaAplikasi() }}</h1>
+                    <p class="text-slate-500 text-sm">Layanan Penanganan dan Pelaporan {{ $spikapSetting->getSubJudul() }}</p>
                 </div>
             </div>
         </div>
@@ -288,7 +292,7 @@
                                     </svg>
                                 </div>
                                 <p class="font-semibold text-slate-600">Tidak ada laporan ditemukan</p>
-                                <p class="text-xs text-slate-400 mt-1">Belum ada laporan SPIKAP yang sesuai dengan kriteria filter saat ini.</p>
+                                <p class="text-xs text-slate-400 mt-1">Belum ada laporan {{ $spikapSetting->getNamaAplikasi() }} yang sesuai dengan kriteria filter saat ini.</p>
                             </td>
                         </tr>
                     @endforelse

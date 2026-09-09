@@ -17,7 +17,8 @@
                 ];
                 $colorClass = $statusColors[$log->status_baru] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
                 
-                $actorName = 'Sistem Otomatis (SPIKAP)';
+                $spikapAppName = \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi();
+                $actorName = "Sistem Otomatis ({$spikapAppName})";
                 $actorRole = 'Sistem';
                 if ($log->changedBy) {
                     $actorName = $log->changedBy->teacher?->nama_guru ?? $log->changedBy->name;

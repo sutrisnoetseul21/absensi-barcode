@@ -16,11 +16,46 @@ class SpikapNotifSettingPage extends Page implements HasForms
     use InteractsWithForms;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
-    protected static string|\UnitEnum|null $navigationGroup = 'SPIKAP';
-    protected static ?string $title = 'Pengaturan SPIKAP & Notifikasi Darurat';
-    protected static ?string $navigationLabel = 'Pengaturan SPIKAP';
     protected static ?string $slug = 'spikap/pengaturan-notifikasi';
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        try {
+            return SpikapNotifSetting::instance()->getNamaAplikasi();
+        } catch (\Throwable $e) {
+            return 'SPIKAP';
+        }
+    }
+
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        try {
+            $name = SpikapNotifSetting::instance()->getNamaAplikasi();
+            return "Pengaturan {$name} & Notifikasi Darurat";
+        } catch (\Throwable $e) {
+            return 'Pengaturan SPIKAP & Notifikasi Darurat';
+        }
+    }
+
+    public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable|null
+    {
+        try {
+            $name = SpikapNotifSetting::instance()->getNamaAplikasi();
+            return "Pengaturan {$name} & Notifikasi Darurat";
+        } catch (\Throwable $e) {
+            return 'Pengaturan SPIKAP & Notifikasi Darurat';
+        }
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        try {
+            return 'Pengaturan ' . SpikapNotifSetting::instance()->getNamaAplikasi();
+        } catch (\Throwable $e) {
+            return 'Pengaturan SPIKAP';
+        }
+    }
 
     protected string $view = 'filament.pages.spikap-notif-setting-page';
 
@@ -42,6 +77,10 @@ class SpikapNotifSettingPage extends Page implements HasForms
     {
         $setting = SpikapNotifSetting::instance();
         $this->form->fill([
+            'nama_aplikasi'              => $setting->getNamaAplikasi(),
+            'sub_judul'                  => $setting->getSubJudul(),
+            'slug_url'                   => $setting->getSlugUrl(),
+            'penjelasan_aplikasi'        => $setting->getPenjelasanAplikasi(),
             'emergency_handlers'         => $setting->getActiveEmergencyHandlers(),
             'recipients'                 => $setting->getActiveRecipients(),
             'notify_guru_laporan_biasa'  => $setting->shouldNotifyGuruLaporanBiasa(),
@@ -55,6 +94,44 @@ class SpikapNotifSettingPage extends Page implements HasForms
     {
         return $schema
             ->components([
+                Section::make('Identitas & Penamaan Aplikasi / Modul')
+                    ->description('Atur nama, sub-judul, penjelasan, dan slug URL modul aduan siswa agar sesuai dengan identitas dan kebijakan sekolah Anda.')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('nama_aplikasi')
+                            ->label('Nama Aplikasi / Singkatan')
+                            ->required()
+                            ->maxLength(50)
+                            ->default('SPIKAP')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if (!empty($state)) {
+                                    $set('slug_url', \Illuminate\Support\Str::slug($state));
+                                }
+                            })
+                            ->helperText('Nama utama modul yang tampil di menu portal, judul halaman, dashboard, dan notifikasi WA (contoh: SPIKAP, SUARA KITA, LAPOR BK).'),
+
+                        Forms\Components\TextInput::make('sub_judul')
+                            ->label('Sub-Judul / Label Pendamping')
+                            ->maxLength(100)
+                            ->default('Anti-Perundungan & Pengaduan Siswa')
+                            ->helperText('Label singkat pendamping yang muncul di kartu dashboard dan badge.'),
+
+                        Forms\Components\TextInput::make('slug_url')
+                            ->label('Slug URL Khusus')
+                            ->maxLength(50)
+                            ->placeholder('spikap')
+                            ->helperText('Bagian URL browser setelah /portal-siswa/ atau /portal-guru/ (contoh: suara-kita). Otomatis mengikuti nama aplikasi jika dikosongkan.')
+                            ->columnSpanFull(),
+
+                        Forms\Components\Textarea::make('penjelasan_aplikasi')
+                            ->label('Penjelasan Lengkap / Kepanjangan Aplikasi')
+                            ->rows(2)
+                            ->default('Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA')
+                            ->helperText('Penjelasan resmi yang tampil di bawah judul formulir pembuatan laporan siswa.')
+                            ->columnSpanFull(),
+                    ]),
+
                 Section::make('Wewenang Penanganan Laporan Darurat (Portal Guru)')
                     ->description('Tentukan pihak mana saja yang berhak melihat dan menindaklanjuti (mengubah status / investigasi / mediasi / penutupan kasus) setiap laporan darurat di Portal Guru.')
                     ->schema([
@@ -74,7 +151,7 @@ class SpikapNotifSettingPage extends Page implements HasForms
                             ])
                             ->columns(1)
                             ->required()
-                            ->helperText('Pihak yang dicentang akan dapat melihat laporan darurat di inbox Portal Guru dan form Tindak Lanjut akan aktif (dapat memperbarui status). Super Admin dan SPIKAP Admin selalu memiliki wewenang penuh.'),
+                            ->helperText(fn () => 'Pihak yang dicentang akan dapat melihat laporan darurat di inbox Portal Guru dan form Tindak Lanjut akan aktif (dapat memperbarui status). Super Admin dan Admin ' . SpikapNotifSetting::instance()->getNamaAplikasi() . ' selalu memiliki wewenang penuh.'),
                     ]),
 
                 Section::make('Penerima Notifikasi WhatsApp Laporan Darurat')
@@ -143,7 +220,22 @@ class SpikapNotifSettingPage extends Page implements HasForms
     {
         $data = $this->form->getState();
         $setting = SpikapNotifSetting::instance();
+
+        $namaApp = trim($data['nama_aplikasi'] ?? '') ?: 'SPIKAP';
+        $inputSlug = trim($data['slug_url'] ?? '');
+        $namaAppSlug = \Illuminate\Support\Str::slug($namaApp);
+
+        if (empty($inputSlug) || ($inputSlug === 'spikap' && $namaAppSlug !== 'spikap')) {
+            $slugUrl = $namaAppSlug;
+        } else {
+            $slugUrl = \Illuminate\Support\Str::slug($inputSlug);
+        }
+
         $setting->update([
+            'nama_aplikasi'              => $namaApp,
+            'sub_judul'                  => trim($data['sub_judul'] ?? '') ?: 'Anti-Perundungan & Pengaduan Siswa',
+            'slug_url'                   => $slugUrl ?: 'spikap',
+            'penjelasan_aplikasi'        => trim($data['penjelasan_aplikasi'] ?? '') ?: 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA',
             'emergency_handlers'         => $data['emergency_handlers'] ?? ['wali_kelas', 'kepala_sekolah'],
             'recipients'                 => $data['recipients'] ?? [],
             'notify_guru_laporan_biasa'  => (bool) ($data['notify_guru_laporan_biasa'] ?? false),
@@ -154,8 +246,10 @@ class SpikapNotifSettingPage extends Page implements HasForms
 
         Notification::make()
             ->success()
-            ->title('Pengaturan SPIKAP Berhasil Disimpan')
-            ->body('Seluruh pengaturan wewenang, notifikasi WhatsApp guru, dan konfirmasi siswa/orang tua telah diperbarui.')
+            ->title("Pengaturan {$namaApp} Berhasil Disimpan")
+            ->body('Seluruh identitas modul, wewenang, notifikasi WhatsApp guru, dan konfirmasi siswa/orang tua telah diperbarui.')
             ->send();
+
+        $this->redirect(static::getUrl());
     }
 }
