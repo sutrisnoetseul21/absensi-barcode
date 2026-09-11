@@ -6,15 +6,21 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Peminjaman;
+use App\Models\EksemplarBuku;
+use App\Models\Siswa;
+use App\Models\Guru;
+use App\Models\StudentPresensiProfile;
+use App\Models\TeacherPresensiProfile;
 use Carbon\Carbon;
 
 #[Layout('components.layouts.portal')]
-class PetugasPerpusPeminjaman extends Component
+class PetugasPerpusPeminjamanPaket extends Component
 {
     use WithPagination;
 
     public string $activeTab = 'dipinjam'; // 'dipinjam' | 'terlambat' | 'dikembalikan'
     public string $search = '';
+    public string $filterGradeLevel = ''; // '' | '7' | '8' | '9'
     public int $perPage = 15;
 
     // Modal Unduh
@@ -23,7 +29,23 @@ class PetugasPerpusPeminjaman extends Component
     public array $filterTipeAnggotaUnduh = [];
     public string $formatUnduh = 'pdf';
 
+    // Modal Tambah Peminjaman Paket
+    public bool $showTambahModal = false;
+    public string $form_peminjam_type = 'siswa'; // 'siswa' | 'guru'
+    public string $form_peminjam_id = '';
+    public string $form_eksemplar_id = '';
+    public string $form_tanggal_pinjam = '';
+    public string $form_tanggal_jatuh_tempo = '';
+    public string $form_catatan = '';
+    public string $searchMemberModal = '';
+    public string $searchEksemplarModal = '';
+
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterGradeLevel(): void
     {
         $this->resetPage();
     }
@@ -52,8 +74,8 @@ class PetugasPerpusPeminjaman extends Component
     public function downloadPeminjaman(): void
     {
         $routeName = $this->formatUnduh === 'excel'
-            ? 'perpustakaan.peminjaman-buku.excel'
-            : 'perpustakaan.peminjaman-buku.pdf';
+            ? 'perpustakaan.peminjaman-paket.excel'
+            : 'perpustakaan.peminjaman-paket.pdf';
 
         $params = [];
         if (!empty($this->filterStatusUnduh)) {
@@ -69,7 +91,7 @@ class PetugasPerpusPeminjaman extends Component
 
     public function kembalikanBuku(string $peminjamanId): void
     {
-        $peminjaman = Peminjaman::find($peminjamanId);
+        $peminjaman = Peminjaman::where('tipe_peminjaman', 'paket')->find($peminjamanId);
         if (!$peminjaman || $peminjaman->status !== 'dipinjam') return;
 
         $eksemplar = $peminjaman->eksemplarBuku;
@@ -82,19 +104,9 @@ class PetugasPerpusPeminjaman extends Component
             $eksemplar->update(['status' => 'tersedia']);
         }
 
-        session()->flash('flash_success', 'Buku "' . ($eksemplar?->buku?->judul ?? '') . '" berhasil dikembalikan!');
+        session()->flash('flash_success', 'Buku paket "' . ($eksemplar?->buku?->judul ?? '') . '" berhasil dikembalikan!');
         $this->resetPage();
     }
-
-    // Modal Tambah Peminjaman Manual
-    public bool $showTambahModal = false;
-    public string $form_peminjam_type = 'siswa'; // 'siswa' | 'guru'
-    public string $form_peminjam_id = '';
-    public string $form_eksemplar_id = '';
-    public string $form_tanggal_pinjam = '';
-    public string $form_tanggal_jatuh_tempo = '';
-    public string $searchMemberModal = '';
-    public string $searchEksemplarModal = '';
 
     public function updatedFormPeminjamType(): void
     {
@@ -120,15 +132,17 @@ class PetugasPerpusPeminjaman extends Component
         $search = trim($this->searchMemberModal);
         if (!$search) return;
 
-        // Try exact match on student barcode
-        $studentProfile = \App\Models\StudentPresensiProfile::where('barcode_code', $search)->first();
+        // Try exact match on student barcode / NISN
+        $studentProfile = StudentPresensiProfile::where('barcode_code', $search)->first();
         if ($studentProfile && $studentProfile->student) {
-            $this->selectMember($studentProfile->student->id, 'siswa', $studentProfile->student->name);
+            $siswa = $studentProfile->student;
+            $kelasName = $siswa->enrollmentAktif?->kelas?->name ? ' (' . $siswa->enrollmentAktif->kelas->name . ')' : '';
+            $this->selectMember($siswa->id, 'siswa', $siswa->name . $kelasName);
             return;
         }
 
-        // Try exact match on teacher barcode
-        $teacherProfile = \App\Models\TeacherPresensiProfile::where('barcode_code', $search)->first();
+        // Try exact match on teacher barcode / NIP
+        $teacherProfile = TeacherPresensiProfile::where('barcode_code', $search)->first();
         if ($teacherProfile && $teacherProfile->teacher) {
             $this->selectMember($teacherProfile->teacher->id, 'guru', $teacherProfile->teacher->name);
             return;
@@ -140,7 +154,7 @@ class PetugasPerpusPeminjaman extends Component
         $search = trim($this->searchEksemplarModal);
         if (!$search) return;
 
-        $eksemplar = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
+        $eksemplar = EksemplarBuku::with('buku.kategoriBuku')
             ->where('kode_eksemplar', $search)
             ->first();
 
@@ -158,7 +172,8 @@ class PetugasPerpusPeminjaman extends Component
                 return;
             }
 
-            $this->selectEksemplar($eksemplar->id, $judul . ' - [Kode: ' . $eksemplar->kode_eksemplar . ']');
+            $jenjang = $eksemplar->buku?->grade_level ? '[Kelas ' . $eksemplar->buku->grade_level . '] ' : '';
+            $this->selectEksemplar($eksemplar->id, $jenjang . $judul . ' - [Kode: ' . $eksemplar->kode_eksemplar . ']');
         } else {
             $this->addError('form_eksemplar_id', "Buku dengan barcode '{$search}' tidak ditemukan.");
         }
@@ -166,13 +181,13 @@ class PetugasPerpusPeminjaman extends Component
 
     public function openTambahModal(): void
     {
-        $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
-
-        $this->form_peminjam_type = '';
+        $this->form_peminjam_type = 'siswa';
         $this->form_peminjam_id = '';
         $this->form_eksemplar_id = '';
         $this->form_tanggal_pinjam = now()->toDateString();
-        $this->form_tanggal_jatuh_tempo = now()->addDays($lamaPinjam)->toDateString();
+        // Default masa pinjam buku paket: 1 Tahun (365 hari)
+        $this->form_tanggal_jatuh_tempo = now()->addYear()->toDateString();
+        $this->form_catatan = 'Peminjaman Buku Paket 1 Tahun';
         $this->searchMemberModal = '';
         $this->searchEksemplarModal = '';
         $this->showTambahModal = true;
@@ -181,8 +196,8 @@ class PetugasPerpusPeminjaman extends Component
     public function updatedFormTanggalPinjam($value): void
     {
         if ($value) {
-            $lamaPinjam = \App\Models\PengaturanSekolah::current()?->lama_pinjam_buku_hari ?? 7;
-            $this->form_tanggal_jatuh_tempo = Carbon::parse($value)->addDays($lamaPinjam)->toDateString();
+            // Otomatis update jatuh tempo menjadi 1 tahun dari tanggal pinjam
+            $this->form_tanggal_jatuh_tempo = Carbon::parse($value)->addYear()->toDateString();
         }
     }
 
@@ -196,13 +211,13 @@ class PetugasPerpusPeminjaman extends Component
             'form_tanggal_jatuh_tempo' => 'required|date|after_or_equal:form_tanggal_pinjam',
         ], [
             'form_peminjam_id.required' => 'Peminjam harus dipilih.',
-            'form_eksemplar_id.required' => 'Buku/Eksemplar harus dipilih.',
+            'form_eksemplar_id.required' => 'Buku paket harus dipilih.',
             'form_tanggal_pinjam.required' => 'Tanggal pinjam harus diisi.',
             'form_tanggal_jatuh_tempo.required' => 'Tanggal jatuh tempo harus diisi.',
             'form_tanggal_jatuh_tempo.after_or_equal' => 'Tanggal jatuh tempo harus sama atau setelah tanggal pinjam.',
         ]);
 
-        $eksemplar = \App\Models\EksemplarBuku::with('buku.kategoriBuku')->find($this->form_eksemplar_id);
+        $eksemplar = EksemplarBuku::with('buku.kategoriBuku')->find($this->form_eksemplar_id);
 
         if (!$eksemplar || $eksemplar->status !== 'tersedia') {
             $this->addError('form_eksemplar_id', 'Eksemplar buku ini sudah tidak tersedia.');
@@ -221,9 +236,10 @@ class PetugasPerpusPeminjaman extends Component
             'eksemplar_id' => $eksemplar->id,
             'peminjam_type' => $this->form_peminjam_type,
             'peminjam_id' => $this->form_peminjam_id,
-            'tipe_peminjaman' => 'reguler',
+            'tipe_peminjaman' => 'paket',
             'tanggal_pinjam' => $this->form_tanggal_pinjam,
             'tanggal_jatuh_tempo' => $this->form_tanggal_jatuh_tempo,
+            'catatan' => $this->form_catatan ?: 'Peminjaman Buku Paket 1 Tahun',
             'status' => 'dipinjam',
             'petugas_id' => $user?->id,
         ]);
@@ -231,7 +247,7 @@ class PetugasPerpusPeminjaman extends Component
         $eksemplar->update(['status' => 'dipinjam']);
 
         $this->showTambahModal = false;
-        session()->flash('flash_success', 'Buku "' . ($eksemplar->buku?->judul ?? '') . '" berhasil dipinjamkan!');
+        session()->flash('flash_success', 'Peminjaman buku paket "' . ($eksemplar->buku?->judul ?? '') . '" (1 Tahun) berhasil ditambahkan!');
         $this->resetPage();
     }
 
@@ -239,23 +255,41 @@ class PetugasPerpusPeminjaman extends Component
     {
         $today = Carbon::today('Asia/Jakarta');
 
-        $baseQuery = Peminjaman::where('tipe_peminjaman', '!=', 'paket')
-            ->with(['peminjam', 'eksemplarBuku.buku'])
+        $baseQuery = Peminjaman::where('tipe_peminjaman', 'paket')
+            ->with(['peminjam', 'eksemplarBuku.buku.kategoriBuku', 'eksemplarBuku.buku.mataPelajaran'])
             ->when($this->search, function ($q) {
                 $q->where(function ($q2) {
                     $q2->whereHas('eksemplarBuku', function ($sub) {
                         $sub->where('kode_eksemplar', 'like', "%{$this->search}%")
                             ->orWhereHas('buku', fn ($b) => $b->where('judul', 'like', "%{$this->search}%"));
-                    })->orWhereHasMorph('peminjam', ['App\Models\Siswa', 'App\Models\Guru'], function ($pm) {
+                    })->orWhereHasMorph('peminjam', [Siswa::class, Guru::class], function ($pm, $type) {
                         $pm->where('name', 'like', "%{$this->search}%");
+                        if ($type === Siswa::class) {
+                            $pm->orWhere('nisn', 'like', "%{$this->search}%")
+                               ->orWhere('nis', 'like', "%{$this->search}%")
+                               ->orWhereHas('enrollmentAktif.kelas', fn ($k) => $k->where('name', 'like', "%{$this->search}%"));
+                        }
                     });
                 });
+            })
+            ->when($this->filterGradeLevel, function ($q) {
+                $q->whereHas('eksemplarBuku.buku', fn ($b) => $b->where('grade_level', (int) $this->filterGradeLevel));
             });
 
-        // Count badges (independent of search, khusus reguler)
-        $countDipinjam    = Peminjaman::where('tipe_peminjaman', '!=', 'paket')->where('status', 'dipinjam')->where('tanggal_jatuh_tempo', '>=', $today)->count();
-        $countTerlambat   = Peminjaman::where('tipe_peminjaman', '!=', 'paket')->where('status', 'dipinjam')->where('tanggal_jatuh_tempo', '<', $today)->count();
-        $countDikembalikan = Peminjaman::where('tipe_peminjaman', '!=', 'paket')->where('status', 'dikembalikan')->count();
+        // Count badges (khusus buku paket)
+        $countDipinjam = Peminjaman::where('tipe_peminjaman', 'paket')
+            ->where('status', 'dipinjam')
+            ->where('tanggal_jatuh_tempo', '>=', $today)
+            ->count();
+
+        $countTerlambat = Peminjaman::where('tipe_peminjaman', 'paket')
+            ->where('status', 'dipinjam')
+            ->where('tanggal_jatuh_tempo', '<', $today)
+            ->count();
+
+        $countDikembalikan = Peminjaman::where('tipe_peminjaman', 'paket')
+            ->where('status', 'dikembalikan')
+            ->count();
 
         $query = clone $baseQuery;
         match ($this->activeTab) {
@@ -271,21 +305,24 @@ class PetugasPerpusPeminjaman extends Component
 
         if ($this->showTambahModal) {
             if (strlen(trim($this->searchMemberModal)) >= 2) {
-                $siswa = \App\Models\Siswa::when($this->searchMemberModal, function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->where('name', 'like', "%{$this->searchMemberModal}%")
-                            ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
-                            ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
+                $siswa = Siswa::with('enrollmentAktif.kelas')
+                    ->when($this->searchMemberModal, function ($q) {
+                        $q->where(function ($sub) {
+                            $sub->where('name', 'like', "%{$this->searchMemberModal}%")
+                                ->orWhere('nisn', 'like', "%{$this->searchMemberModal}%")
+                                ->orWhere('nis', 'like', "%{$this->searchMemberModal}%");
+                        });
+                    })
+                    ->limit(20)
+                    ->get()
+                    ->map(function ($item) {
+                        $item->model_type = 'siswa';
+                        $kelasName = $item->enrollmentAktif?->kelas?->name;
+                        $item->kelas_name = $kelasName ?: '-';
+                        return $item;
                     });
-                })->select('id', 'name', 'nisn', 'nis')
-                  ->limit(20)
-                  ->get()
-                  ->map(function($item) {
-                    $item->model_type = 'siswa';
-                    return $item;
-                });
 
-                $guru = \App\Models\Guru::when($this->searchMemberModal, function ($q) {
+                $guru = Guru::when($this->searchMemberModal, function ($q) {
                     $q->where(function ($sub) {
                         $sub->where('name', 'like', "%{$this->searchMemberModal}%")
                             ->orWhere('nip', 'like', "%{$this->searchMemberModal}%");
@@ -293,8 +330,9 @@ class PetugasPerpusPeminjaman extends Component
                 })->select('id', 'name', 'nip')
                   ->limit(20)
                   ->get()
-                  ->map(function($item) {
+                  ->map(function ($item) {
                     $item->model_type = 'guru';
+                    $item->kelas_name = 'Guru / Staff';
                     return $item;
                 });
 
@@ -302,7 +340,7 @@ class PetugasPerpusPeminjaman extends Component
             }
 
             if (strlen(trim($this->searchEksemplarModal)) >= 2) {
-                $availableEksemplars = \App\Models\EksemplarBuku::with('buku.kategoriBuku')
+                $availableEksemplars = EksemplarBuku::with(['buku.kategoriBuku', 'buku.mataPelajaran'])
                     ->where('status', 'tersedia')
                     ->where(function ($q) {
                         $q->whereHas('buku.kategoriBuku', fn ($q2) => $q2->where('is_bisa_dipinjam', true))
@@ -319,7 +357,7 @@ class PetugasPerpusPeminjaman extends Component
             }
         }
 
-        return view('livewire.petugas-perpus-peminjaman', [
+        return view('livewire.petugas-perpus-peminjaman-paket', [
             'peminjamans'         => $peminjamans,
             'today'               => $today,
             'countDipinjam'       => $countDipinjam,
@@ -327,6 +365,6 @@ class PetugasPerpusPeminjaman extends Component
             'countDikembalikan'   => $countDikembalikan,
             'availableMembers'    => $availableMembers,
             'availableEksemplars' => $availableEksemplars,
-        ])->title('Data Peminjaman - Portal Perpustakaan');
+        ])->title('Peminjaman Buku Paket (1 Tahun) - Portal Perpustakaan');
     }
 }

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Data Peminjaman Buku - {{ $settings?->school_name ?? 'Perpustakaan' }}</title>
+    <title>{{ $judulLaporan ?? 'Data Peminjaman Buku' }} - {{ $settings?->school_name ?? 'Perpustakaan' }}</title>
     <style>
         @page {
             size: A4 landscape;
@@ -127,7 +127,7 @@
     {{-- ===== KOP SURAT ===== --}}
     <div class="kop-wrapper">
         <div class="kop-left">
-            <div class="title">Data Peminjaman Buku Perpustakaan</div>
+            <div class="title">{{ $judulLaporan ?? 'Data Peminjaman Buku Perpustakaan' }}</div>
             <div class="school-name">{{ $settings?->school_name ?? 'Nama Sekolah' }}</div>
             <div class="school-address">{{ $settings?->school_address ?? '' }}</div>
         </div>

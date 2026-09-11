@@ -187,15 +187,17 @@ class KatalogBukuController extends Controller
         $settings          = PengaturanSekolah::current();
 
         $peminjaman = \App\Models\Peminjaman::with(['peminjam', 'eksemplarBuku.buku'])
+            ->where('tipe_peminjaman', '!=', 'paket')
             ->when(!empty($statusFilter), fn ($q) => $q->whereIn('status', $statusFilter))
             ->when(!empty($tipeAnggotaFilter), fn ($q) => $q->whereIn('peminjam_type', $tipeAnggotaFilter))
             ->orderBy('created_at', 'desc')
             ->get();
 
         $pdf = Pdf::loadView('pdf.peminjaman-buku', [
-            'peminjaman'  => $peminjaman,
-            'settings'    => $settings,
-            'filterLabel' => $filterLabel,
+            'peminjaman'   => $peminjaman,
+            'settings'     => $settings,
+            'filterLabel'  => $filterLabel,
+            'judulLaporan' => 'Data Peminjaman Buku Perpustakaan',
         ])->setPaper('a4', 'landscape');
 
         $filename = 'peminjaman-buku-' . now()->format('Ymd-His') . '.pdf';
@@ -221,7 +223,66 @@ class KatalogBukuController extends Controller
         $filename = 'peminjaman-buku-' . now()->format('Ymd-His') . '.xlsx';
 
         return Excel::download(
-            new \App\Exports\PeminjamanExport($statusFilter, $tipeAnggotaFilter),
+            new \App\Exports\PeminjamanExport($statusFilter, $tipeAnggotaFilter, null, 'DATA PEMINJAMAN BUKU PERPUSTAKAAN'),
+            $filename
+        );
+    }
+
+    /**
+     * Download PDF Peminjaman Buku Paket (1 Tahun).
+     */
+    public function downloadPeminjamanPaketPdf(Request $request)
+    {
+        $request->validate([
+            'status'   => ['nullable', 'array'],
+            'status.*' => ['string', 'in:dipinjam,dikembalikan,hilang'],
+            'tipe'     => ['nullable', 'array'],
+            'tipe.*'   => ['string', 'in:siswa,guru'],
+        ]);
+
+        $statusFilter      = $request->input('status', []);
+        $tipeAnggotaFilter = $request->input('tipe', []);
+        $filterLabel       = $this->buildPeminjamanFilterLabel($statusFilter, $tipeAnggotaFilter);
+        $settings          = PengaturanSekolah::current();
+
+        $peminjaman = \App\Models\Peminjaman::with(['peminjam', 'eksemplarBuku.buku'])
+            ->where('tipe_peminjaman', 'paket')
+            ->when(!empty($statusFilter), fn ($q) => $q->whereIn('status', $statusFilter))
+            ->when(!empty($tipeAnggotaFilter), fn ($q) => $q->whereIn('peminjam_type', $tipeAnggotaFilter))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.peminjaman-buku', [
+            'peminjaman'   => $peminjaman,
+            'settings'     => $settings,
+            'filterLabel'  => $filterLabel,
+            'judulLaporan' => 'Data Peminjaman Buku Paket (1 Tahun)',
+        ])->setPaper('a4', 'landscape');
+
+        $filename = 'peminjaman-buku-paket-' . now()->format('Ymd-His') . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Download Excel Peminjaman Buku Paket (1 Tahun).
+     */
+    public function downloadPeminjamanPaketExcel(Request $request)
+    {
+        $request->validate([
+            'status'   => ['nullable', 'array'],
+            'status.*' => ['string', 'in:dipinjam,dikembalikan,hilang'],
+            'tipe'     => ['nullable', 'array'],
+            'tipe.*'   => ['string', 'in:siswa,guru'],
+        ]);
+
+        $statusFilter      = $request->input('status', []);
+        $tipeAnggotaFilter = $request->input('tipe', []);
+
+        $filename = 'peminjaman-buku-paket-' . now()->format('Ymd-His') . '.xlsx';
+
+        return Excel::download(
+            new \App\Exports\PeminjamanExport($statusFilter, $tipeAnggotaFilter, 'paket', 'DATA PEMINJAMAN BUKU PAKET (1 TAHUN)'),
             $filename
         );
     }

@@ -266,6 +266,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/perpustakaan/peminjaman-buku/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanExcel'])
         ->name('perpustakaan.peminjaman-buku.excel');
 
+    // Peminjaman Buku Paket: Unduh PDF & Excel
+    Route::get('/admin/perpustakaan/peminjaman-paket/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanPaketPdf'])
+        ->name('perpustakaan.peminjaman-paket.pdf');
+    Route::get('/admin/perpustakaan/peminjaman-paket/excel', [\App\Http\Controllers\KatalogBukuController::class, 'downloadPeminjamanPaketExcel'])
+        ->name('perpustakaan.peminjaman-paket.excel');
+
     // Kunjungan Perpustakaan: Unduh PDF & Excel
     Route::get('/admin/perpustakaan/kunjungan-perpustakaan/pdf', [\App\Http\Controllers\KatalogBukuController::class, 'downloadKunjunganPdf'])
         ->name('perpustakaan.kunjungan.pdf');
@@ -416,6 +422,11 @@ Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->gr
         Route::get('/inventaris', \App\Livewire\PetugasPerpusInventaris::class)->name('portal-perpustakaan.inventaris');
         Route::get('/sirkulasi', \App\Livewire\PetugasPerpusSirkulasi::class)->name('portal-perpustakaan.sirkulasi');
         Route::get('/peminjaman', \App\Livewire\PetugasPerpusPeminjaman::class)->name('portal-perpustakaan.peminjaman');
+        Route::get('/peminjaman-paket', \App\Livewire\PetugasPerpusPeminjamanPaket::class)->name('portal-perpustakaan.peminjaman-paket');
+        Route::get('/peminjaman-paket/tambah', \App\Livewire\PetugasPerpusSirkulasiPaket::class)->name('portal-perpustakaan.peminjaman-paket.tambah');
+        Route::post('/peminjaman-paket/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiPaketAction $action) {
+            return response()->json($action->execute($request->all(), auth()->id()));
+        })->name('portal-perpustakaan.peminjaman-paket.process');
         Route::get('/kunjungan', \App\Livewire\PetugasPerpusKunjungan::class)->name('portal-perpustakaan.kunjungan');
         Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-perpustakaan.cetak-kartu');
         Route::get('/klasifikasi-ddc', \App\Livewire\PortalPerpustakaan\KlasifikasiDdc::class)->name('portal-perpustakaan.klasifikasi-ddc');

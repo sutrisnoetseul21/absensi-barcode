@@ -23,12 +23,16 @@ class PeminjamanExport implements FromCollection, WithHeadings, WithMapping, Wit
     protected ?PengaturanSekolah $settings;
     protected array $statusFilter;
     protected array $tipeAnggotaFilter;
+    protected ?string $tipePeminjaman;
+    protected ?string $customTitle;
     protected int $totalRows = 0;
 
-    public function __construct(array $statusFilter = [], array $tipeAnggotaFilter = [])
+    public function __construct(array $statusFilter = [], array $tipeAnggotaFilter = [], ?string $tipePeminjaman = null, ?string $customTitle = null)
     {
         $this->statusFilter      = $statusFilter;
         $this->tipeAnggotaFilter = $tipeAnggotaFilter;
+        $this->tipePeminjaman    = $tipePeminjaman;
+        $this->customTitle       = $customTitle;
         $this->settings          = PengaturanSekolah::current();
     }
 
@@ -37,6 +41,7 @@ class PeminjamanExport implements FromCollection, WithHeadings, WithMapping, Wit
         $query = Peminjaman::with(['peminjam', 'eksemplarBuku.buku'])
             ->when(!empty($this->statusFilter), fn ($q) => $q->whereIn('status', $this->statusFilter))
             ->when(!empty($this->tipeAnggotaFilter), fn ($q) => $q->whereIn('peminjam_type', $this->tipeAnggotaFilter))
+            ->when($this->tipePeminjaman, fn ($q) => $q->where('tipe_peminjaman', $this->tipePeminjaman), fn ($q) => $q->where('tipe_peminjaman', '!=', 'paket'))
             ->orderBy('created_at', 'desc');
 
         $result = $query->get();
@@ -108,7 +113,7 @@ class PeminjamanExport implements FromCollection, WithHeadings, WithMapping, Wit
 
                 // Baris 1: DATA PEMINJAMAN BUKU PERPUSTAKAAN
                 $sheet->mergeCells("A1:{$lastCol}1");
-                $sheet->setCellValue('A1', 'DATA PEMINJAMAN BUKU PERPUSTAKAAN');
+                $sheet->setCellValue('A1', $this->customTitle ?? 'DATA PEMINJAMAN BUKU PERPUSTAKAAN');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 14],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],

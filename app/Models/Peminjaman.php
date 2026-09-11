@@ -23,6 +23,7 @@ class Peminjaman extends Model
         'eksemplar_id',
         'peminjam_type',
         'peminjam_id',
+        'tipe_peminjaman',
         'tanggal_pinjam',
         'tanggal_jatuh_tempo',
         'tanggal_kembali',
