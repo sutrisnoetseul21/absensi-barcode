@@ -165,16 +165,43 @@
         <!-- Tabel Siswa Binaan -->
         <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden space-y-0">
             <!-- Table Header Bar -->
-            <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50">
-                <div class="flex items-center gap-2.5">
+            <div class="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50">
+                <div class="flex items-center flex-wrap gap-2.5">
                     <div class="w-2.5 h-2.5 rounded-full bg-brand-primary"></div>
                     <h3 class="text-sm font-bold text-slate-900">
                         Daftar Peserta Didik Binaan ({{ $tabelSiswa->count() }} Murid)
                     </h3>
                     <span class="text-xs text-slate-400">&bull; Periode: <strong class="text-slate-700">{{ $indLabelPeriode }}</strong></span>
                 </div>
-                <div class="text-xs text-slate-500 font-medium">
-                    Tahun Ajaran: <strong class="text-slate-800">{{ $selectedTahun?->name ?? '2026/2027' }}</strong>
+                <div class="flex items-center flex-wrap gap-2.5 sm:gap-3">
+                    <div class="text-xs text-slate-500 font-medium bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200/60">
+                        Tahun Ajaran: <strong class="text-slate-800">{{ $selectedTahun?->name ?? '2026/2027' }}</strong>
+                    </div>
+
+                    @if($tabelSiswa->isNotEmpty())
+                        <div class="flex items-center gap-2">
+                            <!-- Tombol Cetak Masal A4 -->
+                            <a href="{{ route('portal-guru.guru-wali.cetak.individual.massal.print', ['periode' => $selectedPeriode, 'autoprint' => '1']) }}" 
+                               target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-brand-primary text-brand-primary hover:bg-brand-primary/5 text-xs font-bold shadow-2xs transition-all hover:scale-102"
+                               title="Buka seluruh dokumen individual murid sekaligus dalam dialog cetak A4">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                <span>Cetak Masal (A4)</span>
+                            </a>
+
+                            <!-- Tombol Unduh Masal PDF -->
+                            <a href="{{ route('portal-guru.guru-wali.cetak.individual.massal.pdf', ['periode' => $selectedPeriode]) }}" 
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-primary text-white hover:opacity-90 text-xs font-bold shadow-xs transition-all hover:scale-102"
+                               title="Unduh berkas PDF gabungan seluruh peserta didik binaan">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                <span>Unduh Masal PDF</span>
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
 

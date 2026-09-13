@@ -384,4 +384,130 @@ class GuruWaliCetakController extends Controller
 
         return $pdf->download($filename);
     }
+
+    /**
+     * Menyiapkan data laporan individual massal seluruh siswa dalam kelompok
+     */
+    protected function prepareIndividualMassalData(Request $request)
+    {
+        [$teacher, $kelompok] = $this->getTeacherAndKelompok();
+        $schoolData = $this->getSchoolAndPrincipalData();
+
+        // Otomatis prioritaskan Tahun Ajaran Aktif
+        $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
+            ?? ($request->query('academic_year_id') ? TahunAjaran::find($request->query('academic_year_id')) : null);
+
+        if (! $tahunAjaran) {
+            $tahunAjaran = (object) [
+                'id'         => null,
+                'name'       => Carbon::now()->year . '/' . (Carbon::now()->year + 1),
+                'start_year' => Carbon::now()->year,
+                'end_year'   => Carbon::now()->year + 1,
+            ];
+        }
+
+        $periode = $request->query('periode', 'tahunan');
+        $dateRange = $this->resolveDateRange($periode, $tahunAjaran);
+
+        // Ambil seluruh anggota siswa aktif
+        $anggotaAktif = $kelompok->anggotaAktif()
+            ->with(['siswa.enrollmentAktif.kelas'])
+            ->get();
+
+        // Query seluruh jurnal & konsultasi periode ini sekaligus
+        $allJurnals = JurnalGuruWali::where('teacher_id', $teacher->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->whereBetween('tanggal_waktu', [$dateRange['startDate'], $dateRange['endDate']])
+            ->orderBy('tanggal_waktu', 'asc')
+            ->get()
+            ->groupBy('student_id');
+
+        $allKonsultasis = KonsultasiGuruWali::where('teacher_id', $teacher->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->whereBetween('created_at', [$dateRange['startDate'], $dateRange['endDate']])
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->groupBy('student_id');
+
+        $studentsData = $anggotaAktif->map(function ($anggota) use ($allJurnals, $allKonsultasis) {
+            $siswa = $anggota->siswa;
+            $jurnals = $allJurnals->get($siswa->id, collect());
+            $konsultasis = $allKonsultasis->get($siswa->id, collect());
+
+            $semester1Jurnals = $jurnals->filter(function ($j) {
+                $m = Carbon::parse($j->tanggal_waktu)->month;
+                return $m >= 7 && $m <= 12;
+            });
+
+            $semester2Jurnals = $jurnals->filter(function ($j) {
+                $m = Carbon::parse($j->tanggal_waktu)->month;
+                return $m >= 1 && $m <= 6;
+            });
+
+            $distribusiPilar = [
+                'Akademik'                => $jurnals->where('kategori_pendampingan', 'Akademik')->count(),
+                'Karakter & Kedisiplinan' => $jurnals->where('kategori_pendampingan', 'Karakter & Kedisiplinan')->count(),
+                'Minat & Bakat / Ekskul'  => $jurnals->where('kategori_pendampingan', 'Minat & Bakat / Ekskul')->count(),
+                'Sosial & Psikologis'     => $jurnals->where('kategori_pendampingan', 'Sosial & Psikologis')->count(),
+            ];
+
+            return (object) [
+                'siswa'            => $siswa,
+                'kelas'            => $siswa->enrollmentAktif?->kelas?->name ?? '—',
+                'jurnals'          => $jurnals,
+                'semester1Jurnals' => $semester1Jurnals,
+                'semester2Jurnals' => $semester2Jurnals,
+                'konsultasis'      => $konsultasis,
+                'distribusiPilar'  => $distribusiPilar,
+            ];
+        });
+
+        return array_merge($schoolData, [
+            'teacher'      => $teacher,
+            'kelompok'     => $kelompok,
+            'tahunAjaran'  => $tahunAjaran,
+            'periode'      => $periode,
+            'labelPeriode' => $dateRange['labelPeriode'],
+            'startDate'    => $dateRange['startDate'],
+            'endDate'      => $dateRange['endDate'],
+            'studentsData' => $studentsData,
+            'tanggalCetak' => Carbon::now()->translatedFormat('d F Y'),
+        ]);
+    }
+
+    /**
+     * Tampilan Cetak Browser: Laporan Individual Massal
+     */
+    public function cetakIndividualMassal(Request $request)
+    {
+        $data = $this->prepareIndividualMassalData($request);
+        $data['isPdf'] = false;
+        $data['autoPrint'] = $request->query('autoprint', '1') === '1';
+
+        return view('livewire.portal-guru.guru-wali.cetak.cetak-individual-massal', $data);
+    }
+
+    /**
+     * Unduh PDF: Laporan Individual Massal
+     */
+    public function pdfIndividualMassal(Request $request)
+    {
+        $data = $this->prepareIndividualMassalData($request);
+        $data['isPdf'] = true;
+        $data['autoPrint'] = false;
+
+        $pdf = Pdf::loadView('livewire.portal-guru.guru-wali.cetak.cetak-individual-massal', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => true,
+                'defaultFont'          => 'Times-Roman',
+            ]);
+
+        $safeKelompok = preg_replace('/[^A-Za-z0-9_\-]/', '_', $data['kelompok']->nama_kelompok);
+        $safeTahun = preg_replace('/[^A-Za-z0-9_\-]/', '_', $data['tahunAjaran']->name ?? 'TA');
+        $filename = "Laporan-Individual-Massal-{$safeKelompok}-{$safeTahun}.pdf";
+
+        return $pdf->download($filename);
+    }
 }
