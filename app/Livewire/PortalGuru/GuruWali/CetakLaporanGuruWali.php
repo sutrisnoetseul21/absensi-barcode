@@ -5,7 +5,6 @@ namespace App\Livewire\PortalGuru\GuruWali;
 use App\Models\JurnalGuruWali;
 use App\Models\KelompokGuruWali;
 use App\Models\KonsultasiGuruWali;
-use App\Models\PengaturanSekolah;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use Carbon\Carbon;
@@ -19,12 +18,13 @@ class CetakLaporanGuruWali extends Component
     public $kelompok;
     public $activeTab = 'individual'; // 'individual' or 'kelompok'
 
-    // Form Filters - Individual
-    public $selectedStudentId = null;
+    // Form Filters - Tab 1: Tabel Individual
+    public $studentSearch = '';
     public $selectedPeriode = 'tahunan'; // 'tahunan', 'semester_1', 'semester_2'
     public $selectedAcademicYearId = null;
+    public $previewStudentId = null;
 
-    // Form Filters - Kelompok
+    // Form Filters - Tab 2: Kelompok
     public $selectedKelompokPeriode = 'tahunan';
     public $selectedKelompokAcademicYearId = null;
     public $catatanRefleksi = '';
@@ -50,12 +50,6 @@ class CetakLaporanGuruWali extends Component
             $this->selectedAcademicYearId = $activeTahun->id;
             $this->selectedKelompokAcademicYearId = $activeTahun->id;
         }
-
-        // Default siswa pertama di kelompok
-        $firstMember = $this->kelompok->anggotaAktif()->first();
-        if ($firstMember) {
-            $this->selectedStudentId = $firstMember->student_id;
-        }
     }
 
     public function setTab($tab)
@@ -63,6 +57,16 @@ class CetakLaporanGuruWali extends Component
         if (in_array($tab, ['individual', 'kelompok'])) {
             $this->activeTab = $tab;
         }
+    }
+
+    public function showDetail($studentId)
+    {
+        $this->previewStudentId = $studentId;
+    }
+
+    public function closeDetail()
+    {
+        $this->previewStudentId = null;
     }
 
     protected function getDateRange($periode, $tahunAjaran)
@@ -98,54 +102,102 @@ class CetakLaporanGuruWali extends Component
     {
         $academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
 
-        // Daftar anggota siswa aktif
+        // Anggota Siswa Aktif Kelompok Ini
         $anggotaAktif = $this->kelompok->anggotaAktif()
             ->with(['siswa.enrollmentAktif.kelas'])
             ->get();
 
         // -------------------------------------------------------------
-        // Data Pratinjau Individual
+        // TAB 1: DATA TABEL INDIVIDUAL SELURUH SISWA
         // -------------------------------------------------------------
-        $selectedSiswa = null;
-        $individualMetrics = null;
-        $recentJurnals = collect();
         $selectedTahun = $academicYears->firstWhere('id', $this->selectedAcademicYearId) 
             ?? $academicYears->firstWhere('status', 'aktif');
 
-        if ($this->selectedStudentId) {
-            $selectedSiswa = Siswa::with(['enrollmentAktif.kelas', 'enrollmentAktif.tahunAjaran'])
-                ->find($this->selectedStudentId);
+        $indDateRange = $this->getDateRange($this->selectedPeriode, $selectedTahun);
 
-            if ($selectedSiswa) {
-                $indDateRange = $this->getDateRange($this->selectedPeriode, $selectedTahun);
+        // Ambil semua jurnal periode ini untuk kelompok ini sekaligus (efisien)
+        $allJurnalsPeriode = JurnalGuruWali::where('teacher_id', $this->teacher->id)
+            ->where('kelompok_id', $this->kelompok->id)
+            ->whereBetween('tanggal_waktu', [$indDateRange['startDate'], $indDateRange['endDate']])
+            ->orderBy('tanggal_waktu', 'desc')
+            ->get()
+            ->groupBy('student_id');
 
-                $jurnalsInd = JurnalGuruWali::where('student_id', $selectedSiswa->id)
+        // Ambil semua konsultasi mandiri periode ini
+        $allKonsultasiPeriode = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)
+            ->where('kelompok_id', $this->kelompok->id)
+            ->whereBetween('created_at', [$indDateRange['startDate'], $indDateRange['endDate']])
+            ->get()
+            ->groupBy('student_id');
+
+        $tabelSiswa = $anggotaAktif->map(function ($anggota) use ($allJurnalsPeriode, $allKonsultasiPeriode, $selectedTahun) {
+            $siswa = $anggota->siswa;
+            $jurnals = $allJurnalsPeriode->get($siswa->id, collect());
+            $konsultasis = $allKonsultasiPeriode->get($siswa->id, collect());
+            $lastSesi = $jurnals->first();
+
+            return (object) [
+                'id'               => $siswa->id,
+                'nama'             => $siswa->name,
+                'avatar_url'       => $siswa->avatar_url,
+                'nis'              => $siswa->nis ?? '—',
+                'nisn'             => $siswa->nisn ?? '—',
+                'kelas'            => $siswa->enrollmentAktif?->kelas?->name ?? 'Tanpa Kelas',
+                'total_sesi'       => $jurnals->count(),
+                'pilar_akademik'   => $jurnals->where('kategori_pendampingan', 'Akademik')->count(),
+                'pilar_karakter'   => $jurnals->where('kategori_pendampingan', 'Karakter & Kedisiplinan')->count(),
+                'pilar_minat'      => $jurnals->where('kategori_pendampingan', 'Minat & Bakat / Ekskul')->count(),
+                'pilar_sosial'     => $jurnals->where('kategori_pendampingan', 'Sosial & Psikologis')->count(),
+                'total_konsultasi' => $konsultasis->count(),
+                'last_sesi_date'   => $lastSesi ? Carbon::parse($lastSesi->tanggal_waktu)->translatedFormat('d M Y') : '—',
+                'last_status'      => $lastSesi?->status_sesi ?? 'Belum ada sesi',
+                'print_url'        => route('portal-guru.guru-wali.cetak.individual.print', [
+                    'student_id'       => $siswa->id,
+                    'periode'          => $this->selectedPeriode,
+                    'academic_year_id' => $selectedTahun?->id,
+                    'autoprint'        => '1',
+                ]),
+                'pdf_url'          => route('portal-guru.guru-wali.cetak.individual.pdf', [
+                    'student_id'       => $siswa->id,
+                    'periode'          => $this->selectedPeriode,
+                    'academic_year_id' => $selectedTahun?->id,
+                ]),
+            ];
+        });
+
+        // Filter pencarian
+        if (!empty(trim($this->studentSearch))) {
+            $searchTerm = strtolower(trim($this->studentSearch));
+            $tabelSiswa = $tabelSiswa->filter(function ($item) use ($searchTerm) {
+                return str_contains(strtolower($item->nama), $searchTerm)
+                    || str_contains(strtolower($item->nisn), $searchTerm)
+                    || str_contains(strtolower($item->nis), $searchTerm)
+                    || str_contains(strtolower($item->kelas), $searchTerm);
+            });
+        }
+
+        // Modal Preview Siswa (jika tombol Detail diklik)
+        $previewSiswa = null;
+        $previewJurnals = collect();
+        $previewKonsultasis = collect();
+        if ($this->previewStudentId) {
+            $previewSiswa = Siswa::with(['enrollmentAktif.kelas'])->find($this->previewStudentId);
+            if ($previewSiswa) {
+                $previewJurnals = JurnalGuruWali::where('student_id', $previewSiswa->id)
                     ->where('teacher_id', $this->teacher->id)
                     ->whereBetween('tanggal_waktu', [$indDateRange['startDate'], $indDateRange['endDate']])
                     ->orderBy('tanggal_waktu', 'desc')
                     ->get();
 
-                $konsultasisInd = KonsultasiGuruWali::where('student_id', $selectedSiswa->id)
+                $previewKonsultasis = KonsultasiGuruWali::where('student_id', $previewSiswa->id)
                     ->where('teacher_id', $this->teacher->id)
                     ->whereBetween('created_at', [$indDateRange['startDate'], $indDateRange['endDate']])
                     ->get();
-
-                $individualMetrics = [
-                    'total_sesi'        => $jurnalsInd->count(),
-                    'total_konsultasi'  => $konsultasisInd->count(),
-                    'pilar_akademik'    => $jurnalsInd->where('kategori_pendampingan', 'Akademik')->count(),
-                    'pilar_karakter'    => $jurnalsInd->where('kategori_pendampingan', 'Karakter & Kedisiplinan')->count(),
-                    'pilar_minat'       => $jurnalsInd->where('kategori_pendampingan', 'Minat & Bakat / Ekskul')->count(),
-                    'pilar_sosial'      => $jurnalsInd->where('kategori_pendampingan', 'Sosial & Psikologis')->count(),
-                    'label_periode'     => $indDateRange['labelPeriode'],
-                ];
-
-                $recentJurnals = $jurnalsInd->take(5);
             }
         }
 
         // -------------------------------------------------------------
-        // Data Pratinjau Kelompok
+        // TAB 2: DATA LAPORAN KINERJA KELOMPOK
         // -------------------------------------------------------------
         $selectedKelompokTahun = $academicYears->firstWhere('id', $this->selectedKelompokAcademicYearId)
             ?? $academicYears->firstWhere('status', 'aktif');
@@ -185,18 +237,21 @@ class CetakLaporanGuruWali extends Component
             'teacher'                       => $this->teacher,
             'kelompok'                      => $this->kelompok,
             'activeTab'                     => $this->activeTab,
-            'selectedStudentId'             => $this->selectedStudentId,
+            'studentSearch'                 => $this->studentSearch,
             'selectedPeriode'               => $this->selectedPeriode,
             'selectedAcademicYearId'        => $this->selectedAcademicYearId,
             'selectedKelompokPeriode'       => $this->selectedKelompokPeriode,
             'selectedKelompokAcademicYearId'=> $this->selectedKelompokAcademicYearId,
             'catatanRefleksi'               => $this->catatanRefleksi,
+            'previewStudentId'              => $this->previewStudentId,
+            'previewSiswa'                  => $previewSiswa,
+            'previewJurnals'                => $previewJurnals,
+            'previewKonsultasis'            => $previewKonsultasis,
             'academicYears'                 => $academicYears,
             'anggotaAktif'                  => $anggotaAktif,
-            'selectedSiswa'                 => $selectedSiswa,
+            'tabelSiswa'                    => $tabelSiswa,
             'selectedTahun'                 => $selectedTahun,
-            'individualMetrics'             => $individualMetrics,
-            'recentJurnals'                 => $recentJurnals,
+            'indLabelPeriode'               => $indDateRange['labelPeriode'],
             'kelompokMetrics'               => $kelompokMetrics,
             'selectedKelompokTahun'         => $selectedKelompokTahun,
         ]);
