@@ -1,42 +1,94 @@
-<!-- ================================================================= -->
-<!-- FILE KOP SURAT RESMI SEKOLAH                                      -->
-<!-- Mendukung 1 Logo atau 2 Logo (Pemda di Kiri, Sekolah di Kanan)   -->
-<!-- ================================================================= -->
+{{-- 
+    Kop Surat Partial (2 Logo Resmi Kedinasan)
+    Kompatibel dengan format SPMB ($school) dan Portal Guru ($settings)
+    Logo Kiri: Logo Pemda (Pemerintah Kabupaten Cilacap)
+    Logo Kanan: Logo Sekolah (SMP Negeri 3 Kedungreja)
+--}}
 @php
-    $hasLogoPemda = !empty($logoPemdaBase64) || (!empty($settings?->district_logo_path) && file_exists(public_path('storage/' . $settings->district_logo_path)));
-    $hasLogoSekolah = !empty($logoSekolahBase64) || !empty($logoBase64) || (!empty($settings?->school_logo_path) && file_exists(public_path('storage/' . $settings->school_logo_path)));
-    $hasBothLogos = $hasLogoPemda && $hasLogoSekolah;
+    $schoolObj = $school ?? $settings ?? null;
+    $value = fn ($item) => filled($item) ? $item : '';
+
+    // 1. Logo Kiri (Logo Pemkab Cilacap / Pemda)
+    $logoUrl = $logoUrl 
+        ?? $logoPemdaBase64 
+        ?? ($schoolObj && !empty($schoolObj->logo) ? asset('storage/' . $schoolObj->logo) : null)
+        ?? ($schoolObj && !empty($schoolObj->district_logo_path) ? asset('storage/' . $schoolObj->district_logo_path) : null);
+
+    // 2. Logo Kanan (Logo Sekolah)
+    $logoKananUrl = $logoKananUrl 
+        ?? $logoSekolahBase64 
+        ?? ($schoolObj && !empty($schoolObj->logo_kanan) ? asset('storage/' . $schoolObj->logo_kanan) : null)
+        ?? ($schoolObj && !empty($schoolObj->school_logo_path) ? asset('storage/' . $schoolObj->school_logo_path) : null);
+
+    // 3. Nama Sekolah
+    $namaSekolah = $schoolObj 
+        ? ($schoolObj->nama_sekolah ?? $schoolObj->school_name ?? 'SMP NEGERI 3 KEDUNGREJA')
+        : 'SMP NEGERI 3 KEDUNGREJA';
+
+    // 4. Alamat Baris 1
+    $alamatLine1Parts = $schoolObj ? array_filter([
+        $value($schoolObj->alamat ?? $schoolObj->school_address ?? 'Jalan Raya Tambaksari'),
+        $value($schoolObj->kelurahan ?? '') ? 'Desa ' . $value($schoolObj->kelurahan) : '',
+        $value($schoolObj->kecamatan ?? 'Kedungreja') ? 'Kec. ' . $value($schoolObj->kecamatan ?? 'Kedungreja') : '',
+        $value($schoolObj->kabupaten_kota ?? 'Cilacap') ? 'Kab. ' . $value($schoolObj->kabupaten_kota ?? 'Cilacap') : '',
+        $value($schoolObj->provinsi ?? ''),
+    ]) : [];
+    $alamatLine1 = implode(', ', $alamatLine1Parts);
+    if (empty($alamatLine1)) {
+        $alamatLine1 = 'Jalan Raya Tambaksari, Kec. Kedungreja, Kab. Cilacap 53263';
+    }
+
+    // 5. Kontak Baris 2
+    $kontakParts = $schoolObj ? array_filter([
+        $value($schoolObj->telepon ?? '') ? 'Telp. ' . $value($schoolObj->telepon) : '',
+        $value($schoolObj->website ?? 'www.smpn3kedungreja.sch.id') ? 'Laman: ' . $value($schoolObj->website ?? 'www.smpn3kedungreja.sch.id') : '',
+        $value($schoolObj->email ?? 'official@smpn3kedungreja.sch.id') ? 'Email: ' . $value($schoolObj->email ?? 'official@smpn3kedungreja.sch.id') : '',
+    ]) : [];
+    $alamatLine2 = implode(' | ', $kontakParts);
 @endphp
 
-<table class="kop-table">
+@if($schoolObj)
+<table class="kop-surat kop-table" style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 0;">
     <tr>
-        @if($hasLogoPemda)
-            <td class="kop-logo" style="text-align: center; vertical-align: middle;">
-                <img src="{{ $logoPemdaBase64 ?? public_path('storage/' . $settings->district_logo_path) }}" alt="Logo Pemda">
-            </td>
-        @elseif($hasLogoSekolah)
-            <td class="kop-logo" style="text-align: center; vertical-align: middle;">
-                <img src="{{ $logoSekolahBase64 ?? $logoBase64 ?? public_path('storage/' . $settings->school_logo_path) }}" alt="Logo Sekolah">
-            </td>
-        @endif
-
-        <td class="kop-text">
-            <div class="kop-instansi">DINAS PENDIDIKAN DAN KEBUDAYAAN</div>
-            <div class="kop-sekolah">{{ strtoupper($settings?->school_name ?? 'SMP NEGERI 3 KEDUNGREJA') }}</div>
-            <div class="kop-alamat">
-                {{ $settings?->school_address ?? 'Kedungreja' }} &bull; Wilayah {{ $namaKota }}
-                <br>Laman: www.smpn3kedungreja.sch.id &bull; Surel: official@smpn3kedungreja.sch.id
-            </div>
+        <!-- LOGO KIRI (PEMDA CILACAP) -->
+        <td class="kop-logo" style="width: 70px; text-align: center; vertical-align: middle; padding: 0;">
+            @if($logoUrl)
+                <img src="{{ $logoUrl }}" alt="Logo Pemda" style="max-width: @if($isPdf ?? false) 56px @else 66px @endif; max-height: @if($isPdf ?? false) 56px @else 66px @endif; object-fit: contain;">
+            @else
+                <div style="width: 56px;"></div>
+            @endif
         </td>
 
-        @if($hasBothLogos)
-            <td class="kop-logo" style="text-align: center; vertical-align: middle;">
-                <img src="{{ $logoSekolahBase64 ?? public_path('storage/' . $settings->school_logo_path) }}" alt="Logo Sekolah">
-            </td>
-        @elseif($hasLogoSekolah || $hasLogoPemda)
-            <!-- Penyeimbang simetris agar teks kop presisi tepat di tengah -->
-            <td class="kop-logo" style="visibility: hidden; width: @if($isPdf) 65px @else 72px @endif;"></td>
-        @endif
+        <!-- TEKS KOP KEDINASAN RESMI -->
+        <td class="kop-text" style="text-align: center; vertical-align: middle; padding: 0 6px;">
+            <div class="line1" style="font-size: @if($isPdf ?? false) 9.5pt @else 10.5pt @endif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; line-height: 1.2;">
+                PEMERINTAH KABUPATEN CILACAP
+            </div>
+            <div class="line2" style="font-size: @if($isPdf ?? false) 9.5pt @else 10.5pt @endif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; line-height: 1.2;">
+                DINAS PENDIDIKAN DAN KEBUDAYAAN
+            </div>
+            <div class="line3" style="font-size: @if($isPdf ?? false) 12.5pt @else 13.5pt @endif; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 1px 0; line-height: 1.2;">
+                {{ strtoupper($namaSekolah) }}
+            </div>
+            <div class="line-alamat" style="font-size: @if($isPdf ?? false) 8pt @else 8.5pt @endif; font-style: normal; margin: 0; line-height: 1.2;">
+                {{ $alamatLine1 }}
+            </div>
+            @if($alamatLine2)
+            <div class="line-alamat" style="font-size: @if($isPdf ?? false) 7.5pt @else 8pt @endif; font-style: normal; margin: 0; line-height: 1.2;">
+                {{ $alamatLine2 }}
+            </div>
+            @endif
+        </td>
+
+        <!-- LOGO KANAN (SEKOLAH) -->
+        <td class="kop-logo" style="width: 70px; text-align: center; vertical-align: middle; padding: 0;">
+            @if($logoKananUrl)
+                <img src="{{ $logoKananUrl }}" alt="Logo Sekolah Kanan" style="max-width: @if($isPdf ?? false) 56px @else 66px @endif; max-height: @if($isPdf ?? false) 56px @else 66px @endif; object-fit: contain;">
+            @else
+                <div style="width: 56px;"></div>
+            @endif
+        </td>
     </tr>
 </table>
 <div class="kop-line"></div>
+@endif
