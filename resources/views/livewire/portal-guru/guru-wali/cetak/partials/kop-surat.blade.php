@@ -3,6 +3,8 @@
     Kompatibel dengan format SPMB ($school) dan Portal Guru ($settings)
     Logo Kiri: Logo Pemda (Pemerintah Kabupaten Cilacap)
     Logo Kanan: Logo Sekolah (SMP Negeri 3 Kedungreja)
+    Domain: Otomatis mengikuti APP_URL di .env
+    Email: Diambil dari inputan Email Resmi Sekolah di Pengaturan Sekolah
 --}}
 @php
     $schoolObj = $school ?? $settings ?? null;
@@ -38,12 +40,20 @@
         $alamatLine1 = 'Jalan Raya Tambaksari, Kec. Kedungreja, Kab. Cilacap 53263';
     }
 
-    // 5. Kontak Baris 2
-    $kontakParts = $schoolObj ? array_filter([
-        $value($schoolObj->telepon ?? '') ? 'Telp. ' . $value($schoolObj->telepon) : '',
-        $value($schoolObj->website ?? 'www.smpn3kedungreja.sch.id') ? 'Laman: ' . $value($schoolObj->website ?? 'www.smpn3kedungreja.sch.id') : '',
-        $value($schoolObj->email ?? 'official@smpn3kedungreja.sch.id') ? 'Email: ' . $value($schoolObj->email ?? 'official@smpn3kedungreja.sch.id') : '',
-    ]) : [];
+    // 5. Kontak Baris 2: Domain otomatis dari .env & Email dari input Pengaturan Sekolah
+    $rawAppUrl = config('app.url', '');
+    $domainEnv = parse_url($rawAppUrl, PHP_URL_HOST) ?: request()->getHost();
+    // Hapus www. jika ada agar rapi
+    $displayDomain = preg_replace('/^www\./i', '', $domainEnv);
+
+    $emailSekolah = $value($schoolObj->school_email ?? $schoolObj->email ?? '');
+    $telpSekolah  = $value($schoolObj->school_phone ?? $schoolObj->telepon ?? '');
+
+    $kontakParts = array_filter([
+        $telpSekolah ? 'Telp. ' . $telpSekolah : '',
+        $displayDomain ? 'Laman: ' . $displayDomain : '',
+        $emailSekolah ? 'Email: ' . $emailSekolah : '',
+    ]);
     $alamatLine2 = implode(' | ', $kontakParts);
 @endphp
 

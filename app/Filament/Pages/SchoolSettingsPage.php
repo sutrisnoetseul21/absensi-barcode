@@ -82,6 +82,20 @@ class SchoolSettingsPage extends Page implements HasForms
                                             ->label('Alamat Sekolah')
                                             ->required()
                                             ->maxLength(500),
+
+                                        TextInput::make('school_email')
+                                            ->label('Email Resmi Sekolah')
+                                            ->email()
+                                            ->maxLength(255)
+                                            ->placeholder('official@smpn3kedungreja.sch.id')
+                                            ->helperText('Akan dicetak pada Kop Surat resmi dokumen.'),
+
+                                        TextInput::make('school_phone')
+                                            ->label('Nomor Telepon Sekolah')
+                                            ->tel()
+                                            ->maxLength(50)
+                                            ->placeholder('(0282) xxxxxx')
+                                            ->helperText('Opsional. Ditampilkan pada kontak Kop Surat jika diisi.'),
                 
                                         TextInput::make('principal_name')
                                             ->label('Nama Kepala Sekolah (Fallback)')
