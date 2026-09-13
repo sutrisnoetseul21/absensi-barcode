@@ -127,11 +127,9 @@ class GuruWaliCetakController extends Controller
 
         $siswa = Siswa::with(['enrollmentAktif.kelas', 'enrollmentAktif.tahunAjaran'])->findOrFail($studentId);
 
-        // Tahun Ajaran
-        $academicYearId = $request->query('academic_year_id');
-        $tahunAjaran = $academicYearId 
-            ? TahunAjaran::find($academicYearId) 
-            : TahunAjaran::where('status', 'aktif')->first();
+        // Otomatis prioritaskan Tahun Ajaran Aktif
+        $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
+            ?? ($request->query('academic_year_id') ? TahunAjaran::find($request->query('academic_year_id')) : null);
 
         if (! $tahunAjaran) {
             $tahunAjaran = (object) [
@@ -205,10 +203,9 @@ class GuruWaliCetakController extends Controller
         [$teacher, $kelompok] = $this->getTeacherAndKelompok();
         $schoolData = $this->getSchoolAndPrincipalData();
 
-        $academicYearId = $request->query('academic_year_id');
-        $tahunAjaran = $academicYearId 
-            ? TahunAjaran::find($academicYearId) 
-            : TahunAjaran::where('status', 'aktif')->first();
+        // Otomatis prioritaskan Tahun Ajaran Aktif
+        $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
+            ?? ($request->query('academic_year_id') ? TahunAjaran::find($request->query('academic_year_id')) : null);
 
         if (! $tahunAjaran) {
             $tahunAjaran = (object) [

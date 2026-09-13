@@ -65,21 +65,11 @@
                     </p>
                 </div>
                 
-                <!-- Pill Tahun Ajaran -->
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-500">Tahun Ajaran:</span>
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        @foreach($academicYears as $th)
-                            <button type="button" 
-                                    wire:click="$set('selectedAcademicYearId', '{{ $th->id }}')"
-                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $selectedAcademicYearId === $th->id ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                                <span>{{ $th->name }}</span>
-                                @if($th->status === 'aktif')
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                @endif
-                            </button>
-                        @endforeach
-                    </div>
+                <!-- Badge Tahun Ajaran Aktif (Otomatis) -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-xs font-bold shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Tahun Ajaran: <strong class="text-slate-900">{{ $activeTahun?->name ?? '2026/2027' }}</strong></span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-emerald-200/70 text-emerald-800 uppercase tracking-wider">Aktif</span>
                 </div>
             </div>
 
@@ -496,21 +486,11 @@
                     <p class="text-xs text-slate-500 mt-0.5">Dokumen resmi bukti fisik pelaksanaan tugas Guru Wali untuk diserahkan kepada Kepala Sekolah.</p>
                 </div>
                 
-                <!-- Pill Tahun Ajaran Kelompok -->
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-500">Tahun Ajaran:</span>
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        @foreach($academicYears as $th)
-                            <button type="button" 
-                                    wire:click="$set('selectedKelompokAcademicYearId', '{{ $th->id }}')"
-                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $selectedKelompokAcademicYearId === $th->id ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                                <span>{{ $th->name }}</span>
-                                @if($th->status === 'aktif')
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                @endif
-                            </button>
-                        @endforeach
-                    </div>
+                <!-- Badge Tahun Ajaran Aktif (Otomatis) -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-xs font-bold shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Tahun Ajaran: <strong class="text-slate-900">{{ $activeTahun?->name ?? '2026/2027' }}</strong></span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-emerald-200/70 text-emerald-800 uppercase tracking-wider">Aktif</span>
                 </div>
             </div>
 

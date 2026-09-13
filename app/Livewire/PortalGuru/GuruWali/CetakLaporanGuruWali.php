@@ -44,8 +44,10 @@ class CetakLaporanGuruWali extends Component
             abort(403, 'Anda belum memiliki tugas penugasan Guru Wali aktif.');
         }
 
-        // Default tahun ajaran aktif
-        $activeTahun = TahunAjaran::where('status', 'aktif')->first();
+        // Selalu gunakan tahun ajaran aktif secara otomatis
+        $activeTahun = TahunAjaran::where('status', 'aktif')->first()
+            ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+
         if ($activeTahun) {
             $this->selectedAcademicYearId = $activeTahun->id;
             $this->selectedKelompokAcademicYearId = $activeTahun->id;
@@ -100,7 +102,13 @@ class CetakLaporanGuruWali extends Component
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        $academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
+        // Otomatis kunci pada Tahun Ajaran Aktif saja
+        $activeTahun = TahunAjaran::where('status', 'aktif')->first()
+            ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+
+        $this->selectedAcademicYearId = $activeTahun?->id;
+        $this->selectedKelompokAcademicYearId = $activeTahun?->id;
+        $selectedTahun = $activeTahun;
 
         // Anggota Siswa Aktif Kelompok Ini
         $anggotaAktif = $this->kelompok->anggotaAktif()
@@ -108,12 +116,9 @@ class CetakLaporanGuruWali extends Component
             ->get();
 
         // -------------------------------------------------------------
-        // TAB 1: DATA TABEL INDIVIDUAL SELURUH SISWA
+        // TAB 1: DATA TABEL INDIVIDUAL SELURUH SISWA (TAHUN AKTIF)
         // -------------------------------------------------------------
-        $selectedTahun = $academicYears->firstWhere('id', $this->selectedAcademicYearId) 
-            ?? $academicYears->firstWhere('status', 'aktif');
-
-        $indDateRange = $this->getDateRange($this->selectedPeriode, $selectedTahun);
+        $indDateRange = $this->getDateRange($this->selectedPeriode, $activeTahun);
 
         // Ambil semua jurnal periode ini untuk kelompok ini sekaligus (efisien)
         $allJurnalsPeriode = JurnalGuruWali::where('teacher_id', $this->teacher->id)
@@ -196,13 +201,8 @@ class CetakLaporanGuruWali extends Component
             }
         }
 
-        // -------------------------------------------------------------
-        // TAB 2: DATA LAPORAN KINERJA KELOMPOK
-        // -------------------------------------------------------------
-        $selectedKelompokTahun = $academicYears->firstWhere('id', $this->selectedKelompokAcademicYearId)
-            ?? $academicYears->firstWhere('status', 'aktif');
-
-        $kelDateRange = $this->getDateRange($this->selectedKelompokPeriode, $selectedKelompokTahun);
+        $selectedKelompokTahun = $activeTahun;
+        $kelDateRange = $this->getDateRange($this->selectedKelompokPeriode, $activeTahun);
 
         $jurnalsKelompok = JurnalGuruWali::where('kelompok_id', $this->kelompok->id)
             ->where('teacher_id', $this->teacher->id)
@@ -247,7 +247,7 @@ class CetakLaporanGuruWali extends Component
             'previewSiswa'                  => $previewSiswa,
             'previewJurnals'                => $previewJurnals,
             'previewKonsultasis'            => $previewKonsultasis,
-            'academicYears'                 => $academicYears,
+            'activeTahun'                   => $activeTahun,
             'anggotaAktif'                  => $anggotaAktif,
             'tabelSiswa'                    => $tabelSiswa,
             'selectedTahun'                 => $selectedTahun,
