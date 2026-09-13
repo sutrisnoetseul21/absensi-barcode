@@ -8,7 +8,11 @@
         /* CSS Reset & Setup Halaman Cetak */
         @page {
             size: A4 portrait;
-            margin: 15mm 15mm 15mm 15mm;
+            @if($isPdf)
+            margin: 8mm 12mm 8mm 12mm;
+            @else
+            margin: 10mm 15mm 10mm 15mm;
+            @endif
         }
 
         * {
@@ -18,13 +22,13 @@
         }
 
         body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 10.5pt;
-            line-height: 1.35;
+            font-family: @if($isPdf) 'Times-Roman', Times, serif @else 'Times New Roman', Times, serif @endif;
+            font-size: @if($isPdf) 8.5pt @else 9.5pt @endif;
+            line-height: @if($isPdf) 1.25 @else 1.3 @endif;
             color: #111;
             margin: 0;
             padding: 0;
-            background: #f8fafc;
+            background: @if($isPdf) #fff @else #f8fafc @endif;
         }
 
         /* Toolbar Layar (Khusus Browser) */
@@ -90,18 +94,28 @@
 
         /* Container Kertas A4 */
         .paper-sheet {
+            @if($isPdf)
+            width: 100% !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            @else
             background: #fff;
             width: 210mm;
             min-height: 297mm;
             margin: 20px auto;
-            padding: 15mm 15mm 15mm 15mm;
+            padding: 12mm 15mm 12mm 15mm;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+            @endif
         }
 
         @media print {
             body {
                 background: #fff !important;
                 padding: 0 !important;
+                font-size: 8.5pt !important;
+                line-height: 1.25 !important;
             }
             .screen-toolbar {
                 display: none !important;
@@ -130,13 +144,13 @@
         }
 
         .kop-logo {
-            width: 80px;
+            width: @if($isPdf) 65px @else 72px @endif;
             text-align: center;
         }
 
         .kop-logo img {
-            max-width: 75px;
-            max-height: 75px;
+            max-width: @if($isPdf) 58px @else 68px @endif;
+            max-height: @if($isPdf) 58px @else 68px @endif;
             object-fit: contain;
         }
 
@@ -146,7 +160,7 @@
         }
 
         .kop-instansi {
-            font-size: 11pt;
+            font-size: @if($isPdf) 10pt @else 10.5pt @endif;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -154,36 +168,36 @@
         }
 
         .kop-sekolah {
-            font-size: 14pt;
+            font-size: @if($isPdf) 13pt @else 13.5pt @endif;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin: 2px 0;
+            margin: 1px 0;
         }
 
         .kop-alamat {
-            font-size: 9pt;
+            font-size: @if($isPdf) 8pt @else 8.5pt @endif;
             font-style: normal;
             margin: 0;
-            line-height: 1.3;
+            line-height: 1.2;
         }
 
         /* Garis Ganda Kop */
         .kop-line {
-            border-top: 2.5px solid #000;
-            border-bottom: 0.8px solid #000;
-            height: 3px;
-            margin: 6px 0 14px 0;
+            border-top: 2px solid #000;
+            border-bottom: 0.6px solid #000;
+            height: 2px;
+            margin: 4px 0 @if($isPdf) 6px @else 10px @endif 0;
         }
 
         /* Judul Dokumen */
         .doc-title {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: @if($isPdf) 6px @else 10px @endif;
         }
 
         .doc-title h1 {
-            font-size: 12pt;
+            font-size: @if($isPdf) 11pt @else 11.5pt @endif;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -191,38 +205,38 @@
         }
 
         .doc-title .sub-title {
-            font-size: 9.5pt;
+            font-size: @if($isPdf) 8.5pt @else 9pt @endif;
             font-weight: bold;
             color: #333;
             margin: 0;
         }
 
         .doc-title .period-label {
-            font-size: 9.5pt;
+            font-size: @if($isPdf) 8.5pt @else 9pt @endif;
             font-style: italic;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         /* Section Heading */
         .section-header {
-            font-size: 10.5pt;
+            font-size: @if($isPdf) 9pt @else 9.5pt @endif;
             font-weight: bold;
-            margin: 10px 0 4px 0;
+            margin: @if($isPdf) 5px 0 2.5px 0 @else 7px 0 3px 0 @endif;
             text-transform: uppercase;
             border-bottom: 1px solid #999;
-            padding-bottom: 2px;
+            padding-bottom: 1px;
         }
 
         /* Tabel Identitas */
         .identitas-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 10pt;
+            margin-bottom: @if($isPdf) 5px @else 8px @endif;
+            font-size: @if($isPdf) 8.5pt @else 9pt @endif;
         }
 
         .identitas-table td {
-            padding: 2.5px 4px;
+            padding: @if($isPdf) 1.5px 3px @else 2px 4px @endif;
             border: none;
             vertical-align: top;
         }
@@ -246,13 +260,13 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 9pt;
+            margin-bottom: @if($isPdf) 5px @else 8px @endif;
+            font-size: @if($isPdf) 8pt @else 8.5pt @endif;
         }
 
         .data-table th, .data-table td {
             border: 1px solid #444;
-            padding: 4px 6px;
+            padding: @if($isPdf) 2.5px 4px @else 3.5px 5px @endif;
             vertical-align: top;
         }
 
@@ -261,7 +275,7 @@
             font-weight: bold;
             text-align: center;
             text-transform: uppercase;
-            font-size: 8.5pt;
+            font-size: @if($isPdf) 7.5pt @else 8pt @endif;
         }
 
         .data-table td.center {
@@ -271,7 +285,7 @@
         /* Pilar Badges in Print */
         .pilar-badge {
             font-weight: bold;
-            font-size: 8pt;
+            font-size: @if($isPdf) 7.5pt @else 8pt @endif;
             display: inline-block;
         }
 
@@ -279,33 +293,33 @@
         .pilar-summary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 9pt;
+            margin-bottom: @if($isPdf) 5px @else 8px @endif;
+            font-size: @if($isPdf) 8pt @else 8.5pt @endif;
         }
 
         .pilar-summary-table th, .pilar-summary-table td {
             border: 1px solid #555;
-            padding: 5px;
+            padding: @if($isPdf) 2.5px @else 3.5px @endif;
             text-align: center;
         }
 
         .pilar-summary-table th {
             background-color: #f8fafc;
-            font-size: 8.5pt;
+            font-size: @if($isPdf) 7.5pt @else 8pt @endif;
         }
 
         /* Lembar Pengesahan Tanda Tangan */
         .ttd-section {
             width: 100%;
-            margin-top: 15px;
+            margin-top: @if($isPdf) 6px @else 10px @endif;
             page-break-inside: avoid;
         }
 
         .ttd-date {
             text-align: right;
-            font-size: 10pt;
-            margin-bottom: 8px;
-            padding-right: 15px;
+            font-size: @if($isPdf) 8.5pt @else 9pt @endif;
+            margin-bottom: @if($isPdf) 3px @else 5px @endif;
+            padding-right: 10px;
         }
 
         .ttd-table {
@@ -319,22 +333,23 @@
             width: 33.33%;
             text-align: center;
             vertical-align: top;
-            padding: 0 5px;
-            font-size: 10pt;
+            padding: 0 4px;
+            font-size: @if($isPdf) 8.5pt @else 9pt @endif;
         }
 
         .ttd-space {
-            height: 55px;
+            height: @if($isPdf) 38px @else 48px @endif;
         }
 
         .ttd-name {
             font-weight: bold;
             text-decoration: underline;
             margin: 0;
+            font-size: @if($isPdf) 8.5pt @else 9pt @endif;
         }
 
         .ttd-nip {
-            font-size: 9pt;
+            font-size: @if($isPdf) 7.5pt @else 8pt @endif;
             margin-top: 1px;
         }
     </style>
