@@ -2,7 +2,9 @@
 
 namespace App\Filament\Akademik\Resources\Guru\Tables;
 
+use App\Helpers\UsernameHelper;
 use App\Models\Guru;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -319,6 +321,8 @@ class GuruTable
                         }
 
                         \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\GuruImport, $filePath);
+                        \App\Models\KelompokGuruWali::syncAllTeachers();
+
                         \Filament\Notifications\Notification::make()
                             ->title('Import berhasil')
                             ->success()
@@ -358,14 +362,32 @@ class GuruTable
                     ->action(function (Guru $record): void {
                         $newPassword = Str::random(8);
 
-                        $record->user->update([
-                            'password'             => $newPassword,
-                            'must_change_password' => true,
-                        ]);
+                        $user = $record->user;
+                        if (!$user) {
+                            $email = UsernameHelper::generateForGuru($record->name, $record->nip) . '@' . config('school.email_domain');
+                            $user = User::firstOrCreate(
+                                ['email' => $email],
+                                [
+                                    'name'                 => $record->name,
+                                    'password'             => $newPassword,
+                                    'must_change_password' => true,
+                                    'teacher_id'           => $record->id,
+                                ]
+                            );
+                            if (!$user->hasRole('wali_kelas')) {
+                                $user->assignRole('wali_kelas');
+                            }
+                            $record->update(['user_id' => $user->id]);
+                        } else {
+                            $user->update([
+                                'password'             => $newPassword,
+                                'must_change_password' => true,
+                            ]);
+                        }
 
                         Notification::make()
                             ->title('Password berhasil direset')
-                            ->body("Email: **{$record->user->email}**\nPassword baru: **{$newPassword}**\n\nGuru wajib ganti password saat login berikutnya.")
+                            ->body("Email: **{$user->email}**\nPassword baru: **{$newPassword}**\n\nGuru wajib ganti password saat login berikutnya.")
                             ->success()
                             ->persistent() // tidak auto-dismiss, harus diklik manual
                             ->send();

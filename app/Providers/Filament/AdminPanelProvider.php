@@ -109,6 +109,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Data Master',
                 'Akademik',
+                'Guru Wali',
                 'Presensi',
                 'Perpustakaan',
                 \App\Models\SpikapNotifSetting::instance()->getNamaAplikasi(),

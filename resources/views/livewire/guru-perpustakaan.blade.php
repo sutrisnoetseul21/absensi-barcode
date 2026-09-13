@@ -1,11 +1,11 @@
 <div class="space-y-6 max-w-7xl mx-auto p-4 lg:p-8">
     
     <!-- Header Section -->
-    <div class="bg-gradient-to-r from-brand-primary to-indigo-600 rounded-3xl p-8 text-white shadow-lg shadow-brand-primary/20 relative overflow-hidden">
+    <div class="bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary rounded-3xl p-8 text-white shadow-lg shadow-brand-primary/20 relative overflow-hidden border border-brand-primary/30">
         <div class="relative z-10 flex flex-col md:flex-row justify-between md:items-end gap-6">
             <div>
                 <h1 class="text-3xl font-extrabold mb-2">Perpustakaan</h1>
-                <p class="text-indigo-100 max-w-2xl text-lg">Cari buku, pantau pinjaman pribadi, dan pantau riwayat pinjaman siswa di kelas yang Anda ampu.</p>
+                <p class="text-white/85 max-w-2xl text-lg">Cari buku, pantau pinjaman pribadi, dan pantau riwayat pinjaman siswa di kelas yang Anda ampu.</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 font-medium flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
@@ -15,7 +15,7 @@
         
         <!-- Decorative shapes -->
         <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-2xl"></div>
-        <div class="absolute bottom-0 right-32 -mb-16 w-48 h-48 rounded-full bg-indigo-400 opacity-20 blur-xl"></div>
+        <div class="absolute bottom-0 right-32 -mb-16 w-48 h-48 rounded-full bg-white opacity-10 blur-xl"></div>
     </div>
 
     <!-- Main Content Area -->
@@ -88,7 +88,7 @@
                 @if($bukus->count() > 0)
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 xl:gap-5">
                         @foreach($bukus as $buku)
-                            <div class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-indigo-500/30 transition-all duration-300 group">
+                            <div class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-brand-primary/30 transition-all duration-300 group">
                                 <div class="h-44 sm:h-52 bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
                                     @if($buku->sampul_buku)
                                         <img src="{{ asset('storage/' . $buku->sampul_buku) }}" alt="{{ $buku->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -424,7 +424,7 @@
                                     <tr class="hover:bg-slate-50/70 transition-colors {{ $isTerlambat ? 'bg-rose-50/30' : '' }}">
                                         <td class="py-4 px-6">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-indigo-100 text-brand-primary flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
+                                                <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
                                                     {{ substr($pinjam->peminjam->name ?? 'S', 0, 2) }}
                                                 </div>
                                                 <span class="font-bold text-slate-800">{{ $pinjam->peminjam->name ?? 'Siswa Tidak Diketahui' }}</span>

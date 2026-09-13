@@ -311,6 +311,17 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/ijin-kehadiran/{id}', \App\Livewire\PortalGuru\IjinKehadiranDetail::class)->name('portal-guru.ijin.detail');
         Route::get('/profil', \App\Livewire\GuruProfil::class)->name('portal-guru.profil');
 
+        // Guru Wali Routes (Permendikdasmen No. 11/2025)
+        Route::prefix('guru-wali')->name('portal-guru.guru-wali.')->group(function () {
+            Route::get('/kelompok', \App\Livewire\PortalGuru\GuruWali\KelompokSaya::class)->name('kelompok');
+            Route::get('/jurnal', \App\Livewire\PortalGuru\GuruWali\JurnalList::class)->name('jurnal');
+            Route::get('/jurnal/tambah', \App\Livewire\PortalGuru\GuruWali\JurnalForm::class)->name('jurnal.create');
+            Route::get('/jurnal/kelompok', \App\Livewire\PortalGuru\GuruWali\JurnalKelompokForm::class)->name('jurnal.kelompok');
+            Route::get('/jurnal/{id}/edit', \App\Livewire\PortalGuru\GuruWali\JurnalForm::class)->name('jurnal.edit');
+            Route::get('/konsultasi', \App\Livewire\PortalGuru\GuruWali\KonsultasiList::class)->name('konsultasi');
+            Route::get('/pemantauan', \App\Livewire\PortalGuru\GuruWali\PemantauanBulanan::class)->name('pemantauan');
+        });
+
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
             request()->session()->invalidate();
@@ -351,6 +362,9 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
         // SPIKAP — Anti-Perundungan / Modul Aduan Siswa
         Route::get("/{$spikapSlug}", \App\Livewire\PortalSiswa\SpikapLaporanList::class)->name('portal-siswa.spikap');
         Route::get("/{$spikapSlug}/form", \App\Livewire\PortalSiswa\SpikapLaporanForm::class)->name('portal-siswa.spikap.form');
+
+        // Konsultasi & Bimbingan Guru Wali (Permendikdasmen No. 11/2025)
+        Route::get('/konsultasi-guru-wali', \App\Livewire\PortalSiswa\KonsultasiGuruWaliList::class)->name('portal-siswa.guru-wali');
 
         // Fallback auto-redirect jika slug bukan 'spikap' (mencegah broken link lama)
         if ($spikapSlug !== 'spikap') {

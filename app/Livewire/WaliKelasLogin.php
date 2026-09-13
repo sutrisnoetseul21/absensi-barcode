@@ -38,11 +38,11 @@ class WaliKelasLogin extends Component
         if (Auth::guard('web')->attempt(['email' => $email, 'password' => $this->password], $this->remember)) {
             $user = Auth::guard('web')->user();
 
-            if (!$user->hasRole('wali_kelas') || $user->teacher === null) {
+            if ((!$user->hasAnyRole(['wali_kelas', 'guru']) && !$user->teacher) || $user->teacher === null) {
                 Auth::guard('web')->logout();
                 RateLimiter::hit($key);
                 throw ValidationException::withMessages([
-                    'username' => 'Akun ini bukan akun wali kelas.',
+                    'username' => 'Akun ini bukan akun guru terdaftar.',
                 ]);
             }
 

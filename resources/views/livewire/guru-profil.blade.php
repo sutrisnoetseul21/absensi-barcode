@@ -3,13 +3,13 @@
     <!-- Top Hero Banner & Profile Header -->
     <div class="relative bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
         <!-- Sleek Banner Cover -->
-        <div class="h-36 sm:h-44 bg-gradient-to-r from-indigo-700 via-indigo-800 to-purple-800 relative overflow-hidden">
+        <div class="h-36 sm:h-44 bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary relative overflow-hidden">
             <div class="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
             <div class="absolute -top-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
             
             <!-- Left Header Pill Tag -->
             <div class="absolute top-4 left-6 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold shadow-sm">
-                <svg class="w-3.5 h-3.5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <svg class="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span>Portal Guru &bull; Profil & Akun Pendidik</span>
             </div>
 
@@ -42,7 +42,7 @@
                             @elseif ($photo_path)
                                 <img src="{{ asset('storage/' . $photo_path) }}" alt="{{ $nama_lengkap }}" class="w-full h-full object-cover rounded-2xl">
                             @else
-                                <div class="w-full h-full rounded-2xl bg-gradient-to-br from-brand-primary to-indigo-700 flex items-center justify-center text-white font-black text-4xl shadow-inner">
+                                <div class="w-full h-full rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-4xl shadow-inner">
                                     {{ substr($nama_lengkap, 0, 1) }}
                                 </div>
                             @endif
@@ -141,7 +141,7 @@
             <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/80 p-6 space-y-5">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        <svg class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                         Penugasan Akademik
                     </h3>
                     <span class="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -178,7 +178,7 @@
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Akses Kelas Pantau (BK)</span>
                             <div class="flex flex-wrap gap-1.5 mt-1">
                                 @foreach($kelasPantauList as $kp)
-                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
                                         Kelas {{ $kp }}
                                     </span>
                                 @endforeach

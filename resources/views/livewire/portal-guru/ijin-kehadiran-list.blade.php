@@ -79,7 +79,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <a href="{{ route('portal-guru.ijin.detail', $request->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-primary hover:border-brand-primary hover:bg-indigo-50 transition-all shadow-sm">
+                            <a href="{{ route('portal-guru.ijin.detail', $request->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-primary hover:border-brand-primary hover:bg-brand-primary/10 transition-all shadow-sm">
                                 Detail
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>

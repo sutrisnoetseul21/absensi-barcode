@@ -101,7 +101,7 @@ class GuruForm
                     ->required(fn (string $operation): bool => $operation === 'edit')
                     ->maxLength(255)
                     ->helperText('Otomatis di-generate jika dikosongkan saat create.')
-                    ->formatStateUsing(fn (?Model $record) => $record?->user?->email),
+                    ->formatStateUsing(fn (?Model $record) => $record?->user?->email ?? ($record ? \App\Helpers\UsernameHelper::generateForGuru($record->name, $record->nip) . '@' . config('school.email_domain') : null)),
 
                 TextInput::make('password')
                     ->label(fn (string $operation): string => $operation === 'edit' ? 'Password Baru' : 'Password Login')

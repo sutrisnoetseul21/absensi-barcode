@@ -106,5 +106,7 @@ class GuruImport implements ToCollection
                 $user->update(['teacher_id' => $guru->id]);
             }
         }
+
+        \App\Models\KelompokGuruWali::syncAllTeachers();
     }
 }

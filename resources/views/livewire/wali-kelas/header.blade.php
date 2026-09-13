@@ -1,6 +1,6 @@
 <!-- Header Banner Card -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
-    <div class="relative bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary border border-brand-primary/30 rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden text-white">
+    <div class="relative bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary border border-brand-primary/30 rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden text-white">
         <!-- Decorative Glow Blobs -->
         <div class="absolute -top-12 -right-12 w-80 h-80 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-12 -left-12 w-80 h-80 bg-brand-secondary/20 rounded-full filter blur-3xl pointer-events-none"></div>
@@ -15,7 +15,7 @@
                         <h2 class="text-2xl font-extrabold text-white sm:text-3xl tracking-tight">
                             Dashboard Portal Guru
                         </h2>
-                        <p class="mt-1 text-sm text-indigo-100/90 font-medium max-w-2xl">
+                        <p class="mt-1 text-sm text-white/80 font-medium max-w-2xl">
                             Kelola data presensi, pantau keterlambatan harian, dan lakukan presensi manual untuk siswa di kelas binaan Anda.
                         </p>
                     </div>
@@ -41,14 +41,14 @@
             <div class="mt-6 md:mt-0 flex flex-wrap xl:flex-nowrap gap-3 items-center">
                 @if(count($classes) > 0 && $selectedClassId)
                     <button wire:click="openCetakModal" class="inline-flex items-center px-4 py-2.5 border border-white/25 rounded-xl shadow-lg text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-300">
-                        <svg class="-ml-1 mr-2 h-5 w-5 text-indigo-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                         Cetak Laporan
                     </button>
                     
                     <button wire:click="openInputModal" class="inline-flex items-center px-4 py-2.5 border border-transparent rounded-xl shadow-xl text-sm font-bold text-slate-900 bg-white hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all duration-300 transform hover:-translate-y-0.5">
-                        <svg class="-ml-1 mr-2 h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         Input Manual

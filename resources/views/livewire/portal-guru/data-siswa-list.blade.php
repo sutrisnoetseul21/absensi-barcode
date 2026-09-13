@@ -96,7 +96,7 @@
 
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Export / Import Buttons (Full Data) -->
-                    <button wire:click="openUploadModal('data')" class="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Update Data Lengkap Siswa via Excel">
+                    <button wire:click="openUploadModal('data')" class="flex items-center gap-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary border border-brand-primary/30 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Update Data Lengkap Siswa via Excel">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         Update Data Lengkap
                     </button>
@@ -110,7 +110,7 @@
                     </button>
 
                     @if(count($selectedStudents) > 0)
-                    <button wire:click="cetakTerpilih" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all ml-2">
+                    <button wire:click="cetakTerpilih" class="flex items-center gap-2 bg-brand-primary hover:bg-brand-secondary text-white px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all ml-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                         Cetak Terpilih ({{ count($selectedStudents) }})
                     </button>
@@ -190,7 +190,7 @@
                                 </td>
                                 <td class="px-4 py-4 text-center">
                                     <div class="flex items-center gap-1.5 justify-center">
-                                        <button wire:click="openEditDataModal('{{ $student->id }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-[10px] sm:text-xs font-bold transition-colors" title="Edit Data Siswa">
+                                        <button wire:click="openEditDataModal('{{ $student->id }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 border border-brand-primary/30 rounded-lg text-[10px] sm:text-xs font-bold transition-colors" title="Edit Data Siswa">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                             Edit
                                         </button>
@@ -268,15 +268,15 @@
 
                     <div class="mt-2 space-y-6">
                         <!-- Step 1: Download Template -->
-                        <div class="p-5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                        <div class="p-5 bg-brand-primary/5 border border-brand-primary/20 rounded-xl">
                             <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 shrink-0 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-lg">1</div>
+                                <div class="w-8 h-8 shrink-0 bg-brand-primary text-white rounded-full flex items-center justify-center font-bold text-lg">1</div>
                                 <div>
-                                    <h4 class="font-bold text-indigo-900 text-base mb-1">Download Template Excel</h4>
-                                    <p class="text-sm text-indigo-700 mb-3">Unduh template berisikan data siswa saat ini. Ubah/perbarui data pada baris yang sesuai, namun <strong class="text-indigo-900">jangan mengubah kolom ID</strong>.</p>
+                                    <h4 class="font-bold text-brand-primary text-base mb-1">Download Template Excel</h4>
+                                    <p class="text-sm text-slate-600 mb-3">Unduh template berisikan data siswa saat ini. Ubah/perbarui data pada baris yang sesuai, namun <strong class="text-slate-900">jangan mengubah kolom ID</strong>.</p>
                                     
                                     @if($uploadType === 'data')
-                                        <button type="button" wire:click="downloadDataExcel" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-indigo-300 rounded-lg text-sm font-bold text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm">
+                                        <button type="button" wire:click="downloadDataExcel" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-brand-primary/30 rounded-lg text-sm font-bold text-brand-primary hover:bg-brand-primary/10 transition-colors shadow-sm">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                             Download Template Lengkap
                                         </button>
@@ -373,8 +373,8 @@
             <form wire:submit.prevent="saveEditData" class="relative bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all my-8 max-w-4xl w-full border border-slate-200 z-10 flex flex-col max-h-[90vh]">
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex-shrink-0 rounded-t-2xl">
                         <div class="sm:flex sm:items-start mb-4 border-b border-slate-100 pb-4">
-                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                                <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-brand-primary/10 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                             </div>
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                 <h3 class="text-lg leading-6 font-bold text-slate-900">Edit Data Siswa Lengkap</h3>
@@ -528,7 +528,7 @@
                         </div>
                     </div>
                     <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200 flex-shrink-0">
-                        <button type="submit" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-bold text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-all">
+                        <button type="submit" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-brand-primary text-base font-bold text-white hover:bg-brand-secondary sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-all">
                             <span wire:loading.remove wire:target="saveEditData">Simpan Perubahan</span>
                             <span wire:loading wire:target="saveEditData">Menyimpan...</span>
                         </button>

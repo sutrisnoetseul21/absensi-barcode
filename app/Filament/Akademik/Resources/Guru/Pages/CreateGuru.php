@@ -50,6 +50,14 @@ class CreateGuru extends CreateRecord
      */
     protected function afterCreate(): void
     {
+        \App\Models\KelompokGuruWali::firstOrCreate(
+            ['teacher_id' => $this->record->id],
+            [
+                'nama_kelompok' => 'Kelompok ' . $this->record->name,
+                'status_aktif'  => true,
+            ]
+        );
+
         Notification::make()
             ->title('Guru berhasil ditambahkan')
             ->body(

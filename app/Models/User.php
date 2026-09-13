@@ -31,6 +31,7 @@ class User extends Authenticatable implements FilamentUser
         'is_super_admin',
         'teacher_id',
         'no_hp',
+        'must_change_password',
     ];
 
     /**

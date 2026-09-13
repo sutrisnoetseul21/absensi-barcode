@@ -2,10 +2,10 @@
 <div class="lg:col-span-2 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/40 p-6 overflow-hidden relative z-20">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-black text-slate-800 flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-inner">
+            <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary shadow-inner">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
-            Kalender <span x-text="monthName" class="ml-1 text-indigo-600"></span>
+            Kalender <span x-text="monthName" class="ml-1 text-brand-primary"></span>
         </h2>
         
         <!-- Keterangan Kalender Desktop -->
@@ -92,7 +92,7 @@
                 }
             @endphp
             
-            <div class="aspect-square rounded-xl {{ $bgColor }} flex flex-col items-center justify-center relative group transition-all cursor-default {{ $isToday ? 'ring-2 ring-indigo-500 ring-offset-2' : '' }}" title="{{ $tooltip }}">
+            <div class="aspect-square rounded-xl {{ $bgColor }} flex flex-col items-center justify-center relative group transition-all cursor-default {{ $isToday ? 'ring-2 ring-brand-primary ring-offset-2' : '' }}" title="{{ $tooltip }}">
                 <span class="text-sm sm:text-base {{ $textColor }}">{{ $d }}</span>
                 
                 @if($statusIcon)
@@ -125,8 +125,8 @@
                 @endif
                 
                 @if($isToday)
-                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full animate-ping opacity-75"></div>
-                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>
+                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-brand-primary rounded-full animate-ping opacity-75"></div>
+                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-brand-primary rounded-full border-2 border-white"></div>
                 @endif
             </div>
         @endfor

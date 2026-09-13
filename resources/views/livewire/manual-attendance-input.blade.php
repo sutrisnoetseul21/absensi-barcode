@@ -25,13 +25,13 @@
                     <form wire:submit.prevent="save" class="mt-5 sm:mt-6 space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Tanggal</label>
-                            <input wire:model.blur="date" type="date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <input wire:model.blur="date" type="date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm">
                             @error('date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <select wire:model.change="status" class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select wire:model.change="status" class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary sm:text-sm">
                                 <option value="hadir">Hadir</option>
                                 <option value="telat">Telat</option>
                                 <option value="izin">Izin</option>
@@ -44,22 +44,22 @@
                         @if($status === 'telat')
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Menit Keterlambatan</label>
-                            <input wire:model.blur="lateMinutes" type="number" min="0" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <input wire:model.blur="lateMinutes" type="number" min="0" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm">
                             @error('lateMinutes') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                         @endif
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Keterangan / Catatan Tambahan</label>
-                            <textarea wire:model.blur="note" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                            <textarea wire:model.blur="note" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary sm:text-sm"></textarea>
                             @error('note') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
-                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand-primary text-base font-medium text-white hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary sm:ml-3 sm:w-auto sm:text-sm">
                                 Simpan
                             </button>
-                            <button type="button" wire:click="close" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                            <button type="button" wire:click="close" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary sm:mt-0 sm:w-auto sm:text-sm">
                                 Batal
                             </button>
                         </div>

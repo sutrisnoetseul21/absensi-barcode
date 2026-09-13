@@ -187,7 +187,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
             <div class="flex items-center gap-2">
-                <span class="p-2 rounded-xl bg-indigo-100 text-indigo-600">
+                <span class="p-2 rounded-xl bg-brand-primary/10 text-brand-primary">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
@@ -214,7 +214,7 @@
     <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Filter Analisis:</span>
-            <div wire:loading class="text-xs text-indigo-600 font-medium animate-pulse flex items-center gap-1">
+            <div wire:loading class="text-xs text-brand-primary font-medium animate-pulse flex items-center gap-1">
                 <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
@@ -225,14 +225,14 @@
 
         <div class="flex flex-wrap items-center gap-3">
             {{-- Filter Sifat --}}
-            <select wire:model.live="sifatFilter" class="text-xs font-semibold rounded-xl border-slate-200 bg-slate-50 text-slate-700 py-2 px-3 focus:ring-2 focus:ring-indigo-500">
+            <select wire:model.live="sifatFilter" class="text-xs font-semibold rounded-xl border-slate-200 bg-slate-50 text-slate-700 py-2 px-3 focus:ring-2 focus:ring-brand-primary">
                 <option value="">Semua Sifat Kasus</option>
                 <option value="biasa">Hanya Biasa</option>
                 <option value="darurat">🚨 Hanya Darurat</option>
             </select>
 
             {{-- Filter Periode --}}
-            <select wire:model.live="periode" class="text-xs font-semibold rounded-xl border-slate-200 bg-slate-50 text-slate-700 py-2 px-3 focus:ring-2 focus:ring-indigo-500">
+            <select wire:model.live="periode" class="text-xs font-semibold rounded-xl border-slate-200 bg-slate-50 text-slate-700 py-2 px-3 focus:ring-2 focus:ring-brand-primary">
                 <option value="30_hari">30 Hari Terakhir</option>
                 <option value="3_bulan">3 Bulan Terakhir</option>
                 <option value="6_bulan">6 Bulan Terakhir</option>
@@ -356,7 +356,7 @@
     </div>
 
     {{-- ── Smart Insights & Rekomendasi Preventif ─────────────────────── --}}
-    <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+    <div class="bg-gradient-to-br from-brand-primary/90 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
         <div class="flex items-start gap-4">
             <div class="p-3 rounded-2xl bg-white/10 text-amber-300 shrink-0 backdrop-blur-md">
                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -372,7 +372,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                     {{-- Rekomendasi Kategori --}}
                     <div class="bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-                        <div class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Fokus Bimbingan</div>
+                        <div class="text-xs font-semibold text-white/80 uppercase tracking-wider">Fokus Bimbingan</div>
                         @if($chartData['insights']['topKategori'])
                             <p class="text-sm text-slate-200 mt-1">
                                 Perundungan jenis <strong class="text-amber-300">{{ $chartData['insights']['topKategori'] }}</strong> mendominasi laporan. Disarankan memperbanyak sesi sosialisasi dan bimbingan klasikal mengenai empati & anti-perundungan jenis ini.

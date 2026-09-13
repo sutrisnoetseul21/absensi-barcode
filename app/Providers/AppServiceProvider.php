@@ -10,6 +10,8 @@ use App\Listeners\Enrollment\HandleStudentGraduated;
 use App\Listeners\Enrollment\HandleStudentGraduationCancelled;
 use App\Listeners\Enrollment\HandleStudentMutated;
 use App\Listeners\Enrollment\HandleStudentReactivated;
+use App\Listeners\GuruWali\HandleGuruWaliStudentGraduated;
+use App\Listeners\GuruWali\HandleGuruWaliStudentMutated;
 use App\Listeners\Presensi\HandleStudentDeactivatedForPresensi;
 use App\Listeners\Presensi\HandleStudentReactivatedForPresensi;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -80,5 +82,17 @@ class AppServiceProvider extends ServiceProvider
 
         // StudentGraduationCancelled → Presensi: aktifkan kembali barcode siswa
         Event::listen(StudentGraduationCancelled::class, HandleStudentReactivatedForPresensi::class);
+
+        // ─────────────────────────────────────────────────────────────
+        // Guru Wali — Auto-arsip keanggotaan kelompok saat siswa lulus/mutasi
+        // Baris KelompokGuruWaliSiswa diarsipkan (status_aktif = false),
+        // tidak dihapus, agar riwayat pendampingan tetap tersimpan.
+        // ─────────────────────────────────────────────────────────────
+
+        // StudentGraduated → GuruWali: arsipkan keanggotaan kelompok aktif
+        Event::listen(StudentGraduated::class, HandleGuruWaliStudentGraduated::class);
+
+        // StudentMutated → GuruWali: arsipkan keanggotaan kelompok aktif
+        Event::listen(StudentMutated::class, HandleGuruWaliStudentMutated::class);
     }
 }

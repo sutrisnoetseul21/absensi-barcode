@@ -168,4 +168,32 @@ class Guru extends Authenticatable
             }
         );
     }
+
+    public function kelompokGuruWali(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\KelompokGuruWali::class, 'teacher_id');
+    }
+
+    public function jurnalGuruWalis(): HasMany
+    {
+        return $this->hasMany(\App\Models\JurnalGuruWali::class, 'teacher_id');
+    }
+
+    public function konsultasiGuruWalis(): HasMany
+    {
+        return $this->hasMany(\App\Models\KonsultasiGuruWali::class, 'teacher_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (Guru $guru) {
+            \App\Models\KelompokGuruWali::firstOrCreate(
+                ['teacher_id' => $guru->id],
+                [
+                    'nama_kelompok' => 'Kelompok ' . $guru->name,
+                    'status_aktif'  => true,
+                ]
+            );
+        });
+    }
 }

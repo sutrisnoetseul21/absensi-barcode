@@ -9,23 +9,23 @@
         <!-- Modal Panel -->
         <div x-show="showInputModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative z-10 inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full border border-white/20">
             
-            <div class="bg-gradient-to-r from-indigo-600 to-violet-500 px-8 py-5 flex items-center justify-between">
+            <div class="bg-gradient-to-r from-brand-primary to-brand-secondary px-8 py-5 flex items-center justify-between">
                 <h3 class="text-xl font-extrabold text-white flex items-center gap-3">
                     <div class="w-10 h-10 bg-white/20 rounded-xl backdrop-blur-sm flex items-center justify-center shadow-inner">
-                        <svg class="w-6 h-6 text-indigo-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </div>
                     Input Presensi Manual
                 </h3>
-                <button @click="showInputModal = false" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-indigo-100 hover:text-white hover:bg-white/20 transition-all focus:outline-none">
+                <button @click="showInputModal = false" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all focus:outline-none">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
 
             <div class="px-6 py-6 max-h-[60vh] overflow-y-auto [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
                 <!-- Date Picker -->
-                <div class="mb-6 flex items-center gap-4 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                    <label class="font-bold text-indigo-900 whitespace-nowrap">Pilih Tanggal:</label>
-                    <input type="date" wire:model.live="inputDate" class="block w-full max-w-xs pl-3 pr-10 py-2 text-indigo-900 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm rounded-lg shadow-sm font-semibold">
+                <div class="mb-6 flex items-center gap-4 bg-brand-primary/5 p-4 rounded-xl border border-brand-primary/20">
+                    <label class="font-bold text-slate-800 whitespace-nowrap">Pilih Tanggal:</label>
+                    <input type="date" wire:model.live="inputDate" class="block w-full max-w-xs pl-3 pr-10 py-2 text-slate-800 border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary sm:text-sm rounded-lg shadow-sm font-semibold">
                 </div>
 
                 @if(count($inputStudents) > 0)
@@ -37,7 +37,7 @@
                                     <th class="py-3 px-4 text-center">
                                         <div class="flex flex-col items-center gap-1.5">
                                             <span>Datang</span>
-                                            <select wire:model.live="bulkStatusDatang" wire:change="applyBulkStatusDatang($event.target.value)" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-indigo-300 bg-white text-indigo-900 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs normal-case">
+                                            <select wire:model.live="bulkStatusDatang" wire:change="applyBulkStatusDatang($event.target.value)" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-brand-primary/30 bg-white text-slate-800 focus:ring-2 focus:ring-brand-primary cursor-pointer shadow-2xs normal-case">
                                                 <option value="">-- Set Massal --</option>
                                                 <option value="hadir">⚡ Hadir Semua</option>
                                                 <option value="telat">Terlambat Semua</option>
@@ -51,7 +51,7 @@
                                     <th class="py-3 px-4 text-center">
                                         <div class="flex flex-col items-center gap-1.5">
                                             <span>Pulang</span>
-                                            <select wire:model.live="bulkStatusPulang" wire:change="applyBulkStatusPulang($event.target.value)" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-indigo-300 bg-white text-indigo-900 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-2xs normal-case">
+                                            <select wire:model.live="bulkStatusPulang" wire:change="applyBulkStatusPulang($event.target.value)" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-brand-primary/30 bg-white text-slate-800 focus:ring-2 focus:ring-brand-primary cursor-pointer shadow-2xs normal-case">
                                                 <option value="">-- Set Massal --</option>
                                                 <option value="pulang">⚡ Pulang Semua</option>
                                                 <option value="izin">Izin Semua</option>
@@ -73,7 +73,7 @@
                                                     Sudah Absen Otomatis (🔒 Terkunci)
                                                 </span>
                                             @else
-                                                <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
+                                                <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-brand-primary cursor-pointer shadow-sm
                                                     {{ ($data['status'] ?? '') === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
                                                     {{ ($data['status'] ?? '') === 'telat' ? 'text-amber-700 bg-amber-50 border-amber-200' : '' }}
                                                     {{ ($data['status'] ?? '') === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
@@ -110,7 +110,7 @@
                                                     {{ ucfirst($data['status'] ?? '') }}
                                                 </div>
                                             @else
-                                                <select wire:model.live="inputStudents.{{ $index }}.status_pulang" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm
+                                                <select wire:model.live="inputStudents.{{ $index }}.status_pulang" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-brand-primary cursor-pointer shadow-sm
                                                     {{ ($data['status_pulang'] ?? '') === 'pulang' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : '' }}
                                                     {{ ($data['status_pulang'] ?? '') === 'izin' ? 'text-blue-700 bg-blue-50 border-blue-200' : '' }}
                                                     {{ ($data['status_pulang'] ?? '') === 'sakit' ? 'text-indigo-700 bg-indigo-50 border-indigo-200' : '' }}
@@ -147,10 +147,10 @@
                     @endif
                 </div>
                 <div class="flex gap-3 w-full sm:w-auto justify-end mt-3 sm:mt-0">
-                    <button type="button" @click="showInputModal = false" class="inline-flex justify-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <button type="button" @click="showInputModal = false" class="inline-flex justify-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors">
                         Batal
                     </button>
-                    <button type="button" wire:click="saveManualInput" {{ $isInputDateHoliday ? 'disabled' : '' }} class="inline-flex justify-center items-center px-6 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-white {{ $isInputDateHoliday ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700' }} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <button type="button" wire:click="saveManualInput" {{ $isInputDateHoliday ? 'disabled' : '' }} class="inline-flex justify-center items-center px-6 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-white {{ $isInputDateHoliday ? 'bg-slate-400 cursor-not-allowed' : 'bg-brand-primary hover:bg-brand-secondary' }} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors">
                         <svg wire:loading wire:target="saveManualInput" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         Simpan Presensi
                     </button>

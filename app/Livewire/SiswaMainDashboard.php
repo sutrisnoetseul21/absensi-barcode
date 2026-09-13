@@ -27,6 +27,13 @@ class SiswaMainDashboard extends Component
     public $spikapAktifCount = 0;
     public $kelasName = '-';
 
+    // Guru Wali (Permendikdasmen No. 11/2025)
+    public $guruWaliName = null;
+    public $guruWaliPhoto = null;
+    public $hasGuruWali = false;
+    public $pendingKonsultasiCount = 0;
+    public $dijadwalkanKonsultasiCount = 0;
+
     // Form Properties untuk Alumni (Tracer Study)
     public $status_melanjutkan = false;
     public $jenjang_lanjutan_id = null;
@@ -96,6 +103,21 @@ class SiswaMainDashboard extends Component
                 $this->spikapAktifCount = \App\Models\SpikapLaporan::where('student_id', $this->student->id)
                     ->aktif()
                     ->count();
+
+                // Guru Wali Data
+                $keanggotaan = $this->student->kelompokGuruWali;
+                $guru = $keanggotaan?->kelompok?->teacher;
+                if ($guru) {
+                    $this->hasGuruWali = true;
+                    $this->guruWaliName = $guru->name;
+                    $this->guruWaliPhoto = $guru->photo_path;
+                    $this->pendingKonsultasiCount = \App\Models\KonsultasiGuruWali::where('student_id', $this->student->id)
+                        ->where('status_pengajuan', 'Menunggu Konfirmasi')
+                        ->count();
+                    $this->dijadwalkanKonsultasiCount = \App\Models\KonsultasiGuruWali::where('student_id', $this->student->id)
+                        ->where('status_pengajuan', 'Dijadwalkan')
+                        ->count();
+                }
             }
         }
     }

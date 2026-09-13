@@ -26,6 +26,7 @@ class GuruMainDashboard extends Component
     public $isWaliKelasAktif = false;
     public $isWaliKelasMurni = false;
     public $canAccessIjin = false;
+    public $isGuruWaliAktif = false;
 
     // SPIKAP Status Flags & Metrics
     public $hasSpikapAccess = false;
@@ -48,6 +49,7 @@ class GuruMainDashboard extends Component
         $this->isWaliKelasAktif = $user->isWaliKelasAktif();
         $this->isWaliKelasMurni = $user->isWaliKelasMurni();
         $this->canAccessIjin = $this->isWaliKelasMurni || ($user->isGuruBk() && $this->teacher?->kelasPantau()->exists());
+        $this->isGuruWaliAktif = (bool) ($this->teacher?->kelompokGuruWali && $this->teacher->kelompokGuruWali->status_aktif);
 
         // Check Multi-Portal Permissions
         $this->isSuperAdmin = $user->hasRole('super_admin');

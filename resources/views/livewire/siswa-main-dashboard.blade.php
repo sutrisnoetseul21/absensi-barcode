@@ -230,43 +230,43 @@
     @else
 
         <!-- Header / Welcome Hero Card -->
-        <div class="relative bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-900/20 overflow-hidden border border-indigo-500/20">
-            <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="relative bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-brand-secondary/20 rounded-full filter blur-3xl pointer-events-none"></div>
 
             <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-indigo-200 mb-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-white/90 mb-3">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         Portal Siswa & Akademik
                     </div>
                     <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
                         Selamat Datang, {{ $student?->name ?? 'Siswa' }}!
                     </h1>
-                    <p class="text-indigo-200/90 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
-                        Pantau kehadiran harian Anda, ajukan permohonan ijin, cek peminjaman buku perpustakaan, dan cetak kartu siswa mandiri.
+                    <p class="text-white/80 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
+                        Pantau kehadiran harian Anda, ajukan permohonan ijin, cek peminjaman buku perpustakaan, dan lakukan bimbingan bersama Guru Wali Anda.
                     </p>
                 </div>
 
                 <!-- Quick Summary Badges -->
                 <div class="flex flex-wrap sm:flex-nowrap gap-3 items-center self-start md:self-center">
                     <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 min-w-[120px]">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block">Kelas Aktif</span>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-white/80 block">Kelas Aktif</span>
                         <span class="text-xl font-extrabold text-white mt-0.5 block truncate">{{ $kelasName }}</span>
                     </div>
                     <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 min-w-[120px]">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 block">NISN</span>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-white/80 block">NISN</span>
                         <span class="text-xl font-extrabold text-white mt-0.5 block">{{ $student?->nisn ?? '-' }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 5 Main Shortcut Cards Grid (Fitur Utama Siswa) -->
+        <!-- 6+1 Main Shortcut Cards Grid (Fitur Utama Siswa) -->
         <div class="space-y-3">
             <div>
                 <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                     Pintasan Menu Utama Siswa
@@ -274,7 +274,7 @@
                 <p class="text-xs text-slate-500 mt-0.5">Akses cepat ke seluruh layanan dan modul portal siswa:</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 
                 <!-- Shortcut 1: Presensi & Akademik -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col justify-between group">
@@ -294,6 +294,44 @@
                     </div>
                     <a href="{{ route('portal-siswa.akademik') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-emerald-600 hover:text-emerald-700 pt-3 border-t border-slate-100">
                         <span>Buka Presensi</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+
+                <!-- Shortcut 2: Bimbingan Guru Wali (Permendikdasmen No. 11/2025) -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center group-hover:scale-105 group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xs">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            @if($dijadwalkanKonsultasiCount > 0)
+                                <span class="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-xl">
+                                    {{ $dijadwalkanKonsultasiCount }} Dijadwalkan
+                                </span>
+                            @elseif($pendingKonsultasiCount > 0)
+                                <span class="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xl">
+                                    {{ $pendingKonsultasiCount }} Menunggu
+                                </span>
+                            @elseif($hasGuruWali)
+                                <span class="text-xs font-bold text-brand-primary bg-brand-primary/10 border border-brand-primary/20 px-2.5 py-1 rounded-xl">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl">
+                                    Belum Ada
+                                </span>
+                            @endif
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-brand-primary transition-colors">Guru Wali (Bimbingan)</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">
+                            {{ $guruWaliName ? 'Pembimbing: '.$guruWaliName : 'Saluran konsultasi akademik dan bimbingan murid.' }}
+                        </p>
+                    </div>
+                    <a href="{{ route('portal-siswa.guru-wali') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-brand-primary hover:text-brand-secondary pt-3 border-t border-slate-100">
+                        <span>Konsultasi</span>
                         <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </a>
                 </div>
@@ -404,22 +442,22 @@
                 </div>
 
                 <!-- Shortcut 6: Profil Saya -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all flex flex-col justify-between group">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center group-hover:scale-105 group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xs">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
-                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-xl">
+                            <span class="text-xs font-bold text-brand-primary bg-brand-primary/10 border border-brand-primary/20 px-2.5 py-1 rounded-xl">
                                 Biodata
                             </span>
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Profil Saya</h3>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-brand-primary transition-colors">Profil Saya</h3>
                         <p class="text-xs text-slate-500 mt-1 line-clamp-2">Periksa biodata siswa, data orang tua, dan ganti password.</p>
                     </div>
-                    <a href="{{ route('portal-siswa.profil') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-indigo-600 hover:text-indigo-700 pt-3 border-t border-slate-100">
+                    <a href="{{ route('portal-siswa.profil') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-brand-primary hover:text-brand-secondary pt-3 border-t border-slate-100">
                         <span>Lihat Profil</span>
                         <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </a>

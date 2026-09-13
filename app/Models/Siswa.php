@@ -152,6 +152,39 @@ class Siswa extends Authenticatable
         return $this->hasOne(StudentPresensiProfile::class, 'student_id');
     }
 
+    /**
+     * Keanggotaan aktif siswa di kelompok Guru Wali saat ini.
+     * Mengembalikan satu baris KelompokGuruWaliSiswa dengan status_aktif = true.
+     * Null jika siswa belum/tidak lagi punya Guru Wali aktif.
+     */
+    public function kelompokGuruWali(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\KelompokGuruWaliSiswa::class, 'student_id')
+                    ->where('status_aktif', true);
+    }
+
+    /**
+     * Semua riwayat keanggotaan kelompok Guru Wali (aktif maupun arsip).
+     * Dipakai untuk histori "pernah didampingi Guru Wali siapa saja"
+     * di Portal Siswa/Admin (read-only).
+     * Berbeda dengan kelompokGuruWali() yang hanya mengembalikan yang aktif.
+     */
+    public function riwayatGuruWali(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\KelompokGuruWaliSiswa::class, 'student_id')
+                    ->orderBy('created_at', 'desc');
+    }
+
+    public function jurnalGuruWalis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\JurnalGuruWali::class, 'student_id');
+    }
+
+    public function konsultasiGuruWalis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\KonsultasiGuruWali::class, 'student_id');
+    }
+
 
 
     protected function noHp(): Attribute
