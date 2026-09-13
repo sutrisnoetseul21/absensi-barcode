@@ -677,7 +677,8 @@
                         $isGwJurnal = request()->routeIs('portal-guru.guru-wali.jurnal*');
                         $isGwKonsultasi = request()->routeIs('portal-guru.guru-wali.konsultasi*');
                         $isGwPemantauan = request()->routeIs('portal-guru.guru-wali.pemantauan*');
-                        $isGuruWaliGroupActive = $isGwKelompok || $isGwJurnal || $isGwKonsultasi || $isGwPemantauan;
+                        $isGwCetak = request()->routeIs('portal-guru.guru-wali.cetak*');
+                        $isGuruWaliGroupActive = $isGwKelompok || $isGwJurnal || $isGwKonsultasi || $isGwPemantauan || $isGwCetak;
 
                         $pendingKonsultasiCount = 0;
                         if ($isGuruWaliAktif && $user?->teacher) {
@@ -826,6 +827,13 @@
                                class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isGwPemantauan ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                 <span class="w-1.5 h-1.5 rounded-full {{ $isGwPemantauan ? 'bg-white' : 'bg-slate-400' }}"></span>
                                 <span class="truncate">Pemantauan Bulanan</span>
+                            </a>
+
+                            <!-- Cetak Laporan -->
+                            <a href="{{ route('portal-guru.guru-wali.cetak') }}" 
+                               class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isGwCetak ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $isGwCetak ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                <span class="truncate">Cetak Laporan</span>
                             </a>
                         </div>
                     </div>

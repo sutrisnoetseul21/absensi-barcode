@@ -320,6 +320,11 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
             Route::get('/jurnal/{id}/edit', \App\Livewire\PortalGuru\GuruWali\JurnalForm::class)->name('jurnal.edit');
             Route::get('/konsultasi', \App\Livewire\PortalGuru\GuruWali\KonsultasiList::class)->name('konsultasi');
             Route::get('/pemantauan', \App\Livewire\PortalGuru\GuruWali\PemantauanBulanan::class)->name('pemantauan');
+            Route::get('/cetak', \App\Livewire\PortalGuru\GuruWali\CetakLaporanGuruWali::class)->name('cetak');
+            Route::get('/cetak/individual/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakIndividual'])->name('cetak.individual.print');
+            Route::get('/cetak/individual/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfIndividual'])->name('cetak.individual.pdf');
+            Route::get('/cetak/kelompok/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakKelompok'])->name('cetak.kelompok.print');
+            Route::get('/cetak/kelompok/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfKelompok'])->name('cetak.kelompok.pdf');
         });
 
         Route::post('/logout', function () {
