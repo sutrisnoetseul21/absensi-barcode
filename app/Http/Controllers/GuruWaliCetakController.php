@@ -55,19 +55,28 @@ class GuruWaliCetakController extends Controller
         $nipKepsek = $kepsek ? $kepsek->nip : ($settings?->principal_nip ?? config('school.kepala_sekolah_nip', '—'));
         $namaKota = $settings?->tempat_rapor ?? ($settings?->kota ?? config('school.kota', 'Kedungreja'));
 
-        $logoBase64 = null;
+        $logoSekolahBase64 = null;
         if ($settings?->school_logo_path && file_exists(public_path('storage/' . $settings->school_logo_path))) {
             $logoPath = public_path('storage/' . $settings->school_logo_path);
             $ext = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/' . ($ext === 'jpg' ? 'jpeg' : $ext) . ';base64,' . base64_encode(file_get_contents($logoPath));
+            $logoSekolahBase64 = 'data:image/' . ($ext === 'jpg' ? 'jpeg' : $ext) . ';base64,' . base64_encode(file_get_contents($logoPath));
+        }
+
+        $logoPemdaBase64 = null;
+        if ($settings?->district_logo_path && file_exists(public_path('storage/' . $settings->district_logo_path))) {
+            $logoPath = public_path('storage/' . $settings->district_logo_path);
+            $ext = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $logoPemdaBase64 = 'data:image/' . ($ext === 'jpg' ? 'jpeg' : $ext) . ';base64,' . base64_encode(file_get_contents($logoPath));
         }
 
         return [
-            'settings'   => $settings,
-            'namaKepsek' => $namaKepsek,
-            'nipKepsek'  => $nipKepsek,
-            'namaKota'   => $namaKota,
-            'logoBase64' => $logoBase64,
+            'settings'          => $settings,
+            'namaKepsek'        => $namaKepsek,
+            'nipKepsek'         => $nipKepsek,
+            'namaKota'          => $namaKota,
+            'logoBase64'        => $logoSekolahBase64 ?? $logoPemdaBase64,
+            'logoSekolahBase64' => $logoSekolahBase64,
+            'logoPemdaBase64'   => $logoPemdaBase64,
         ];
     }
 
