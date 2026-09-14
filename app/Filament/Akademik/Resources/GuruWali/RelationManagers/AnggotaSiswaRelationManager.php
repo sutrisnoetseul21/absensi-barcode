@@ -227,20 +227,81 @@ class AnggotaSiswaRelationManager extends RelationManager
             ->actions([
                 EditAction::make(),
 
+                // 1. Keluarkan (Arsipkan) Siswa Aktif
                 Action::make('keluarkan')
                     ->label('Keluarkan (Arsipkan)')
                     ->icon('heroicon-o-arrow-right-on-rectangle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Keluarkan Siswa dari Kelompok?')
-                    ->modalDescription('Siswa akan dikeluarkan dari kelompok ini, namun riwayat keanggotaan dan jurnal tetap tersimpan sebagai arsip (tidak dihapus permanen).')
-                    ->modalSubmitActionLabel('Ya, Keluarkan')
+                    ->modalIcon('heroicon-o-exclamation-triangle')
+                    ->modalHeading(fn ($record) => "Keluarkan " . ($record->siswa?->name ?? 'Siswa') . " dari Kelompok?")
+                    ->modalDescription(fn ($record) => "Apakah Anda yakin ingin mengeluarkan siswa " . ($record->siswa?->name ?? 'ini') . " (NISN: " . ($record->siswa?->nisn ?? '—') . ") dari kelompok ini?\n\nSiswa akan dipindahkan ke tab 'Riwayat / Arsip'. Seluruh riwayat sesi pendampingan dan jurnal yang pernah dicatat akan tetap tersimpan aman.")
+                    ->modalSubmitActionLabel('Ya, Keluarkan (Arsipkan)')
+                    ->modalCancelActionLabel('Batal')
                     ->visible(fn ($record) => (bool) $record->status_aktif)
                     ->action(function ($record) {
+                        $nama = $record->siswa?->name ?? 'Siswa';
                         $record->update(['status_aktif' => false]);
                         Notification::make()
-                            ->title('Siswa berhasil dikeluarkan dari kelompok')
-                            ->body('Riwayat tetap tersimpan sebagai arsip.')
+                            ->title("{$nama} berhasil dikeluarkan")
+                            ->body('Data keanggotaan telah dipindahkan ke tab Riwayat / Arsip.')
+                            ->success()
+                            ->send();
+                    }),
+
+                // 2. Aktifkan Kembali Siswa dari Tab Arsip
+                Action::make('aktifkan_kembali')
+                    ->label('Aktifkan Kembali')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalIcon('heroicon-o-arrow-uturn-left')
+                    ->modalHeading(fn ($record) => "Aktifkan Kembali " . ($record->siswa?->name ?? 'Siswa') . "?")
+                    ->modalDescription(fn ($record) => "Siswa " . ($record->siswa?->name ?? 'ini') . " akan dikembalikan dari tab arsip menjadi anggota aktif kelompok ini.")
+                    ->modalSubmitActionLabel('Ya, Aktifkan Kembali')
+                    ->modalCancelActionLabel('Batal')
+                    ->visible(fn ($record) => ! (bool) $record->status_aktif)
+                    ->action(function ($record) {
+                        $studentId = $record->student_id;
+                        $kelompokId = $record->kelompok_id;
+
+                        // Arsipkan jika saat ini aktif di kelompok lain
+                        $activeLain = KelompokGuruWaliSiswa::where('student_id', $studentId)
+                            ->where('status_aktif', true)
+                            ->where('kelompok_id', '!=', $kelompokId)
+                            ->first();
+
+                        if ($activeLain) {
+                            $activeLain->update(['status_aktif' => false]);
+                        }
+
+                        $record->update(['status_aktif' => true]);
+
+                        Notification::make()
+                            ->title('Siswa Berhasil Diaktifkan')
+                            ->body(($record->siswa?->name ?? 'Siswa') . ' kini kembali berstatus anggota aktif kelompok ini.')
+                            ->success()
+                            ->send();
+                    }),
+
+                // 3. Hapus Permanen Baris Arsip (Hanya untuk Admin/Editor)
+                Action::make('hapus_arsip')
+                    ->label('Hapus Arsip')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalIcon('heroicon-o-trash')
+                    ->modalHeading(fn ($record) => "Hapus Data Arsip " . ($record->siswa?->name ?? 'Siswa') . "?")
+                    ->modalDescription(fn ($record) => "PERINGATAN: Menghapus arsip ini akan menghapus riwayat keanggotaan siswa secara permanen dari kelompok ini. Tindakan ini tidak dapat dibatalkan.")
+                    ->modalSubmitActionLabel('Ya, Hapus Permanen')
+                    ->modalCancelActionLabel('Batal')
+                    ->visible(fn ($record) => ! (bool) $record->status_aktif && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
+                    ->action(function ($record) {
+                        $nama = $record->siswa?->name ?? 'Siswa';
+                        $record->delete();
+                        Notification::make()
+                            ->title('Arsip Berhasil Dihapus')
+                            ->body("Data riwayat keanggotaan {$nama} telah dihapus permanen.")
                             ->success()
                             ->send();
                     }),
