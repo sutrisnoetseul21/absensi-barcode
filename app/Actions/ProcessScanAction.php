@@ -70,6 +70,7 @@ class ProcessScanAction
         }
 
         $settings = PengaturanSekolah::current();
+        $enableCheckout = $settings ? ($settings->enable_checkout ?? true) : true;
         $batas_scan_datang_time = $settings ? $settings->batas_scan_datang_time : '09:00:00';
         $start_scan_out_time = $settings ? $settings->start_scan_out_time : '13:00:00';
         
@@ -77,7 +78,7 @@ class ProcessScanAction
         $startOutCarbon = Carbon::parse($date . ' ' . $start_scan_out_time, 'Asia/Jakarta');
 
         // 4. Proses Transaksional State-Based
-        $result = DB::transaction(function () use ($siswa, $date, $now, $scanTime, $enrollment, $classId, $academicYearId, $batasCarbon, $startOutCarbon, $settings) {
+        $result = DB::transaction(function () use ($siswa, $date, $now, $scanTime, $enrollment, $classId, $academicYearId, $batasCarbon, $startOutCarbon, $settings, $enableCheckout) {
             
             $presensi = Presensi::where('student_id', $siswa->id)
                 ->where('date', $date)
@@ -86,6 +87,18 @@ class ProcessScanAction
 
             if ($presensi) {
                 // JIKA $presensi ADA (State = Sudah ada rekam jejak)
+                // Jika Presensi Pulang dimatikan, tolak scan ulang
+                if (!$enableCheckout) {
+                    return [
+                        'status' => 'already_scanned',
+                        'name' => $siswa->name,
+                        'class_name' => $enrollment->kelas->name ?? '',
+                        'photo_url' => $siswa->photo_path ? asset('storage/'.$siswa->photo_path) : null,
+                        'message' => 'Anda sudah melakukan presensi hari ini.',
+                        'log_status' => 'already_scanned'
+                    ];
+                }
+
                 if (in_array($presensi->status, Presensi::BLOCKED_OUT_STATUSES)) {
                     return [
                         'status' => 'blocked_status',
@@ -137,7 +150,7 @@ class ProcessScanAction
             } else {
                 // JIKA $presensi TIDAK ADA (State = Belum absen hari ini)
                 if ($now->greaterThan($batasCarbon)) {
-                    if ($now->greaterThanOrEqualTo($startOutCarbon)) {
+                    if ($enableCheckout && $now->greaterThanOrEqualTo($startOutCarbon)) {
                         return [
                             'status' => 'rejected_no_scan_in',
                             'name' => $siswa->name,

@@ -396,6 +396,11 @@ class WaliKelasSholatDhuhur extends Component
         }
     }
 
+    public function downloadPdf()
+    {
+        return $this->downloadCetakPdf();
+    }
+
     public function downloadCetakPdf()
     {
         if (! $this->selectedClassId || ! $this->selectedAcademicYearId) return;
@@ -431,7 +436,7 @@ class WaliKelasSholatDhuhur extends Component
                 'periodeLabel'      => $range['label'],
                 'kelas'             => $kelas,
                 'sekolah'           => $sekolah,
-                'waliKelas'         => Auth::user()->teacher,
+                'waliKelas'         => Auth::user()->teacher ?? $kelas?->waliKelas($this->selectedAcademicYearId),
                 'generatedAt'       => now()->locale('id')->translatedFormat('l, d F Y H:i'),
             ])->setPaper('a4', 'landscape');
 
@@ -455,7 +460,7 @@ class WaliKelasSholatDhuhur extends Component
             'periodeLabel' => $range['label'],
             'kelas'        => $kelas,
             'sekolah'      => $sekolah,
-            'waliKelas'    => Auth::user()->teacher,
+            'waliKelas'    => Auth::user()->teacher ?? $kelas?->waliKelas($this->selectedAcademicYearId),
             'generatedAt'  => now()->locale('id')->translatedFormat('l, d F Y H:i'),
         ])->setPaper('a4', 'landscape');
 

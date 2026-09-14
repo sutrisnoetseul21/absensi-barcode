@@ -26,9 +26,11 @@ class SiswaDashboard extends Component
     public $attendancePercentage = 0;
     public $recentActivity = [];
     public $holidays = [];
+    public bool $enableCheckout = true;
 
     public function mount()
     {
+        $this->enableCheckout = \App\Models\PengaturanSekolah::current()?->enable_checkout ?? true;
         $this->student = Auth::user()->student;
         $this->enrollment = $this->student->enrollmentAktif()->with(['kelas', 'tahunAjaran'])->first();
         

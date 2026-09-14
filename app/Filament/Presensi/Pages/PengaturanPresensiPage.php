@@ -54,6 +54,7 @@ class PengaturanPresensiPage extends Page implements HasForms
         // Load data singleton pengaturan sekolah
         $settings = PengaturanSekolah::current();
         $data = $settings ? $settings->toArray() : [];
+        $data['enable_checkout'] = $settings ? (bool)($settings->enable_checkout ?? true) : true;
 
         // Load data WhatsApp Settings (Koneksi API saja)
         $wa = \App\Models\WhatsAppSetting::current();
@@ -94,9 +95,17 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->seconds(false)
                             ->helperText('Maksimal jam siswa bisa absen datang lewat mesin scanner. Lewat dari ini ditolak otomatis.'),
 
+                        Toggle::make('enable_checkout')
+                            ->label('Aktifkan Presensi Pulang (Check-out)')
+                            ->helperText('Jika dinonaktifkan, Kiosk Scanner dan menu presensi hanya mencatat kedatangan, dan kolom pulang disembunyikan.')
+                            ->default(true)
+                            ->reactive()
+                            ->columnSpanFull(),
+
                         TimePicker::make('start_scan_out_time')
                             ->label('Jam Mulai Absen Pulang (Kiosk)')
-                            ->required()
+                            ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => (bool) $get('enable_checkout'))
+                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => (bool) $get('enable_checkout'))
                             ->seconds(false)
                             ->helperText('Mesin scanner akan menganggap tap kartu setelah jam ini sebagai absen pulang.'),
 

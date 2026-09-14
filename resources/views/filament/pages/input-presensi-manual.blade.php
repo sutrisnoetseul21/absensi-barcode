@@ -104,6 +104,7 @@
 
                                     <th class="px-4 py-3 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Menit Telat</th>
                                     
+                                    @if($enableCheckout)
                                     {{-- HEADER PULANG MASSAL --}}
                                     <th class="px-4 py-3 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                         <div class="flex flex-col items-center gap-1.5">
@@ -118,6 +119,7 @@
                                             </select>
                                         </div>
                                     </th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -165,6 +167,7 @@
                                         <span class="text-gray-300 dark:text-gray-700">-</span>
                                         @endif
                                     </td>
+                                    @if($enableCheckout)
                                     <td class="px-4 py-3 text-center w-48">
                                         @php
                                             $isNonAttendance = in_array($curStatus, ['izin', 'sakit', 'alpa']);
@@ -190,6 +193,7 @@
                                             </select>
                                         @endif
                                     </td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>

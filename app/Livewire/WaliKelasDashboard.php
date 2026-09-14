@@ -41,6 +41,7 @@ class WaliKelasDashboard extends Component
     public $inputStudents = [];
     public $bulkStatusDatang = '';
     public $bulkStatusPulang = '';
+    public bool $enableCheckout = true;
 
     // Cetak Laporan Modals
     public $showCetakModal = false;
@@ -50,6 +51,7 @@ class WaliKelasDashboard extends Component
 
     public function mount()
     {
+        $this->enableCheckout = PengaturanSekolah::current()?->enable_checkout ?? true;
         $user = Auth::user();
         if (!$user || !$user->isWaliKelasAktif()) {
             abort(403, 'Akses ditolak: Anda tidak memiliki penugasan kelas binaan aktif.');

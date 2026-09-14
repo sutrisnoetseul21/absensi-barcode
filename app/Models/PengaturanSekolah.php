@@ -31,6 +31,7 @@ class PengaturanSekolah extends Model
         'checkin_time',
         'batas_scan_datang_time',
         'start_scan_out_time',
+        'enable_checkout',
         'auto_alpa_active',
         'auto_alpa_time',
         'last_auto_alpa_run_date',
@@ -62,6 +63,7 @@ class PengaturanSekolah extends Model
 
     protected $casts = [
         'checkin_time'                    => 'string',
+        'enable_checkout'                 => 'boolean',
         'auto_alpa_active'                => 'boolean',
         'auto_alpa_time'                  => 'string',
         'last_auto_alpa_run_date'         => 'date',

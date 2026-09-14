@@ -21,7 +21,11 @@ class PresensiObserver
 
         // 2. Cek perubahan di kolom `status_pulang` (saat absen pulang / update manual)
         if ($presensi->wasChanged('status_pulang')) {
-            $this->processNotification($presensi, $presensi->status_pulang);
+            $settings = PengaturanSekolah::current();
+            $enableCheckout = $settings ? ($settings->enable_checkout ?? true) : true;
+            if ($enableCheckout) {
+                $this->processNotification($presensi, $presensi->status_pulang);
+            }
         }
     }
 

@@ -117,6 +117,7 @@
                                         </div>
                                     </th>
                                     <th class="px-4 py-4 text-center font-bold uppercase tracking-wider">Menit Telat</th>
+                                    @if($enableCheckout)
                                     <th class="px-4 py-4 text-center font-bold">
                                         <div class="flex flex-col items-center gap-2">
                                             <span class="uppercase tracking-wider">Jam Pulang</span>
@@ -129,6 +130,7 @@
                                             </select>
                                         </div>
                                     </th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -175,6 +177,7 @@
                                                 <span class="text-slate-300">-</span>
                                             @endif
                                         </td>
+                                        @if($enableCheckout)
                                         <td class="px-4 py-3 text-center">
                                             @if($isNonAttendance)
                                                 <div class="w-40 mx-auto py-2 px-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm font-bold opacity-80 cursor-not-allowed">
@@ -197,6 +200,7 @@
                                                 </select>
                                             @endif
                                         </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -290,7 +290,7 @@
                                         <span class="text-[9px] sm:text-[10px] mt-0.5 font-bold tracking-tight opacity-80 {{ $textColor }}">
                                             In: {{ substr($data['scan_time'], 0, 5) }}
                                         </span>
-                                        @if(isset($data['scan_out_time']) && $data['scan_out_time'])
+                                        @if($enableCheckout && isset($data['scan_out_time']) && $data['scan_out_time'])
                                         <span class="text-[9px] sm:text-[10px] font-bold tracking-tight opacity-80 {{ $textColor }}">
                                             Out: {{ substr($data['scan_out_time'], 0, 5) }}
                                         </span>
@@ -368,7 +368,7 @@
                                         @elseif($activity->scan_time)
                                             <span class="mx-1.5">•</span>
                                             <span class="text-indigo-600 font-semibold border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 rounded">Datang: {{ substr($activity->scan_time, 0, 5) }}</span>
-                                            @if($activity->scan_out_time)
+                                            @if($enableCheckout && $activity->scan_out_time)
                                                 <span class="mx-1.5">•</span>
                                                 <span class="text-teal-600 font-semibold border border-teal-100 bg-teal-50 px-1.5 py-0.5 rounded">Pulang: {{ substr($activity->scan_out_time, 0, 5) }}</span>
                                             @endif

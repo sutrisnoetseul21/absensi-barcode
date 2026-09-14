@@ -48,6 +48,7 @@
                                         </div>
                                     </th>
                                     <th class="py-3 px-4 w-1/5 text-center">Telat (Menit)</th>
+                                    @if($enableCheckout)
                                     <th class="py-3 px-4 text-center">
                                         <div class="flex flex-col items-center gap-1.5">
                                             <span>Pulang</span>
@@ -60,6 +61,7 @@
                                             </select>
                                         </div>
                                     </th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 bg-white">
@@ -101,6 +103,7 @@
                                                 <span class="text-slate-300 text-sm font-medium italic">Tidak relevan</span>
                                             @endif
                                         </td>
+                                        @if($enableCheckout)
                                         <td class="py-3 px-4">
                                             @php
                                                 $isNonAttendance = in_array($data['status'] ?? '', ['izin', 'sakit', 'alpa']);
@@ -124,6 +127,7 @@
                                                 </select>
                                             @endif
                                         </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>

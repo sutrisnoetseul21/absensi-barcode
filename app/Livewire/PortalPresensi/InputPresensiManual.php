@@ -27,9 +27,11 @@ class InputPresensiManual extends Component
     public $bulkStatusDatang = '';
     public $bulkStatusPulang = '';
     public bool $hasSubmittedFilter = false;
+    public bool $enableCheckout = true;
 
     public function mount(): void
     {
+        $this->enableCheckout = \App\Models\PengaturanSekolah::current()?->enable_checkout ?? true;
         $this->inputDate      = null;
         $this->selectedClassId = null;
         $this->academicYears  = TahunAjaran::orderBy('start_year', 'desc')->get();
