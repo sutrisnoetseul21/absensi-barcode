@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Jabatan;
 use App\Models\SpikapNotifSetting;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -76,19 +77,59 @@ class SpikapNotifSettingPage extends Page implements HasForms
     public function mount(): void
     {
         $setting = SpikapNotifSetting::instance();
+
+        // Gabungkan handlers + recipients menjadi satu set pilihan terpadu
+        $unified = array_values(array_unique(array_merge(
+            $setting->getActiveEmergencyHandlers(),
+            $setting->getActiveRecipients()
+        )));
+
         $this->form->fill([
             'nama_aplikasi'              => $setting->getNamaAplikasi(),
             'sub_judul'                  => $setting->getSubJudul(),
             'slug_url'                   => $setting->getSlugUrl(),
             'penjelasan_aplikasi'        => $setting->getPenjelasanAplikasi(),
-            'emergency_handlers'         => $setting->getActiveEmergencyHandlers(),
-            'recipients'                 => $setting->getActiveRecipients(),
+            'unified_darurat_targets'    => $unified,
             'notify_guru_laporan_biasa'  => $setting->shouldNotifyGuruLaporanBiasa(),
             'notify_siswa_apresiasi'     => $setting->shouldNotifySiswaApresiasi(),
             'notify_siswa_tindak_lanjut' => $setting->shouldNotifySiswaTindakLanjut(),
             'target_penerima_siswa'      => $setting->getTargetPenerimaSiswa(),
         ]);
     }
+
+    /**
+     * Bangun semua opsi jabatan: 4 jabatan tetap sistem + jabatan lain dari tabel jabatans.
+     * Return format: ['key' => 'Label'] — semua dalam satu flat array.
+     */
+    private function getAllDaruratOptions(): array
+    {
+        $fixed = [
+            'kepala_sekolah' => 'Kepala Sekolah',
+            'wali_kelas'     => 'Wali Kelas',
+            'guru_bk'        => 'Guru BK',
+            'waka_kesiswaan' => 'Waka Kesiswaan',
+        ];
+
+        try {
+            $excludeNames = [
+                'Kepala Sekolah', 'Guru BK', 'BK', 'Bimbingan Konseling', 'Bimbingan dan Konseling',
+                'Waka Kesiswaan', 'Wakil Kepala Sekolah Bidang Kesiswaan',
+                'Wakil Kepala Sekolah Bagian Kesiswaan', 'Kesiswaan',
+            ];
+
+            $dynamic = Jabatan::whereNotIn('nama_jabatan', $excludeNames)
+                ->orderBy('nama_jabatan')
+                ->pluck('nama_jabatan')
+                ->mapWithKeys(fn($j) => ["jabatan:{$j}" => $j])
+                ->toArray();
+
+            return array_merge($fixed, $dynamic);
+        } catch (\Throwable $e) {
+            return $fixed;
+        }
+    }
+
+
 
     public function form(Schema $schema): Schema
     {
@@ -132,48 +173,14 @@ class SpikapNotifSettingPage extends Page implements HasForms
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Wewenang Penanganan Laporan Darurat (Portal Guru)')
-                    ->description('Tentukan pihak mana saja yang berhak melihat dan menindaklanjuti (mengubah status / investigasi / mediasi / penutupan kasus) setiap laporan darurat di Portal Guru.')
+                Section::make('Penanganan Laporan Darurat')
+                    ->description('Pilih jabatan yang berhak menangani laporan darurat di Portal Guru sekaligus otomatis menerima notifikasi WhatsApp saat laporan masuk. Pilih sesuka Anda — satu jabatan, beberapa, atau semua.')
                     ->schema([
-                        Forms\Components\CheckboxList::make('emergency_handlers')
-                            ->label('Daftar Pihak yang Berwenang')
-                            ->options([
-                                'wali_kelas'     => 'Wali Kelas — Wali kelas dari rombel siswa yang melapor.',
-                                'kepala_sekolah' => 'Kepala Sekolah — Pimpinan tertinggi yang memantau eskalasi darurat.',
-                                'guru_bk'        => 'Guru BK — Guru Bimbingan Konseling untuk penanganan psikis & pembinaan.',
-                                'waka_kesiswaan' => 'Waka Kesiswaan — Wakil Kepala Sekolah Bidang Kesiswaan.',
-                            ])
-                            ->descriptions([
-                                'wali_kelas'     => 'Direkomendasikan: Wali kelas adalah pendamping langsung siswa di kelas.',
-                                'kepala_sekolah' => 'Direkomendasikan: Mengizinkan Kepala Sekolah langsung mengambil tindakan cepat.',
-                                'guru_bk'        => 'Opsional: Centang jika Guru BK diberikan hak investigasi langsung untuk kasus darurat.',
-                                'waka_kesiswaan' => 'Opsional: Centang jika Waka Kesiswaan diikutsertakan dalam penanganan kasus darurat.',
-                            ])
-                            ->columns(1)
-                            ->required()
-                            ->helperText(fn () => 'Pihak yang dicentang akan dapat melihat laporan darurat di inbox Portal Guru dan form Tindak Lanjut akan aktif (dapat memperbarui status). Super Admin dan Admin ' . SpikapNotifSetting::instance()->getNamaAplikasi() . ' selalu memiliki wewenang penuh.'),
-                    ]),
-
-                Section::make('Penerima Notifikasi WhatsApp Laporan Darurat')
-                    ->description('Tentukan pihak mana saja yang otomatis menerima pesan WhatsApp segera setelah siswa mengirimkan laporan darurat.')
-                    ->schema([
-                        Forms\Components\CheckboxList::make('recipients')
-                            ->label('Daftar Penerima Notifikasi')
-                            ->options([
-                                'wali_kelas'     => 'Wali Kelas — Otomatis mendeteksi wali kelas dari rombel/kelas aktif siswa yang melapor.',
-                                'kepala_sekolah' => 'Kepala Sekolah — Otomatis mendeteksi guru dengan jabatan Kepala Sekolah di sistem.',
-                                'guru_bk'        => 'Guru BK — Seluruh guru dengan jabatan Guru BK di sistem.',
-                                'waka_kesiswaan' => 'Waka Kesiswaan — Seluruh guru dengan jabatan Waka Kesiswaan di sistem.',
-                            ])
-                            ->descriptions([
-                                'wali_kelas'     => 'Direkomendasikan: Wali kelas merupakan pihak pertama yang mendampingi siswa di kelas.',
-                                'kepala_sekolah' => 'Direkomendasikan: Pimpinan sekolah memantau seluruh eskalasi kasus darurat.',
-                                'guru_bk'        => 'Opsional: Dapat diaktifkan jika Guru BK juga perlu disiagakan sejak detik pertama laporan darurat.',
-                                'waka_kesiswaan' => 'Opsional: Dapat diaktifkan untuk koordinasi pembinaan kesiswaan.',
-                            ])
-                            ->columns(1)
-                            ->required()
-                            ->helperText('Catatan: Pengiriman WA menggunakan gateway resmi sekolah. Pastikan nomor HP guru terkait sudah terdaftar dengan format yang benar pada modul Data Guru.'),
+                        Forms\Components\CheckboxList::make('unified_darurat_targets')
+                            ->label('Jabatan Penanganan & Penerima WA Darurat')
+                            ->options(fn () => $this->getAllDaruratOptions())
+                            ->columns(3)
+                            ->helperText(fn () => 'Jabatan yang dicentang akan: (1) dapat melihat & menindaklanjuti laporan darurat di Portal Guru, dan (2) otomatis menerima notifikasi WhatsApp. Super Admin & Admin ' . SpikapNotifSetting::instance()->getNamaAplikasi() . ' selalu memiliki wewenang penuh tanpa perlu dicentang.'),
                     ]),
 
                 Section::make('Notifikasi WhatsApp Laporan Biasa ke Guru')
@@ -231,13 +238,24 @@ class SpikapNotifSettingPage extends Page implements HasForms
             $slugUrl = \Illuminate\Support\Str::slug($inputSlug);
         }
 
+        // Pilihan terpadu: satu field mengontrol sekaligus handlers (portal) & recipients (WA)
+        $unified = array_values(array_filter($data['unified_darurat_targets'] ?? []));
+
+        // emergency_handlers: hanya key tetap yang valid di sistem (wali_kelas, kepala_sekolah, dll.)
+        // jabatan custom (prefix 'jabatan:') tidak masuk handlers karena tidak ada role-check-nya di sistem
+        $fixedKeys   = ['wali_kelas', 'kepala_sekolah', 'guru_bk', 'waka_kesiswaan'];
+        $allHandlers = array_values(array_filter($unified, fn($k) => in_array($k, $fixedKeys)));
+
+        // recipients: semua yang dipilih (termasuk jabatan custom) mendapat notifikasi WA
+        $allRecipients = $unified;
+
         $setting->update([
             'nama_aplikasi'              => $namaApp,
             'sub_judul'                  => trim($data['sub_judul'] ?? '') ?: 'Anti-Perundungan & Pengaduan Siswa',
             'slug_url'                   => $slugUrl ?: 'spikap',
             'penjelasan_aplikasi'        => trim($data['penjelasan_aplikasi'] ?? '') ?: 'Sistem Pelaporan Integratif Konflik & Anti-Perundungan SPENSA',
-            'emergency_handlers'         => $data['emergency_handlers'] ?? ['wali_kelas', 'kepala_sekolah'],
-            'recipients'                 => $data['recipients'] ?? [],
+            'emergency_handlers'         => $allHandlers,
+            'recipients'                 => $allRecipients,
             'notify_guru_laporan_biasa'  => (bool) ($data['notify_guru_laporan_biasa'] ?? false),
             'notify_siswa_apresiasi'     => (bool) ($data['notify_siswa_apresiasi'] ?? false),
             'notify_siswa_tindak_lanjut' => (bool) ($data['notify_siswa_tindak_lanjut'] ?? false),

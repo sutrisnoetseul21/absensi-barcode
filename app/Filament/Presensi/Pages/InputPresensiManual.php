@@ -9,6 +9,7 @@ use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\Presensi;
 use App\Models\EnrollmentSiswa;
+use App\Models\PengaturanSekolah;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 

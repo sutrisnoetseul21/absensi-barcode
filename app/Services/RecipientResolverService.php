@@ -159,8 +159,20 @@ class RecipientResolverService
                         $seenNumbers[$hp] = true;
                     }
                 }
+            } elseif (str_starts_with($key, 'jabatan:')) {
+                // Jabatan custom dari tabel jabatans (prefix 'jabatan:NamaJabatan')
+                $namaJabatan = substr($key, strlen('jabatan:'));
+                if (!empty($namaJabatan)) {
+                    $jabatansHp = $this->resolveByJabatan($namaJabatan);
+                    foreach ($jabatansHp as $hp) {
+                        if ($hp && !isset($seenNumbers[$hp])) {
+                            $resolved[] = ['number' => $hp, 'type' => 'jabatan_custom'];
+                            $seenNumbers[$hp] = true;
+                        }
+                    }
+                }
             } else {
-                // Jabatan (misal 'Guru BK')
+                // Jabatan tetap lainnya (guru_bk, waka_kesiswaan, dll.)
                 $jabatansHp = $this->resolveByJabatan($key);
                 foreach ($jabatansHp as $hp) {
                     if ($hp && !isset($seenNumbers[$hp])) {
