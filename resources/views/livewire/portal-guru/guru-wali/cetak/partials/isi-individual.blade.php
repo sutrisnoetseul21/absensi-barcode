@@ -79,6 +79,9 @@
                     {{ $jurnal->rencana_tindak_lanjut ?? '—' }}
                     @if($jurnal->rujukan_kolaborasi && $jurnal->rujukan_kolaborasi !== 'Mandiri')
                         <div style="font-size: 7.5pt; color: #000; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
+                        @if($jurnal->konselingBk)
+                            <div style="font-size: 7pt; color: #000; font-style: italic;">(BK: {{ $jurnal->konselingBk->status_kasus }})</div>
+                        @endif
                     @endif
                 </td>
                 <td class="center">
@@ -128,6 +131,9 @@
                     {{ $jurnal->rencana_tindak_lanjut ?? '—' }}
                     @if($jurnal->rujukan_kolaborasi && $jurnal->rujukan_kolaborasi !== 'Mandiri')
                         <div style="font-size: 7.5pt; color: #000; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
+                        @if($jurnal->konselingBk)
+                            <div style="font-size: 7pt; color: #000; font-style: italic;">(BK: {{ $jurnal->konselingBk->status_kasus }})</div>
+                        @endif
                     @endif
                 </td>
                 <td class="center">
@@ -175,6 +181,9 @@
                     {{ $jurnal->rencana_tindak_lanjut ?? '—' }}
                     @if($jurnal->rujukan_kolaborasi && $jurnal->rujukan_kolaborasi !== 'Mandiri')
                         <div style="font-size: 7.5pt; color: #000; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
+                        @if($jurnal->konselingBk)
+                            <div style="font-size: 7pt; color: #000; font-style: italic;">(BK: {{ $jurnal->konselingBk->status_kasus }})</div>
+                        @endif
                     @endif
                 </td>
                 <td class="center">

@@ -392,6 +392,52 @@
                         </div>
                     @endif
 
+                    <!-- Feedback Kolaborasi Guru BK jika dirujuk ke BK -->
+                    @if($selectedJurnal->rujukan_kolaborasi === 'Guru BK' || str_contains($selectedJurnal->rujukan_kolaborasi, 'Guru BK'))
+                        @php
+                            $bkSesi = $selectedJurnal->konselingBk;
+                        @endphp
+                        <div class="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200/80 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-1.5 font-bold text-indigo-900">
+                                    <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Tindak Lanjut Layanan Bimbingan & Konseling (Guru BK)</span>
+                                </div>
+                                @if($bkSesi)
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">
+                                        {{ $bkSesi->status_kasus }}
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                        Menunggu Penanganan BK
+                                    </span>
+                                @endif
+                            </div>
+
+                            @if($bkSesi)
+                                <div class="text-xs text-slate-700">
+                                    Ditangani pada: <strong>{{ $bkSesi->tanggal_waktu->translatedFormat('d F Y, H:i') }} WIB</strong> 
+                                    oleh <strong>{{ $bkSesi->guru?->name ?? 'Guru BK' }}</strong>
+                                    &bull; Layanan: <strong>{{ $bkSesi->jenis_layanan }} ({{ $bkSesi->bidang_bimbingan }})</strong>
+                                </div>
+                                @if($bkSesi->rekomendasi_untuk_guru_wali)
+                                    <div class="mt-2">
+                                        <span class="font-bold text-[10px] uppercase tracking-wider text-indigo-900 block mb-1">Umpan Balik & Rekomendasi untuk Guru Wali:</span>
+                                        <div class="p-3 rounded-xl bg-white border border-indigo-200 text-xs text-slate-800 leading-relaxed whitespace-pre-line">
+                                            {{ $bkSesi->rekomendasi_untuk_guru_wali }}
+                                        </div>
+                                    </div>
+                                @endif
+                            @else
+                                <p class="text-[11px] text-amber-800">
+                                    Kasus ini telah diteruskan ke daftar rujukan Guru BK dan sedang menunggu jadwal sesi konseling resmi.
+                                </p>
+                            @endif
+                        </div>
+                    @endif
+
                     <!-- Privasi -->
                     <div class="flex items-center gap-2 pt-2 text-slate-500">
                         @if($selectedJurnal->is_public_note)

@@ -525,6 +525,7 @@
                         $student = $user->student;
                         $isDashboardActive = request()->routeIs('portal-siswa.dashboard');
                         $isAkademikActive = request()->routeIs('portal-siswa.akademik');
+                        $isSholatDhuhurActive = request()->routeIs('portal-siswa.sholat-dhuhur');
                         $isIjinKehadiranActive = request()->routeIs('portal-siswa.ijin') || request()->routeIs('portal-siswa.ijin.form');
                         $isGuruWaliActive = request()->routeIs('portal-siswa.guru-wali*');
                         $isPerpustakaanActive = request()->routeIs('portal-siswa.perpustakaan');
@@ -600,6 +601,14 @@
                             <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
                         </a>
 
+                        <!-- Menu Presensi Sholat Dhuhur -->
+                        <a href="{{ route('portal-siswa.sholat-dhuhur') }}" :title="isCollapsed ? 'Presensi Sholat Dhuhur' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSholatDhuhurActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isSholatDhuhurActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Sholat Dhuhur</span>
+                        </a>
+
                         <!-- Menu Pengajuan Ijin -->
                         <a href="{{ route('portal-siswa.ijin') }}" :title="isCollapsed ? 'Pengajuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                             <div class="p-1.5 rounded-lg {{ $isIjinKehadiranActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
@@ -665,9 +674,10 @@
                         
                         // Akademik & Siswa group
                         $isAkademikActive = request()->routeIs('portal-guru.akademik') || request()->routeIs('portal-guru.student-detail');
+                        $isSholatDhuhurActive = request()->routeIs('portal-guru.sholat-dhuhur');
                         $isDataSiswaActive = request()->routeIs('portal-guru.data-siswa');
                         $isIjinKehadiranActive = request()->routeIs('portal-guru.ijin') || request()->routeIs('portal-guru.ijin.detail');
-                        $isAkademikGroupActive = $isAkademikActive || $isDataSiswaActive || $isIjinKehadiranActive;
+                        $isAkademikGroupActive = $isAkademikActive || $isSholatDhuhurActive || $isDataSiswaActive || $isIjinKehadiranActive;
                         $canAccessAkademikGroup = $user?->isWaliKelasAktif() || $user?->isWaliKelasMurni() || ($user?->isGuruBk() && $user->teacher?->kelasPantau()->exists());
 
                         // Guru Wali group
@@ -685,6 +695,29 @@
                             $pendingKonsultasiCount = \App\Models\KonsultasiGuruWali::where('teacher_id', $user->teacher->id)
                                 ->where('status_pengajuan', 'Menunggu Konfirmasi')
                                 ->count();
+                        }
+
+                        // Guru BK group
+                        $canAccessBk = $user?->canAccessPortalBk() || ($user?->teacher && $user->teacher->kelasPantau()->exists());
+                        $isBkRujukan = request()->routeIs('portal-guru.bk.rujukan*');
+                        $isBkKonseling = request()->routeIs('portal-guru.bk.konseling*');
+                        $isBkSiswaBinaan = request()->routeIs('portal-guru.bk.siswa-binaan*');
+                        $isBkGroupActive = $isBkRujukan || $isBkKonseling || $isBkSiswaBinaan;
+
+                        $pendingBkRujukanCount = 0;
+                        if ($canAccessBk && $user?->teacher) {
+                            $bkClasses = $user->teacher->getKelasBinaanBkIds();
+                            $activeYr = \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+                            $bkQuery = \App\Models\JurnalGuruWali::where('rujukan_kolaborasi', 'like', '%Guru BK%')
+                                ->whereDoesntHave('konselingBk');
+                            if (!$user->teacher->canAccessAllClasses() && !empty($bkClasses)) {
+                                $bkStudentIds = \App\Models\EnrollmentSiswa::whereIn('class_id', $bkClasses)
+                                    ->where('academic_year_id', $activeYr)
+                                    ->where('status', 'aktif')
+                                    ->pluck('student_id');
+                                $bkQuery->whereIn('student_id', $bkStudentIds);
+                            }
+                            $pendingBkRujukanCount = $bkQuery->count();
                         }
 
                         // SPIKAP group
@@ -736,6 +769,13 @@
                                    class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isAkademikActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $isAkademikActive ? 'bg-white' : 'bg-slate-400' }}"></span>
                                     <span class="truncate">Presensi & Jurnal</span>
+                                </a>
+
+                                <!-- Presensi Kehadiran Sholat Dhuhur -->
+                                <a href="{{ route('portal-guru.sholat-dhuhur') }}" 
+                                   class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isSholatDhuhurActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $isSholatDhuhurActive ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                    <span class="truncate">Presensi Sholat Dhuhur</span>
                                 </a>
 
                                 <!-- Data Siswa -->
@@ -834,6 +874,73 @@
                                class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isGwCetak ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                 <span class="w-1.5 h-1.5 rounded-full {{ $isGwCetak ? 'bg-white' : 'bg-slate-400' }}"></span>
                                 <span class="truncate">Cetak Laporan</span>
+                            </a>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Submenu: Bimbingan & Konseling (Guru BK) -->
+                    @if($canAccessBk)
+                    <div x-data="{ open: {{ $isBkGroupActive ? 'true' : 'false' }} }" class="space-y-1">
+                        <button @click="if(isCollapsed) { sidebarCollapsed = false; } open = !open" 
+                                :title="isCollapsed ? 'Bimbingan & Konseling (BK)' : ''"
+                                type="button"
+                                class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group relative {{ $isBkGroupActive ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
+                                :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <div class="p-1.5 rounded-lg {{ $isBkGroupActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600' }} group-hover:scale-105 transition-transform backdrop-blur-sm relative">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    @if($pendingBkRujukanCount > 0)
+                                        <span x-show="isCollapsed" class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"></span>
+                                    @endif
+                                </div>
+                                <div class="flex flex-col text-left min-w-0" x-show="!isCollapsed" x-transition.opacity>
+                                    <span class="text-sm truncate leading-tight">Bimbingan Konseling</span>
+                                    <span class="text-[10px] text-slate-400 font-normal leading-tight">Guru BK &bull; Pantau</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5" x-show="!isCollapsed" x-transition.opacity>
+                                @if($pendingBkRujukanCount > 0)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs">
+                                        {{ $pendingBkRujukanCount }}
+                                    </span>
+                                @endif
+                                <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200 {{ $isBkGroupActive ? 'text-indigo-600' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Submenu Dropdown Container -->
+                        <div x-show="open && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-indigo-200">
+                            <!-- Rujukan Guru Wali -->
+                            <a href="{{ route('portal-guru.bk.rujukan') }}" 
+                               class="flex items-center justify-between gap-2 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isBkRujukan ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $isBkRujukan ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                    <span class="truncate">Rujukan Guru Wali</span>
+                                </div>
+                                @if($pendingBkRujukanCount > 0)
+                                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $isBkRujukan ? 'bg-white text-indigo-600' : 'bg-rose-500 text-white' }}">
+                                        {{ $pendingBkRujukanCount }}
+                                    </span>
+                                @endif
+                            </a>
+
+                            <!-- Catatan Konseling -->
+                            <a href="{{ route('portal-guru.bk.konseling') }}" 
+                               class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isBkKonseling ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $isBkKonseling ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                <span class="truncate">Catatan Konseling</span>
+                            </a>
+
+                            <!-- Siswa Binaan -->
+                            <a href="{{ route('portal-guru.bk.siswa-binaan') }}" 
+                               class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isBkSiswaBinaan ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $isBkSiswaBinaan ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                <span class="truncate">Siswa Binaan (Kelas)</span>
                             </a>
                         </div>
                     </div>

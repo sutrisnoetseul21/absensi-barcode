@@ -142,6 +142,15 @@ Route::prefix('portal-presensi')->group(function () {
             return response()->json($action->execute($barcode, $request->ip(), 'nis'));
         })->middleware('throttle:60,1')->name('kiosk.process-nis');
 
+        Route::get('/scan-sholat-dhuhur', \App\Livewire\AttendanceKioskSholatDhuhur::class)->name('kiosk.scan-sholat-dhuhur');
+        Route::post('/scan-sholat-dhuhur', function (\Illuminate\Http\Request $request, \App\Actions\ProcessScanSholatDhuhurAction $action) {
+            $barcode = $request->input('barcode');
+            if (!$barcode) {
+                return response()->json(['status' => 'not_found', 'message' => 'Barcode kosong.']);
+            }
+            return response()->json($action->execute($barcode, $request->ip()));
+        })->middleware('throttle:60,1')->name('kiosk.process-sholat-dhuhur');
+
         // Route legacy / fallback untuk scanner presensi
         Route::get('/scanner', \App\Livewire\AttendanceKiosk::class);
         Route::get('/scanner-nis', \App\Livewire\AttendanceKioskNIS::class);
@@ -303,6 +312,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
     Route::middleware('auth.wali')->group(function () {
         Route::get('/', \App\Livewire\GuruMainDashboard::class)->name('portal-guru.dashboard');
         Route::get('/akademik', WaliKelasDashboard::class)->name('portal-guru.akademik');
+        Route::get('/sholat-dhuhur', \App\Livewire\PortalGuru\SholatDhuhur\WaliKelasSholatDhuhur::class)->name('portal-guru.sholat-dhuhur');
         Route::get('/perpustakaan', \App\Livewire\GuruPerpustakaan::class)->name('portal-guru.perpustakaan');
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
         Route::get('/data-siswa', \App\Livewire\PortalGuru\DataSiswaList::class)->name('portal-guru.data-siswa');
@@ -326,7 +336,15 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
             Route::get('/cetak/individual/massal-print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakIndividualMassal'])->name('cetak.individual.massal.print');
             Route::get('/cetak/individual/massal-pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfIndividualMassal'])->name('cetak.individual.massal.pdf');
             Route::get('/cetak/kelompok/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakKelompok'])->name('cetak.kelompok.print');
-            Route::get('/cetak/kelompok/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfKelompok'])->name('cetak.kelompok.pdf');
+        });
+
+        // Bimbingan & Konseling (Guru BK) Routes
+        Route::prefix('bk')->name('portal-guru.bk.')->group(function () {
+            Route::get('/rujukan', \App\Livewire\PortalGuru\Bk\RujukanKasusList::class)->name('rujukan');
+            Route::get('/konseling', \App\Livewire\PortalGuru\Bk\KonselingList::class)->name('konseling');
+            Route::get('/konseling/tambah', \App\Livewire\PortalGuru\Bk\KonselingForm::class)->name('konseling.create');
+            Route::get('/konseling/{id}/edit', \App\Livewire\PortalGuru\Bk\KonselingForm::class)->name('konseling.edit');
+            Route::get('/siswa-binaan', \App\Livewire\PortalGuru\Bk\SiswaBinaanList::class)->name('siswa-binaan');
         });
 
         Route::post('/logout', function () {
@@ -359,6 +377,7 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
     Route::middleware('auth.siswa')->group(function () use ($spikapSlug) {
         Route::get('/', \App\Livewire\SiswaMainDashboard::class)->name('portal-siswa.dashboard');
         Route::get('/akademik', SiswaDashboard::class)->name('portal-siswa.akademik');
+        Route::get('/sholat-dhuhur', \App\Livewire\PortalSiswa\SiswaSholatDhuhur::class)->name('portal-siswa.sholat-dhuhur');
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
         Route::get('/perpustakaan', \App\Livewire\SiswaPerpustakaan::class)->name('portal-siswa.perpustakaan');
         Route::get('/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMandiri'])->name('portal-siswa.cetak-kartu');

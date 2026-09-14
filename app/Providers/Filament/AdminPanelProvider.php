@@ -129,6 +129,7 @@ class AdminPanelProvider extends PanelProvider
                 // Presensi Pages (exclude Presensi Dashboard — rute konflik dengan /admin)
                 \App\Filament\Presensi\Pages\LaporanPresensi::class,
                 \App\Filament\Presensi\Pages\CetakLaporanPresensi::class,
+                \App\Filament\Presensi\Pages\CetakLaporanSholatDhuhur::class,
                 \App\Filament\Presensi\Pages\InputPresensiManual::class,
                 \App\Filament\Presensi\Pages\ManajemenKartuPresensi::class,
                 \App\Filament\Presensi\Pages\ManajemenNotifikasiWaPage::class,

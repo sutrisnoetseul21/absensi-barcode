@@ -157,7 +157,8 @@ class GuruWaliCetakController extends Controller
         $dateRange = $this->resolveDateRange($periode, $tahunAjaran);
 
         // Kueri Jurnal untuk siswa ini
-        $jurnals = JurnalGuruWali::where('student_id', $siswa->id)
+        $jurnals = JurnalGuruWali::with('konselingBk')
+            ->where('student_id', $siswa->id)
             ->where('teacher_id', $teacher->id)
             ->whereBetween('tanggal_waktu', [$dateRange['startDate'], $dateRange['endDate']])
             ->orderBy('tanggal_waktu', 'asc')
@@ -444,7 +445,8 @@ class GuruWaliCetakController extends Controller
             ->get();
 
         // Query seluruh jurnal & konsultasi periode ini sekaligus
-        $allJurnals = JurnalGuruWali::where('teacher_id', $teacher->id)
+        $allJurnals = JurnalGuruWali::with('konselingBk')
+            ->where('teacher_id', $teacher->id)
             ->where('kelompok_id', $kelompok->id)
             ->whereBetween('tanggal_waktu', [$dateRange['startDate'], $dateRange['endDate']])
             ->orderBy('tanggal_waktu', 'asc')

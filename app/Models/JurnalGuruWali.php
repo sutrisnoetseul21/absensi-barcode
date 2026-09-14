@@ -66,10 +66,26 @@ class JurnalGuruWali extends Model
     }
 
     /**
+     * Alias relasi: student -> Siswa
+     */
+    public function student(): BelongsTo
+    {
+        return $this->siswa();
+    }
+
+    /**
      * Konsultasi murid asal jika sesi ini dikonversi dari pengajuan murid.
      */
     public function konsultasi(): HasOne
     {
         return $this->hasOne(KonsultasiGuruWali::class, 'jurnal_id');
+    }
+
+    /**
+     * Sesi konseling BK jika kasus ini dirujuk ke Guru BK.
+     */
+    public function konselingBk(): HasOne
+    {
+        return $this->hasOne(KonselingBk::class, 'jurnal_guru_wali_id');
     }
 }

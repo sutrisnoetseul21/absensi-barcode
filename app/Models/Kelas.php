@@ -30,6 +30,23 @@ class Kelas extends Model
         return $this->hasMany(KelasAjaran::class, 'class_id');
     }
 
+    /**
+     * Dapatkan Guru Wali Kelas untuk tahun ajaran tertentu (atau aktif).
+     */
+    public function waliKelas(?string $academicYearId = null): ?Guru
+    {
+        $academicYearId = $academicYearId ?? TahunAjaran::where('status', 'aktif')->value('id');
+        if (! $academicYearId) {
+            return null;
+        }
+
+        return $this->kelasAjarans()
+            ->where('academic_year_id', $academicYearId)
+            ->with('guru')
+            ->first()
+            ?->guru;
+    }
+
     // Akses pantau tambahan (Guru BK dll)
     public function guruKelasPantau(): HasMany
     {

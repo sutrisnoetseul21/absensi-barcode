@@ -184,6 +184,59 @@ class Guru extends Authenticatable
         return $this->hasMany(\App\Models\KonsultasiGuruWali::class, 'teacher_id');
     }
 
+    public function konselingBks(): HasMany
+    {
+        return $this->hasMany(\App\Models\KonselingBk::class, 'teacher_id');
+    }
+
+    /**
+     * Dapatkan daftar ID kelas binaan BK untuk guru ini.
+     * Mengambil dari kelasPantau untuk tahun ajaran aktif (atau specified).
+     */
+    public function getKelasBinaanBkIds(?string $academicYearId = null): array
+    {
+        $yearId = $academicYearId ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+        if (!$yearId) {
+            return [];
+        }
+
+        return $this->kelasPantau()
+            ->where('academic_year_id', $yearId)
+            ->pluck('class_id')
+            ->toArray();
+    }
+
+    /**
+     * Dapatkan koleksi kelas binaan BK guru ini untuk tahun ajaran aktif.
+     */
+    public function getKelasBinaanBk(?string $academicYearId = null)
+    {
+        $yearId = $academicYearId ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+        if (!$yearId) {
+            return collect();
+        }
+
+        return $this->kelasPantau()
+            ->where('academic_year_id', $yearId)
+            ->with('kelas')
+            ->get()
+            ->pluck('kelas')
+            ->filter();
+    }
+
+    /**
+     * Cek apakah guru memiliki izin bypass untuk akses seluruh kelas di portal.
+     */
+    public function canAccessAllClasses(): bool
+    {
+        if (!$this->user) {
+            return false;
+        }
+
+        return $this->user->hasRole('super_admin')
+            || $this->user->can('portal_guru:akses_semua_kelas');
+    }
+
     protected static function booted(): void
     {
         static::created(function (Guru $guru) {

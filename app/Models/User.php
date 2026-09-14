@@ -123,8 +123,20 @@ class User extends Authenticatable implements FilamentUser
      */
     public function isGuruBk(): bool
     {
-        return $this->hasRole('spikap_guru_bk')
-            || ($this->teacher !== null && $this->teacher->hasJabatan(['Guru BK', 'BK']));
+        return $this->hasAnyRole(['spikap_guru_bk', 'guru_bk', 'bk'])
+            || ($this->teacher !== null && $this->teacher->hasJabatan(['Guru BK', 'BK', 'Bimbingan Konseling', 'Bimbingan dan Konseling']));
+    }
+
+    /**
+     * Cek apakah user memiliki hak akses ke modul Bimbingan & Konseling (Guru BK) di Portal Guru.
+     */
+    public function canAccessPortalBk(): bool
+    {
+        if ($this->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            return true;
+        }
+
+        return $this->isGuruBk() && $this->teacher !== null;
     }
 
     /**

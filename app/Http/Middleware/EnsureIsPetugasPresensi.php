@@ -29,15 +29,16 @@ class EnsureIsPetugasPresensi
         $user = Auth::user();
 
         // Cek apakah route yang diakses adalah Kiosk (scan)
-        if ($request->routeIs('kiosk.scan') || $request->routeIs('kiosk.scan-nis') || $request->is('portal-presensi/scan*')) {
-            if (!$user->hasRole(['petugas_presensi', 'admin_portal_presensi', 'super_admin', 'wali_kelas'])) {
+        if ($request->routeIs('kiosk.scan') || $request->routeIs('kiosk.scan-nis') || $request->routeIs('kiosk.scan-sholat-dhuhur') || $request->is('portal-presensi/scan*')) {
+            // Semua akun KECUALI akun siswa diperkenankan membuka Kiosk Scanner
+            if ($user->hasRole('siswa') || $user->student()->exists()) {
                 if ($request->expectsJson() || ($request->is('portal-presensi/scan*') && $request->isMethod('post'))) {
                     return response()->json([
-                        'message' => 'Anda tidak memiliki hak akses ke Kiosk Presensi.',
+                        'message' => 'Akun siswa tidak memiliki hak akses ke Kiosk Presensi.',
                         'status' => 'forbidden'
                     ], 403);
                 }
-                abort(403, 'Anda tidak memiliki akses ke Kiosk Presensi.');
+                abort(403, 'Akun siswa tidak diperkenankan membuka Kiosk Presensi.');
             }
         } else {
             // Jika mengakses dashboard atau halaman manajemen presensi lainnya

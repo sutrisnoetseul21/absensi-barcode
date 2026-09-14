@@ -27,6 +27,8 @@ class GuruMainDashboard extends Component
     public $isWaliKelasMurni = false;
     public $canAccessIjin = false;
     public $isGuruWaliAktif = false;
+    public $canAccessBk = false;
+    public $pendingBkRujukanCount = 0;
 
     // SPIKAP Status Flags & Metrics
     public $hasSpikapAccess = false;
@@ -50,6 +52,21 @@ class GuruMainDashboard extends Component
         $this->isWaliKelasMurni = $user->isWaliKelasMurni();
         $this->canAccessIjin = $this->isWaliKelasMurni || ($user->isGuruBk() && $this->teacher?->kelasPantau()->exists());
         $this->isGuruWaliAktif = (bool) ($this->teacher?->kelompokGuruWali && $this->teacher->kelompokGuruWali->status_aktif);
+        $this->canAccessBk = $user->canAccessPortalBk();
+
+        if ($this->canAccessBk) {
+            $bkQuery = \App\Models\JurnalGuruWali::where('rujukan_kolaborasi', 'like', '%Guru BK%')
+                ->whereDoesntHave('konselingBk');
+            if ($this->teacher) {
+                $pantauKelasIds = $this->teacher->kelasPantau()->pluck('class_id')->toArray();
+                if (!empty($pantauKelasIds)) {
+                    $bkQuery->whereHas('student.enrollments', function ($q) use ($pantauKelasIds) {
+                        $q->whereIn('class_id', $pantauKelasIds)->where('status', 'aktif');
+                    });
+                }
+            }
+            $this->pendingBkRujukanCount = $bkQuery->count();
+        }
 
         // Check Multi-Portal Permissions
         $this->isSuperAdmin = $user->hasRole('super_admin');

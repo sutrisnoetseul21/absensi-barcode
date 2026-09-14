@@ -16,7 +16,7 @@
                 </p>
             </div>
 
-            <!-- Action Buttons (Presensi Digital & Presensi Manual & Guru Wali) -->
+            <!-- Action Buttons (Presensi Digital & Presensi Sholat Dhuhur & Presensi Manual & Guru Wali) -->
             <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" 
                    target="_blank" 
@@ -24,13 +24,12 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                     Presensi Digital
                 </a>
-                @if($isWaliKelasAktif)
-                <a href="{{ route('portal-guru.akademik') }}" 
-                   class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all border border-white/30 backdrop-blur-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Presensi Manual
+                <a href="{{ route('kiosk.scan-sholat-dhuhur') }}" 
+                   target="_blank" 
+                   class="px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-2xl text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    Presensi Sholat Dhuhur
                 </a>
-                @endif
                 @if($isGuruWaliAktif)
                 <a href="{{ route('portal-guru.guru-wali.kelompok') }}" 
                    class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all border border-white/30 backdrop-blur-sm flex items-center gap-2">
@@ -41,165 +40,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Multi-Portal Access Cards (Jika memiliki akses ke Portal lain) -->
-    @if($hasPresensiAccess || $hasPerpusAccess || $hasWebAccess || $isSuperAdmin)
-        <div class="space-y-3">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-                        </svg>
-                        Akses Portal Terkait
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Akun Anda memiliki izin khusus untuk mengelola portal tambahan berikut:</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                
-                <!-- Card 1: Portal Manajemen Presensi -->
-                @if($hasPresensiAccess)
-                    <div class="bg-gradient-to-br from-white to-amber-50/40 rounded-2xl p-5 border border-amber-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-200">
-                                    Admin Presensi
-                                </span>
-                            </div>
-                            <h3 class="text-base font-bold text-slate-900 group-hover:text-amber-700 transition-colors">
-                                Portal Manajemen Presensi
-                            </h3>
-                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                                Kelola rekapitulasi kehadiran seluruh sekolah, input manual staf, dan konfigurasi notifikasi WhatsApp.
-                            </p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-amber-100 flex items-center gap-2">
-                            <a href="{{ route('portal-presensi.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition-colors">
-                                Buka Dashboard
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </a>
-                            <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" 
-                               target="_blank"
-                               title="Buka Layar Kiosk Scan"
-                               class="py-2 px-3 rounded-xl bg-white hover:bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold transition-colors">
-                                Kiosk Scan
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Card 2: Portal Perpustakaan & Sirkulasi -->
-                @if($hasPerpusAccess)
-                    <div class="bg-gradient-to-br from-white to-cyan-50/40 rounded-2xl p-5 border border-cyan-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-11 h-11 rounded-2xl bg-cyan-600 text-white flex items-center justify-center shadow-md shadow-cyan-600/20 group-hover:scale-105 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-cyan-100 text-cyan-800 border border-cyan-200">
-                                    Petugas Perpus
-                                </span>
-                            </div>
-                            <h3 class="text-base font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
-                                Portal Sirkulasi Perpustakaan
-                            </h3>
-                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                                Kelola katalog buku, klasifikasi DDC, transaksi peminjaman & pengembalian, serta presensi kunjungan.
-                            </p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-cyan-100 flex items-center gap-2">
-                            <a href="{{ route('portal-perpustakaan.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-sm transition-colors">
-                                Buka Perpustakaan
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </a>
-                            <a href="{{ route('portal-perpustakaan.sirkulasi-kiosk') }}" 
-                               target="_blank"
-                               title="Buka Sirkulasi Kiosk"
-                               class="py-2 px-3 rounded-xl bg-white hover:bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-bold transition-colors">
-                                Kiosk Sirkulasi
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Card 3: Portal Web Sekolah -->
-                @if($hasWebAccess)
-                    <div class="bg-gradient-to-br from-white to-violet-50/40 rounded-2xl p-5 border border-violet-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-11 h-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-md shadow-violet-600/20 group-hover:scale-105 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                                    </svg>
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-violet-100 text-violet-800 border border-violet-200">
-                                    Admin Web
-                                </span>
-                            </div>
-                            <h3 class="text-base font-bold text-slate-900 group-hover:text-violet-700 transition-colors">
-                                Portal Publikasi Web
-                            </h3>
-                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                                Kelola artikel berita, pengumuman sekolah, prestasi siswa, galeri dokumentasi kegiatan, dan data alumni.
-                            </p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-violet-100 flex items-center gap-2">
-                            <a href="{{ route('portal-web.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm transition-colors">
-                                Buka Portal Web
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </a>
-                            <a href="{{ url('/') }}" 
-                               target="_blank"
-                               title="Lihat Web Publik"
-                               class="py-2 px-3 rounded-xl bg-white hover:bg-violet-50 border border-violet-200 text-violet-700 text-xs font-bold transition-colors">
-                                Web Utama
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Card 4: Panel Admin Filament (Super Admin Only) -->
-                @if($isSuperAdmin)
-                    <div class="bg-gradient-to-br from-white to-purple-50/40 rounded-2xl p-5 border border-purple-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-600/20 group-hover:scale-105 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                                    Super Admin
-                                </span>
-                            </div>
-                            <h3 class="text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
-                                Panel Administrator Utama
-                            </h3>
-                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                                Akses penuh panel kontrol utama untuk pengaturan sistem, user management, dan master data sekolah.
-                            </p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-purple-100">
-                            <a href="{{ url('/admin') }}" class="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-colors">
-                                Buka Admin Panel
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
-            </div>
-        </div>
-    @endif
 
     <!-- 4 Main Shortcut Cards Grid (Fitur Utama Guru) -->
     <div class="space-y-3">
@@ -236,11 +76,96 @@
                         Pantau absensi harian siswa, matriks bulanan, input manual, dan cetak laporan presensi kelas.
                     </p>
                 </div>
-                <a href="{{ route('portal-guru.akademik') }}" 
-                   class="mt-4 w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-emerald-600 hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200/60 hover:border-emerald-600">
-                    Buka Presensi
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </a>
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" 
+                       target="_blank"
+                       class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                        Presensi Kehadiran
+                    </a>
+                    <a href="{{ route('portal-guru.akademik') }}" 
+                       class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all border border-slate-200">
+                        Rekap Kelas
+                    </a>
+                </div>
+            </div>
+            @endif
+
+            <!-- Shortcut: Presensi Sholat Dhuhur -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-teal-300 transition-all flex flex-col justify-between group">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-teal-600 group-hover:text-white transition-all shadow-xs">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <span class="text-[11px] font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-xl border border-teal-200">
+                            Ibadah Berjamaah
+                        </span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
+                        Presensi Sholat Dhuhur
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        Pencatatan kehadiran sholat dhuhur berjamaah, pemindaian barcode NIS/kartu, serta rekapitulasi kepatuhan ibadah.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a href="{{ route('kiosk.scan-sholat-dhuhur') }}" 
+                       target="_blank"
+                       class="flex-1 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                        Presensi Sholat Dhuhur
+                    </a>
+                    @if($isWaliKelasAktif)
+                    <a href="{{ route('portal-guru.sholat-dhuhur') }}" 
+                       class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all border border-slate-200">
+                        Rekap Matriks
+                    </a>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Shortcut: Bimbingan & Konseling (Portal BK) -->
+            @if($canAccessBk)
+            <div class="bg-white rounded-2xl p-5 border {{ $pendingBkRujukanCount > 0 ? 'border-indigo-300 ring-2 ring-indigo-500/20 bg-indigo-50/10' : 'border-slate-200/80' }} shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-2xl {{ $pendingBkRujukanCount > 0 ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600' }} flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        @if($pendingBkRujukanCount > 0)
+                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-xl border border-indigo-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-ping"></span>
+                                {{ $pendingBkRujukanCount }} Rujukan
+                            </span>
+                        @else
+                            <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200">
+                                Layanan BK
+                            </span>
+                        @endif
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        Bimbingan & Konseling
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        Kelola rujukan kasus siswa dari guru wali, sesi konseling bimbingan, dan pantau perkembangan siswa.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a href="{{ route('portal-guru.bk.rujukan') }}" 
+                       class="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        Rujukan Kasus
+                    </a>
+                    <a href="{{ route('portal-guru.bk.konseling') }}" 
+                       class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all border border-slate-200">
+                        Konseling
+                    </a>
+                </div>
             </div>
             @endif
 
@@ -443,6 +368,165 @@
 
         </div>
     </div>
+
+    <!-- Multi-Portal Access Cards (Jika memiliki akses ke Portal lain) -->
+    @if($hasPresensiAccess || $hasPerpusAccess || $hasWebAccess || $isSuperAdmin)
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                        </svg>
+                        Akses Portal Terkait
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Akun Anda memiliki izin khusus untuk mengelola portal tambahan berikut:</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                
+                <!-- Card 1: Portal Manajemen Presensi -->
+                @if($hasPresensiAccess)
+                    <div class="bg-gradient-to-br from-white to-amber-50/40 rounded-2xl p-5 border border-amber-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                                    Admin Presensi
+                                </span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-amber-700 transition-colors">
+                                Portal Manajemen Presensi
+                            </h3>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Kelola rekapitulasi kehadiran seluruh sekolah, input manual staf, dan konfigurasi notifikasi WhatsApp.
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-amber-100 flex items-center gap-2">
+                            <a href="{{ route('portal-presensi.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition-colors">
+                                Buka Dashboard
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
+                            <a href="{{ \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? route('kiosk.scan-nis') : route('kiosk.scan') }}" 
+                               target="_blank"
+                               title="Buka Layar Kiosk Scan"
+                               class="py-2 px-3 rounded-xl bg-white hover:bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold transition-colors">
+                                Kiosk Scan
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Card 2: Portal Perpustakaan & Sirkulasi -->
+                @if($hasPerpusAccess)
+                    <div class="bg-gradient-to-br from-white to-cyan-50/40 rounded-2xl p-5 border border-cyan-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-cyan-600 text-white flex items-center justify-center shadow-md shadow-cyan-600/20 group-hover:scale-105 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-cyan-100 text-cyan-800 border border-cyan-200">
+                                    Petugas Perpus
+                                </span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                                Portal Sirkulasi Perpustakaan
+                            </h3>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Kelola katalog buku, klasifikasi DDC, transaksi peminjaman & pengembalian, serta presensi kunjungan.
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-cyan-100 flex items-center gap-2">
+                            <a href="{{ route('portal-perpustakaan.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-sm transition-colors">
+                                Buka Perpustakaan
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
+                            <a href="{{ route('portal-perpustakaan.sirkulasi-kiosk') }}" 
+                               target="_blank"
+                               title="Buka Sirkulasi Kiosk"
+                               class="py-2 px-3 rounded-xl bg-white hover:bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-bold transition-colors">
+                                Kiosk Sirkulasi
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Card 3: Portal Web Sekolah -->
+                @if($hasWebAccess)
+                    <div class="bg-gradient-to-br from-white to-violet-50/40 rounded-2xl p-5 border border-violet-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-md shadow-violet-600/20 group-hover:scale-105 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                    </svg>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-violet-100 text-violet-800 border border-violet-200">
+                                    Admin Web
+                                </span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-violet-700 transition-colors">
+                                Portal Publikasi Web
+                            </h3>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Kelola artikel berita, pengumuman sekolah, prestasi siswa, galeri dokumentasi kegiatan, dan data alumni.
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-violet-100 flex items-center gap-2">
+                            <a href="{{ route('portal-web.dashboard') }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm transition-colors">
+                                Buka Portal Web
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
+                            <a href="{{ url('/') }}" 
+                               target="_blank"
+                               title="Lihat Web Publik"
+                               class="py-2 px-3 rounded-xl bg-white hover:bg-violet-50 border border-violet-200 text-violet-700 text-xs font-bold transition-colors">
+                                Web Utama
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Card 4: Panel Admin Filament (Super Admin Only) -->
+                @if($isSuperAdmin)
+                    <div class="bg-gradient-to-br from-white to-purple-50/40 rounded-2xl p-5 border border-purple-200/80 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-600/20 group-hover:scale-105 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                                    Super Admin
+                                </span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
+                                Panel Administrator Utama
+                            </h3>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Akses penuh panel kontrol utama untuk pengaturan sistem, user management, dan master data sekolah.
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-purple-100">
+                            <a href="{{ url('/admin') }}" class="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-colors">
+                                Buka Admin Panel
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+            </div>
+        </div>
+    @endif
 
     <!-- Announcements Section (if any) -->
     @if($activeAnnouncements->count() > 0)

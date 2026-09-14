@@ -94,7 +94,7 @@ class JurnalList extends Component
 
     public function openDetail($id)
     {
-        $this->selectedJurnal = JurnalGuruWali::with(['siswa.enrollmentAktif.kelas', 'teacher'])
+        $this->selectedJurnal = JurnalGuruWali::with(['siswa.enrollmentAktif.kelas', 'teacher', 'konselingBk.guru'])
             ->where('teacher_id', $this->teacher->id)
             ->findOrFail($id);
 
