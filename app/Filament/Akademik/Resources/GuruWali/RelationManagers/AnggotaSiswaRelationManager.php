@@ -284,24 +284,67 @@ class AnggotaSiswaRelationManager extends RelationManager
                             ->send();
                     }),
 
-                // 3. Hapus Permanen Baris Arsip (Hanya untuk Admin/Editor)
+                // 3. Hapus Permanen Baris Arsip (Hanya bisa jika BELUM ADA catatan pendampingan)
                 Action::make('hapus_arsip')
                     ->label('Hapus Arsip')
                     ->icon('heroicon-o-trash')
-                    ->color('danger')
+                    ->color(fn ($record) => $record->hasRiwayatPendampingan() ? 'gray' : 'danger')
+                    ->tooltip(fn ($record) => $record->hasRiwayatPendampingan() 
+                        ? 'Tidak dapat dihapus: Siswa sudah memiliki riwayat pendampingan/jurnal (hanya bisa diarsipkan).' 
+                        : 'Hapus permanen (karena belum ada data pendampingan)')
                     ->requiresConfirmation()
-                    ->modalIcon('heroicon-o-trash')
-                    ->modalHeading(fn ($record) => "Hapus Data Arsip " . ($record->siswa?->name ?? 'Siswa') . "?")
-                    ->modalDescription(fn ($record) => "PERINGATAN: Menghapus arsip ini akan menghapus riwayat keanggotaan siswa secara permanen dari kelompok ini. Tindakan ini tidak dapat dibatalkan.")
+                    ->modalIcon(fn ($record) => $record->hasRiwayatPendampingan() ? 'heroicon-o-shield-exclamation' : 'heroicon-o-trash')
+                    ->modalIconColor(fn ($record) => $record->hasRiwayatPendampingan() ? 'warning' : 'danger')
+                    ->modalHeading(function ($record) {
+                        $nama = $record->siswa?->name ?? 'Siswa';
+                        if ($record->hasRiwayatPendampingan()) {
+                            return "Data Arsip {$nama} Tidak Dapat Dihapus";
+                        }
+                        return "Hapus Data Arsip {$nama}?";
+                    })
+                    ->modalDescription(function ($record) {
+                        $nama = $record->siswa?->name ?? 'Siswa';
+                        $displayName = str_starts_with(strtolower($nama), 'siswa') ? $nama : "Siswa {$nama}";
+                        $jCount = $record->countJurnals();
+                        $kCount = $record->countKonsultasis();
+
+                        if ($jCount > 0 || $kCount > 0) {
+                            $rincian = [];
+                            if ($jCount > 0) $rincian[] = "{$jCount} catatan jurnal pendampingan";
+                            if ($kCount > 0) $rincian[] = "{$kCount} sesi konsultasi";
+                            $str = implode(' dan ', $rincian);
+
+                            return "{$displayName} sudah memiliki {$str} yang dicatat oleh Guru Wali pada kelompok ini.\n\nSesuai regulasi Permendikdasmen No. 11/2025, data yang sudah memiliki rekam jejak pendampingan TIDAK DAPAT dihapus secara permanen untuk menjaga bukti fisik dan riwayat pembinaan. Siswa hanya dapat berstatus arsip.";
+                        }
+
+                        return "PERINGATAN: {$displayName} belum memiliki catatan pendampingan atau jurnal dari Guru Wali di kelompok ini.\n\nMenghapus arsip ini akan menghapus riwayat keanggotaan siswa secara permanen dari kelompok ini. Tindakan ini tidak dapat dibatalkan.";
+                    })
+                    ->modalSubmitAction(function ($action, $record) {
+                        if ($record->hasRiwayatPendampingan()) {
+                            return false; // Jangan tampilkan tombol submit hapus jika sudah ada pendampingan!
+                        }
+                        return null; // Tampilkan tombol submit normal
+                    })
                     ->modalSubmitActionLabel('Ya, Hapus Permanen')
-                    ->modalCancelActionLabel('Batal')
+                    ->modalCancelActionLabel(fn ($record) => $record->hasRiwayatPendampingan() ? 'Tutup' : 'Batal')
                     ->visible(fn ($record) => ! (bool) $record->status_aktif && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
-                    ->action(function ($record) {
+                    ->action(function ($record, $action) {
+                        if ($record->hasRiwayatPendampingan()) {
+                            $action->halt();
+                            Notification::make()
+                                ->title('Arsip Tidak Dapat Dihapus')
+                                ->body('Siswa sudah memiliki riwayat pendampingan dari Guru Wali. Data hanya bisa diarsipkan.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
                         $nama = $record->siswa?->name ?? 'Siswa';
                         $record->delete();
+
                         Notification::make()
                             ->title('Arsip Berhasil Dihapus')
-                            ->body("Data riwayat keanggotaan {$nama} telah dihapus permanen.")
+                            ->body("Data riwayat keanggotaan {$nama} telah dihapus permanen karena belum ada catatan pendampingan.")
                             ->success()
                             ->send();
                     }),

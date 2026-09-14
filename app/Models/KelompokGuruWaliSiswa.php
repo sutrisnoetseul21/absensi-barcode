@@ -42,4 +42,33 @@ class KelompokGuruWaliSiswa extends Model
     {
         return $this->belongsTo(Siswa::class, 'student_id');
     }
+
+    /**
+     * Menghitung total catatan jurnal pendampingan siswa ini dalam kelompok ini.
+     */
+    public function countJurnals(): int
+    {
+        return JurnalGuruWali::where('kelompok_id', $this->kelompok_id)
+            ->where('student_id', $this->student_id)
+            ->count();
+    }
+
+    /**
+     * Menghitung total sesi konsultasi siswa ini dalam kelompok ini.
+     */
+    public function countKonsultasis(): int
+    {
+        return KonsultasiGuruWali::where('kelompok_id', $this->kelompok_id)
+            ->where('student_id', $this->student_id)
+            ->count();
+    }
+
+    /**
+     * Memeriksa apakah siswa sudah memiliki riwayat pendampingan (jurnal/konsultasi).
+     * Jika sudah ada data, keanggotaan tidak boleh dihapus permanen, hanya boleh diarsipkan.
+     */
+    public function hasRiwayatPendampingan(): bool
+    {
+        return $this->countJurnals() > 0 || $this->countKonsultasis() > 0;
+    }
 }
