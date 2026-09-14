@@ -78,7 +78,7 @@
                 <td>
                     {{ $jurnal->rencana_tindak_lanjut ?? '—' }}
                     @if($jurnal->rujukan_kolaborasi && $jurnal->rujukan_kolaborasi !== 'Mandiri')
-                        <div style="font-size: 7.5pt; color: #0284c7; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
+                        <div style="font-size: 7.5pt; color: #000; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
                     @endif
                 </td>
                 <td class="center">
@@ -127,7 +127,7 @@
                 <td>
                     {{ $jurnal->rencana_tindak_lanjut ?? '—' }}
                     @if($jurnal->rujukan_kolaborasi && $jurnal->rujukan_kolaborasi !== 'Mandiri')
-                        <div style="font-size: 7.5pt; color: #0284c7; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
+                        <div style="font-size: 7.5pt; color: #000; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
                     @endif
                 </td>
                 <td class="center">
@@ -174,7 +174,7 @@
                 <td>
                     {{ $jurnal->rencana_tindak_lanjut ?? '—' }}
                     @if($jurnal->rujukan_kolaborasi && $jurnal->rujukan_kolaborasi !== 'Mandiri')
-                        <div style="font-size: 7.5pt; color: #0284c7; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
+                        <div style="font-size: 7.5pt; color: #000; font-weight: bold;">Rujukan: {{ $jurnal->rujukan_kolaborasi }}</div>
                     @endif
                 </td>
                 <td class="center">
@@ -210,37 +210,34 @@
             <td class="center">{{ $kIdx + 1 }}</td>
             <td class="center">
                 {{ \Carbon\Carbon::parse($k->created_at)->translatedFormat('d/m/Y') }}
-                <div style="font-size: 7.5pt; color: #555;">{{ $k->mode_konsultasi ?? 'Tatap Muka' }}</div>
+                <div style="font-size: 7.5pt; color: #333;">{{ $k->mode_konsultasi ?? 'Tatap Muka' }}</div>
             </td>
             <td>
                 <span class="pilar-badge">{{ $k->kategori_pendampingan ?? 'Umum' }}</span>
             </td>
             <td>
-                <div style="font-weight: bold; color: #1e293b;">{{ $k->topik_konsultasi }}</div>
+                <div style="font-weight: bold; color: #000;">{{ $k->topik_konsultasi }}</div>
                 @if($k->detail_permasalahan)
-                    <div style="font-size: 7.5pt; color: #475569; margin-top: 1px;">{{ $k->detail_permasalahan }}</div>
+                    <div style="font-size: 7.5pt; color: #000; margin-top: 1px;">{{ $k->detail_permasalahan }}</div>
                 @endif
                 @if($k->tanggapan_guru)
-                    <div style="font-size: 7.5pt; color: #0284c7; margin-top: 2px;">
+                    <div style="font-size: 7.5pt; color: #000; margin-top: 2px;">
                         <strong>Respon Guru:</strong> {{ $k->tanggapan_guru }}
                     </div>
                 @endif
             </td>
-            <td class="center">
-                @if($k->status_pengajuan === 'Dikonversi ke Jurnal')
-                    <strong style="color: #059669;">Selesai</strong>
-                    <div style="font-size: 7pt; color: #0284c7;">(Dibukukan ke Jurnal)</div>
-                @elseif($k->status_pengajuan === 'Selesai')
-                    <strong style="color: #059669;">Selesai</strong>
+            <td class="center" style="color: #000;">
+                @if(in_array($k->status_pengajuan, ['Dikonversi ke Jurnal', 'Selesai']))
+                    <strong>Selesai</strong>
                 @elseif($k->status_pengajuan === 'Dijadwalkan')
-                    <strong style="color: #0284c7;">Dijadwalkan</strong>
+                    <strong>Dijadwalkan</strong>
                     @if($k->jadwal_pasti)
-                        <div style="font-size: 7pt; color: #555;">{{ \Carbon\Carbon::parse($k->jadwal_pasti)->translatedFormat('d/m/Y H:i') }}</div>
+                        <div style="font-size: 7pt; color: #000;">{{ \Carbon\Carbon::parse($k->jadwal_pasti)->translatedFormat('d/m/Y H:i') }}</div>
                     @endif
                 @elseif($k->status_pengajuan === 'Ditolak')
-                    <strong style="color: #dc2626;">Ditolak</strong>
+                    <strong>Ditolak</strong>
                 @else
-                    <strong style="color: #d97706;">{{ $k->status_pengajuan }}</strong>
+                    <strong>{{ $k->status_pengajuan }}</strong>
                 @endif
             </td>
         </tr>
