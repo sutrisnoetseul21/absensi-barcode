@@ -42,6 +42,14 @@ class JurnalGuruWali extends Model
     }
 
     /**
+     * Alias relasi: teacher -> Guru Wali
+     */
+    public function teacher(): BelongsTo
+    {
+        return $this->guru();
+    }
+
+    /**
      * Kelompok dampingan tempat sesi dicatat.
      */
     public function kelompok(): BelongsTo

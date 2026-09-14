@@ -50,6 +50,14 @@ class KonsultasiGuruWali extends Model
     }
 
     /**
+     * Alias relasi: teacher -> Guru Wali
+     */
+    public function teacher(): BelongsTo
+    {
+        return $this->guru();
+    }
+
+    /**
      * Kelompok dampingan tempat siswa terdaftar.
      */
     public function kelompok(): BelongsTo
