@@ -76,6 +76,11 @@ class ManagePindahKelas extends ManageRecords
                                 }
                             },
                         ]),
+
+                    \Filament\Forms\Components\Toggle::make('arsipkan_guru_wali')
+                        ->label('Arsipkan Kelompok Guru Wali Lama')
+                        ->helperText('Jika aktif, keanggotaan Guru Wali di rombel lama akan diarsipkan agar siap dimasukkan ke Guru Wali rombel baru.')
+                        ->default(true),
                 ])
                 ->action(function (array $data) {
                     $enrollment = EnrollmentSiswa::find($data['enrollment_id']);
@@ -84,7 +89,7 @@ class ManagePindahKelas extends ManageRecords
                     $oldClassId = $enrollment->class_id;
                     $newClassId = $data['to_class_id'];
 
-                    DB::transaction(function () use ($enrollment, $oldClassId, $newClassId) {
+                    DB::transaction(function () use ($enrollment, $oldClassId, $newClassId, $data) {
                         // 1. Log Riwayat
                         RiwayatPindahKelas::create([
                             'enrollment_id' => $enrollment->id,
@@ -99,6 +104,13 @@ class ManagePindahKelas extends ManageRecords
                         $enrollment->update([
                             'class_id' => $newClassId
                         ]);
+
+                        // 3. Arsipkan Guru Wali rombel lama jika dipilih
+                        if (!empty($data['arsipkan_guru_wali'])) {
+                            \App\Models\KelompokGuruWaliSiswa::where('student_id', $enrollment->student_id)
+                                ->where('status_aktif', true)
+                                ->update(['status_aktif' => false]);
+                        }
                     });
 
                     Notification::make()

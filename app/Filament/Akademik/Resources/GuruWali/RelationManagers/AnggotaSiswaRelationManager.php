@@ -64,18 +64,29 @@ class AnggotaSiswaRelationManager extends RelationManager
                     ->searchable()
                     ->options(function ($record) {
                         $currentStudentId = $record?->student_id;
-                        $sudahDikelompok = KelompokGuruWaliSiswa::where('status_aktif', true)
-                            ->when($currentStudentId, fn ($query) => $query->where('student_id', '!=', $currentStudentId))
-                            ->pluck('student_id');
+                        $ownerKelompokId = $this->getOwnerRecord()?->id;
 
-                        return Siswa::whereNotIn('id', $sudahDikelompok)
-                            ->where('status', 'aktif')
+                        return Siswa::where('status', 'aktif')
+                            ->with(['kelompokGuruWali.kelompok'])
                             ->orderBy('name')
                             ->get()
-                            ->mapWithKeys(fn ($s) => [$s->id => "{$s->name} ({$s->nisn})"])
+                            ->mapWithKeys(function ($s) use ($ownerKelompokId, $currentStudentId) {
+                                $label = "{$s->name} ({$s->nisn})";
+                                $kgw = $s->kelompokGuruWali;
+                                if ($kgw && $kgw->status_aktif && $s->id !== $currentStudentId) {
+                                    if ($kgw->kelompok_id === $ownerKelompokId) {
+                                        $label .= " — [Sudah Aktif di Kelompok Ini]";
+                                    } else {
+                                        $namaKelompokLain = $kgw->kelompok?->nama_kelompok ?? 'Kelompok Lain';
+                                        $label .= " — [Pindah dari: {$namaKelompokLain}]";
+                                    }
+                                }
+                                return [$s->id => $label];
+                            })
                             ->toArray();
                     })
-                    ->placeholder('Cari nama atau NISN siswa...'),
+                    ->placeholder('Cari nama atau NISN siswa...')
+                    ->helperText('Jika siswa sudah berada di kelompok Guru Wali lain (misal karena pindah rombel/kelas), memilih siswa ini akan otomatis memindahkan & mengarsipkan riwayat dari kelompok lamanya.'),
 
                 Toggle::make('status_aktif')
                     ->label('Aktif di Kelompok')
@@ -166,20 +177,51 @@ class AnggotaSiswaRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('+ Tambah Siswa')
-                    ->before(function (array $data, $action) {
-                        $sudahAktif = KelompokGuruWaliSiswa::where('student_id', $data['student_id'])
-                            ->where('status_aktif', true)
-                            ->exists();
+                    ->using(function (array $data, string $model) {
+                        $studentId = $data['student_id'];
+                        $kelompokId = $this->getOwnerRecord()->id;
+                        $tahunMasuk = $data['tahun_masuk'] ?? date('Y');
+                        $statusAktif = $data['status_aktif'] ?? true;
 
-                        if ($sudahAktif) {
-                            $action->halt();
+                        // 1. Jika diaktifkan dan siswa saat ini aktif di kelompok lain, arsipkan kelompok lamanya
+                        if ($statusAktif) {
+                            $activeLain = KelompokGuruWaliSiswa::where('student_id', $studentId)
+                                ->where('status_aktif', true)
+                                ->where('kelompok_id', '!=', $kelompokId)
+                                ->first();
 
-                            Notification::make()
-                                ->title('Siswa Sudah dalam Kelompok Lain')
-                                ->body('Siswa ini sudah terdaftar sebagai anggota kelompok dampingan aktif. Satu siswa hanya boleh punya satu Guru Wali aktif.')
-                                ->danger()
-                                ->send();
+                            if ($activeLain) {
+                                $kelompokLama = $activeLain->kelompok?->nama_kelompok ?? 'Kelompok Lama';
+                                $activeLain->update(['status_aktif' => false]);
+
+                                Notification::make()
+                                    ->title('Siswa Berhasil Dipindahkan')
+                                    ->body("Keanggotaan siswa di {$kelompokLama} telah otomatis diarsipkan.")
+                                    ->info()
+                                    ->send();
+                            }
                         }
+
+                        // 2. Cek apakah siswa sudah pernah terdaftar di kelompok ini (riwayat arsip lama)
+                        $existing = KelompokGuruWaliSiswa::where('kelompok_id', $kelompokId)
+                            ->where('student_id', $studentId)
+                            ->first();
+
+                        if ($existing) {
+                            $existing->update([
+                                'status_aktif' => $statusAktif,
+                                'tahun_masuk'  => $tahunMasuk,
+                            ]);
+                            return $existing;
+                        }
+
+                        // 3. Jika belum pernah terdaftar, buat baris baru
+                        return KelompokGuruWaliSiswa::create([
+                            'kelompok_id'  => $kelompokId,
+                            'student_id'   => $studentId,
+                            'tahun_masuk'  => $tahunMasuk,
+                            'status_aktif' => $statusAktif,
+                        ]);
                     }),
             ])
             ->actions([

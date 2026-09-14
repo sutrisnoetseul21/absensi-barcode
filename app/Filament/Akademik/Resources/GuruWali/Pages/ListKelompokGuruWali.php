@@ -36,12 +36,36 @@ class ListKelompokGuruWali extends ListRecords
 
         foreach ($studentIds as $studentId) {
             try {
-                $record = KelompokGuruWaliSiswa::create([
-                    'kelompok_id'  => $kelompokId,
-                    'student_id'   => $studentId,
-                    'tahun_masuk'  => $tahunMasuk,
-                    'status_aktif' => true,
-                ]);
+                // 1. Jika siswa aktif di kelompok lain, arsipkan keanggotaan kelompok lamanya
+                $activeLain = KelompokGuruWaliSiswa::where('student_id', $studentId)
+                    ->where('status_aktif', true)
+                    ->where('kelompok_id', '!=', $kelompokId)
+                    ->first();
+
+                if ($activeLain) {
+                    $activeLain->update(['status_aktif' => false]);
+                }
+
+                // 2. Cek apakah sudah pernah ada di kelompok ini (reaktivasi)
+                $existing = KelompokGuruWaliSiswa::where('kelompok_id', $kelompokId)
+                    ->where('student_id', $studentId)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'status_aktif' => true,
+                        'tahun_masuk'  => $tahunMasuk,
+                    ]);
+                    $record = $existing;
+                } else {
+                    $record = KelompokGuruWaliSiswa::create([
+                        'kelompok_id'  => $kelompokId,
+                        'student_id'   => $studentId,
+                        'tahun_masuk'  => $tahunMasuk,
+                        'status_aktif' => true,
+                    ]);
+                }
+
                 $record->load('siswa');
                 $added[] = [
                     'id'          => $record->id,
@@ -52,8 +76,7 @@ class ListKelompokGuruWali extends ListRecords
                     'tahun_masuk' => $record->tahun_masuk,
                 ];
                 $berhasil++;
-            } catch (\Illuminate\Database\QueryException $e) {
-                // kemungkinan unique constraint (siswa keburu masuk kelompok lain di request lain)
+            } catch (\Exception $e) {
                 $siswa = Siswa::find($studentId);
                 $gagal[] = $siswa->name ?? $studentId;
             }
