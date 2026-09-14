@@ -136,9 +136,13 @@ class GuruWaliCetakController extends Controller
 
         $siswa = Siswa::with(['enrollmentAktif.kelas', 'enrollmentAktif.tahunAjaran'])->findOrFail($studentId);
 
-        // Otomatis prioritaskan Tahun Ajaran Aktif
-        $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
-            ?? ($request->query('academic_year_id') ? TahunAjaran::find($request->query('academic_year_id')) : null);
+        // Prioritaskan Tahun Ajaran dari parameter jika ada, fallback ke Tahun Ajaran Aktif
+        $academicYearId = $request->query('academic_year_id');
+        $tahunAjaran = $academicYearId ? TahunAjaran::find($academicYearId) : null;
+        if (! $tahunAjaran) {
+            $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
+                ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+        }
 
         if (! $tahunAjaran) {
             $tahunAjaran = (object) [
@@ -185,6 +189,10 @@ class GuruWaliCetakController extends Controller
             'Sosial & Psikologis'     => $jurnals->where('kategori_pendampingan', 'Sosial & Psikologis')->count(),
         ];
 
+        $kelasRombel = $siswa->getKelasRombelFormatted($tahunAjaran->id ?? null);
+        $kelasTingkat = $siswa->getGradeLevel($tahunAjaran->id ?? null);
+        $rombel = $siswa->getRombelName($tahunAjaran->id ?? null);
+
         return array_merge($schoolData, [
             'teacher'          => $teacher,
             'kelompok'         => $kelompok,
@@ -199,7 +207,10 @@ class GuruWaliCetakController extends Controller
             'semester2Jurnals' => $semester2Jurnals,
             'konsultasis'      => $konsultasis,
             'distribusiPilar'  => $distribusiPilar,
-            'kelas'            => $siswa->enrollmentAktif?->kelas?->name ?? '—',
+            'kelas'            => $kelasRombel,
+            'kelasTingkat'     => $kelasTingkat,
+            'rombel'           => $rombel,
+            'kelasRombel'      => $kelasRombel,
             'tanggalCetak'     => Carbon::now()->translatedFormat('d F Y'),
         ]);
     }
@@ -212,9 +223,13 @@ class GuruWaliCetakController extends Controller
         [$teacher, $kelompok] = $this->getTeacherAndKelompok();
         $schoolData = $this->getSchoolAndPrincipalData();
 
-        // Otomatis prioritaskan Tahun Ajaran Aktif
-        $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
-            ?? ($request->query('academic_year_id') ? TahunAjaran::find($request->query('academic_year_id')) : null);
+        // Prioritaskan Tahun Ajaran dari parameter jika ada, fallback ke Tahun Ajaran Aktif
+        $academicYearId = $request->query('academic_year_id');
+        $tahunAjaran = $academicYearId ? TahunAjaran::find($academicYearId) : null;
+        if (! $tahunAjaran) {
+            $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
+                ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+        }
 
         if (! $tahunAjaran) {
             $tahunAjaran = (object) [
@@ -257,7 +272,7 @@ class GuruWaliCetakController extends Controller
         ];
 
         // Matriks Siswa Binaan
-        $matriksSiswa = $anggotaAktif->map(function ($anggota) use ($jurnals) {
+        $matriksSiswa = $anggotaAktif->map(function ($anggota) use ($jurnals, $tahunAjaran) {
             $siswa = $anggota->siswa;
             $jurnalSiswa = $jurnals->where('student_id', $siswa->id);
 
@@ -274,7 +289,8 @@ class GuruWaliCetakController extends Controller
                 'nama'             => $siswa->name,
                 'nis'              => $siswa->nis ?? '—',
                 'nisn'             => $siswa->nisn ?? '—',
-                'kelas'            => $siswa->enrollmentAktif?->kelas?->name ?? '—',
+                'kelas'            => $siswa->getRombelName($tahunAjaran->id ?? null) ?? ($siswa->getGradeLevel($tahunAjaran->id ?? null) ?? '—'),
+                'kelasRombel'      => $siswa->getKelasRombelFormatted($tahunAjaran->id ?? null),
                 'total_sesi'       => $jurnalSiswa->count(),
                 'kategori_dominan' => $kategoriDominan,
                 'status_terakhir'  => $sesiTerakhir?->status_sesi ?? 'Belum ada sesi',
@@ -402,9 +418,13 @@ class GuruWaliCetakController extends Controller
         [$teacher, $kelompok] = $this->getTeacherAndKelompok();
         $schoolData = $this->getSchoolAndPrincipalData();
 
-        // Otomatis prioritaskan Tahun Ajaran Aktif
-        $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
-            ?? ($request->query('academic_year_id') ? TahunAjaran::find($request->query('academic_year_id')) : null);
+        // Prioritaskan Tahun Ajaran dari parameter jika ada, fallback ke Tahun Ajaran Aktif
+        $academicYearId = $request->query('academic_year_id');
+        $tahunAjaran = $academicYearId ? TahunAjaran::find($academicYearId) : null;
+        if (! $tahunAjaran) {
+            $tahunAjaran = TahunAjaran::where('status', 'aktif')->first()
+                ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+        }
 
         if (! $tahunAjaran) {
             $tahunAjaran = (object) [
@@ -438,7 +458,7 @@ class GuruWaliCetakController extends Controller
             ->get()
             ->groupBy('student_id');
 
-        $studentsData = $anggotaAktif->map(function ($anggota) use ($allJurnals, $allKonsultasis) {
+        $studentsData = $anggotaAktif->map(function ($anggota) use ($allJurnals, $allKonsultasis, $tahunAjaran) {
             $siswa = $anggota->siswa;
             $jurnals = $allJurnals->get($siswa->id, collect());
             $konsultasis = $allKonsultasis->get($siswa->id, collect());
@@ -460,9 +480,16 @@ class GuruWaliCetakController extends Controller
                 'Sosial & Psikologis'     => $jurnals->where('kategori_pendampingan', 'Sosial & Psikologis')->count(),
             ];
 
+            $kelasRombel = $siswa->getKelasRombelFormatted($tahunAjaran->id ?? null);
+            $kelasTingkat = $siswa->getGradeLevel($tahunAjaran->id ?? null);
+            $rombel = $siswa->getRombelName($tahunAjaran->id ?? null);
+
             return (object) [
                 'siswa'            => $siswa,
-                'kelas'            => $siswa->enrollmentAktif?->kelas?->name ?? '—',
+                'kelas'            => $kelasRombel,
+                'kelasTingkat'     => $kelasTingkat,
+                'rombel'           => $rombel,
+                'kelasRombel'      => $kelasRombel,
                 'jurnals'          => $jurnals,
                 'semester1Jurnals' => $semester1Jurnals,
                 'semester2Jurnals' => $semester2Jurnals,

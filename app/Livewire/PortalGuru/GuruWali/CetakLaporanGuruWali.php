@@ -147,7 +147,8 @@ class CetakLaporanGuruWali extends Component
                 'avatar_url'       => $siswa->avatar_url,
                 'nis'              => $siswa->nis ?? '—',
                 'nisn'             => $siswa->nisn ?? '—',
-                'kelas'            => $siswa->enrollmentAktif?->kelas?->name ?? 'Tanpa Kelas',
+                'kelas'            => $siswa->getRombelName($selectedTahun?->id) ?? ($siswa->getGradeLevel($selectedTahun?->id) ?? 'Tanpa Kelas'),
+                'kelasRombel'      => $siswa->getKelasRombelFormatted($selectedTahun?->id),
                 'total_sesi'       => $jurnals->count(),
                 'pilar_akademik'   => $jurnals->where('kategori_pendampingan', 'Akademik')->count(),
                 'pilar_karakter'   => $jurnals->where('kategori_pendampingan', 'Karakter & Kedisiplinan')->count(),
@@ -177,7 +178,8 @@ class CetakLaporanGuruWali extends Component
                 return str_contains(strtolower($item->nama), $searchTerm)
                     || str_contains(strtolower($item->nisn), $searchTerm)
                     || str_contains(strtolower($item->nis), $searchTerm)
-                    || str_contains(strtolower($item->kelas), $searchTerm);
+                    || str_contains(strtolower($item->kelas), $searchTerm)
+                    || str_contains(strtolower($item->kelasRombel), $searchTerm);
             });
         }
 

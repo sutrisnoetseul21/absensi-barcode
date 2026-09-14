@@ -134,6 +134,99 @@ class Siswa extends Authenticatable
             ->latest();
     }
 
+    /**
+     * Mengambil enrollment siswa pada tahun ajaran tertentu, atau enrollment aktif / terbaru.
+     */
+    public function resolveEnrollment(?string $academicYearId = null): ?EnrollmentSiswa
+    {
+        if ($academicYearId) {
+            $enrollment = $this->enrollments()
+                ->where('academic_year_id', $academicYearId)
+                ->with(['kelas', 'tahunAjaran'])
+                ->orderByRaw("CASE WHEN status = 'aktif' THEN 1 ELSE 2 END")
+                ->latest()
+                ->first();
+
+            if ($enrollment) {
+                return $enrollment;
+            }
+        }
+
+        // Coba enrollment aktif
+        $aktif = $this->enrollmentAktif;
+        if ($aktif) {
+            return $aktif;
+        }
+
+        // Coba enrollment terakhir
+        return $this->enrollments()
+            ->with(['kelas', 'tahunAjaran'])
+            ->orderByRaw("CASE WHEN status = 'aktif' THEN 1 ELSE 2 END")
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Mengambil model Kelas dari enrollment atau fallback ke admission_class.
+     */
+    public function resolveKelasModel(?string $academicYearId = null): ?Kelas
+    {
+        $enrollment = $this->resolveEnrollment($academicYearId);
+        if ($enrollment?->kelas) {
+            return $enrollment->kelas;
+        }
+
+        if ($this->admission_class) {
+            return Kelas::where('name', $this->admission_class)->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Mendapatkan tingkat kelas / angkatan (misal: 7, 8, 9).
+     */
+    public function getGradeLevel(?string $academicYearId = null): ?string
+    {
+        $kelas = $this->resolveKelasModel($academicYearId);
+        if ($kelas?->grade_level) {
+            return (string) $kelas->grade_level;
+        }
+
+        $rombel = $kelas?->name ?? $this->admission_class;
+        if ($rombel && preg_match('/\d+/', $rombel, $matches)) {
+            return $matches[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * Mendapatkan nama rombel spesifik (misal: 7A, 7B, 8A).
+     */
+    public function getRombelName(?string $academicYearId = null): ?string
+    {
+        $kelas = $this->resolveKelasModel($academicYearId);
+        return $kelas?->name ?? $this->admission_class;
+    }
+
+    /**
+     * Mendapatkan format label Kelas / Rombel (misal: "7 / 7A").
+     * Kelas = Angkatan/Tingkat (7, 8, 9)
+     * Rombel = Spesifik Rombongan Belajar (7A, 7B, dsb)
+     */
+    public function getKelasRombelFormatted(?string $academicYearId = null): string
+    {
+        $grade = $this->getGradeLevel($academicYearId);
+        $rombel = $this->getRombelName($academicYearId);
+
+        if ($grade && $rombel) {
+            return $grade === $rombel ? $rombel : "{$grade} / {$rombel}";
+        }
+
+        return $rombel ?? $grade ?? '—';
+    }
+
     // Semua record absensi siswa
     public function absensis(): HasMany
     {
