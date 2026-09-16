@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/siswa/{siswa}/cetak-kartu-login', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLogin'])->name('siswa.cetak-kartu-login');
     Route::get('/admin/siswa/cetak-kartu-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMassal'])->name('siswa.cetak-kartu-massal');
     Route::get('/admin/siswa/cetak-kartu-login-massal', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuLoginMassal'])->name('siswa.cetak-kartu-login-massal');
+    Route::get('/admin/ujian-akademik/{ujian}/cetak-kartu', [\App\Http\Controllers\UjianCetakController::class, 'cetakKartu'])->name('ujian.cetak-kartu');
 
     // Cetak Barcode Perpustakaan Routes
     Route::get('/admin/perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');

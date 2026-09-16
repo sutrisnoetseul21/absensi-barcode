@@ -64,6 +64,12 @@ class TahunAjaran extends Model
         return $this->hasMany(EnrollmentSiswa::class, 'academic_year_id');
     }
 
+    // Ujian akademik di tahun ajaran ini
+    public function ujianAkademiks(): HasMany
+    {
+        return $this->hasMany(UjianAkademik::class, 'academic_year_id');
+    }
+
     // Absensi di tahun ajaran ini (denormalized)
     public function absensis(): HasMany
     {

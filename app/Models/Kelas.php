@@ -59,6 +59,14 @@ class Kelas extends Model
         return $this->hasMany(EnrollmentSiswa::class, 'class_id');
     }
 
+    // Ujian akademik yang ditugaskan ke kelas ini
+    public function ujianAkademiks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(UjianAkademik::class, 'ujian_akademik_classes', 'class_id', 'ujian_akademik_id')
+            ->using(UjianAkademikClass::class)
+            ->withTimestamps();
+    }
+
     // Absensi di kelas ini (denormalized)
     public function absensis(): HasMany
     {

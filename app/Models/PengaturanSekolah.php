@@ -59,6 +59,11 @@ class PengaturanSekolah extends Model
         'global_announcement_active',
         'global_announcement',
         'is_barcode_setup_completed',
+        // Pengaturan Semester & CBT
+        'active_semester',
+        'cbt_driver',
+        'cbt_api_url',
+        'cbt_api_key',
     ];
 
     protected $casts = [
@@ -77,6 +82,7 @@ class PengaturanSekolah extends Model
         'global_announcement_active'      => 'boolean',
         'is_barcode_setup_completed'      => 'boolean',
         'tanggal_rapor'                   => 'date',
+        'cbt_api_key'                     => 'encrypted',
     ];
 
     // Tahun ajaran yang sedang aktif

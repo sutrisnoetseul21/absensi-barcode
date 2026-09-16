@@ -5,6 +5,7 @@ namespace App\Filament\Akademik\Resources\Guru\Tables;
 use App\Helpers\UsernameHelper;
 use App\Models\Guru;
 use App\Models\User;
+use App\Services\Cbt\CbtServiceInterface;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -13,6 +14,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -425,6 +427,75 @@ class GuruTable
 
                 RestoreAction::make()
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
+
+                // ─── CBT: Reset Password ke Default ───────────────────────
+                Action::make('cbt_reset_password')
+                    ->label('Reset Password CBT')
+                    ->icon('heroicon-o-key')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Reset Password CBT Guru')
+                    ->modalDescription(fn (Guru $record): string => implode(PHP_EOL, [
+                        'Password guru di ZenCBT akan direset ke format default:',
+                        '• Punya NIP  : NIP@03 (contoh: ' . ($record->nip ? trim($record->nip) . '@03' : 'NIP@03') . ')',
+                        '• Tanpa NIP  : Nama tanpa spasi (contoh: ' . str_replace(' ', '', $record->name) . ')',
+                    ]))
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor'))
+                    ->action(function (Guru $record): void {
+                        try {
+                            $result = app(CbtServiceInterface::class)->resetTeacherPassword($record->id);
+                            Notification::make()
+                                ->title('Password CBT Direset')
+                                ->body('Password guru ' . $record->name . ' berhasil direset ke format default.')
+                                ->success()->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Gagal Reset Password CBT')
+                                ->body($e->getMessage())
+                                ->danger()->send();
+                        }
+                    }),
+
+                // ─── CBT: Set Password Manual ─────────────────────────────
+                Action::make('cbt_set_password')
+                    ->label('Set Password CBT')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('info')
+                    ->fillForm(fn (Guru $record) => ['email_info' => $record->user?->email ?? '-'])
+                    ->form([
+                        TextInput::make('email_info')
+                            ->label('Email Guru di ZenCBT')
+                            ->readOnly()
+                            ->helperText('Email ini digunakan sebagai identifier akun guru di ZenCBT.'),
+                        TextInput::make('password')
+                            ->label('Password Baru')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->minLength(6)
+                            ->helperText('Minimal 6 karakter. Guru akan login menggunakan password ini.'),
+                        TextInput::make('password_confirmation')
+                            ->label('Konfirmasi Password')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->same('password'),
+                    ])
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor'))
+                    ->action(function (Guru $record, array $data): void {
+                        try {
+                            app(CbtServiceInterface::class)->updateTeacherPassword($record->id, $data['password']);
+                            Notification::make()
+                                ->title('Password CBT Diperbarui')
+                                ->body('Password CBT guru ' . $record->name . ' berhasil diubah.')
+                                ->success()->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Gagal Update Password CBT')
+                                ->body($e->getMessage())
+                                ->danger()->send();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

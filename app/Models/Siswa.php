@@ -245,6 +245,12 @@ class Siswa extends Authenticatable
         return $this->hasOne(StudentPresensiProfile::class, 'student_id');
     }
 
+    // Profil CBT (password kartu & sesi)
+    public function cbtProfile(): HasOne
+    {
+        return $this->hasOne(StudentCbtProfile::class, 'student_id');
+    }
+
     /**
      * Keanggotaan aktif siswa di kelompok Guru Wali saat ini.
      * Mengembalikan satu baris KelompokGuruWaliSiswa dengan status_aktif = true.
