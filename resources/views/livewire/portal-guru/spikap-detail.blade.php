@@ -50,15 +50,15 @@
 
                 <div class="flex flex-col sm:flex-row items-start gap-4">
                     <div class="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                        <img src="{{ $laporan->siswa->avatar_url }}" alt="{{ $laporan->siswa->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $laporan->siswa?->avatar_url ?? asset('images/default-avatar.png') }}" alt="{{ $laporan->siswa?->name ?? 'Siswa (Tidak Ditemukan/Dihapus)' }}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1 min-w-0 space-y-2">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 leading-snug">{{ $laporan->siswa->name }}</h3>
+                            <h3 class="text-lg font-bold text-slate-900 leading-snug">{{ $laporan->siswa?->name ?? 'Siswa (Tidak Ditemukan/Dihapus)' }}</h3>
                             <p class="text-xs text-slate-500">
-                                NISN: <span class="font-mono font-medium text-slate-700">{{ $laporan->siswa->nisn }}</span>
-                                @if($laporan->siswa->enrollmentAktif?->kelas)
-                                    • Kelas: <span class="font-semibold text-slate-800">{{ $laporan->siswa->enrollmentAktif->kelas->name }}</span>
+                                NISN: <span class="font-mono font-medium text-slate-700">{{ $laporan->siswa?->nisn ?? '-' }}</span>
+                                @if($laporan->siswa?->enrollmentAktif?->kelas)
+                                    • Kelas: <span class="font-semibold text-slate-800">{{ $laporan->siswa?->enrollmentAktif?->kelas->name }}</span>
                                 @endif
                             </p>
                         </div>
@@ -66,10 +66,10 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
                             <div>
                                 <span class="text-slate-400 block">No. HP Siswa:</span>
-                                @if($laporan->siswa->no_hp)
-                                    <a href="https://wa.me/{{ $laporan->siswa->no_hp }}" target="_blank"
+                                @if($laporan->siswa?->no_hp)
+                                    <a href="https://wa.me/{{ $laporan->siswa?->no_hp }}" target="_blank"
                                        class="inline-flex items-center gap-1 font-semibold text-emerald-600 hover:text-emerald-700 mt-0.5">
-                                        <span>+{{ $laporan->siswa->no_hp }}</span>
+                                        <span>+{{ $laporan->siswa?->no_hp }}</span>
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </a>
                                 @else
@@ -80,7 +80,7 @@
                             <div>
                                 <span class="text-slate-400 block">No. HP Orang Tua:</span>
                                 @php
-                                    $hportu = $laporan->siswa->no_hp_orang_tua;
+                                    $hportu = $laporan->siswa?->no_hp_orang_tua;
                                 @endphp
                                 @if($hportu)
                                     <a href="https://wa.me/{{ $hportu }}" target="_blank"
