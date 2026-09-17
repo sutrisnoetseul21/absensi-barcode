@@ -159,6 +159,27 @@ class WhatsAppNotificationLogResource extends Resource
                             ->success()
                             ->send();
                     }),
+                \Filament\Actions\Action::make('cancel')
+                    ->label('Batalkan')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Batalkan Pesan WhatsApp')
+                    ->modalDescription('Apakah Anda yakin ingin membatalkan pengiriman pesan ini?')
+                    ->modalSubmitActionLabel('Ya, Batalkan')
+                    ->visible(fn (WhatsAppNotificationLog $record): bool => $record->status === 'pending')
+                    ->action(function (WhatsAppNotificationLog $record) {
+                        $record->update([
+                            'status' => 'failed',
+                            'response_payload' => json_encode(['error' => 'Dibatalkan oleh Admin']),
+                        ]);
+
+                        Notification::make()
+                            ->title('Berhasil')
+                            ->body('Pengiriman pesan telah dibatalkan.')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 // Intentionally empty for safety
