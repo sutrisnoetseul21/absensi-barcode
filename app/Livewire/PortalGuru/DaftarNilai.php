@@ -8,6 +8,7 @@ use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\UjianAkademik;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -215,6 +216,26 @@ class DaftarNilai extends Component
             session()->flash('error', 'Gagal menarik nilai dari ZenCBT: ' . $e->getMessage());
         }
     }
+
+    public function exportExcel()
+    {
+        $activeUjian = $this->activeUjian;
+        if (!$activeUjian || !$this->selectedClassId) {
+            session()->flash('error', 'Silakan pilih ujian dan kelas terlebih dahulu untuk export.');
+            return;
+        }
+
+        $kelas = Kelas::find($this->selectedClassId);
+        $className = $kelas ? str_replace(' ', '_', $kelas->name) : 'Kelas';
+        $ujianName = str_replace([' ', '/', '\\'], '_', $activeUjian->nama_ujian);
+        $fileName = "Rekap_Nilai_{$ujianName}_{$className}.xlsx";
+
+        return Excel::download(
+            new \App\Exports\DaftarNilaiExport($activeUjian->id, $this->selectedClassId, $this->selectedAcademicYearId, $activeUjian->kkm),
+            $fileName
+        );
+    }
+
 
     public function render()
     {
