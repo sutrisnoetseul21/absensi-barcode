@@ -15,20 +15,22 @@
 
             <div class="grid grid-cols-1 gap-6">
                 @foreach($events as $eventName => $nilais)
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-                        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50/50">
+                    <div x-data="{ open: {{ $loop->first ? 'true' : 'false' }} }" class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
+                        <button type="button" @click="open = !open" class="w-full px-5 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center hover:bg-slate-100/50 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/20">
                             <h3 class="font-bold text-slate-800 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-brand-primary"></span>
-                                EVENT: {{ strtoupper($eventName) }}
+                                {{ strtoupper($eventName) }}
                             </h3>
-                        </div>
-                        <div class="overflow-x-auto relative">
+                            <svg class="w-5 h-5 text-slate-500 transform transition-transform duration-200" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" x-collapse x-cloak class="overflow-x-auto relative">
                             <table class="w-full text-left text-sm whitespace-nowrap">
                                 <thead class="bg-white border-b border-slate-200 text-slate-600">
                                     <tr>
                                         <th class="px-4 py-3 font-bold uppercase tracking-wider text-center w-12">No</th>
                                         <th class="px-4 py-3 font-bold uppercase tracking-wider">Mata Pelajaran</th>
-                                        <th class="px-4 py-3 font-bold uppercase tracking-wider">Jenis Ujian</th>
                                         <th class="px-4 py-3 font-bold uppercase tracking-wider text-center">Nilai Akhir</th>
                                         <th class="px-4 py-3 font-bold uppercase tracking-wider text-center">KKM</th>
                                         <th class="px-4 py-3 font-bold uppercase tracking-wider text-center">Status</th>
@@ -39,7 +41,6 @@
                                         <tr class="hover:bg-slate-50 transition-colors">
                                             <td class="px-4 py-3 text-center text-slate-500">{{ $index + 1 }}</td>
                                             <td class="px-4 py-3 font-bold text-slate-800">{{ $nilai['mapel'] }}</td>
-                                            <td class="px-4 py-3 text-slate-500">{{ $nilai['jenis_ujian'] }}</td>
                                             <td class="px-4 py-3 text-center font-bold {{ $nilai['is_tuntas'] ? 'text-emerald-600' : 'text-rose-600' }}">
                                                 {{ number_format($nilai['nilai_akhir'], 2) }}
                                             </td>
