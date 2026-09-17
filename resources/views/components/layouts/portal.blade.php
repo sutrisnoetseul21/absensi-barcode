@@ -525,6 +525,7 @@
                         $student = $user->student;
                         $isDashboardActive = request()->routeIs('portal-siswa.dashboard');
                         $isAkademikActive = request()->routeIs('portal-siswa.akademik');
+                        $isNilaiActive = request()->routeIs('portal-siswa.nilai');
                         $isSholatDhuhurActive = request()->routeIs('portal-siswa.sholat-dhuhur');
                         $isIjinKehadiranActive = request()->routeIs('portal-siswa.ijin') || request()->routeIs('portal-siswa.ijin.form');
                         $isGuruWaliActive = request()->routeIs('portal-siswa.guru-wali*');
@@ -599,6 +600,14 @@
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
+                        </a>
+
+                        <!-- Menu Nilai Ujian -->
+                        <a href="{{ route('portal-siswa.nilai') }}" :title="isCollapsed ? 'Nilai Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isNilaiActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isNilaiActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Nilai Akademik</span>
                         </a>
 
                         <!-- Menu Presensi Sholat Dhuhur -->

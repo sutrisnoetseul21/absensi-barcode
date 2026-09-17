@@ -236,6 +236,41 @@ class DaftarNilai extends Component
         );
     }
 
+    public function getIsPublishedProperty()
+    {
+        $activeUjian = $this->activeUjian;
+        if (!$activeUjian || !$this->selectedClassId) {
+            return false;
+        }
+
+        $published = $activeUjian->published_classes ?? [];
+        return in_array($this->selectedClassId, $published);
+    }
+
+    public function togglePublishClass()
+    {
+        $activeUjian = $this->activeUjian;
+        if (!$activeUjian || !$this->selectedClassId) {
+            return;
+        }
+
+        $published = $activeUjian->published_classes ?? [];
+
+        if (in_array($this->selectedClassId, $published)) {
+            // Unpublish
+            $published = array_values(array_diff($published, [$this->selectedClassId]));
+            $message = 'Nilai berhasil disembunyikan dari siswa kelas ini.';
+        } else {
+            // Publish
+            $published[] = $this->selectedClassId;
+            $message = 'Nilai berhasil ditampilkan ke siswa kelas ini.';
+        }
+
+        $activeUjian->published_classes = $published;
+        $activeUjian->save();
+
+        session()->flash('success', $message);
+    }
 
     public function render()
     {

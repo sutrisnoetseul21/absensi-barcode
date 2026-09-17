@@ -31,14 +31,16 @@ class UjianAkademik extends Model
         'tanggal_selesai',
         'status',
         'keterangan',
+        'published_classes',
     ];
 
     protected $casts = [
-        'kkm'             => 'decimal:2',
-        'durasi_menit'    => 'integer',
-        'total_soal'      => 'integer',
-        'tanggal_mulai'   => 'datetime',
-        'tanggal_selesai' => 'datetime',
+        'kkm'               => 'decimal:2',
+        'durasi_menit'      => 'integer',
+        'total_soal'        => 'integer',
+        'tanggal_mulai'     => 'datetime',
+        'tanggal_selesai'   => 'datetime',
+        'published_classes' => 'array',
     ];
 
     /**

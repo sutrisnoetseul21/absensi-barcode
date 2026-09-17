@@ -398,6 +398,7 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
 
         // Konsultasi & Bimbingan Guru Wali (Permendikdasmen No. 11/2025)
         Route::get('/konsultasi-guru-wali', \App\Livewire\PortalSiswa\KonsultasiGuruWaliList::class)->name('portal-siswa.guru-wali');
+        Route::get('/nilai', \App\Livewire\PortalSiswa\SiswaNilai::class)->name('portal-siswa.nilai');
 
         // Fallback auto-redirect jika slug bukan 'spikap' (mencegah broken link lama)
         if ($spikapSlug !== 'spikap') {
