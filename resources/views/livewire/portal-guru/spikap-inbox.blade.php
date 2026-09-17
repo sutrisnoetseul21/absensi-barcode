@@ -181,14 +181,14 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
-                                        <img src="{{ $item->siswa->avatar_url }}" alt="{{ $item->siswa->name }}" class="w-full h-full object-cover">
+                                        <img src="{{ $item->siswa?->avatar_url ?? asset('images/default-avatar.png') }}" alt="{{ $item->siswa?->name ?? 'Siswa (Tidak Ditemukan/Dihapus)' }}" class="w-full h-full object-cover">
                                     </div>
                                     <div>
-                                        <div class="font-bold text-slate-900 leading-snug">{{ $item->siswa->name }}</div>
+                                        <div class="font-bold text-slate-900 leading-snug">{{ $item->siswa?->name ?? 'Siswa (Tidak Ditemukan/Dihapus)' }}</div>
                                         <div class="text-xs text-slate-500 mt-0.5">
-                                            NISN: {{ $item->siswa->nisn }}
-                                            @if($item->siswa->enrollmentAktif?->kelas)
-                                                • Kelas {{ $item->siswa->enrollmentAktif->kelas->name }}
+                                            NISN: {{ $item->siswa?->nisn ?? '-' }}
+                                            @if($item->siswa?->enrollmentAktif?->kelas)
+                                                • Kelas {{ $item->siswa?->enrollmentAktif->kelas->name }}
                                             @endif
                                         </div>
                                     </div>
