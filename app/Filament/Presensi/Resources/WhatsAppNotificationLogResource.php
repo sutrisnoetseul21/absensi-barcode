@@ -135,15 +135,13 @@ class WhatsAppNotificationLogResource extends Resource
                     ->modalHeading('Kirim Ulang Pesan WhatsApp')
                     ->modalDescription('Apakah Anda yakin ingin memasukkan pesan ini kembali ke dalam antrean?')
                     ->modalSubmitActionLabel('Ya, Kirim Ulang')
-                    ->visible(fn (WhatsAppNotificationLog $record): bool => in_array($record->status, ['failed', 'pending']))
+                    ->visible(fn (WhatsAppNotificationLog $record): bool => $record->status === 'failed')
                     ->action(function (WhatsAppNotificationLog $record) {
-                        // Reset status to pending
                         $record->update([
                             'status' => 'pending',
-                            'response_payload' => json_encode(['info' => 'Resent by Admin']),
+                            'response_payload' => json_encode(['info' => 'Dijadwalkan ulang oleh Admin']),
                         ]);
 
-                        // Dispatch the job again
                         SendWhatsAppNotificationJob::dispatch(
                             $record->recipient_number,
                             $record->message,
@@ -155,7 +153,7 @@ class WhatsAppNotificationLogResource extends Resource
 
                         Notification::make()
                             ->title('Berhasil')
-                            ->body('Pesan telah dimasukkan kembali ke antrean untuk dikirim.')
+                            ->body('Notifikasi dijadwalkan ulang untuk dikirim.')
                             ->success()
                             ->send();
                     }),
@@ -182,9 +180,50 @@ class WhatsAppNotificationLogResource extends Resource
                     }),
             ])
             ->bulkActions([
-                // Intentionally empty for safety
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\BulkAction::make('resend_selected')
+                        ->label('Kirim Ulang yang Dipilih')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->modalHeading('Kirim Ulang Notifikasi Terpilih')
+                        ->modalDescription('Hanya baris dengan status "Gagal" yang akan diproses ulang.')
+                        ->modalSubmitActionLabel('Ya, Kirim Ulang')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $count = 0;
+                            foreach ($records as $record) {
+                                if ($record->status !== 'failed') {
+                                    continue;
+                                }
+
+                                $record->update([
+                                    'status' => 'pending',
+                                    'response_payload' => json_encode(['info' => 'Dijadwalkan ulang oleh Admin (bulk)']),
+                                ]);
+
+                                SendWhatsAppNotificationJob::dispatch(
+                                    $record->recipient_number,
+                                    $record->message,
+                                    $record->related_type,
+                                    $record->related_id,
+                                    $record->recipient_type,
+                                    $record->id
+                                );
+
+                                $count++;
+                            }
+
+                            Notification::make()
+                                ->title('Berhasil')
+                                ->body("{$count} notifikasi dijadwalkan ulang.")
+                                ->success()
+                                ->send();
+                        }),
+                    \Filament\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {
