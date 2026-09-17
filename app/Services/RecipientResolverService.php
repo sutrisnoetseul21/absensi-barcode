@@ -145,6 +145,12 @@ class RecipientResolverService
                     $resolved[] = ['number' => $hp, 'type' => 'ortu'];
                     $seenNumbers[$hp] = true;
                 }
+            } elseif ($key === 'siswa') {
+                $hp = trim($student->no_hp ?? '');
+                if ($hp && !isset($seenNumbers[$hp])) {
+                    $resolved[] = ['number' => $hp, 'type' => 'siswa'];
+                    $seenNumbers[$hp] = true;
+                }
             } elseif ($key === 'wali_kelas') {
                 $hp = $this->resolveWaliKelas($student);
                 if ($hp && !isset($seenNumbers[$hp])) {
