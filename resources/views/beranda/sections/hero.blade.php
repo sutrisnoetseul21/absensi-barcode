@@ -45,14 +45,26 @@
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4">
                 <!-- Tombol Utama -->
-                <a href="#tentang" class="px-8 py-3 bg-brand-primary hover:bg-brand-primary-dark text-white font-bold rounded-full shadow-lg transition-transform transform hover:-translate-y-1 inline-flex items-center gap-2 justify-center">
+                <a href="{{ url('/profil') }}" class="px-8 py-3 bg-brand-primary hover:bg-brand-primary-dark text-white font-bold rounded-full shadow-lg transition-transform transform hover:-translate-y-1 inline-flex items-center gap-2 justify-center">
                     <span>Profil Sekolah</span> 
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
                 <!-- Tombol Kedua -->
-                <a href="#kontak" class="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white hover:text-slate-900 text-white font-bold rounded-full transition-all inline-flex items-center gap-2 justify-center">
-                    <span>Hubungi Kami</span>
-                </a>
+                @auth
+                    @if(auth()->user()->hasRole('siswa') || auth()->user()->student !== null)
+                        <a href="{{ url('/portal-siswa') }}" class="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white hover:text-slate-900 text-white font-bold rounded-full transition-all inline-flex items-center gap-2 justify-center">
+                            <span>Masuk Portal</span>
+                        </a>
+                    @else
+                        <a href="{{ url('/pilih-portal') }}" class="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white hover:text-slate-900 text-white font-bold rounded-full transition-all inline-flex items-center gap-2 justify-center">
+                            <span>Masuk Portal</span>
+                        </a>
+                    @endif
+                @else
+                    <a href="{{ url('/login') }}" class="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white hover:text-slate-900 text-white font-bold rounded-full transition-all inline-flex items-center gap-2 justify-center">
+                        <span>Login</span>
+                    </a>
+                @endauth
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@
 @php
     $halamanAkademikList = \App\Models\WebHalamanAkademik::where('is_active', true)->orderBy('urutan')->get();
     $halamanLayananList = \App\Models\WebHalamanLayanan::where('is_active', true)->orderBy('urutan')->get();
+    $aplikasiList = \App\Models\WebAplikasi::where('is_active', true)->orderBy('order')->get();
 @endphp
 
 <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="main-navbar"
@@ -203,7 +204,7 @@
                     </div>
                 </div>
 
-                {{-- 5. Aplikasi (Dropdown Sub-Menu: Presensi & Perpustakaan) --}}
+                {{-- 5. Aplikasi (Dropdown Sub-Menu: Dinamis dari WebAplikasi) --}}
                 <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                     <button type="button" @click="open = !open" 
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200"
@@ -223,12 +224,13 @@
                          @click.away="open = false"
                          class="absolute left-0 mt-1 min-w-[210px] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden text-slate-800"
                          style="display: none;">
-                        <a href="{{ url('/presensi') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors">
-                            <i class="fas fa-clock text-amber-500 w-4"></i> Presensi
-                        </a>
-                        <a href="{{ url('/perpustakaan') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors border-t border-slate-50">
-                            <i class="fas fa-book-reader text-emerald-500 w-4"></i> Perpustakaan
-                        </a>
+                        @forelse($aplikasiList as $index => $aplikasi)
+                            <a href="{{ $aplikasi->url }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-primary transition-colors {{ $index > 0 ? 'border-t border-slate-50' : '' }}">
+                                <i class="{{ $aplikasi->icon }} {{ $aplikasi->icon_color }} w-4"></i> {{ $aplikasi->name }}
+                            </a>
+                        @empty
+                            <div class="px-4 py-2.5 text-xs text-slate-500 italic">Belum ada aplikasi</div>
+                        @endforelse
                     </div>
                 </div>
 
@@ -489,8 +491,13 @@
                     <i class="fas fa-chevron-down text-xs transition-transform" :class="mobileAplikasiOpen ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="mobileAplikasiOpen" class="pl-8 pr-2 py-1 space-y-1" style="display: none;">
-                    <a href="{{ url('/presensi') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Presensi</a>
-                    <a href="{{ url('/perpustakaan') }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">Perpustakaan</a>
+                    @forelse($aplikasiList as $aplikasi)
+                        <a href="{{ $aplikasi->url }}" class="block py-2 text-xs font-semibold opacity-80 hover:opacity-100">
+                            <i class="{{ $aplikasi->icon }} {{ $aplikasi->icon_color }} w-4 mr-1"></i> {{ $aplikasi->name }}
+                        </a>
+                    @empty
+                        <div class="block py-2 text-xs font-semibold opacity-60 italic">Belum ada aplikasi</div>
+                    @endforelse
                 </div>
             </div>
 
