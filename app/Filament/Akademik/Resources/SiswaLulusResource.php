@@ -3,8 +3,10 @@
 namespace App\Filament\Akademik\Resources;
 
 use App\Actions\Student\ReactivateStudentAction;
+use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
 use App\Models\Siswa;
+use App\Models\TahunAjaran;
 use BackedEnum;
 use Filament\Resources\Resource;
 use App\Filament\Traits\HasSimpleRoleAccess;
@@ -13,6 +15,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,7 +53,10 @@ class SiswaLulusResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'lulus'))
+            // Filter: hanya tampilkan siswa yang punya setidaknya satu enrollment berstatus 'lulus'
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereHas(
+                'enrollments', fn ($q) => $q->where('status', 'lulus')
+            ))
             ->columns([
                 ImageColumn::make('photo_path')
                     ->label('Foto')
@@ -73,17 +79,31 @@ class SiswaLulusResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('kelas_terakhir')
-                    ->label('Kelas Terakhir')
+                TextColumn::make('kelas_lulus')
+                    ->label('Kelas Saat Lulus')
                     ->getStateUsing(function (Siswa $record) {
-                        $lastEnrollment = $record->enrollments()
-                            ->with('kelas', 'tahunAjaran')
+                        $lulusEnrollment = $record->enrollments()
+                            ->with('kelas')
+                            ->where('status', 'lulus')
                             ->latest()
                             ->first();
-                        if (!$lastEnrollment) return '—';
-                        return ($lastEnrollment->kelas?->name ?? '—')
-                            . ' (TA ' . ($lastEnrollment->tahunAjaran?->name ?? '—') . ')';
-                    }),
+                        return $lulusEnrollment?->kelas?->name ?? '—';
+                    })
+                    ->badge()
+                    ->color('primary'),
+
+                TextColumn::make('tahun_ajaran_lulus')
+                    ->label('Tahun Ajaran Lulus')
+                    ->getStateUsing(function (Siswa $record) {
+                        $lulusEnrollment = $record->enrollments()
+                            ->with('tahunAjaran')
+                            ->where('status', 'lulus')
+                            ->latest()
+                            ->first();
+                        return $lulusEnrollment?->tahunAjaran?->name ?? '—';
+                    })
+                    ->badge()
+                    ->color('success'),
 
                 TextColumn::make('status_melanjutkan')
                     ->label('Melanjutkan')
@@ -102,11 +122,33 @@ class SiswaLulusResource extends Resource
                     ->searchable()
                     ->placeholder('-')
                     ->limit(25),
+            ])
+            ->filters([
+                // Filter berdasarkan Tahun Ajaran kelulusan
+                SelectFilter::make('tahun_ajaran_lulus')
+                    ->label('Tahun Ajaran Lulus')
+                    ->options(TahunAjaran::orderBy('start_year', 'desc')->pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('enrollments', function ($q) use ($data) {
+                                $q->where('status', 'lulus')
+                                  ->where('academic_year_id', $data['value']);
+                            });
+                        }
+                    }),
 
-                TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->color('success'),
+                // Filter berdasarkan Kelas saat lulus
+                SelectFilter::make('kelas_lulus')
+                    ->label('Kelas Saat Lulus')
+                    ->options(Kelas::orderBy('name')->pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('enrollments', function ($q) use ($data) {
+                                $q->where('status', 'lulus')
+                                  ->where('class_id', $data['value']);
+                            });
+                        }
+                    }),
             ])
             ->recordActions([
                 // Update Tracer Study
@@ -160,7 +202,7 @@ class SiswaLulusResource extends Resource
                             ->send();
                     }),
 
-                // Batalkan kelulusan (kembalikan ke Aktif)
+                // Batalkan kelulusan (kembalikan enrollment ke Aktif)
                 Action::make('batalkan_kelulusan')
                     ->label('Aktifkan Kembali')
                     ->icon('heroicon-o-arrow-uturn-left')

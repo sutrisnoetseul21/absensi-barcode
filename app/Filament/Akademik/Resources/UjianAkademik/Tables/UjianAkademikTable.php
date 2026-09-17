@@ -31,11 +31,6 @@ class UjianAkademikTable
                     ->weight('bold')
                     ->description(fn (UjianAkademik $record) => $record->cbt_event_nama ? "Event CBT: {$record->cbt_event_nama}" : null),
 
-                \Filament\Tables\Columns\SelectColumn::make('jenis_ujian_id')
-                    ->label('Jenis')
-                    ->options(fn () => \App\Models\JenisUjian::pluck('kode', 'id')->toArray())
-                    ->placeholder('Pilih Jenis'),
-
                 TextColumn::make('mataPelajaran.nama_mapel')
                     ->label('Mata Pelajaran')
                     ->sortable()
@@ -56,6 +51,12 @@ class UjianAkademikTable
                     ->badge()
                     ->separator(', ')
                     ->default('—'),
+
+                TextColumn::make('guru.name')
+                    ->label('Guru Pengampu')
+                    ->default('—')
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('nilai_ujians_count')
                     ->counts('nilaiUjians')
@@ -101,15 +102,6 @@ class UjianAkademikTable
                     ->options([
                         'ganjil' => 'Ganjil',
                         'genap'  => 'Genap',
-                    ]),
-
-                SelectFilter::make('jenis_ujian')
-                    ->label('Jenis Asesmen')
-                    ->options([
-                        'harian' => 'Ulangan Harian (UH)',
-                        'sts'    => 'Sumatif Tengah Semester (ASTS)',
-                        'sas'    => 'Sumatif Akhir Semester (ASAS)',
-                        'tryout' => 'Try Out (TO)',
                     ]),
 
                 SelectFilter::make('mata_pelajaran_id')

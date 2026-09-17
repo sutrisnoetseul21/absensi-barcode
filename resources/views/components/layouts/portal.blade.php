@@ -728,6 +728,7 @@
                         // Perpustakaan & Profil
                         $isPerpustakaanActive = request()->routeIs('portal-guru.perpustakaan');
                         $isProfilGuruActive = request()->routeIs('portal-guru.profil');
+                        $isDaftarNilaiActive = request()->routeIs('portal-guru.nilai');
                     @endphp
                     
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Guru</p>
@@ -738,6 +739,14 @@
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                         </div>
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
+                    </a>
+
+                    <!-- Menu Daftar Nilai -->
+                    <a href="{{ route('portal-guru.nilai') }}" :title="isCollapsed ? 'Daftar Nilai' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDaftarNilaiActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <div class="p-1.5 rounded-lg {{ $isDaftarNilaiActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Daftar Nilai</span>
                     </a>
 
                     <!-- Submenu: Akademik & Wali Kelas -->

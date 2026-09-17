@@ -3,7 +3,9 @@
 namespace App\Filament\Akademik\Resources;
 
 use App\Actions\Student\ReactivateStudentAction;
+use App\Models\Kelas;
 use App\Models\Siswa;
+use App\Models\TahunAjaran;
 use BackedEnum;
 use Filament\Resources\Resource;
 use App\Filament\Traits\HasSimpleRoleAccess;
@@ -12,6 +14,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
@@ -72,9 +75,10 @@ class SiswaMutasiResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('kelas_terakhir')
-                    ->label('Kelas Terakhir')
+                TextColumn::make('kelas_saat_mutasi')
+                    ->label('Kelas Saat Mutasi')
                     ->getStateUsing(function (Siswa $record) {
+                        // Cari enrollment aktif terakhir
                         $lastEnrollment = $record->enrollments()
                             ->with('kelas', 'tahunAjaran')
                             ->latest()
@@ -82,7 +86,9 @@ class SiswaMutasiResource extends Resource
                         if (!$lastEnrollment) return '—';
                         return ($lastEnrollment->kelas?->name ?? '—')
                             . ' (TA ' . ($lastEnrollment->tahunAjaran?->name ?? '—') . ')';
-                    }),
+                    })
+                    ->badge()
+                    ->color('warning'),
 
                 TextColumn::make('tujuan_mutasi')
                     ->label('Sekolah / Instansi Tujuan')
@@ -107,6 +113,31 @@ class SiswaMutasiResource extends Resource
                     ->label('Status')
                     ->badge()
                     ->color('warning'),
+            ])
+            ->filters([
+                // Filter berdasarkan Tahun Ajaran saat mutasi (dari enrollment terakhir)
+                SelectFilter::make('tahun_ajaran')
+                    ->label('Tahun Ajaran')
+                    ->options(TahunAjaran::orderBy('start_year', 'desc')->pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('enrollments', function ($q) use ($data) {
+                                $q->where('academic_year_id', $data['value']);
+                            });
+                        }
+                    }),
+
+                // Filter berdasarkan Kelas saat mutasi
+                SelectFilter::make('kelas')
+                    ->label('Kelas Saat Mutasi')
+                    ->options(Kelas::orderBy('name')->pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('enrollments', function ($q) use ($data) {
+                                $q->where('class_id', $data['value']);
+                            });
+                        }
+                    }),
             ])
             ->recordActions([
                 // Update Data Tujuan Mutasi

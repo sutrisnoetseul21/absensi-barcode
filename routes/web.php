@@ -310,6 +310,11 @@ if (empty($spikapSlug)) {
 Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () use ($spikapSlug) {
     Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('portal-guru.login');
     
+    // Route untuk semua Guru (tidak harus Wali Kelas)
+    Route::middleware('auth')->group(function () {
+        Route::get('/nilai', \App\Livewire\PortalGuru\DaftarNilai::class)->name('portal-guru.nilai');
+    });
+
     Route::middleware('auth.wali')->group(function () {
         Route::get('/', \App\Livewire\GuruMainDashboard::class)->name('portal-guru.dashboard');
         Route::get('/akademik', WaliKelasDashboard::class)->name('portal-guru.akademik');

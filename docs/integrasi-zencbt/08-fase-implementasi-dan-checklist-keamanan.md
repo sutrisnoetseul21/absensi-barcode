@@ -87,8 +87,8 @@ flowchart TD
 ## 📌 FASE 2: Pembuatan Service Mandiri ZenCBT Bridge API & Kontrol Sesi
 
 > [!NOTE]
-> **Status Fase 2**: ⏳ **DALAM PROSES TESTING (Testing In Progress)**
-> Dilakukan penambahan endpoint baru untuk sinkronisasi jadwal ujian (`GET /api/v1/exams`), pembukaan blokir sesi ujian siswa (`POST /api/v1/students/{id}/reset-session`), serta pengaturan sesi eksplisit (`POST /api/v1/students/{id}/set-session`). Endpoint ini sedang dalam tahap pengujian integrasi live.
+> **Status Fase 2**: ✅ **SELESAI (17 Sep 2026)**
+> Dilakukan penambahan endpoint baru untuk sinkronisasi jadwal ujian (`GET /api/v1/exams`), pembukaan blokir sesi ujian siswa (`POST /api/v1/students/{id}/reset-session`), serta pengaturan sesi eksplisit (`POST /api/v1/students/{id}/set-session`). Endpoint ini telah diuji coba secara integrasi live.
 
 **Tujuan**: Membangun microservice API ringan di folder `zencbt-bridge` yang terisolasi dari Laravel utama dan langsung berbicara dengan PostgreSQL ZenCBT.
 
@@ -157,8 +157,8 @@ flowchart TD
   curl -H "Authorization: Bearer <SECRET_KEY>" http://localhost:7879/api/v1/exams
   ```
 * **Kriteria Lolos**:
-  - [ ] Mengembalikan array objek JSON: `id`, `title`, `event_nama`, `start_time`, `end_time`, `durasi`, `is_active`, `passing_grade`, `mapel_kode`, `mapel_nama`, dan `total_peserta`. *(Sedang dalam proses testing)*
-  - [ ] Response difilter hanya untuk ujian yang belum dihapus (`deleted_at IS NULL`). *(Sedang dalam proses testing)*
+  - [x] Mengembalikan array objek JSON: `id`, `title`, `event_nama`, `start_time`, `end_time`, `durasi`, `is_active`, `passing_grade`, `mapel_kode`, `mapel_nama`, dan `total_peserta`. (Terverifikasi 17 Sep 2026)
+  - [x] Response difilter hanya untuk ujian yang belum dihapus (`deleted_at IS NULL`). (Terverifikasi 17 Sep 2026)
 
 ---
 
@@ -170,8 +170,8 @@ flowchart TD
 * **Prosedur Pengecekan (*Checking*)**:
   - Uji kirim request reset session untuk NISN siswa terdaftar via cURL / Postman.
 * **Kriteria Lolos**:
-  - [ ] Status peserta di ZenCBT berhasil dinetralkan kembali ke siap login. *(Sedang dalam proses testing)*
-  - [ ] Tercatat log audit trail secara akurat di server bridge. *(Sedang dalam proses testing)*
+  - [x] Status peserta di ZenCBT berhasil dinetralkan kembali ke siap login. (Terverifikasi 17 Sep 2026)
+  - [x] Tercatat log audit trail secara akurat di server bridge. (Terverifikasi 17 Sep 2026)
 
 ---
 
@@ -210,7 +210,7 @@ flowchart TD
   - [x] Metode `syncMasterData()` dan `syncStudents()` selesai dengan chunking & proteksi password. (Terverifikasi 15 Sep 2026)
   - [x] Queue jobs `SyncMasterDataJob` dan `SyncStudentsJob` selesai dengan `withoutOverlapping()`, fail pada 401, retry pada 429, dan `Log::critical()` pada `failed()`. (Terverifikasi 15 Sep 2026)
   - [x] Automated test jobs lolos 100% (4 test cases di `CbtJobsTest.php`). (Terverifikasi 15 Sep 2026)
-  - [ ] Uji sync live satu rombel ke ZenCBT (Menunggu live test).
+  - [x] Uji sync live satu rombel ke ZenCBT (Terverifikasi 17 Sep 2026).
 
 ---
 
@@ -229,19 +229,19 @@ flowchart TD
   - [x] Metode `pullExamResults()` selesai dengan skip NISN unknown, resolve rombel siswa via `$siswa->resolveKelasModel()`, dan anti-duplikasi `updateOrCreate()`. (Terverifikasi 15 Sep 2026)
   - [x] Queue job `PullExamResultsJob` dan command `cbt:pull-results` selesai. (Terverifikasi 15 Sep 2026)
   - [x] Automated test pull results lolos 100% (Total suite: 17 passed, 43 assertions). (Terverifikasi 15 Sep 2026)
-  - [ ] Uji pull live hasil ujian ke tabel `nilai_ujians` (Menunggu live test).
+  - [x] Uji pull live hasil ujian ke tabel `nilai_ujians` (Terverifikasi 17 Sep 2026).
 
 ---
 
 ## 📌 FASE 4: Antarmuka Filament UI, Refaktor Jenis Ujian & Cetak Kartu
 
 > [!NOTE]
-> **Status Fase 4**: ⏳ **DALAM PROSES TESTING (Testing In Progress)**
+> **Status Fase 4**: ✅ **SELESAI (17 Sep 2026)**
 > Dilakukan beberapa perubahan arsitektural dan penyesuaian alur UI penting:
 > 1. **Refaktor Jenis Ujian Dinamis**: Pemindahan kolom `jenis_ujian` dari enum statis menjadi entitas tabel master `jenis_ujians` (`id`, `kode`, `nama`) dengan UI kelola mandiri `JenisUjianResource`.
 > 2. **Alur Otomatis "Sinkron Nilai CBT"**: `UjianAkademikResource` direvisi menjadi "Sinkron Nilai CBT" tanpa tombol create manual, melainkan menarik jadwal langsung dari ZenCBT.
 > 3. **Modal Pratinjau Perubahan (Diff Preview)**: Penambahan aksi header *"Sinkron Jadwal CBT"* dilengkapi komponen Blade pratinjau (`sync-exams-preview.blade.php`) untuk memeriksa jadwal baru vs diperbarui sebelum disimpan.
-> 4. **Penyesuaian Test Suite**: Automated test `UjianAkademikResourceTest` sedang dalam penyesuaian terhadap alur sinkronisasi baru ini.
+> 4. **Penyesuaian Test Suite**: Automated test `UjianAkademikResourceTest` telah diselaraskan dengan alur sinkronisasi baru ini.
 
 **Tujuan**: Membangun tampilan visual yang mudah digunakan oleh Guru dan Admin, mendukung master jenis asesmen dinamis, serta memudahkan sinkronisasi jadwal dan penarikan nilai.
 
@@ -256,8 +256,8 @@ flowchart TD
   - Buka menu **Data Master > Jenis Ujian** di Filament panel admin.
   - Coba input jenis ujian baru (misal: kode `"ASAJ"` - *"Asesmen Sumatif Akhir Jenjang"*, atau `"UH"` - *"Ulangan Harian"*).
 * **Kriteria Lolos**:
-  - [ ] Tabel `jenis_ujians` aktif dan mendukung CRUD master jenis ujian secara dinamis tanpa batasan enum. *(Sedang dalam proses testing)*
-  - [ ] Relasi `UjianAkademik::jenisUjian()` terhubung normal dengan penanganan `nullOnDelete`. *(Sedang dalam proses testing)*
+  - [x] Tabel `jenis_ujians` aktif dan mendukung CRUD master jenis ujian secara dinamis tanpa batasan enum. (Terverifikasi 17 Sep 2026)
+  - [x] Relasi `UjianAkademik::jenisUjian()` terhubung normal dengan penanganan `nullOnDelete`. (Terverifikasi 17 Sep 2026)
 
 ---
 
@@ -272,8 +272,8 @@ flowchart TD
   - Buka halaman **Akademik > Sinkron Nilai CBT**.
   - Periksa integrasi form view dan relation manager rekapitulasi nilai.
 * **Kriteria Lolos**:
-  - [ ] Halaman list dan view berjalan lancar tanpa dependency `CreateUjianAkademik`. *(Sedang dalam proses testing)*
-  - [ ] Penyesuaian automated test di `tests/Feature/Cbt/UjianAkademikResourceTest.php` diselaraskan dengan arsitektur sinkronisasi ini. *(Sedang dalam proses testing)*
+  - [x] Halaman list dan view berjalan lancar tanpa dependency `CreateUjianAkademik`. (Terverifikasi 17 Sep 2026)
+  - [x] Penyesuaian automated test di `tests/Feature/Cbt/UjianAkademikResourceTest.php` diselaraskan dengan arsitektur sinkronisasi ini. (Terverifikasi 17 Sep 2026)
 
 ---
 
@@ -292,8 +292,8 @@ flowchart TD
 * **Prosedur Pengecekan (*Checking*)**:
   - Uji klik tombol *"Sinkron Jadwal CBT"* dan pastikan modal preview diff muncul menampilkan ringkasan perubahan jadwal.
 * **Kriteria Lolos**:
-  - [ ] Pratinjau diff jadwal tampil rapi dengan deteksi status jadwal baru dan update. *(Sedang dalam proses testing)*
-  - [ ] Seluruh notifikasi sukses/gagal tampil proporsional di pojok layar Filament. *(Sedang dalam proses testing)*
+  - [x] Pratinjau diff jadwal tampil rapi dengan deteksi status jadwal baru dan update. (Terverifikasi 17 Sep 2026)
+  - [x] Seluruh notifikasi sukses/gagal tampil proporsional di pojok layar Filament. (Terverifikasi 17 Sep 2026)
 
 ---
 
@@ -343,8 +343,8 @@ flowchart TD
 | Fase | Deskripsi Tugas | Target | Status |
 | :---: | :--- | :---: | :--- |
 | **Fase 1** | Migrasi Database MySQL & Model Eloquent di Laravel | 1 - 2 Hari | ✅ **SELESAI (15 Sep 2026)** |
-| **Fase 2** | Microservice `zencbt-bridge` (PostgreSQL) + Endpoint Ujian & Reset Sesi | 1 - 2 Hari | ⏳ **DALAM PROSES TESTING** *(Penambahan Endpoint GET /exams, Reset Sesi & Audit Trail)* |
+| **Fase 2** | Microservice `zencbt-bridge` (PostgreSQL) + Endpoint Ujian & Reset Sesi | 1 - 2 Hari | ✅ **SELESAI (17 Sep 2026)** |
 | **Fase 3** | Service Client, Queue Jobs, Artisan Commands, & Automated Tests | 1 Hari | ✅ **SELESAI (15 Sep 2026)** *(17 Tests Passed & Live Ping Terverifikasi)* |
-| **Fase 4** | Filament UI (JenisUjianResource, Sinkron Nilai CBT, Diff Preview Jadwal) & Cetak Kartu | 2 Hari | ⏳ **DALAM PROSES TESTING** *(Refaktor Master Jenis Ujian, Modal Sync Preview, Penyesuaian Test Suite)* |
-| **Fase 5** | Simulasi End-to-End & Verifikasi Keamanan | 1 Hari | ⏳ **SIAP DIUJI COBA** *(Menunggu Penyelesaian Testing Fase 2 & 4)* |
+| **Fase 4** | Filament UI (JenisUjianResource, Sinkron Nilai CBT, Diff Preview Jadwal) & Cetak Kartu | 2 Hari | ✅ **SELESAI (17 Sep 2026)** |
+| **Fase 5** | Simulasi End-to-End & Verifikasi Keamanan | 1 Hari | ✅ **SELESAI (17 Sep 2026)** |
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Akademik\Resources\UjianAkademik\Schemas;
 
+use App\Models\Guru;
+use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\PengaturanSekolah;
 use App\Models\TahunAjaran;
@@ -26,25 +28,10 @@ class UjianAkademikForm
                     ->schema([
                         TextInput::make('nama_ujian')
                             ->label('Nama Agenda Ujian')
-                            ->placeholder('Contoh: Asesmen Sumatif Tengah Semester - Matematika')
+                            ->placeholder('Contoh: UTS MTK GURU CBT (Copy)')
                             ->required()
                             ->maxLength(255)
                             ->columnSpanFull(),
-
-                        Select::make('jenis_ujian')
-                            ->label('Jenis Asesmen')
-                            ->options([
-                                'harian' => 'Ulangan Harian (UH)',
-                                'sts'    => 'Sumatif Tengah Semester (ASTS)',
-                                'sas'    => 'Sumatif Akhir Semester (ASAS)',
-                                'tryout' => 'Try Out (TO)',
-                            ])
-                            ->default('sts')
-                            ->required()
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                self::updateAutoCbtEventNama($set, $get);
-                            }),
 
                         Select::make('mata_pelajaran_id')
                             ->label('Mata Pelajaran')
@@ -60,6 +47,15 @@ class UjianAkademikForm
                                 }
                                 self::updateAutoCbtEventNama($set, $get);
                             }),
+
+                        Select::make('teacher_id')
+                            ->label('Guru Pengampu')
+                            ->options(fn (callable $get) => self::resolveGuruOptions($get('mata_pelajaran_id')))
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->reactive()
+                            ->helperText('Otomatis difilter berdasarkan Mata Pelajaran yang dipilih.'),
 
                         Select::make('academic_year_id')
                             ->label('Tahun Ajaran')
@@ -81,6 +77,16 @@ class UjianAkademikForm
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                 self::updateAutoCbtEventNama($set, $get);
                             }),
+
+                        Select::make('classes')
+                            ->label('Kelas Sasaran')
+                            ->relationship('classes', 'name')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->helperText('Rombongan belajar yang akan mengikuti ujian ini.')
+                            ->columnSpanFull(),
                     ]),
 
                 // ─── SECTION 2: Kriteria Penilaian & Jadwal Waktu ──────────
@@ -139,7 +145,7 @@ class UjianAkademikForm
                     ->schema([
                         TextInput::make('cbt_event_nama')
                             ->label('Nama Event di ZenCBT')
-                            ->placeholder('Contoh: ASTS Ganjil - Matematika')
+                            ->placeholder('Contoh: UTS MTK GURU CBT')
                             ->helperText('Ditampilkan di layar jadwal proktor & siswa ZenCBT.')
                             ->nullable(),
 
@@ -161,25 +167,37 @@ class UjianAkademikForm
     }
 
     /**
+     * Ambil opsi guru, difilter berdasarkan mata pelajaran jika tersedia.
+     */
+    private static function resolveGuruOptions(?int $mataPelajaranId): array
+    {
+        if ($mataPelajaranId) {
+            // Filter: hanya guru yang mengajar mapel ini (via Pengajaran)
+            $guruIds = \App\Models\Pengajaran::where('mata_pelajaran_id', $mataPelajaranId)
+                ->pluck('teacher_id')
+                ->unique()
+                ->toArray();
+
+            if (!empty($guruIds)) {
+                return Guru::whereIn('id', $guruIds)->orderBy('name')->pluck('name', 'id')->toArray();
+            }
+        }
+
+        return Guru::orderBy('name')->pluck('name', 'id')->toArray();
+    }
+
+    /**
      * Helper privat untuk mengisi nama event ZenCBT secara otomatis
-     * berdasarkan jenis ujian, semester, dan nama mapel.
+     * berdasarkan nama mapel dan semester.
      */
     private static function updateAutoCbtEventNama(callable $set, callable $get): void
     {
-        $jenis = match ($get('jenis_ujian')) {
-            'harian' => 'UH',
-            'sts'    => 'ASTS',
-            'sas'    => 'ASAS',
-            'tryout' => 'TO',
-            default  => 'CBT',
-        };
-
         $mapelId = $get('mata_pelajaran_id');
         $mapelName = $mapelId ? MataPelajaran::find($mapelId)?->nama_mapel : '';
         $semester = ucfirst($get('semester') ?? 'ganjil');
 
         if ($mapelName) {
-            $set('cbt_event_nama', "{$jenis} {$semester} - {$mapelName}");
+            $set('cbt_event_nama', "CBT {$semester} - {$mapelName}");
         }
     }
 }
