@@ -34,6 +34,8 @@ class SiswaSholatDhuhur extends Component
 
     public function mount()
     {
+        abort_if(!(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true), 403, 'Fitur Sholat Dhuhur sedang dinonaktifkan.');
+
         $this->student = Auth::user()->student;
         if (! $this->student) {
             abort(403, 'Akses ditolak: Data siswa tidak ditemukan.');

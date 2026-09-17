@@ -49,6 +49,7 @@ class PengaturanSekolah extends Model
         'theme_warning',
         'theme_danger',
         'theme_info',
+        'enable_sholat_dhuhur',
         // Portal Management
         'maintenance_portal_siswa',
         'maintenance_portal_guru',
@@ -69,6 +70,7 @@ class PengaturanSekolah extends Model
     protected $casts = [
         'checkin_time'                    => 'string',
         'enable_checkout'                 => 'boolean',
+        'enable_sholat_dhuhur'            => 'boolean',
         'auto_alpa_active'                => 'boolean',
         'auto_alpa_time'                  => 'string',
         'last_auto_alpa_run_date'         => 'date',

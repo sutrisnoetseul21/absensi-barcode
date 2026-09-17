@@ -16,6 +16,11 @@ class CetakLaporanSholatDhuhur extends Page
 {
     use HasSimplePageRoleAccess;
 
+    public static function canAccess(): bool
+    {
+        return (bool) (PengaturanSekolah::current()->enable_sholat_dhuhur ?? true);
+    }
+
     protected static function getModuleRolePrefix(): string
     {
         return 'presensi';

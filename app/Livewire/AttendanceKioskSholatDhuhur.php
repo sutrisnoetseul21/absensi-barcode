@@ -10,6 +10,11 @@ use Livewire\Component;
 
 class AttendanceKioskSholatDhuhur extends Component
 {
+    public function mount()
+    {
+        abort_if(!(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true), 403, 'Fitur Sholat Dhuhur sedang dinonaktifkan.');
+    }
+
     public function render()
     {
         $settings = PengaturanSekolah::current();

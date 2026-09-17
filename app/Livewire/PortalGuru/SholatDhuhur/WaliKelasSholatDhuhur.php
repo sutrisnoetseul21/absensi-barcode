@@ -47,6 +47,8 @@ class WaliKelasSholatDhuhur extends Component
 
     public function mount()
     {
+        abort_if(!(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true), 403, 'Fitur Sholat Dhuhur sedang dinonaktifkan.');
+
         $user = Auth::user();
         if (! $user || (! $user->isWaliKelasAktif() && ! $user->hasAnyRole(['super_admin', 'admin_presensi']))) {
             abort(403, 'Akses ditolak: Menu ini khusus Wali Kelas dan Administrator.');

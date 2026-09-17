@@ -611,12 +611,14 @@
                         </a>
 
                         <!-- Menu Presensi Sholat Dhuhur -->
-                        <a href="{{ route('portal-siswa.sholat-dhuhur') }}" :title="isCollapsed ? 'Presensi Sholat Dhuhur' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSholatDhuhurActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                            <div class="p-1.5 rounded-lg {{ $isSholatDhuhurActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            </div>
-                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Sholat Dhuhur</span>
-                        </a>
+                        @if(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true)
+                            <a href="{{ route('portal-siswa.sholat-dhuhur') }}" :title="isCollapsed ? 'Presensi Sholat Dhuhur' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSholatDhuhurActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                <div class="p-1.5 rounded-lg {{ $isSholatDhuhurActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                </div>
+                                <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Sholat Dhuhur</span>
+                            </a>
+                        @endif
 
                         <!-- Menu Pengajuan Ijin -->
                         <a href="{{ route('portal-siswa.ijin') }}" :title="isCollapsed ? 'Pengajuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
@@ -790,11 +792,13 @@
                                 </a>
 
                                 <!-- Presensi Kehadiran Sholat Dhuhur -->
-                                <a href="{{ route('portal-guru.sholat-dhuhur') }}" 
-                                   class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isSholatDhuhurActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $isSholatDhuhurActive ? 'bg-white' : 'bg-slate-400' }}"></span>
-                                    <span class="truncate">Presensi Sholat Dhuhur</span>
-                                </a>
+                                @if(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true)
+                                    <a href="{{ route('portal-guru.sholat-dhuhur') }}" 
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isSholatDhuhurActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isSholatDhuhurActive ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Presensi Sholat Dhuhur</span>
+                                    </a>
+                                @endif
 
                                 <!-- Data Siswa -->
                                 <a href="{{ route('portal-guru.data-siswa') }}" 

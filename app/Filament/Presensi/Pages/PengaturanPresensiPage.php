@@ -55,6 +55,7 @@ class PengaturanPresensiPage extends Page implements HasForms
         $settings = PengaturanSekolah::current();
         $data = $settings ? $settings->toArray() : [];
         $data['enable_checkout'] = $settings ? (bool)($settings->enable_checkout ?? true) : true;
+        $data['enable_sholat_dhuhur'] = $settings ? (bool)($settings->enable_sholat_dhuhur ?? true) : true;
 
         // Load data WhatsApp Settings (Koneksi API saja)
         $wa = \App\Models\WhatsAppSetting::current();
@@ -108,6 +109,12 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => (bool) $get('enable_checkout'))
                             ->seconds(false)
                             ->helperText('Mesin scanner akan menganggap tap kartu setelah jam ini sebagai absen pulang.'),
+                            
+                        Toggle::make('enable_sholat_dhuhur')
+                            ->label('Aktifkan Presensi Sholat Dhuhur')
+                            ->helperText('Jika dinonaktifkan, menu dan halaman rekap Sholat Dhuhur akan disembunyikan dari portal siswa dan guru.')
+                            ->default(true)
+                            ->columnSpanFull(),
 
                         Select::make('barcode_scan_mode')
                             ->label('Mode Kios Scanner Barcode')

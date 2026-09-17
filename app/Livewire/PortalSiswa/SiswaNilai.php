@@ -11,11 +11,11 @@ class SiswaNilai extends Component
     public function render()
     {
         $user = Auth::user();
-        if (!$user || !$user->siswa) {
+        if (!$user || !$user->student) {
             abort(403, 'Akses ditolak: Anda tidak memiliki profil siswa.');
         }
 
-        $siswa = $user->siswa;
+        $siswa = $user->student;
         
         // Mengambil semua nilai ujian untuk siswa ini, beserta relasi UjianAkademik, Mapel, dan Tahun Ajaran
         $nilaiUjians = NilaiUjian::with([
@@ -47,7 +47,7 @@ class SiswaNilai extends Component
             }
 
             $groupedNilai[$tahunAjaranName][$eventName][] = [
-                'mapel'       => $ujian->mataPelajaran ? $ujian->mataPelajaran->name : '-',
+                'mapel'       => $ujian->mataPelajaran ? $ujian->mataPelajaran->nama_mapel : '-',
                 'jenis_ujian' => $ujian->jenisUjian ? $ujian->jenisUjian->nama : '-',
                 'nilai_akhir' => $nilai->nilai_akhir,
                 'kkm'         => $ujian->kkm,
