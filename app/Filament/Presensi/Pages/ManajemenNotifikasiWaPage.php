@@ -186,6 +186,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     public function form(Schema $schema): Schema
     {
+        $waGroups = \App\Services\WhatsAppGatewayService::getAvailableGroups();
+
         return $schema
             ->components([
                 // ─── Banner Status Scheduler ───────────────────────────────
@@ -213,14 +215,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Pilih satu atau beberapa penerima...')
-                                            ->options(function () {
+                                            ->options(function () use ($waGroups) {
                                                 $options  = [
                                                     'siswa'      => 'Siswa',
                                                     'ortu'       => 'Orang Tua',
                                                     'wali_kelas' => 'Wali Kelas',
                                                 ];
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                                return array_merge($options, $jabatans);
+                                                return array_merge($options, $jabatans, $waGroups);
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('telat_notif_template_pesan')
@@ -242,13 +244,13 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Pilih satu atau beberapa penerima...')
-                                            ->options(function () {
+                                            ->options(function () use ($waGroups) {
                                                 $options  = [
                                                     'ortu'       => 'Orang Tua',
                                                     'wali_kelas' => 'Wali Kelas',
                                                 ];
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                                return array_merge($options, $jabatans);
+                                                return array_merge($options, $jabatans, $waGroups);
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('student_notif_template_pesan')
@@ -277,14 +279,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Pilih satu atau beberapa penerima...')
-                                            ->options(function () {
+                                            ->options(function () use ($waGroups) {
                                                 $options  = [
                                                     'siswa'      => 'Siswa',
                                                     'ortu'       => 'Orang Tua',
                                                     'wali_kelas' => 'Wali Kelas',
                                                 ];
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                                return array_merge($options, $jabatans);
+                                                return array_merge($options, $jabatans, $waGroups);
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('leave_request_notif_template_pesan')
@@ -306,14 +308,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Pilih satu atau beberapa penerima...')
-                                            ->options(function () {
+                                            ->options(function () use ($waGroups) {
                                                 $options  = [
                                                     'siswa'      => 'Siswa',
                                                     'ortu'       => 'Orang Tua',
                                                     'wali_kelas' => 'Wali Kelas',
                                                 ];
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                                return array_merge($options, $jabatans);
+                                                return array_merge($options, $jabatans, $waGroups);
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('leave_approval_notif_template_pesan')
@@ -344,10 +346,10 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Pilih satu atau beberapa penerima...')
-                                            ->options(function () {
+                                            ->options(function () use ($waGroups) {
                                                 $options  = ['wali_kelas' => 'Wali Kelas'];
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
-                                                return array_merge($options, $jabatans);
+                                                return array_merge($options, $jabatans, $waGroups);
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('daily_template_pesan')
@@ -389,8 +391,9 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Pilih satu atau beberapa penerima...')
-                                            ->options(function () {
-                                                return \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                            ->options(function () use ($waGroups) {
+                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                                return array_merge($jabatans, $waGroups);
                                             })
                                             ->columnSpanFull(),
                                         Textarea::make('school_template_header')

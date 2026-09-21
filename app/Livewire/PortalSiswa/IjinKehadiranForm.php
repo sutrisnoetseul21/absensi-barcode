@@ -243,18 +243,18 @@ class IjinKehadiranForm extends Component
         ];
 
         $pesan = strtr($setting->template_pesan, $replacements);
-        $waService = app(\App\Services\WhatsAppGatewayService::class);
+        
+        $resolver = app(\App\Services\RecipientResolverService::class);
+        $resolvedRecipients = $resolver->resolveRecipients($setting->recipients, $this->student);
 
-        foreach ($setting->recipients as $recipientType) {
-            if ($recipientType === 'wali_kelas' && $noHpWaliKelas) {
-                \App\Jobs\SendWhatsAppNotificationJob::dispatch(
-                    $noHpWaliKelas,
-                    $pesan,
-                    'leave_request',
-                    $record->id,
-                    'guru'
-                );
-            }
+        foreach ($resolvedRecipients as $recipient) {
+            \App\Jobs\SendWhatsAppNotificationJob::dispatch(
+                $recipient['number'],
+                $pesan,
+                'leave_request',
+                $record->id,
+                $recipient['type']
+            );
         }
     }
 

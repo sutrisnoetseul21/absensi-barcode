@@ -109,7 +109,7 @@ class WhatsAppGatewayService
             $response = Http::withHeaders([
                 'apikey' => $setting->api_key,
                 'Content-Type' => 'application/json',
-            ])->post($endpoint, [
+            ])->timeout(10)->post($endpoint, [
                 'number' => $toNumber,
                 'text' => $message,
                 'delay' => 1200 // Optional evolution native delay animation
@@ -144,5 +144,41 @@ class WhatsAppGatewayService
         }
 
         return $status === 'sent';
+    }
+
+    /**
+     * Mengambil daftar grup WhatsApp dari Evolution API.
+     * Mengembalikan array asosiatif ['GROUP:id' => 'Grup: subject']
+     */
+    public static function getAvailableGroups(): array
+    {
+        $setting = WhatsAppSetting::current();
+        if (!$setting || !$setting->is_active || !$setting->base_url || !$setting->api_key || !$setting->instance_name) {
+            return [];
+        }
+
+        $cacheKey = 'wa_groups_' . $setting->instance_name;
+        
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(15), function () use ($setting) {
+            try {
+                $endpoint = rtrim($setting->base_url, '/') . '/group/fetchAllGroups/' . $setting->instance_name . '?getParticipants=false';
+                $response = Http::withHeaders([
+                    'apikey' => $setting->api_key,
+                ])->timeout(5)->get($endpoint);
+
+                if ($response->successful()) {
+                    $groups = [];
+                    foreach ($response->json() as $group) {
+                        if (isset($group['id'], $group['subject'])) {
+                            $groups['GROUP:' . $group['id']] = 'Grup WA: ' . $group['subject'];
+                        }
+                    }
+                    return $groups;
+                }
+            } catch (\Exception $e) {
+                // Return empty array if request fails, don't throw exception
+            }
+            return [];
+        });
     }
 }

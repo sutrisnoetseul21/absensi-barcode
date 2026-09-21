@@ -135,6 +135,12 @@ class DailyClassReportService
                     $resolvedRecipients[] = ['number' => $hp, 'type' => 'wali_kelas'];
                     $seenNumbers[$hp]     = true;
                 }
+            } elseif (str_starts_with($key, 'GROUP:')) {
+                $groupId = substr($key, 6);
+                if (!empty($groupId) && str_ends_with($groupId, '@g.us') && !isset($seenNumbers[$groupId])) {
+                    $resolvedRecipients[] = ['number' => $groupId, 'type' => 'whatsapp_group'];
+                    $seenNumbers[$groupId] = true;
+                }
             } elseif ($key !== 'ortu') {
                 $jabatansHp = $this->resolver->resolveByJabatan($key);
                 foreach ($jabatansHp as $hp) {

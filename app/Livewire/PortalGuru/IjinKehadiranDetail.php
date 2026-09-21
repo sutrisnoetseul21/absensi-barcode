@@ -244,19 +244,18 @@ class IjinKehadiranDetail extends Component
         ];
 
         $pesan = strtr($setting->template_pesan, $replacements);
-        $waService = app(\App\Services\WhatsAppGatewayService::class);
+        
+        $resolver = app(\App\Services\RecipientResolverService::class);
+        $resolvedRecipients = $resolver->resolveRecipients($setting->recipients, $student);
 
-        foreach ($setting->recipients as $recipientType) {
-            if ($recipientType === 'siswa' && $noHpSiswa) {
-                \App\Jobs\SendWhatsAppNotificationJob::dispatch(
-                    $noHpSiswa,
-                    $pesan,
-                    'leave_approval',
-                    $this->request->id,
-                    'siswa'
-                );
-            }
-            // Optional: other recipient types
+        foreach ($resolvedRecipients as $recipient) {
+            \App\Jobs\SendWhatsAppNotificationJob::dispatch(
+                $recipient['number'],
+                $pesan,
+                'leave_approval',
+                $this->request->id,
+                $recipient['type']
+            );
         }
     }
 

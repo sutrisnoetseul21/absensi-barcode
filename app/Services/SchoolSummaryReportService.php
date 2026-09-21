@@ -146,11 +146,19 @@ class SchoolSummaryReportService
         $recipientKeys      = $setting->recipients ?? [];
 
         foreach ($recipientKeys as $key) {
-            $jabatansHp = $this->resolver->resolveByJabatan($key);
-            foreach ($jabatansHp as $hp) {
-                if ($hp && !isset($seenNumbers[$hp])) {
-                    $resolvedRecipients[] = ['number' => $hp, 'type' => $key];
-                    $seenNumbers[$hp]     = true;
+            if (str_starts_with($key, 'GROUP:')) {
+                $groupId = substr($key, 6);
+                if (!empty($groupId) && str_ends_with($groupId, '@g.us') && !isset($seenNumbers[$groupId])) {
+                    $resolvedRecipients[] = ['number' => $groupId, 'type' => 'whatsapp_group'];
+                    $seenNumbers[$groupId] = true;
+                }
+            } else {
+                $jabatansHp = $this->resolver->resolveByJabatan($key);
+                foreach ($jabatansHp as $hp) {
+                    if ($hp && !isset($seenNumbers[$hp])) {
+                        $resolvedRecipients[] = ['number' => $hp, 'type' => $key];
+                        $seenNumbers[$hp]     = true;
+                    }
                 }
             }
         }

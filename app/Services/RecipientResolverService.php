@@ -177,6 +177,12 @@ class RecipientResolverService
                         }
                     }
                 }
+            } elseif (str_starts_with($key, 'GROUP:')) {
+                $groupId = substr($key, 6);
+                if (!empty($groupId) && str_ends_with($groupId, '@g.us') && !isset($seenNumbers[$groupId])) {
+                    $resolved[] = ['number' => $groupId, 'type' => 'whatsapp_group'];
+                    $seenNumbers[$groupId] = true;
+                }
             } else {
                 // Jabatan tetap lainnya (guru_bk, waka_kesiswaan, dll.)
                 $jabatansHp = $this->resolveByJabatan($key);
