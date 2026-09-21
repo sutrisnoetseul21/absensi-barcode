@@ -26,3 +26,5 @@ Artisan::command('webprofil:fix-disk', function () {
     }
     $this->info('Done!');
 })->purpose('Copy web-profil files from private to public disk');
+
+\Illuminate\Support\Facades\Schedule::command('scheduler:heartbeat')->everyMinute();
