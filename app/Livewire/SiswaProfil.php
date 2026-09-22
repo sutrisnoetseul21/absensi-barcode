@@ -22,6 +22,7 @@ class SiswaProfil extends Component
     public $address;
     public $photo;
     public $photo_path;
+    public bool $allowStudentPhotoUpload = true;
 
     // Password fields
     public $current_password = '';
@@ -40,6 +41,7 @@ class SiswaProfil extends Component
         
         $this->address = $this->student->address;
         $this->photo_path = $this->student->photo_path;
+        $this->allowStudentPhotoUpload = (bool) config('school.allow_student_photo_upload', true);
     }
 
     public function updateAddress()
@@ -60,6 +62,10 @@ class SiswaProfil extends Component
 
     public function updatePhoto()
     {
+        if (!config('school.allow_student_photo_upload', true)) {
+            abort(403, 'Fitur unggah foto siswa dinonaktifkan.');
+        }
+
         $this->validate([
             'photo' => 'required|image|max:2048', // max 2MB
         ], [
@@ -89,6 +95,10 @@ class SiswaProfil extends Component
 
     public function removePhoto()
     {
+        if (!config('school.allow_student_photo_upload', true)) {
+            abort(403, 'Fitur unggah foto siswa dinonaktifkan.');
+        }
+
         if ($this->student->photo_path && Storage::disk('public')->exists($this->student->photo_path)) {
             Storage::disk('public')->delete($this->student->photo_path);
         }
@@ -102,6 +112,8 @@ class SiswaProfil extends Component
 
         session()->flash('success_photo', 'Foto profil berhasil dihapus!');
     }
+
+
 
     public function updatePassword()
     {

@@ -16,6 +16,10 @@ use App\Exports\SiswaUpdateNoHpByClassExport;
 use App\Imports\SiswaUpdateDataImport;
 use App\Imports\SiswaUpdateNoHpImport;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class DataSiswaList extends Component
 {
@@ -40,6 +44,9 @@ class DataSiswaList extends Component
     public $editDataNisn = '';
     public $editDataNis = '';
     public $editDataName = '';
+    public $editDataPhoto = null;
+    public $editDataCurrentPhotoUrl = null;
+    public $editDataRemovePhoto = false;
     public $editDataBirthPlace = '';
     public $editDataBirthDate = '';
     public $editDataAddress = '';
@@ -82,6 +89,13 @@ class DataSiswaList extends Component
     public $previewSummary = [];
     public $importError = '';
     public $isProcessingImport = false;
+
+    // Upload Foto Massal (ZIP)
+    public $showUploadFotoModal = false;
+    public $uploadFotoZip = null;
+    public $uploadFotoError = '';
+    public $isProcessingFoto = false;
+    public $uploadFotoReport = null;
 
     public function mount(): void
     {
@@ -469,6 +483,216 @@ class DataSiswaList extends Component
         $this->isProcessingImport = false;
     }
 
+    public function openUploadFotoModal(): void
+    {
+        if (!$this->selectedClassId || !$this->hasSubmittedFilter) {
+            session()->flash('warning', 'Silakan pilih dan tampilkan data Kelas terlebih dahulu.');
+            return;
+        }
+
+        $this->resetUploadFotoState();
+        $this->showUploadFotoModal = true;
+        $this->dispatch('modal-open');
+    }
+
+    public function closeUploadFotoModal(): void
+    {
+        $this->showUploadFotoModal = false;
+        $this->resetUploadFotoState();
+        $this->dispatch('modal-close');
+    }
+
+    public function resetUploadFotoState(): void
+    {
+        $this->uploadFotoZip = null;
+        $this->uploadFotoError = '';
+        $this->isProcessingFoto = false;
+    }
+
+    public function clearUploadFotoReport(): void
+    {
+        $this->uploadFotoReport = null;
+    }
+
+    public function processUploadFoto(): void
+    {
+        if (!$this->selectedClassId || !$this->selectedAcademicYearId) {
+            $this->uploadFotoError = 'Silakan pilih kelas terlebih dahulu.';
+            return;
+        }
+
+        $user = Auth::user();
+        $isAdminMode = $user->hasAnyRole(['super_admin', 'admin_presensi']);
+        $hasBypass   = $user->can('portal_guru:akses_semua_kelas');
+        if (!$isAdminMode && !$hasBypass) {
+            if (!collect($this->classes)->contains('id', $this->selectedClassId)) {
+                $this->uploadFotoError = 'Unauthorized: Anda tidak memiliki hak akses ke kelas ini.';
+                return;
+            }
+        }
+
+        $this->validate([
+            'uploadFotoZip' => 'required|file|mimes:zip|max:102400',
+        ], [
+            'uploadFotoZip.required' => 'Silakan pilih file ZIP terlebih dahulu.',
+            'uploadFotoZip.mimes' => 'File harus berformat ZIP (.zip).',
+            'uploadFotoZip.max' => 'Ukuran file ZIP maksimal 100MB.',
+        ]);
+
+        $studentsInClass = Siswa::where('status', 'aktif')
+            ->whereHas('enrollments', function ($q) {
+                $q->where('class_id', $this->selectedClassId)
+                  ->where('academic_year_id', $this->selectedAcademicYearId)
+                  ->where('status', 'aktif');
+            })
+            ->get();
+
+        if ($studentsInClass->isEmpty()) {
+            $this->uploadFotoError = 'Tidak ada siswa aktif yang terdaftar di kelas ini.';
+            return;
+        }
+
+        $byNisn = [];
+        $byNis = [];
+        foreach ($studentsInClass as $s) {
+            if ($s->nisn) {
+                $byNisn[trim((string)$s->nisn)] = $s;
+            }
+            if ($s->nis) {
+                $byNis[trim((string)$s->nis)] = $s;
+            }
+        }
+
+        $this->isProcessingFoto = true;
+
+        try {
+            $zipPath = $this->uploadFotoZip->getRealPath();
+            $zip = new \ZipArchive;
+
+            if ($zip->open($zipPath) !== true) {
+                $this->uploadFotoError = 'Gagal membuka file ZIP. Pastikan file ZIP tidak rusak atau terproteksi password.';
+                $this->isProcessingFoto = false;
+                return;
+            }
+
+            $extractPath = storage_path('app/private/tmp/zip_guru_' . auth()->id() . '_' . time());
+            if (!file_exists($extractPath)) {
+                mkdir($extractPath, 0755, true);
+            }
+            $zip->extractTo($extractPath);
+            $zip->close();
+
+            $allFiles = File::allFiles($extractPath);
+            $imageManager = new ImageManager(new Driver());
+
+            $successCount = 0;
+            $ignoredCount = 0;
+            $successList = [];
+            $ignoredList = [];
+
+            $destDir = storage_path('app/public/siswa-photos');
+            if (!file_exists($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+
+            foreach ($allFiles as $file) {
+                // Lewati file metadata Mac OS atau file tersembunyi
+                if (str_contains($file->getPathname(), '__MACOSX') || str_starts_with($file->getFilename(), '.')) {
+                    continue;
+                }
+
+                $ext = strtolower($file->getExtension());
+                if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                    $ignoredCount++;
+                    $ignoredList[] = [
+                        'file' => $file->getFilename(),
+                        'reason' => 'Format bukan gambar (.jpg, .jpeg, .png)'
+                    ];
+                    continue;
+                }
+
+                $identifier = trim($file->getFilenameWithoutExtension());
+
+                // Cocokkan ke NISN terlebih dahulu, lalu NIS
+                $siswa = $byNisn[$identifier] ?? ($byNis[$identifier] ?? null);
+
+                if (!$siswa) {
+                    $ignoredCount++;
+                    $ignoredList[] = [
+                        'file' => $file->getFilename(),
+                        'reason' => 'Bukan siswa kelas ini / NISN tidak cocok'
+                    ];
+                    continue;
+                }
+
+                try {
+                    $image = $imageManager->decode($file->getPathname());
+                    $image->scaleDown(width: 500, height: 500);
+
+                    $newFilename = Str::random(24) . '.' . $ext;
+                    $targetPath = $destDir . '/' . $newFilename;
+
+                    if ($ext === 'png') {
+                        $image->save($targetPath);
+                    } else {
+                        $image->save($targetPath, 80);
+                    }
+
+                    // Hapus foto lama jika ada
+                    if ($siswa->photo_path && Storage::disk('public')->exists($siswa->photo_path)) {
+                        Storage::disk('public')->delete($siswa->photo_path);
+                    }
+
+                    $siswa->update([
+                        'photo_path' => 'siswa-photos/' . $newFilename,
+                    ]);
+
+                    $successCount++;
+                    $successList[] = [
+                        'name' => $siswa->name,
+                        'nisn' => $siswa->nisn ?? $siswa->nis,
+                        'file' => $file->getFilename()
+                    ];
+                } catch (\Exception $e) {
+                    $ignoredCount++;
+                    $ignoredList[] = [
+                        'file' => $file->getFilename(),
+                        'reason' => 'Gagal memproses gambar: ' . $e->getMessage()
+                    ];
+                }
+            }
+
+            // Bersihkan folder ekstrak sementara
+            File::deleteDirectory($extractPath);
+
+            $kelas = Kelas::find($this->selectedClassId);
+            $kelasName = $kelas?->name ?? 'Kelas Terpilih';
+
+            $this->uploadFotoReport = [
+                'kelas' => $kelasName,
+                'successCount' => $successCount,
+                'ignoredCount' => $ignoredCount,
+                'successList' => array_slice($successList, 0, 50),
+                'ignoredList' => array_slice($ignoredList, 0, 50),
+                'hasMoreSuccess' => count($successList) > 50,
+                'hasMoreIgnored' => count($ignoredList) > 50,
+            ];
+
+            $this->closeUploadFotoModal();
+            $this->resetPage(); // Refresh tabel
+
+            if ($successCount > 0) {
+                session()->flash('success', "Upload Foto Selesai! Berhasil memperbarui {$successCount} foto siswa kelas {$kelasName}. {$ignoredCount} berkas diabaikan (bukan siswa kelas ini / format tidak sesuai).");
+            } else {
+                session()->flash('warning', "Tidak ada foto yang diperbarui untuk kelas {$kelasName}. {$ignoredCount} berkas diabaikan karena tidak ada yang cocok dengan NISN/NIS siswa di kelas ini.");
+            }
+        } catch (\Exception $e) {
+            $this->uploadFotoError = 'Terjadi kesalahan saat memproses upload foto: ' . $e->getMessage();
+        }
+
+        $this->isProcessingFoto = false;
+    }
+
 
     public function openEditDataModal($studentId)
     {
@@ -478,6 +702,9 @@ class DataSiswaList extends Component
             $this->editDataNisn = $student->nisn ?? '';
             $this->editDataNis = $student->nis ?? '';
             $this->editDataName = $student->name ?? '';
+            $this->editDataCurrentPhotoUrl = $student->photo_path ? Storage::url($student->photo_path) : null;
+            $this->editDataPhoto = null;
+            $this->editDataRemovePhoto = false;
             $this->editDataBirthPlace = $student->birth_place ?? '';
             $this->editDataBirthDate = $student->birth_date ? $student->birth_date->format('Y-m-d') : '';
             $this->editDataAddress = $student->address ?? '';
@@ -511,7 +738,8 @@ class DataSiswaList extends Component
         $this->reset([
             'editDataNisn', 'editDataNis', 'editDataName', 'editDataBirthPlace', 'editDataBirthDate', 'editDataAddress', 'editDataNoHp',
             'editDataGender', 'editDataReligion', 'editDataPreviousSchool', 'editDataAdmissionDate', 'editDataAdmissionClass', 'editDataFamilyStatus', 'editDataChildOrder',
-            'editDataNamaAyah', 'editDataPekerjaanAyah', 'editDataNamaIbu', 'editDataPekerjaanIbu', 'editDataNamaWali', 'editDataPekerjaanWali', 'editDataNoHpOrtu'
+            'editDataNamaAyah', 'editDataPekerjaanAyah', 'editDataNamaIbu', 'editDataPekerjaanIbu', 'editDataNamaWali', 'editDataPekerjaanWali', 'editDataNoHpOrtu',
+            'editDataPhoto', 'editDataCurrentPhotoUrl', 'editDataRemovePhoto'
         ]);
         $this->dispatch('modal-close');
     }
@@ -519,6 +747,7 @@ class DataSiswaList extends Component
     public function saveEditData()
     {
         $this->validate([
+            'editDataPhoto' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
             'editDataBirthPlace' => 'nullable|string|max:100',
             'editDataBirthDate' => 'nullable|date',
             'editDataAddress' => 'nullable|string|max:500',
@@ -576,6 +805,42 @@ class DataSiswaList extends Component
                     if (str_starts_with($hpOrtu, '0')) $hpOrtu = '62' . substr($hpOrtu, 1);
                 }
                 $student->no_hp_orang_tua = $hpOrtu ?: null;
+
+                // Handle update / remove photo
+                if ($this->editDataRemovePhoto) {
+                    if ($student->photo_path && Storage::disk('public')->exists($student->photo_path)) {
+                        Storage::disk('public')->delete($student->photo_path);
+                    }
+                    $student->photo_path = null;
+                } elseif ($this->editDataPhoto) {
+                    try {
+                        $imageManager = new ImageManager(new Driver());
+                        $image = $imageManager->decode($this->editDataPhoto->getRealPath());
+                        $image->scaleDown(width: 500, height: 500);
+
+                        $ext = strtolower($this->editDataPhoto->getClientOriginalExtension());
+                        $newFilename = Str::random(24) . '.' . $ext;
+                        $destDir = storage_path('app/public/siswa-photos');
+                        if (!file_exists($destDir)) {
+                            mkdir($destDir, 0755, true);
+                        }
+                        $targetPath = $destDir . '/' . $newFilename;
+
+                        if ($ext === 'png') {
+                            $image->save($targetPath);
+                        } else {
+                            $image->save($targetPath, 80);
+                        }
+
+                        if ($student->photo_path && Storage::disk('public')->exists($student->photo_path)) {
+                            Storage::disk('public')->delete($student->photo_path);
+                        }
+
+                        $student->photo_path = 'siswa-photos/' . $newFilename;
+                    } catch (\Exception $e) {
+                        // Lanjutkan jika gagal memproses foto
+                    }
+                }
 
                 $student->save();
                 session()->flash('success', 'Data siswa berhasil diperbarui.');

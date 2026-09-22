@@ -37,9 +37,7 @@
                     <!-- Avatar -->
                     <div class="relative flex-shrink-0">
                         <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white overflow-hidden bg-slate-100 flex items-center justify-center">
-                            @if ($photo)
-                                <img src="{{ $photo->temporaryUrl() }}" alt="Preview Foto" class="w-full h-full object-cover rounded-2xl">
-                            @elseif ($photo_path)
+                            @if ($photo_path)
                                 <img src="{{ asset('storage/' . $photo_path) }}" alt="{{ $student->name }}" class="w-full h-full object-cover rounded-2xl">
                             @else
                                 <div class="w-full h-full rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-4xl shadow-inner">
@@ -95,11 +93,12 @@
         
         <!-- Column 1: Read-Only Academic & Personal Info Card -->
         <div class="lg:col-span-1 space-y-6">
-            
-            <!-- Quick Actions Card (Foto Profil Upload) -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/80 p-6 space-y-5">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div class="flex items-center gap-3">
+
+            @if ($allowStudentPhotoUpload)
+            <!-- Photo Upload Card -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/80 p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5">
                         <div class="p-2 bg-indigo-50 rounded-xl text-brand-primary">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
@@ -208,6 +207,7 @@
                     </div>
                 </form>
             </div>
+            @endif
 
             <!-- Read-only Info List Card -->
             <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/80 p-6 space-y-4">

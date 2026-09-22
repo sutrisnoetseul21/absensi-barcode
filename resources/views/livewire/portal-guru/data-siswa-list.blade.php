@@ -81,6 +81,49 @@
             <p class="text-slate-500 max-w-md">Silakan pilih Tahun Ajaran dan Kelas di atas, lalu klik tombol <strong class="text-slate-700">Tampilkan Data</strong> untuk memuat daftar siswa.</p>
         </div>
     @elseif($selectedClassId)
+        @if($uploadFotoReport)
+        <div class="mb-6 bg-white rounded-2xl shadow-sm border border-indigo-100 p-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">Laporan Upload Foto Massal - {{ $uploadFotoReport['kelas'] }}</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            <span class="text-emerald-600 font-bold">{{ $uploadFotoReport['successCount'] }} foto berhasil diperbarui</span> &bull; 
+                            <span class="text-slate-500">{{ $uploadFotoReport['ignoredCount'] }} berkas diabaikan (bukan siswa kelas ini / format tidak sesuai)</span>
+                        </p>
+                    </div>
+                </div>
+                <button wire:click="clearUploadFotoReport" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" title="Tutup Laporan">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            @if(!empty($uploadFotoReport['ignoredList']))
+            <div class="mt-3">
+                <details class="group">
+                    <summary class="text-xs font-semibold text-amber-700 cursor-pointer hover:underline flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-amber-600 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        <span>Lihat rincian berkas yang diabaikan ({{ count($uploadFotoReport['ignoredList']) }}{{ $uploadFotoReport['hasMoreIgnored'] ? '+' : '' }})</span>
+                    </summary>
+                    <div class="mt-2 max-h-48 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl bg-slate-50 p-3 text-xs">
+                        <ul class="space-y-1.5 divide-y divide-slate-200/60">
+                            @foreach($uploadFotoReport['ignoredList'] as $item)
+                                <li class="pt-1.5 first:pt-0 flex items-center justify-between gap-4">
+                                    <span class="font-mono text-slate-700 font-medium truncate">{{ $item['file'] }}</span>
+                                    <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px] shrink-0">{{ $item['reason'] }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </details>
+            </div>
+            @endif
+        </div>
+        @endif
+
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
             <!-- Table Toolbar -->
             <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -107,6 +150,14 @@
                     <button wire:click="openUploadModal('nohp')" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Update No. HP Siswa & Ortu via Excel">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         Update No. HP
+                    </button>
+
+                    <div class="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
+
+                    <!-- Upload Foto Massal (ZIP) Button -->
+                    <button wire:click="openUploadFotoModal" class="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-all" title="Upload Foto Massal Siswa Kelas Ini via ZIP">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Upload Foto (ZIP)
                     </button>
 
                     @if(count($selectedStudents) > 0)
@@ -137,7 +188,7 @@
                             <th class="px-4 py-4 font-bold uppercase tracking-wider">Foto</th>
                             <th class="px-4 py-4 font-bold uppercase tracking-wider">NISN / NIS</th>
                             <th class="px-4 py-4 font-bold uppercase tracking-wider">Nama Siswa</th>
-                            <th class="px-4 py-4 font-bold uppercase tracking-wider">Kontak & Info</th>
+                            <th class="px-4 py-4 font-bold uppercase tracking-wider">Kontak</th>
                             <th class="px-4 py-4 font-bold uppercase tracking-wider">Barcode</th>
                             <th class="px-4 py-4 font-bold uppercase tracking-wider text-center">Aksi</th>
                         </tr>
@@ -165,9 +216,9 @@
                                     {{ $student->name }}
                                 </td>
                                 <td class="px-4 py-4">
-                                    <div class="text-xs text-slate-700 flex flex-col gap-1">
-                                        <span class="flex items-center gap-1"><svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg> {{ $student->no_hp ?? '-' }}</span>
-                                        <span class="flex items-center gap-1"><svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> <span class="truncate max-w-[150px]" title="{{ $student->address }}">{{ $student->address ?? '-' }}</span></span>
+                                    <div class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                        <span>{{ $student->no_hp ?? '-' }}</span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-4">
@@ -365,6 +416,77 @@
     </div>
     @endif
 
+    <!-- Upload Foto Massal (ZIP) Modal -->
+    @if($showUploadFotoModal)
+    <div class="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="closeUploadFotoModal"></div>
+            <div class="relative bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all my-8 max-w-xl w-full border border-slate-200 z-10 flex flex-col">
+                <div class="bg-white px-5 pt-5 pb-4 sm:p-6 flex-1">
+                    <div class="sm:flex sm:items-start mb-4">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-bold text-slate-900" id="modal-title">
+                                Upload Foto Massal (ZIP)
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                                Khusus Siswa: <strong class="text-indigo-600 font-bold">{{ \App\Models\Kelas::find($selectedClassId)?->name ?? 'Kelas Terpilih' }}</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    @if($uploadFotoError)
+                        <div class="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-medium flex gap-2.5 items-start">
+                            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            <span>{{ $uploadFotoError }}</span>
+                        </div>
+                    @endif
+
+                    <!-- Petunjuk Format -->
+                    <div class="p-4 bg-indigo-50/60 border border-indigo-100 rounded-xl mb-4 text-xs text-slate-600 space-y-2">
+                        <div class="font-bold text-indigo-900 flex items-center gap-1.5 text-sm">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Petunjuk & Ketentuan Upload:
+                        </div>
+                        <ul class="list-disc pl-5 space-y-1.5 leading-relaxed">
+                            <li>File yang diunggah harus berformat arsip <strong class="text-slate-800 font-bold">.zip</strong>.</li>
+                            <li>Foto di dalam file ZIP berformat <strong class="text-slate-800 font-bold">.jpg, .jpeg, atau .png</strong>.</li>
+                            <li>Beri nama setiap file foto dengan <strong class="text-slate-800 font-bold">NISN</strong> siswa (contoh: <code class="px-1.5 py-0.5 bg-white rounded border border-indigo-200 text-indigo-600 font-mono font-bold">0081234567.jpg</code>) atau <strong class="text-slate-800 font-bold">NIS</strong> siswa.</li>
+                            <li><strong class="text-indigo-800 font-bold">Filter Ketat Kelas:</strong> Hanya foto siswa yang terdaftar di kelas yang sedang dipilih ini yang akan diproses. Foto siswa dari kelas lain otomatis diabaikan.</li>
+                            <li>Sistem otomatis memperkecil foto (maksimal 500x500px) dan mengompresi gambar untuk menghemat ruang penyimpanan.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Input File -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilih Berkas ZIP</label>
+                        <input type="file" wire:model.live="uploadFotoZip" accept=".zip,application/zip,application/x-zip,application/x-zip-compressed" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all border border-slate-300 rounded-xl bg-white shadow-sm cursor-pointer">
+                        @error('uploadFotoZip') <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> @enderror
+
+                        <div wire:loading wire:target="uploadFotoZip" class="text-xs text-indigo-600 mt-2 flex items-center gap-2 font-medium">
+                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Mengunggah berkas ZIP ke server...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 px-5 py-3.5 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200 flex-shrink-0">
+                    <button type="button" wire:click="processUploadFoto" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 sm:ml-3 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                        <svg wire:loading wire:target="processUploadFoto" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span wire:loading.remove wire:target="processUploadFoto">Mulai Proses Import</span>
+                        <span wire:loading wire:target="processUploadFoto">Mengekstrak & Memproses...</span>
+                    </button>
+                    <button type="button" wire:click="closeUploadFotoModal" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 sm:mt-0 sm:ml-3 sm:w-auto transition-all">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Edit Data Modal -->
     @if($showEditDataModal)
     <div class="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -385,6 +507,47 @@
                     
                     <div class="px-4 sm:px-6 overflow-y-auto flex-1 custom-scrollbar pb-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Section: Foto Profil Siswa -->
+                            <div class="md:col-span-2">
+                                <h4 class="font-bold text-slate-800 mb-2 text-sm">Foto Profil Siswa</h4>
+                                <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-md bg-slate-200 shrink-0 flex items-center justify-center">
+                                        @if($editDataPhoto)
+                                            <img src="{{ $editDataPhoto->temporaryUrl() }}" alt="Preview" class="w-full h-full object-cover">
+                                        @elseif($editDataCurrentPhotoUrl && !$editDataRemovePhoto)
+                                            <img src="{{ $editDataCurrentPhotoUrl }}" alt="{{ $editDataName }}" class="w-full h-full object-cover">
+                                        @else
+                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($editDataName ?: 'Siswa') }}&color=7F9CF5&background=EBF4FF" alt="Avatar" class="w-full h-full object-cover">
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 w-full space-y-2">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Unggah Foto Baru (Opsional)</label>
+                                            <input type="file" wire:model.live="editDataPhoto" accept="image/jpeg,image/png,image/jpg" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-primary file:text-white hover:file:bg-brand-primary-light transition-all border border-slate-300 rounded-xl bg-white shadow-sm cursor-pointer">
+                                            @error('editDataPhoto') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                                        </div>
+                                        <div class="flex items-center justify-between text-[11px] text-slate-400">
+                                            <span>Format: JPG, JPEG, PNG (Maks 5MB). Otomatis di-resize.</span>
+                                            @if($editDataCurrentPhotoUrl && !$editDataRemovePhoto)
+                                                <button type="button" wire:click="$set('editDataRemovePhoto', true)" class="text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    Hapus Foto
+                                                </button>
+                                            @elseif($editDataRemovePhoto)
+                                                <span class="text-rose-600 font-medium flex items-center gap-1">
+                                                    Foto akan dihapus saat disimpan
+                                                    <button type="button" wire:click="$set('editDataRemovePhoto', false)" class="text-slate-600 underline ml-1 font-semibold">Batal</button>
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div wire:loading wire:target="editDataPhoto" class="text-xs text-brand-primary flex items-center gap-1.5 font-medium">
+                                            <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            Memproses file foto...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Section: Data Identitas -->
                             <div class="md:col-span-2">
                                 <h4 class="font-bold text-slate-800 mb-2 text-sm">Data Identitas</h4>
