@@ -223,6 +223,21 @@
                                     <p class="text-xs text-emerald-900 mt-0.5 line-clamp-2">{{ $catatan->rencana_tindak_lanjut }}</p>
                                 </div>
                             @endif
+
+                            @if($catatan->badge)
+                                <div class="mt-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-0.5 shadow-md shadow-amber-500/20 animate-fade-in">
+                                    <div class="bg-white rounded-[14px] p-3 flex items-center gap-3 h-full">
+                                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+                                            🏆
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider">Apresiasi Guru Wali</p>
+                                            <h5 class="text-sm font-black text-slate-800 leading-tight">{{ $catatan->badge->nama_badge }}</h5>
+                                            <p class="text-[11px] text-slate-500 mt-0.5 italic line-clamp-2 leading-relaxed">"{{ $catatan->badge->catatan_apresiasi }}"</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
@@ -332,21 +347,51 @@
                                     </div>
                                 @endif
 
-                                {{-- Kotak Cuplikan Balasan Guru --}}
-                                @if($item->tanggapan_guru)
-                                    <div class="bg-brand-primary/5 border border-brand-primary/20 rounded-2xl p-3.5 space-y-1">
+                                {{-- Chat Thread Inline --}}
+                                @if($item->mode_konsultasi === 'Pesan Portal' && $item->pesan->count() > 0)
+                                    <div class="mt-4 pt-4 border-t border-slate-100 space-y-4 w-full">
+                                        <div class="space-y-4 pr-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                            @foreach($item->pesan as $msg)
+                                                <div class="flex {{ $msg->sender_type === 'siswa' ? 'justify-end' : 'justify-start' }}">
+                                                    <div class="max-w-[85%] rounded-2xl p-3 {{ $msg->sender_type === 'siswa' ? 'bg-brand-primary text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm' }}">
+                                                        @if($msg->sender_type === 'guru')
+                                                            <p class="text-[10px] font-extrabold text-slate-600 mb-1">{{ $item->guru?->name }} (Guru Wali)</p>
+                                                        @endif
+                                                        <p class="text-xs leading-relaxed whitespace-pre-line">{{ $msg->pesan }}</p>
+                                                        <p class="text-[10px] mt-1.5 text-right opacity-70">{{ $msg->created_at->format('H:i') }}</p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        @if(in_array($item->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                                            <div class="mt-3 flex gap-2">
+                                                <input type="text" wire:model="pesanBaru" placeholder="Ketik balasan untuk Guru Wali..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
+                                                <button type="button" wire:click="kirimPesanInline('{{ $item->id }}')" class="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer">
+                                                    Kirim
+                                                </button>
+                                            </div>
+                                            @error('pesanBaru') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
+                                        @elseif(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']))
+                                            <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs text-center rounded-xl font-medium">
+                                                Konsultasi ini telah ditandai Selesai. Ruang obrolan ditutup.
+                                            </div>
+                                        @endif
+                                    </div>
+                                @elseif($item->tanggapan_guru)
+                                    <div class="bg-brand-primary/5 border border-brand-primary/20 rounded-2xl p-3.5 space-y-1 mt-2">
                                         <div class="flex items-center gap-2">
                                             <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-brand-primary/20 text-brand-primary">Tanggapan Guru Wali:</span>
                                             <span class="text-xs font-bold text-slate-700">{{ $item->guru?->name }}</span>
                                         </div>
-                                        <p class="text-xs text-slate-700 line-clamp-2 italic leading-relaxed">
+                                        <p class="text-xs text-slate-700 line-clamp-3 italic leading-relaxed">
                                             "{{ $item->tanggapan_guru }}"
                                         </p>
                                     </div>
                                 @endif
 
                                 {{-- Alasan Penolakan --}}
-                                @if($item->status_pengajuan === 'Ditolak' && $item->alasan_penolakan)
+                                @if($item->status_pengajuan?->value === 'Ditolak' && $item->alasan_penolakan)
                                     <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-xs text-rose-800">
                                         <strong>Alasan Belum Dapat Diterima:</strong> {{ $item->alasan_penolakan }}
                                     </div>
@@ -354,10 +399,23 @@
                             </div>
 
                             <div class="flex items-center gap-2 pt-3 lg:pt-0 lg:border-t-0 border-t border-slate-100 shrink-0 self-end lg:self-start">
-                                @if($item->status_pengajuan === 'Menunggu Konfirmasi')
+                                @if($item->status_pengajuan?->value === 'Menunggu Konfirmasi')
                                     <button wire:click="batalkanKonsultasi('{{ $item->id }}')" wire:confirm="Yakin ingin membatalkan permohonan konsultasi ini?" class="px-3 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-colors">
                                         Batalkan
                                     </button>
+                                @endif
+
+                                @if(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']))
+                                    @if(!$item->student_feedback_rating)
+                                        <button wire:click="openFeedbackModal('{{ $item->id }}')" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold shadow-md shadow-amber-500/20 transition-all cursor-pointer">
+                                            ⭐ Berikan Ulasan
+                                        </button>
+                                    @else
+                                        <div class="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl cursor-default" title="Ulasan Anda: {{ $item->student_feedback_rating }} Bintang, Merasa {{ $item->student_feedback_emoji?->value }}">
+                                            <span class="text-xs font-bold text-amber-500">⭐ {{ $item->student_feedback_rating }}</span>
+                                            <span class="text-[10px] font-medium text-slate-500">({{ $item->student_feedback_emoji?->value }})</span>
+                                        </div>
+                                    @endif
                                 @endif
 
                                 <button wire:click="openDetail('{{ $item->id }}')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-brand-primary hover:text-white text-slate-700 text-xs font-extrabold transition-all cursor-pointer">
@@ -522,7 +580,7 @@
                 <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full border border-slate-100">
                     
                     {{-- Header --}}
-                    <div class="bg-slate-900 p-6 text-white flex items-center justify-between">
+                    <div class="bg-brand-primary p-6 text-white flex items-center justify-between">
                         <div>
                             <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-white/20 text-white">Detail Konsultasi</span>
                             <h3 class="text-base font-extrabold mt-1 text-white">{{ $selectedKonsultasi->topik_konsultasi }}</h3>
@@ -558,21 +616,58 @@
                             </div>
                         @endif
 
-                        {{-- Respon Guru Wali --}}
-                        @if($selectedKonsultasi->tanggapan_guru)
-                            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-1.5">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Tanggapan / Arahan Guru Wali:</p>
-                                    <span class="text-[10px] font-bold text-emerald-800">{{ $selectedKonsultasi->guru?->name }}</span>
+                        {{-- Ruang Obrolan / Chat Thread --}}
+                        @if($selectedKonsultasi->mode_konsultasi === 'Pesan Portal')
+                            <div class="mt-4 pt-4 border-t border-slate-100 space-y-4">
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Riwayat Obrolan</h4>
+                                
+                                <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar" wire:poll.5s>
+                                    @forelse($selectedKonsultasi->pesan as $msg)
+                                        <div class="flex {{ $msg->sender_type === 'siswa' ? 'justify-end' : 'justify-start' }}">
+                                            <div class="max-w-[85%] rounded-2xl p-3 {{ $msg->sender_type === 'siswa' ? 'bg-brand-primary text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm' }}">
+                                                @if($msg->sender_type === 'guru')
+                                                    <p class="text-[10px] font-extrabold text-brand-primary mb-1">{{ $selectedKonsultasi->guru?->name }}</p>
+                                                @endif
+                                                <p class="text-xs leading-relaxed whitespace-pre-line">{{ $msg->pesan }}</p>
+                                                <p class="text-[10px] mt-1.5 text-right opacity-70">{{ $msg->created_at->format('H:i') }}</p>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <p class="text-xs text-slate-500 italic text-center">Belum ada obrolan.</p>
+                                    @endforelse
                                 </div>
-                                <p class="text-xs text-emerald-950 whitespace-pre-line leading-relaxed font-medium">
-                                    {{ $selectedKonsultasi->tanggapan_guru }}
-                                </p>
+
+                                @if(in_array($selectedKonsultasi->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                                    <form wire:submit.prevent="kirimPesan" class="mt-3 flex gap-2">
+                                        <input type="text" wire:model="pesanBaru" placeholder="Ketik balasan Anda di sini..." class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
+                                        <button type="submit" class="px-4 py-2.5 bg-brand-primary hover:bg-brand-secondary text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer">
+                                            Kirim
+                                        </button>
+                                    </form>
+                                    @error('pesanBaru') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
+                                @else
+                                    <div class="mt-3 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs text-center rounded-xl font-medium">
+                                        Ruang obrolan ini sudah ditutup.
+                                    </div>
+                                @endif
                             </div>
+                        @else
+                            {{-- Respon Guru Wali (Legacy / Tatap Muka) --}}
+                            @if($selectedKonsultasi->tanggapan_guru)
+                                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Tanggapan / Arahan Guru Wali:</p>
+                                        <span class="text-[10px] font-bold text-emerald-800">{{ $selectedKonsultasi->guru?->name }}</span>
+                                    </div>
+                                    <p class="text-xs text-emerald-950 whitespace-pre-line leading-relaxed font-medium">
+                                        {{ $selectedKonsultasi->tanggapan_guru }}
+                                    </p>
+                                </div>
+                            @endif
                         @endif
 
                         {{-- Alasan Penolakan --}}
-                        @if($selectedKonsultasi->status_pengajuan === 'Ditolak' && $selectedKonsultasi->alasan_penolakan)
+                        @if($selectedKonsultasi->status_pengajuan?->value === 'Ditolak' && $selectedKonsultasi->alasan_penolakan)
                             <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs text-rose-800 space-y-1">
                                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-rose-700">Alasan Belum Dapat Dipenuhi:</p>
                                 <p class="font-medium">{{ $selectedKonsultasi->alasan_penolakan }}</p>
@@ -599,7 +694,7 @@
                 <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl w-full border border-slate-100">
                     
                     {{-- Header --}}
-                    <div class="bg-purple-900 p-6 text-white flex items-center justify-between">
+                    <div class="bg-brand-primary p-6 text-white flex items-center justify-between">
                         <div>
                             <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-white/20 text-white">Catatan Dampingan Guru</span>
                             <h3 class="text-base font-extrabold mt-1 text-white">Sesi {{ $selectedCatatan->jenis_pendampingan }} • {{ $selectedCatatan->kategori_pendampingan }}</h3>
@@ -638,6 +733,69 @@
                             Tutup
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL Ulasan & Refleksi --}}
+    @if($showFeedbackModal && $feedbackKonsultasi)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" wire:click="closeFeedbackModal"></div>
+
+                <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-100">
+                    <div class="bg-brand-primary p-6 text-white flex items-center justify-between">
+                        <h3 class="text-lg font-extrabold">Ulasan & Refleksi Sesi</h3>
+                        <button type="button" wire:click="closeFeedbackModal" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+
+                    <form wire:submit.prevent="submitFeedback" class="p-6 space-y-5">
+                        <p class="text-xs text-slate-600 text-center">Beri ulasan dan tuliskan pesan kesan Anda terkait sesi bimbingan ini. Refleksi ini akan membantu Guru Wali memahami perkembangan Anda.</p>
+                        
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 text-center">Seberapa membantu bimbingan ini?</label>
+                            <div class="flex items-center justify-center gap-2">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model.live="feedback_rating" value="{{ $i }}" class="hidden">
+                                        <svg class="w-8 h-8 transition-colors {{ $feedback_rating >= $i ? 'text-brand-secondary' : 'text-slate-200 hover:text-brand-secondary/50' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                    </label>
+                                @endfor
+                            </div>
+                            @error('feedback_rating') <span class="text-xs text-rose-500 mt-2 block text-center">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 text-center">Bagaimana perasaan Anda sekarang?</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                @foreach(['Lega' => '😊 Lega', 'Biasa' => '😐 Biasa', 'Masih Bingung' => '😕 Masih Bingung'] as $val => $label)
+                                    <label class="flex flex-col items-center gap-1 p-2 rounded-xl border cursor-pointer transition-all text-center {{ $feedback_emoji === $val ? 'bg-brand-primary/10 border-brand-primary text-brand-primary font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100' }}">
+                                        <input type="radio" wire:model.live="feedback_emoji" value="{{ $val }}" class="hidden">
+                                        <span class="text-xs">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('feedback_emoji') <span class="text-xs text-rose-500 mt-2 block text-center">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Pesan, Kesan, atau Refleksi Singkat (Opsional)</label>
+                            <textarea wire:model="feedback_note" rows="3" placeholder="Contoh: Terima kasih atas arahannya Pak, saya merasa lebih tenang..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary transition-all"></textarea>
+                            @error('feedback_note') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                            <button type="button" wire:click="closeFeedbackModal" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-colors">
+                                Nanti Saja
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-extrabold text-xs shadow-md transition-all cursor-pointer">
+                                Simpan Ulasan
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

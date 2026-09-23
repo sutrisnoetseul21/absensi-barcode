@@ -35,6 +35,16 @@ class KonsultasiGuruWaliList extends Component
     public bool $showCatatanModal = false;
     public ?JurnalGuruWali $selectedCatatan = null;
 
+    // Obrolan
+    public string $pesanBaru = '';
+
+    // Modal Feedback
+    public bool $showFeedbackModal = false;
+    public ?KonsultasiGuruWali $feedbackKonsultasi = null;
+    public ?int $feedback_rating = null;
+    public ?string $feedback_emoji = null;
+    public string $feedback_note = '';
+
     protected $rules = [
         'kategori'             => 'required|in:Akademik,Karakter & Kedisiplinan,Minat & Bakat / Ekskul,Sosial & Psikologis',
         'mode'                 => 'required|in:Tatap Muka,Pesan Portal',
@@ -126,7 +136,7 @@ class KonsultasiGuruWaliList extends Component
 
         $this->selectedKonsultasi = KonsultasiGuruWali::where('id', $id)
             ->where('student_id', $student->id)
-            ->with(['guru', 'jurnal'])
+            ->with(['guru', 'jurnal', 'pesan'])
             ->firstOrFail();
 
         $this->showDetailModal = true;
@@ -136,6 +146,46 @@ class KonsultasiGuruWaliList extends Component
     {
         $this->showDetailModal = false;
         $this->selectedKonsultasi = null;
+        $this->pesanBaru = '';
+    }
+
+    public function kirimPesanInline($id)
+    {
+        $this->validate(['pesanBaru' => 'required|string|min:2|max:2000']);
+        $konsul = KonsultasiGuruWali::findOrFail($id);
+
+        if (in_array($konsul->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan'])) {
+            \App\Models\PesanKonsultasiGuruWali::create([
+                'konsultasi_id' => $konsul->id,
+                'sender_type'   => 'siswa',
+                'pesan'         => $this->pesanBaru,
+                'is_read'       => false,
+            ]);
+            $this->pesanBaru = '';
+        }
+    }
+
+    public function kirimPesan(): void
+    {
+        $this->validate(['pesanBaru' => 'required|string|min:2|max:2000'], [
+            'pesanBaru.required' => 'Pesan tidak boleh kosong.',
+            'pesanBaru.min' => 'Pesan minimal 2 karakter.',
+        ]);
+
+        if (!$this->selectedKonsultasi) return;
+
+        // Boleh membalas jika belum Selesai/Ditolak/Dikonversi
+        if (in_array($this->selectedKonsultasi->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan'])) {
+            \App\Models\PesanKonsultasiGuruWali::create([
+                'konsultasi_id' => $this->selectedKonsultasi->id,
+                'sender_type'   => 'siswa',
+                'pesan'         => $this->pesanBaru,
+                'is_read'       => false,
+            ]);
+
+            $this->pesanBaru = '';
+            $this->selectedKonsultasi->load('pesan');
+        }
     }
 
     public function openCatatanDetail(string $id): void
@@ -156,6 +206,51 @@ class KonsultasiGuruWaliList extends Component
     {
         $this->showCatatanModal = false;
         $this->selectedCatatan = null;
+    }
+
+    public function openFeedbackModal(string $id): void
+    {
+        $student = Auth::user()?->student;
+        if (!$student) return;
+
+        $this->feedbackKonsultasi = KonsultasiGuruWali::where('id', $id)
+            ->where('student_id', $student->id)
+            ->whereIn('status_pengajuan', ['Selesai', 'Dikonversi ke Jurnal'])
+            ->firstOrFail();
+
+        $this->feedback_rating = $this->feedbackKonsultasi->student_feedback_rating;
+        $this->feedback_emoji = $this->feedbackKonsultasi->student_feedback_emoji?->value;
+        $this->feedback_note = $this->feedbackKonsultasi->student_feedback_note ?? '';
+        $this->showFeedbackModal = true;
+    }
+
+    public function closeFeedbackModal(): void
+    {
+        $this->showFeedbackModal = false;
+        $this->feedbackKonsultasi = null;
+    }
+
+    public function submitFeedback(): void
+    {
+        $this->validate([
+            'feedback_rating' => 'required|integer|min:1|max:5',
+            'feedback_emoji'  => 'required|in:Lega,Biasa,Masih Bingung',
+            'feedback_note'   => 'nullable|string|max:1000',
+        ], [
+            'feedback_rating.required' => 'Pilih rating bintang (1-5) untuk sesi ini.',
+            'feedback_emoji.required'  => 'Pilih perasaan Anda setelah sesi (Lega, Biasa, Masih Bingung).',
+        ]);
+
+        if ($this->feedbackKonsultasi) {
+            $this->feedbackKonsultasi->update([
+                'student_feedback_rating' => $this->feedback_rating,
+                'student_feedback_emoji'  => \App\Enums\StudentFeedbackEmoji::tryFrom($this->feedback_emoji),
+                'student_feedback_note'   => $this->feedback_note,
+            ]);
+
+            $this->closeFeedbackModal();
+            session()->flash('success', 'Terima kasih atas ulasan Anda! Ini membantu kami menjadi lebih baik.');
+        }
     }
 
     public function batalkanKonsultasi(string $id): void
@@ -226,7 +321,7 @@ class KonsultasiGuruWaliList extends Component
             if ($this->activeTab === 'catatan_guru') {
                 $catatanQuery = JurnalGuruWali::where('student_id', $student->id)
                     ->where('is_public_note', true)
-                    ->with('guru');
+                    ->with(['guru', 'badge']);
 
                 if (!empty($this->search)) {
                     $catatanQuery->where(function ($q) {

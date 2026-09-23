@@ -343,6 +343,9 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
             Route::get('/cetak/individual/massal-pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfIndividualMassal'])->name('cetak.individual.massal.pdf');
             Route::get('/cetak/kelompok/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakKelompok'])->name('cetak.kelompok.print');
             Route::get('/cetak/kelompok/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfKelompok'])->name('cetak.kelompok.pdf');
+            
+            // Dasbor Analitik (Command Center)
+            Route::get('/analitik', \App\Livewire\PortalGuru\GuruWali\DashboardAnalitik::class)->name('analitik');
         });
 
         // Bimbingan & Konseling (Guru BK) Routes

@@ -163,14 +163,17 @@
                             @php
                                 $siswa = $rujukan->siswa;
                                 $kelasModel = $siswa?->resolveKelasModel($activeYear?->id);
-                                $hasKonseling = $rujukan->konselingBk !== null;
-                                $statusBk = $hasKonseling ? $rujukan->konselingBk->status_kasus : 'Menunggu Tindak Lanjut';
+                                $hasKonseling = $rujukan->teacher_id !== null;
+                                $statusBk = $hasKonseling ? $rujukan->status_kasus->value : 'Menunggu Tindak Lanjut';
+                                $guruWaliName = $rujukan->konsultasiGuruWali?->guru?->name ?? $rujukan->jurnalGuruWali?->guru?->name ?? 'Sistem';
                             @endphp
                             <tr class="hover:bg-slate-50/60 transition-colors">
                                 <!-- Siswa -->
                                 <td class="py-3.5 px-4">
                                     <div class="flex items-center gap-3">
-                                        <img src="{{ $siswa?->avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0">
+                                        <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center border border-indigo-200 shrink-0">
+                                            {{ substr($siswa?->name ?? 'S', 0, 1) }}
+                                        </div>
                                         <div>
                                             <div class="font-bold text-slate-900 leading-tight">{{ $siswa?->name ?? '—' }}</div>
                                             <div class="text-[11px] text-slate-500 mt-0.5">
@@ -182,19 +185,19 @@
 
                                 <!-- Guru Wali -->
                                 <td class="py-3.5 px-4">
-                                    <div class="font-medium text-slate-800 leading-tight">{{ $rujukan->guru?->name ?? 'Guru Wali' }}</div>
+                                    <div class="font-medium text-slate-800 leading-tight">{{ $guruWaliName }}</div>
                                     <div class="text-[11px] text-slate-400 mt-0.5">
-                                        {{ $rujukan->tanggal_waktu->translatedFormat('d M Y, H:i') }} WIB
+                                        {{ $rujukan->created_at->translatedFormat('d M Y, H:i') }} WIB
                                     </div>
                                 </td>
 
                                 <!-- Fokus & Masalah -->
                                 <td class="py-3.5 px-4 max-w-xs">
-                                    <div class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 mb-1">
-                                        {{ $rujukan->kategori_pendampingan }}
+                                    <div class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-orange-700 mb-1">
+                                        Alasan Rujukan
                                     </div>
                                     <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                                        {{ $rujukan->uraian_pembahasan }}
+                                        {{ $rujukan->alasan_rujukan }}
                                     </p>
                                 </td>
 
@@ -205,15 +208,15 @@
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                                             Perlu Tindak Lanjut
                                         </span>
-                                    @elseif(in_array($statusBk, ['Dalam Penanganan', 'Bimbingan Lanjutan']))
+                                    @elseif(in_array($statusBk, ['Dalam Proses']))
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                             {{ $statusBk }}
                                         </span>
-                                    @elseif($statusBk === 'Tuntas / Selesai')
+                                    @elseif(in_array($statusBk, ['Selesai', 'Dikonversi ke Jurnal']))
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            Tuntas / Selesai
+                                            Selesai
                                         </span>
                                     @else
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
@@ -232,14 +235,14 @@
                                         </button>
 
                                         @if(!$hasKonseling)
-                                            <a href="{{ route('portal-guru.bk.konseling.create', ['rujukan_id' => $rujukan->id]) }}" 
+                                            <button wire:click="terimaRujukan('{{ $rujukan->id }}')" 
                                                class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all">
-                                                Tindak Lanjuti
-                                            </a>
+                                                Tangani Kasus
+                                            </button>
                                         @else
-                                            <a href="{{ route('portal-guru.bk.konseling.edit', $rujukan->konselingBk->id) }}" 
+                                            <a href="{{ route('portal-guru.bk.konseling.edit', $rujukan->id) }}" 
                                                class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
-                                                Lihat Sesi
+                                                Lembar Konseling
                                             </a>
                                         @endif
                                     </div>
@@ -261,7 +264,7 @@
         @php
             $detSiswa = $selectedRujukan->siswa;
             $detKelas = $detSiswa?->resolveKelasModel($activeYear?->id);
-            $detKonseling = $selectedRujukan->konselingBk;
+            $guruWaliName = $selectedRujukan->konsultasiGuruWali?->guru?->name ?? $selectedRujukan->jurnalGuruWali?->guru?->name ?? 'Sistem';
         @endphp
         <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all"
@@ -277,7 +280,7 @@
                         </div>
                         <div>
                             <h3 class="text-base font-bold leading-tight">Detail Rujukan Kasus Guru Wali</h3>
-                            <p class="text-xs text-indigo-200 mt-0.5">ID Jurnal: {{ substr($selectedRujukan->id, 0, 8) }} &bull; {{ $selectedRujukan->tanggal_waktu->translatedFormat('d F Y') }}</p>
+                            <p class="text-xs text-indigo-200 mt-0.5">ID Rujukan: {{ substr($selectedRujukan->id, 0, 8) }} &bull; {{ $selectedRujukan->created_at->translatedFormat('d F Y') }}</p>
                         </div>
                     </div>
                     <button type="button" wire:click="closeDetailModal" class="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">
@@ -314,34 +317,19 @@
                             <span class="h-px flex-1 bg-slate-200"></span>
                         </h4>
 
-                        <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="grid grid-cols-1 gap-3 text-xs">
                             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                 <span class="text-slate-400 block text-[11px]">Guru Wali Perujuk</span>
-                                <span class="font-bold text-slate-800 text-xs sm:text-sm mt-0.5 block">{{ $selectedRujukan->guru?->name ?? '—' }}</span>
-                                <span class="text-[10px] text-slate-400">{{ $selectedRujukan->kelompok?->nama_kelompok ?? 'Kelompok' }}</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span class="text-slate-400 block text-[11px]">Kategori & Bentuk</span>
-                                <span class="font-bold text-slate-800 text-xs sm:text-sm mt-0.5 block">{{ $selectedRujukan->kategori_pendampingan }}</span>
-                                <span class="text-[10px] text-slate-400">{{ $selectedRujukan->jenis_pendampingan }}</span>
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm mt-0.5 block">{{ $guruWaliName }}</span>
                             </div>
                         </div>
 
                         <div>
-                            <span class="text-xs font-semibold text-slate-600 block mb-1">Uraian Kasus & Pembahasan Awal:</span>
-                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                                {{ $selectedRujukan->uraian_pembahasan }}
+                            <span class="text-xs font-semibold text-slate-600 block mb-1">Alasan Merujuk Kasus:</span>
+                            <div class="p-3.5 rounded-xl bg-orange-50 border border-orange-200 text-xs sm:text-sm text-orange-900 italic leading-relaxed whitespace-pre-line">
+                                "{{ $selectedRujukan->alasan_rujukan }}"
                             </div>
                         </div>
-
-                        @if($selectedRujukan->rencana_tindak_lanjut)
-                            <div>
-                                <span class="text-xs font-semibold text-slate-600 block mb-1">Rencana Tindak Lanjut Guru Wali:</span>
-                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 whitespace-pre-line">
-                                    {{ $selectedRujukan->rencana_tindak_lanjut }}
-                                </div>
-                            </div>
-                        @endif
                     </div>
 
                     <!-- Status / Catatan Sesi BK -->
@@ -351,27 +339,27 @@
                             <span class="h-px flex-1 bg-slate-200"></span>
                         </h4>
 
-                        @if($detKonseling)
+                        @if($selectedRujukan->teacher_id)
                             <div class="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-3">
                                 <div class="flex items-center justify-between text-xs">
-                                    <span class="font-bold text-indigo-900">Sesi Konseling: {{ $detKonseling->tanggal_waktu->translatedFormat('d M Y, H:i') }} WIB</span>
+                                    <span class="font-bold text-indigo-900">Sesi Konseling: {{ $selectedRujukan->tanggal_waktu ? $selectedRujukan->tanggal_waktu->translatedFormat('d M Y, H:i') . ' WIB' : 'Belum dijadwalkan' }}</span>
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">
-                                        {{ $detKonseling->status_kasus }}
+                                        {{ $selectedRujukan->status_kasus->value }}
                                     </span>
                                 </div>
                                 <div class="text-xs text-slate-700">
-                                    <strong>Layanan:</strong> {{ $detKonseling->jenis_layanan }} ({{ $detKonseling->bidang_bimbingan }})
+                                    <strong>Layanan:</strong> {{ $selectedRujukan->jenis_layanan ?? '-' }} ({{ $selectedRujukan->bidang_bimbingan ?? '-' }})
                                 </div>
-                                @if($detKonseling->rekomendasi_untuk_guru_wali)
+                                @if($selectedRujukan->rekomendasi_untuk_guru_wali)
                                     <div>
                                         <span class="text-[11px] font-semibold text-indigo-900 block mb-0.5">Umpan Balik / Rekomendasi untuk Guru Wali:</span>
                                         <div class="p-2.5 rounded-xl bg-white border border-indigo-200/80 text-xs text-slate-800 leading-relaxed whitespace-pre-line">
-                                            {{ $detKonseling->rekomendasi_untuk_guru_wali }}
+                                            {{ $selectedRujukan->rekomendasi_untuk_guru_wali }}
                                         </div>
                                     </div>
                                 @endif
                                 <div class="text-[11px] text-slate-500">
-                                    Ditangani oleh: <strong>{{ $detKonseling->guru?->name ?? 'Guru BK' }}</strong>
+                                    Ditangani oleh: <strong>{{ $selectedRujukan->guru?->name ?? 'Guru BK' }}</strong>
                                 </div>
                             </div>
                         @else
@@ -379,7 +367,7 @@
                                 <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
-                                <span>Kasus ini belum dilakukan sesi konseling resmi oleh Guru BK.</span>
+                                <span>Kasus ini belum ditangani resmi oleh Guru BK. Klik "Tangani Kasus" untuk mulai menangani kasus ini.</span>
                             </div>
                         @endif
                     </div>
@@ -391,18 +379,18 @@
                         Tutup
                     </button>
 
-                    @if(!$detKonseling)
-                        <a href="{{ route('portal-guru.bk.konseling.create', ['rujukan_id' => $selectedRujukan->id]) }}" 
+                    @if(!$selectedRujukan->teacher_id)
+                        <button wire:click="terimaRujukan('{{ $selectedRujukan->id }}')" 
                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 active:scale-95 transition-all">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5H4.5" />
                             </svg>
-                            <span>Mulai Sesi Konseling Siswa</span>
-                        </a>
+                            <span>Tangani Kasus</span>
+                        </button>
                     @else
-                        <a href="{{ route('portal-guru.bk.konseling.edit', $detKonseling->id) }}" 
+                        <a href="{{ route('portal-guru.bk.konseling.edit', $selectedRujukan->id) }}" 
                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-xs transition-all">
-                            <span>Buka Sesi Konseling</span>
+                            <span>Buka Lembar Konseling</span>
                         </a>
                     @endif
                 </div>

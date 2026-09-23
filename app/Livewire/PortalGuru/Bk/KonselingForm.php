@@ -110,30 +110,7 @@ class KonselingForm extends Component
         } else {
             $this->tanggal_waktu = Carbon::now()->format('Y-m-d\TH:i');
 
-            // Cek jika berasal dari rujukan Guru Wali
-            if (request()->has('rujukan_id')) {
-                $rujukan = JurnalGuruWali::with(['siswa', 'guru'])->find(request('rujukan_id'));
-                if ($rujukan) {
-                    $this->referralJurnal = $rujukan;
-                    $this->jurnal_guru_wali_id = $rujukan->id;
-                    $this->student_id = $rujukan->student_id;
-                    $this->isStudentLocked = true;
-                    $this->topik_masalah = 'Tindak Lanjut Rujukan Guru Wali: ' . $rujukan->kategori_pendampingan;
-
-                    // Petakan kategori Guru Wali ke bidang bimbingan BK
-                    $mapping = [
-                        'Akademik'                => 'Belajar',
-                        'Sosial & Psikologis'     => 'Sosial',
-                        'Minat & Bakat / Ekskul'  => 'Karir',
-                        'Karakter & Kedisiplinan' => 'Pribadi',
-                    ];
-                    if (isset($mapping[$rujukan->kategori_pendampingan])) {
-                        $this->bidang_bimbingan = $mapping[$rujukan->kategori_pendampingan];
-                    }
-
-                    $this->uraian_kasus = "Catatan Guru Wali ({$rujukan->guru?->name}):\n" . $rujukan->uraian_pembahasan;
-                }
-            } elseif (request()->has('student_id')) {
+            if (request()->has('student_id')) {
                 $this->student_id = request('student_id');
                 $this->isStudentLocked = true;
             }
@@ -180,20 +157,24 @@ class KonselingForm extends Component
         }
 
         $this->student_id = $konseling->student_id;
-        $this->tanggal_waktu = $konseling->tanggal_waktu->format('Y-m-d\TH:i');
-        $this->bidang_bimbingan = $konseling->bidang_bimbingan;
-        $this->jenis_layanan = $konseling->jenis_layanan;
-        $this->topik_masalah = $konseling->topik_masalah;
-        $this->uraian_kasus = $konseling->uraian_kasus;
-        $this->pendekatan_teknik = $konseling->pendekatan_teknik;
-        $this->hasil_konseling = $konseling->hasil_konseling;
-        $this->rencana_tindak_lanjut = $konseling->rencana_tindak_lanjut;
-        $this->status_kasus = $konseling->status_kasus;
-        $this->rekomendasi_untuk_guru_wali = $konseling->rekomendasi_untuk_guru_wali;
+        $this->tanggal_waktu = $konseling->tanggal_waktu ? $konseling->tanggal_waktu->format('Y-m-d\TH:i') : Carbon::now()->format('Y-m-d\TH:i');
+        $this->bidang_bimbingan = $konseling->bidang_bimbingan ?? 'Pribadi';
+        $this->jenis_layanan = $konseling->jenis_layanan ?? 'Konseling Individu';
+        $this->topik_masalah = $konseling->topik_masalah ?? '';
+        $this->uraian_kasus = $konseling->uraian_kasus ?? '';
+        $this->pendekatan_teknik = $konseling->pendekatan_teknik ?? '';
+        $this->hasil_konseling = $konseling->hasil_konseling ?? '';
+        $this->rencana_tindak_lanjut = $konseling->rencana_tindak_lanjut ?? '';
+        $this->status_kasus = $konseling->status_kasus?->value ?? 'Dalam Penanganan';
+        $this->rekomendasi_untuk_guru_wali = $konseling->rekomendasi_untuk_guru_wali ?? '';
         $this->is_rahasia = (bool) $konseling->is_rahasia;
         $this->jurnal_guru_wali_id = $konseling->jurnal_guru_wali_id;
         $this->referralJurnal = $konseling->jurnalGuruWali;
         $this->isStudentLocked = true;
+
+        if ($konseling->is_rujukan && empty($this->uraian_kasus)) {
+            $this->uraian_kasus = "Alasan rujukan Guru Wali:\n" . $konseling->alasan_rujukan;
+        }
     }
 
     public function selectTeknik($teknik)

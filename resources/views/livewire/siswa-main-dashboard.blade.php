@@ -325,9 +325,12 @@
                                 </span>
                             @endif
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-brand-primary transition-colors">Guru Wali (Bimbingan)</h3>
-                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">
-                            {{ $guruWaliName ? 'Pembimbing: '.$guruWaliName : 'Saluran konsultasi akademik dan bimbingan murid.' }}
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-brand-primary transition-colors">SI-WALI</h3>
+                        <p class="text-[11px] font-medium text-slate-500 mt-1 italic leading-tight">
+                            "Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan"
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1.5 line-clamp-2">
+                            {{ $guruWaliName ? 'Pembimbing: '.$guruWaliName : 'Ruang Aman Pendampingan Holistik, Jembatan Tumbuh Kembang Murid.' }}
                         </p>
                     </div>
                     <a href="{{ route('portal-siswa.guru-wali') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-brand-primary hover:text-brand-secondary pt-3 border-t border-slate-100">

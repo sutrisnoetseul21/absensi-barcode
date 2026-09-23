@@ -147,22 +147,21 @@
                 </div>
             </div>
 
-            <!-- 2. BENTUK & KATEGORI PENDAMPINGAN -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+            <!-- 2. BENTUK, KATEGORI & SENTIMEN -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4 border-t border-slate-100">
                 <!-- Bentuk Pendampingan: Terkunci Khusus Individu -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                         Bentuk Pendampingan
                     </label>
-                    <div class="flex items-center gap-3 p-3 rounded-2xl bg-brand-primary/5 border border-brand-primary/20 text-brand-primary">
-                        <div class="w-8 h-8 rounded-xl bg-brand-primary text-white flex items-center justify-center shrink-0 shadow-xs">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <div class="flex items-center gap-3 p-3 rounded-2xl bg-brand-primary/5 border border-brand-primary/20 text-brand-primary h-[46px]">
+                        <div class="w-6 h-6 rounded-lg bg-brand-primary text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-xs font-bold">Jurnal Individu (1 Siswa)</p>
-                            <p class="text-[11px] text-slate-500">Khusus pencatatan personal/kasus personal siswa</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold truncate">Jurnal Individu</p>
                         </div>
                     </div>
                 </div>
@@ -174,13 +173,30 @@
                     </label>
                     <select id="kategori_pendampingan" 
                             wire:model="kategori_pendampingan" 
-                            class="w-full rounded-2xl border-slate-200 text-sm py-2.5 px-3.5 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary shadow-xs bg-white">
-                        <option value="Akademik">📚 Akademik (Hasil Belajar, Kesulitan Materi)</option>
-                        <option value="Karakter & Kedisiplinan">🎯 Karakter & Kedisiplinan (Ketertiban, Etika, Kehadiran)</option>
-                        <option value="Minat & Bakat / Ekskul">🎨 Minat & Bakat / Ekskul (Potensi, Pengembangan Diri)</option>
-                        <option value="Sosial & Psikologis">🌱 Sosial & Psikologis (Hubungan Teman, Kesejahteraan Emosional)</option>
+                            class="w-full h-[46px] rounded-2xl border-slate-200 text-sm py-2.5 px-3.5 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary shadow-xs bg-white">
+                        <option value="Akademik">📚 Akademik</option>
+                        <option value="Karakter & Kedisiplinan">🎯 Karakter & Kedisiplinan</option>
+                        <option value="Minat & Bakat / Ekskul">🎨 Minat & Bakat / Ekskul</option>
+                        <option value="Sosial & Psikologis">🌱 Sosial & Psikologis</option>
                     </select>
                     @error('kategori_pendampingan')
+                        <p class="text-xs text-rose-500 font-medium mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Kategori Sentimen -->
+                <div>
+                    <label for="kategori_sentimen" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                        Sentimen Jurnal <span class="text-rose-500">*</span>
+                    </label>
+                    <select id="kategori_sentimen" 
+                            wire:model="kategori_sentimen" 
+                            class="w-full h-[46px] rounded-2xl border-slate-200 text-sm py-2.5 px-3.5 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary shadow-xs bg-white">
+                        <option value="Netral">⚪ Netral (Catatan biasa/rutin)</option>
+                        <option value="Positif">🟢 Positif (Prestasi, Kebaikan)</option>
+                        <option value="Negatif">🔴 Negatif (Pelanggaran, Hambatan)</option>
+                    </select>
+                    @error('kategori_sentimen')
                         <p class="text-xs text-rose-500 font-medium mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -267,6 +283,71 @@
                         <input type="checkbox" wire:model="is_public_note" class="sr-only peer">
                         <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
                     </label>
+                </div>
+            </div>
+
+            <!-- 7. PENGHARGAAN & BADGE (DOPAMIN REWARD) -->
+            <div class="pt-4 border-t border-slate-100" x-data="{ giveBadge: @entangle('give_badge') }">
+                <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 flex flex-col gap-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-amber-900 block">Berikan Badge Karakter (Opsional)</span>
+                                <p class="text-xs text-amber-700/80 mt-0.5">
+                                    Berikan apresiasi khusus atas perkembangan positif siswa untuk memotivasi mereka.
+                                </p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" wire:model.live="give_badge" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                    </div>
+
+                    <!-- Input Badge -->
+                    <div x-show="giveBadge" x-transition.opacity class="border-t border-amber-200/50 pt-4 grid grid-cols-1 gap-4" style="display: none;">
+                        <div>
+                            <label for="nama_badge" class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">
+                                Nama Badge Apresiasi <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="nama_badge" 
+                                   wire:model="nama_badge" 
+                                   list="badge_presets"
+                                   placeholder="Ketik bebas atau pilih preset (Cth: Pembelajar Gigih)"
+                                   class="w-full rounded-2xl border-amber-200 text-sm py-2.5 px-3.5 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 shadow-xs bg-white text-slate-800 placeholder:text-slate-400">
+                            <datalist id="badge_presets">
+                                <option value="🌟 Pembelajar Gigih">
+                                <option value="🛡️ Berani Jujur">
+                                <option value="🤝 Teman Solid">
+                                <option value="🚀 Inisiatif Tinggi">
+                                <option value="💡 Ide Kreatif">
+                                <option value="❤️ Empati Luar Biasa">
+                            </datalist>
+                            @error('nama_badge')
+                                <p class="text-xs text-rose-500 font-medium mt-1">{{ $message }}</p>
+                            @enderror
+                            <p class="text-[11px] text-amber-700/70 mt-1">Gunakan emoji di awal teks agar terlihat lebih menarik.</p>
+                        </div>
+                        <div>
+                            <label for="catatan_apresiasi" class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">
+                                Pesan Apresiasi / Alasan <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea id="catatan_apresiasi" 
+                                      wire:model="catatan_apresiasi" 
+                                      rows="2" 
+                                      placeholder="Tuliskan pesan apresiasi singkat agar siswa semakin termotivasi..." 
+                                      class="w-full rounded-2xl border-amber-200 text-sm p-3.5 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 shadow-xs bg-white text-slate-800 placeholder:text-slate-400"></textarea>
+                            @error('catatan_apresiasi')
+                                <p class="text-xs text-rose-500 font-medium mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
             </div>
 

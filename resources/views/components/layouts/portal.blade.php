@@ -629,7 +629,7 @@
                         </a>
 
                         <!-- Menu Konsultasi Guru Wali (Permen 11/2025) -->
-                        <a href="{{ route('portal-siswa.guru-wali') }}" :title="isCollapsed ? 'Konsultasi Guru Wali' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isGuruWaliActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <a href="{{ route('portal-siswa.guru-wali') }}" :title="isCollapsed ? 'SI-WALI' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isGuruWaliActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                             <div class="p-1.5 rounded-lg {{ $isGuruWaliActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm relative">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -638,7 +638,7 @@
                                     <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full ring-2 ring-white"></span>
                                 @endif
                             </div>
-                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Konsultasi Guru Wali</span>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>SI-WALI</span>
                             @if($guruWaliNotifCount > 0)
                                 <span class="ml-auto px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded-full" x-show="!isCollapsed">{{ $guruWaliNotifCount }}</span>
                             @endif
@@ -699,7 +699,10 @@
                         $isGwKonsultasi = request()->routeIs('portal-guru.guru-wali.konsultasi*');
                         $isGwPemantauan = request()->routeIs('portal-guru.guru-wali.pemantauan*');
                         $isGwCetak = request()->routeIs('portal-guru.guru-wali.cetak*');
-                        $isGuruWaliGroupActive = $isGwKelompok || $isGwJurnal || $isGwKonsultasi || $isGwPemantauan || $isGwCetak;
+                        $isGwAnalitik = request()->routeIs('portal-guru.guru-wali.analitik*');
+                        $isGuruWaliGroupActive = $isGwKelompok || $isGwJurnal || $isGwKonsultasi || $isGwPemantauan || $isGwCetak || $isGwAnalitik;
+
+                        $canAccessAnalitik = $user?->hasRole(['guru_bk', 'Guru BK']) || ($user?->teacher && $user->teacher->hasJabatan(['Kepala Sekolah', 'Waka Kesiswaan', 'Wakil Kepala Sekolah Bidang Kesiswaan']));
 
                         $pendingKonsultasiCount = 0;
                         if ($isGuruWaliAktif && $user?->teacher) {
@@ -826,7 +829,7 @@
                     @if($isGuruWaliAktif)
                     <div x-data="{ open: {{ $isGuruWaliGroupActive ? 'true' : 'false' }} }" class="space-y-1">
                         <button @click="if(isCollapsed) { sidebarCollapsed = false; } open = !open" 
-                                :title="isCollapsed ? 'Guru Wali' : ''"
+                                :title="isCollapsed ? 'SI-WALI' : ''"
                                 type="button"
                                 class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group relative {{ $isGuruWaliGroupActive ? 'bg-brand-primary/10 text-brand-primary font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
                                 :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
@@ -838,8 +841,8 @@
                                     @endif
                                 </div>
                                 <div class="flex flex-col text-left min-w-0" x-show="!isCollapsed" x-transition.opacity>
-                                    <span class="text-sm truncate leading-tight">Guru Wali</span>
-                                    <span class="text-[10px] text-slate-400 font-normal leading-tight">Permen 11/2025</span>
+                                    <span class="text-sm truncate leading-tight">SI-WALI</span>
+                                    <span class="text-[10px] text-slate-400 font-normal leading-tight">Guru Wali (Permen 11/2025)</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5" x-show="!isCollapsed" x-transition.opacity>
@@ -897,6 +900,15 @@
                                 <span class="w-1.5 h-1.5 rounded-full {{ $isGwCetak ? 'bg-white' : 'bg-slate-400' }}"></span>
                                 <span class="truncate">Cetak Laporan</span>
                             </a>
+
+                            <!-- Command Center (Analitik) -->
+                            @if($canAccessAnalitik)
+                                <a href="{{ route('portal-guru.guru-wali.analitik') }}" 
+                                   class="flex items-center gap-2.5 py-2.5 px-3 pl-6 mt-1 rounded-xl text-xs font-bold transition-all relative {{ $isGwAnalitik ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25' : 'bg-purple-50 text-purple-700 hover:bg-purple-100' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $isGwAnalitik ? 'bg-white' : 'bg-purple-500 animate-pulse' }}"></span>
+                                    <span class="truncate">Command Center</span>
+                                </a>
+                            @endif
                         </div>
                     </div>
                     @endif

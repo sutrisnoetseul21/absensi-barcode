@@ -42,6 +42,12 @@ class KonsultasiList extends Component
     // Modal Detail
     public $showDetailModal = false;
     public $selectedConsultation = null;
+    public $pesanBaru = '';
+
+    // Rujuk BK variables
+    public $showRujukModal = false;
+    public $alasan_rujukan = '';
+    public $consultationToRujuk;
 
     public function mount()
     {
@@ -78,9 +84,17 @@ class KonsultasiList extends Component
     // ── AKSI DETAIL ──────────────────────────────────────────────────
     public function openDetail($id)
     {
-        $this->selectedConsultation = KonsultasiGuruWali::with(['siswa.enrollmentAktif.kelas', 'jurnal'])
+        $this->selectedConsultation = KonsultasiGuruWali::with(['siswa.enrollmentAktif.kelas', 'jurnal', 'pesan'])
             ->where('teacher_id', $this->teacher->id)
             ->findOrFail($id);
+
+        // Tandai pesan dari siswa sebagai sudah dibaca
+        if ($this->selectedConsultation) {
+            \App\Models\PesanKonsultasiGuruWali::where('konsultasi_id', $this->selectedConsultation->id)
+                ->where('sender_type', 'siswa')
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+        }
 
         $this->showDetailModal = true;
     }
@@ -89,6 +103,37 @@ class KonsultasiList extends Component
     {
         $this->showDetailModal = false;
         $this->selectedConsultation = null;
+        $this->pesanBaru = '';
+    }
+
+    public function kirimPesanObrolan()
+    {
+        $this->validate(['pesanBaru' => 'required|string|min:2|max:2000'], [
+            'pesanBaru.required' => 'Pesan tidak boleh kosong.',
+            'pesanBaru.min' => 'Pesan minimal 2 karakter.',
+        ]);
+
+        if (!$this->selectedConsultation) return;
+
+        if (in_array($this->selectedConsultation->status_pengajuan?->value, [\App\Enums\StatusPengajuan::MenungguKonfirmasi->value, \App\Enums\StatusPengajuan::Dijadwalkan->value])) {
+            \App\Models\PesanKonsultasiGuruWali::create([
+                'konsultasi_id' => $this->selectedConsultation->id,
+                'sender_type'   => 'guru',
+                'pesan'         => $this->pesanBaru,
+                'is_read'       => false,
+            ]);
+
+            // Update status ke Dijadwalkan (direspon) jika masih menunggu konfirmasi
+            if ($this->selectedConsultation->status_pengajuan?->value === \App\Enums\StatusPengajuan::MenungguKonfirmasi->value) {
+                $this->selectedConsultation->update(['status_pengajuan' => \App\Enums\StatusPengajuan::Dijadwalkan]);
+            }
+            
+            // Simpan snippet untuk backward compatibility
+            $this->selectedConsultation->update(['tanggapan_guru' => $this->pesanBaru]);
+
+            $this->pesanBaru = '';
+            $this->selectedConsultation->load('pesan');
+        }
     }
 
     // ── AKSI JADWALKAN ───────────────────────────────────────────────
@@ -112,7 +157,7 @@ class KonsultasiList extends Component
 
         if ($this->consultationToSchedule) {
             $this->consultationToSchedule->update([
-                'status_pengajuan' => 'Dijadwalkan',
+                'status_pengajuan' => \App\Enums\StatusPengajuan::Dijadwalkan,
                 'jadwal_pasti'     => $this->jadwal_pasti,
                 'tanggapan_guru'   => $this->tanggapan_jadwal ?: null,
             ]);
@@ -128,7 +173,7 @@ class KonsultasiList extends Component
     {
         $this->consultationToReply = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->findOrFail($id);
         $this->tanggapan_pesan = $this->consultationToReply->tanggapan_guru ?? '';
-        $this->markAsCompleted = $this->consultationToReply->status_pengajuan === 'Selesai';
+        $this->markAsCompleted = $this->consultationToReply->status_pengajuan?->value === \App\Enums\StatusPengajuan::Selesai->value;
         $this->showReplyModal = true;
     }
 
@@ -146,9 +191,9 @@ class KonsultasiList extends Component
             ];
 
             if ($this->markAsCompleted) {
-                $updateData['status_pengajuan'] = 'Selesai';
-            } elseif ($this->consultationToReply->status_pengajuan === 'Menunggu Konfirmasi') {
-                $updateData['status_pengajuan'] = 'Dijadwalkan';
+                $updateData['status_pengajuan'] = \App\Enums\StatusPengajuan::Selesai;
+            } elseif ($this->consultationToReply->status_pengajuan?->value === \App\Enums\StatusPengajuan::MenungguKonfirmasi->value) {
+                $updateData['status_pengajuan'] = \App\Enums\StatusPengajuan::Dijadwalkan;
             }
 
             $this->consultationToReply->update($updateData);
@@ -177,7 +222,7 @@ class KonsultasiList extends Component
 
         if ($this->consultationToReject) {
             $this->consultationToReject->update([
-                'status_pengajuan' => 'Ditolak',
+                'status_pengajuan' => \App\Enums\StatusPengajuan::Ditolak,
                 'alasan_penolakan' => $this->alasan_penolakan,
             ]);
 
@@ -187,12 +232,108 @@ class KonsultasiList extends Component
         }
     }
 
-    // ── TANDAI SELESAI ───────────────────────────────────────────────
-    public function markCompleted($id)
+    // ── TANDAI SELESAI & BADGE ───────────────────────────────────────────────
+    public $showBadgeModal = false;
+    public $consultationToComplete = null;
+    public $selectedBadge = '';
+    public $catatan_apresiasi = '';
+
+    public function openBadgeModal($id)
     {
-        $c = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->findOrFail($id);
-        $c->update(['status_pengajuan' => 'Selesai']);
-        session()->flash('success', 'Konsultasi ditandai selesai.');
+        $this->consultationToComplete = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->findOrFail($id);
+        $this->selectedBadge = '';
+        $this->catatan_apresiasi = '';
+        $this->showBadgeModal = true;
+    }
+
+    public function markCompletedWithBadge()
+    {
+        if ($this->consultationToComplete) {
+            $this->consultationToComplete->update(['status_pengajuan' => \App\Enums\StatusPengajuan::Selesai]);
+
+            if (!empty($this->selectedBadge)) {
+                \App\Models\BadgeKarakterSiswa::create([
+                    'student_id' => $this->consultationToComplete->student_id,
+                    'teacher_id' => $this->teacher->id,
+                    'academic_year_id' => $this->activeYear?->id,
+                    'class_id' => $this->consultationToComplete->siswa?->resolveKelasModel($this->activeYear?->id)?->id,
+                    'nama_badge' => $this->selectedBadge,
+                    'catatan_apresiasi' => $this->catatan_apresiasi,
+                    'source_type' => get_class($this->consultationToComplete),
+                    'source_id' => $this->consultationToComplete->id,
+                ]);
+                session()->flash('success', 'Konsultasi selesai dan badge karakter diberikan kepada siswa.');
+            } else {
+                session()->flash('success', 'Konsultasi ditandai selesai tanpa pemberian badge.');
+            }
+
+            $this->showBadgeModal = false;
+            $this->consultationToComplete = null;
+        }
+    }
+
+    // ── RUJUK KE BK ──────────────────────────────────────────────────
+    public function openRujukModal($id)
+    {
+        $this->consultationToRujuk = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->findOrFail($id);
+        $this->alasan_rujukan = '';
+        $this->showRujukModal = true;
+    }
+
+    public function saveRujuk()
+    {
+        $this->validate([
+            'alasan_rujukan' => 'required|string|min:10',
+        ], [
+            'alasan_rujukan.required' => 'Mohon jelaskan alasan mengapa kasus ini perlu dirujuk ke Guru BK.',
+            'alasan_rujukan.min' => 'Alasan rujukan minimal 10 karakter.'
+        ]);
+
+        if ($this->consultationToRujuk) {
+            // Ubah status konsultasi saat ini agar diketahui bahwa ini sudah dialihkan
+            $this->consultationToRujuk->update([
+                'status_pengajuan' => \App\Enums\StatusPengajuan::DikonversiKeJurnal, // atau kita biarkan selesai dengan flag khusus
+            ]);
+
+            // Buat record Konseling BK
+            \App\Models\KonselingBk::create([
+                'academic_year_id' => $this->academicYear->id,
+                'class_id' => $this->consultationToRujuk->siswa->enrollmentAktif->class_id ?? null,
+                'teacher_id' => null, // Belum diambil oleh guru BK spesifik
+                'student_id' => $this->consultationToRujuk->student_id,
+                'konsultasi_guru_wali_id' => $this->consultationToRujuk->id,
+                'is_rujukan' => true,
+                'alasan_rujukan' => $this->alasan_rujukan,
+                'status_kasus' => \App\Enums\StatusKasus::DalamProses,
+                'is_rahasia' => true,
+            ]);
+
+            session()->flash('success', 'Kasus berhasil dirujuk ke Guru BK.');
+            $this->showRujukModal = false;
+            $this->consultationToRujuk = null;
+        }
+    }
+
+    public function kirimPesanInline($id)
+    {
+        $this->validate(['pesanBaru' => 'required|string|min:2|max:2000']);
+        $konsul = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->findOrFail($id);
+
+        if (in_array($konsul->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan'])) {
+            \App\Models\PesanKonsultasiGuruWali::create([
+                'konsultasi_id' => $konsul->id,
+                'sender_type'   => 'guru',
+                'pesan'         => $this->pesanBaru,
+                'is_read'       => false,
+            ]);
+
+            // Jika status masih Menunggu Konfirmasi, ubah jadi Dijadwalkan (sudah dibalas)
+            if ($konsul->status_pengajuan?->value === 'Menunggu Konfirmasi') {
+                $konsul->update(['status_pengajuan' => \App\Enums\StatusPengajuan::Dijadwalkan]);
+            }
+
+            $this->pesanBaru = '';
+        }
     }
 
     #[Layout('components.layouts.portal')]
@@ -203,13 +344,13 @@ class KonsultasiList extends Component
 
         // Filter tab
         if ($this->activeTab === 'menunggu') {
-            $query->where('status_pengajuan', 'Menunggu Konfirmasi');
+            $query->where('status_pengajuan', \App\Enums\StatusPengajuan::MenungguKonfirmasi);
         } elseif ($this->activeTab === 'dijadwalkan') {
-            $query->where('status_pengajuan', 'Dijadwalkan');
+            $query->where('status_pengajuan', \App\Enums\StatusPengajuan::Dijadwalkan);
         } elseif ($this->activeTab === 'selesai') {
-            $query->whereIn('status_pengajuan', ['Selesai', 'Dikonversi ke Jurnal']);
+            $query->whereIn('status_pengajuan', [\App\Enums\StatusPengajuan::Selesai, \App\Enums\StatusPengajuan::DikonversiKeJurnal]);
         } elseif ($this->activeTab === 'ditolak') {
-            $query->where('status_pengajuan', 'Ditolak');
+            $query->where('status_pengajuan', \App\Enums\StatusPengajuan::Ditolak);
         }
 
         // Search
@@ -234,16 +375,16 @@ class KonsultasiList extends Component
 
         // Hitung count per status
         $countMenunggu = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)
-            ->where('status_pengajuan', 'Menunggu Konfirmasi')
+            ->where('status_pengajuan', \App\Enums\StatusPengajuan::MenungguKonfirmasi)
             ->count();
         $countDijadwalkan = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)
-            ->where('status_pengajuan', 'Dijadwalkan')
+            ->where('status_pengajuan', \App\Enums\StatusPengajuan::Dijadwalkan)
             ->count();
         $countSelesai = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)
-            ->whereIn('status_pengajuan', ['Selesai', 'Dikonversi ke Jurnal'])
+            ->whereIn('status_pengajuan', [\App\Enums\StatusPengajuan::Selesai, \App\Enums\StatusPengajuan::DikonversiKeJurnal])
             ->count();
         $countDitolak = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)
-            ->where('status_pengajuan', 'Ditolak')
+            ->where('status_pengajuan', \App\Enums\StatusPengajuan::Ditolak)
             ->count();
 
         return view('livewire.portal-guru.guru-wali.konsultasi-list', [

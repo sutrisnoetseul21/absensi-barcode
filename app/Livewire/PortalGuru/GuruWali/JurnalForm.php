@@ -27,6 +27,12 @@ class JurnalForm extends Component
     public $rujukan_kolaborasi = 'Mandiri';
     public $rencana_tindak_lanjut = '';
     public $is_public_note = false;
+    public $kategori_sentimen = 'Netral';
+
+    // Badge State
+    public $give_badge = false;
+    public $nama_badge = '';
+    public $catatan_apresiasi = '';
 
     // Relasi konsultasi jika konversi
     public $konsultasi_id = null;
@@ -46,6 +52,10 @@ class JurnalForm extends Component
             'rujukan_kolaborasi'    => 'required|in:Mandiri,Wali Kelas,Guru BK,Orang Tua / Wali',
             'rencana_tindak_lanjut' => 'nullable|string',
             'is_public_note'        => 'boolean',
+            'kategori_sentimen'     => 'required|in:Positif,Negatif,Netral',
+            'give_badge'            => 'boolean',
+            'nama_badge'            => 'required_if:give_badge,true|nullable|string|max:255',
+            'catatan_apresiasi'     => 'required_if:give_badge,true|nullable|string',
         ];
     }
 
@@ -59,6 +69,9 @@ class JurnalForm extends Component
         'jenis_pendampingan.required'    => 'Pilih jenis pendampingan.',
         'status_sesi.required'           => 'Pilih status sesi bimbingan.',
         'rujukan_kolaborasi.required'    => 'Pilih rujukan kolaborasi.',
+        'kategori_sentimen.required'     => 'Pilih kategori sentimen jurnal.',
+        'nama_badge.required_if'         => 'Nama badge wajib diisi jika memberikan apresiasi.',
+        'catatan_apresiasi.required_if'  => 'Catatan apresiasi wajib diisi jika memberikan badge.',
     ];
 
     public function mount($id = null)
@@ -92,6 +105,13 @@ class JurnalForm extends Component
             $this->rujukan_kolaborasi = $jurnal->rujukan_kolaborasi;
             $this->rencana_tindak_lanjut = $jurnal->rencana_tindak_lanjut ?? '';
             $this->is_public_note = (bool) $jurnal->is_public_note;
+            $this->kategori_sentimen = $jurnal->kategori_sentimen?->value ?? 'Netral';
+
+            if ($jurnal->badge) {
+                $this->give_badge = true;
+                $this->nama_badge = $jurnal->badge->nama_badge;
+                $this->catatan_apresiasi = $jurnal->badge->catatan_apresiasi;
+            }
         } else {
             // Pre-fill dari parameter URL ?student_id=xxx
             if (request()->has('student_id')) {
@@ -124,6 +144,16 @@ class JurnalForm extends Component
     {
         $this->validate();
 
+        $academic_year_id = null;
+        $class_id = null;
+        if ($this->student_id) {
+            $student = Siswa::with('enrollmentAktif')->find($this->student_id);
+            if ($student && $student->enrollmentAktif) {
+                $academic_year_id = $student->enrollmentAktif->academic_year_id;
+                $class_id = $student->enrollmentAktif->class_id;
+            }
+        }
+
         $data = [
             'teacher_id'            => $this->teacher->id,
             'kelompok_id'           => $this->kelompok->id,
@@ -136,6 +166,9 @@ class JurnalForm extends Component
             'rujukan_kolaborasi'    => $this->rujukan_kolaborasi,
             'rencana_tindak_lanjut' => $this->rencana_tindak_lanjut ?: null,
             'is_public_note'        => $this->is_public_note,
+            'kategori_sentimen'     => $this->kategori_sentimen,
+            'academic_year_id'      => $academic_year_id,
+            'class_id'              => $class_id,
         ];
 
         if ($this->jurnalId) {
@@ -150,13 +183,30 @@ class JurnalForm extends Component
                 $konsultasi = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->find($this->konsultasi_id);
                 if ($konsultasi) {
                     $konsultasi->update([
-                        'status_pengajuan' => 'Dikonversi ke Jurnal',
+                        'status_pengajuan' => \App\Enums\StatusPengajuan::DikonversiKeJurnal,
                         'jurnal_id'        => $jurnal->id,
                     ]);
                 }
             }
 
             session()->flash('success', 'Catatan jurnal pendampingan berhasil disimpan.');
+        }
+
+        // Logic Badge
+        if ($this->give_badge) {
+            $jurnal->badge()->updateOrCreate(
+                [], // Empty condition implies modifying the morphOne if it exists
+                [
+                    'student_id' => $jurnal->student_id,
+                    'teacher_id' => $jurnal->teacher_id,
+                    'academic_year_id' => $jurnal->academic_year_id,
+                    'class_id' => $jurnal->class_id,
+                    'nama_badge' => $this->nama_badge,
+                    'catatan_apresiasi' => $this->catatan_apresiasi,
+                ]
+            );
+        } else {
+            $jurnal->badge()->delete();
         }
 
         return redirect()->route('portal-guru.guru-wali.jurnal');

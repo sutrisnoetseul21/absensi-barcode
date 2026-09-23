@@ -156,19 +156,19 @@
                                     <span>Mode: {{ $item->mode_konsultasi }}</span>
                                 </span>
 
-                                @if($item->status_pengajuan === 'Menunggu Konfirmasi')
+                                @if($item->status_pengajuan?->value === 'Menunggu Konfirmasi')
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                         Menunggu Konfirmasi
                                     </span>
-                                @elseif($item->status_pengajuan === 'Dijadwalkan')
+                                @elseif($item->status_pengajuan?->value === 'Dijadwalkan')
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                         Dijadwalkan
                                     </span>
-                                @elseif($item->status_pengajuan === 'Dikonversi ke Jurnal')
+                                @elseif($item->status_pengajuan?->value === 'Dikonversi ke Jurnal')
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
                                         Dikonversi ke Jurnal
                                     </span>
-                                @elseif($item->status_pengajuan === 'Selesai')
+                                @elseif($item->status_pengajuan?->value === 'Selesai')
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         Selesai
                                     </span>
@@ -206,11 +206,41 @@
                                 @endif
                             </div>
 
-                            <!-- Tanggapan Guru / Alasan Penolakan -->
-                            @if($item->tanggapan_guru)
-                                <div class="bg-brand-primary/5 rounded-2xl p-3 border border-brand-primary/20 text-xs">
+                            <!-- Tanggapan Guru / Chat Thread Inline -->
+                            @if($item->mode_konsultasi === 'Pesan Portal' && $item->pesan->count() > 0)
+                                <div class="mt-4 pt-4 border-t border-slate-100 space-y-4 w-full">
+                                    <div class="space-y-4 pr-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                        @foreach($item->pesan as $msg)
+                                            <div class="flex {{ $msg->sender_type === 'guru' ? 'justify-end' : 'justify-start' }}">
+                                                <div class="max-w-[85%] rounded-2xl p-3 {{ $msg->sender_type === 'guru' ? 'bg-brand-primary text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm' }}">
+                                                    @if($msg->sender_type === 'siswa')
+                                                        <p class="text-[10px] font-extrabold text-slate-600 mb-1">{{ $item->siswa?->name }} (Siswa)</p>
+                                                    @endif
+                                                    <p class="text-xs leading-relaxed whitespace-pre-line">{{ $msg->pesan }}</p>
+                                                    <p class="text-[10px] mt-1.5 text-right opacity-70">{{ $msg->created_at->format('H:i') }}</p>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    @if(in_array($item->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                                        <div class="mt-3 flex gap-2">
+                                            <input type="text" wire:model="pesanBaru" placeholder="Ketik balasan untuk siswa..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
+                                            <button type="button" wire:click="kirimPesanInline('{{ $item->id }}')" class="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer">
+                                                Kirim
+                                            </button>
+                                        </div>
+                                        @error('pesanBaru') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
+                                    @elseif(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']))
+                                        <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs text-center rounded-xl font-medium">
+                                            Konsultasi ini telah ditandai Selesai. Ruang obrolan ditutup.
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif($item->tanggapan_guru)
+                                <div class="bg-brand-primary/5 rounded-2xl p-3 border border-brand-primary/20 text-xs mt-2">
                                     <span class="font-bold text-brand-primary block mb-0.5">Tanggapan Anda:</span>
-                                    <p class="text-slate-700 whitespace-pre-line">{{ $item->tanggapan_guru }}</p>
+                                    <p class="text-slate-700 whitespace-pre-line line-clamp-3">{{ $item->tanggapan_guru }}</p>
                                 </div>
                             @endif
 
@@ -220,11 +250,29 @@
                                     <p class="text-slate-700 whitespace-pre-line">{{ $item->alasan_penolakan }}</p>
                                 </div>
                             @endif
+
+                            <!-- Ulasan / Feedback Siswa -->
+                            @if(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) && $item->student_feedback_rating)
+                                <div class="mt-3 bg-amber-50/70 rounded-2xl p-3 border border-amber-200">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-amber-700 text-xs">Refleksi & Ulasan Siswa:</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-black text-amber-500">⭐ {{ $item->student_feedback_rating }}/5</span>
+                                            @if($item->student_feedback_emoji)
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-amber-200/50 text-amber-800">{{ $item->student_feedback_emoji->value }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @if($item->student_feedback_note)
+                                        <p class="text-xs text-amber-900 mt-1.5 leading-relaxed italic border-l-2 border-amber-300 pl-2">"{{ $item->student_feedback_note }}"</p>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Right: Action Buttons -->
                         <div class="flex md:flex-col items-center gap-2 shrink-0 self-end md:self-start">
-                            @if($item->status_pengajuan === 'Menunggu Konfirmasi')
+                            @if($item->status_pengajuan?->value === 'Menunggu Konfirmasi')
                                 @if($item->mode_konsultasi === 'Tatap Muka')
                                     <button type="button" 
                                             wire:click="openScheduleModal('{{ $item->id }}')" 
@@ -233,18 +281,44 @@
                                     </button>
                                 @else
                                     <button type="button" 
-                                            wire:click="openReplyModal('{{ $item->id }}')" 
+                                            wire:click="openDetail('{{ $item->id }}')" 
                                             class="w-full px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                        Balas Pesan Siswa
+                                        Buka Ruang Obrolan
                                     </button>
                                 @endif
+
+                                <button type="button" 
+                                        wire:click="openRujukModal('{{ $item->id }}')" 
+                                        class="w-full px-4 py-2 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
+                                    Rujuk ke BK
+                                </button>
 
                                 <button type="button" 
                                         wire:click="openRejectModal('{{ $item->id }}')" 
                                         class="w-full px-4 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-all text-center">
                                     Tolak Permintaan
                                 </button>
-                            @elseif($item->status_pengajuan === 'Dijadwalkan')
+                            @elseif($item->status_pengajuan?->value === 'Dijadwalkan')
+                                @if($item->mode_konsultasi === 'Pesan Portal')
+                                    <button type="button" 
+                                            wire:click="openDetail('{{ $item->id }}')" 
+                                            class="w-full px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
+                                        Buka Ruang Obrolan
+                                    </button>
+                                @else
+                                    <button type="button" 
+                                            wire:click="openScheduleModal('{{ $item->id }}')" 
+                                            class="w-full px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all text-center">
+                                        Ubah Jadwal
+                                    </button>
+                                @endif
+
+                                <button type="button" 
+                                        wire:click="openRujukModal('{{ $item->id }}')" 
+                                        class="w-full px-4 py-2 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
+                                    Rujuk ke BK
+                                </button>
+
                                 <!-- Konversi ke Jurnal -->
                                 <a href="{{ route('portal-guru.guru-wali.jurnal.create', ['konsultasi_id' => $item->id]) }}" 
                                    class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
@@ -252,15 +326,9 @@
                                 </a>
 
                                 <button type="button" 
-                                        wire:click="openScheduleModal('{{ $item->id }}')" 
+                                        wire:click="openBadgeModal('{{ $item->id }}')" 
                                         class="w-full px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all text-center">
-                                    Ubah Jadwal
-                                </button>
-
-                                <button type="button" 
-                                        wire:click="markCompleted('{{ $item->id }}')" 
-                                        class="w-full px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all text-center">
-                                    Tandai Selesai
+                                    Selesaikan & Beri Badge
                                 </button>
                             @else
                                 <button type="button" 
@@ -440,6 +508,246 @@
                             class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20">
                         Tolak Permintaan
                     </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- MODAL DETAIL & OBROLAN -->
+    @if($showDetailModal && $selectedConsultation)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" wire:click="closeDetail"></div>
+
+                <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full border border-slate-100">
+                    
+                    {{-- Header --}}
+                    <div class="bg-brand-primary p-6 text-white flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-white/20 text-white">
+                                {{ $selectedConsultation->mode_konsultasi === 'Pesan Portal' ? 'Ruang Obrolan' : 'Detail Konsultasi' }}
+                            </span>
+                            <h3 class="text-base font-extrabold mt-1 text-white">{{ $selectedConsultation->siswa?->name }}</h3>
+                        </div>
+                        <button type="button" wire:click="closeDetail" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-bold text-slate-700">Topik: {{ $selectedConsultation->topik_konsultasi }}</span>
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-semibold text-slate-600">Mode: {{ $selectedConsultation->mode_konsultasi }}</span>
+                        </div>
+
+                        {{-- Permasalahan Siswa --}}
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Pesan / Permasalahan Awal:</p>
+                            <p class="text-xs text-slate-800 whitespace-pre-line leading-relaxed font-medium">
+                                {{ $selectedConsultation->detail_permasalahan }}
+                            </p>
+                        </div>
+
+                        {{-- Chat Thread / Tanggapan --}}
+                        @if($selectedConsultation->mode_konsultasi === 'Pesan Portal')
+                            <div class="mt-4 pt-4 border-t border-slate-100 space-y-4">
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Riwayat Obrolan</h4>
+                                
+                                <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar" wire:poll.5s>
+                                    @forelse($selectedConsultation->pesan as $msg)
+                                        <div class="flex {{ $msg->sender_type === 'guru' ? 'justify-end' : 'justify-start' }}">
+                                            <div class="max-w-[85%] rounded-2xl p-3 {{ $msg->sender_type === 'guru' ? 'bg-brand-primary text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm' }}">
+                                                @if($msg->sender_type === 'siswa')
+                                                    <p class="text-[10px] font-extrabold text-slate-600 mb-1">{{ $selectedConsultation->siswa?->name }}</p>
+                                                @endif
+                                                <p class="text-xs leading-relaxed whitespace-pre-line">{{ $msg->pesan }}</p>
+                                                <p class="text-[10px] mt-1.5 text-right opacity-70">{{ $msg->created_at->format('H:i') }}</p>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <p class="text-xs text-slate-500 italic text-center">Belum ada obrolan tambahan.</p>
+                                    @endforelse
+                                </div>
+
+                                @if(in_array($selectedConsultation->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                                    <form wire:submit.prevent="kirimPesanObrolan" class="mt-3 flex gap-2">
+                                        <input type="text" wire:model="pesanBaru" placeholder="Ketik balasan untuk siswa di sini..." class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
+                                        <button type="submit" class="px-4 py-2.5 bg-brand-primary hover:bg-brand-secondary text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer">
+                                            Kirim
+                                        </button>
+                                    </form>
+                                    @error('pesanBaru') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
+                                @else
+                                    <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs text-center rounded-xl font-medium">
+                                        Konsultasi ini telah ditandai Selesai.
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            {{-- Respon Guru Wali (Legacy / Tatap Muka) --}}
+                            @if($selectedConsultation->tanggapan_guru)
+                                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Tanggapan / Arahan Guru Wali:</p>
+                                    </div>
+                                    <p class="text-xs text-emerald-950 whitespace-pre-line leading-relaxed font-medium">
+                                        {{ $selectedConsultation->tanggapan_guru }}
+                                    </p>
+                                </div>
+                            @endif
+                        @endif
+
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                        @if(in_array($selectedConsultation->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                            <button type="button" wire:click="markCompleted('{{ $selectedConsultation->id }}')" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-md transition-colors">
+                                Tandai Selesai & Tutup Obrolan
+                            </button>
+                        @else
+                            <div></div>
+                        @endif
+                        
+                        <button type="button" wire:click="closeDetail" class="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition-colors">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- MODAL RUJUK KE BK -->
+    @if($showRujukModal && $consultationToRujuk)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" wire:click="$set('showRujukModal', false)"></div>
+
+                <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl w-full border border-slate-100">
+                    <form wire:submit.prevent="saveRujuk">
+                        {{-- Header --}}
+                        <div class="bg-orange-500 p-6 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Rujuk Kasus ke Guru BK</h3>
+                                <p class="text-orange-100 text-sm mt-0.5">Eskalasi untuk penanganan lanjutan.</p>
+                            </div>
+                        </div>
+
+                        {{-- Body --}}
+                        <div class="p-6 space-y-5">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa:</p>
+                                <p class="text-sm font-bold text-slate-800">{{ $consultationToRujuk->siswa?->name }}</p>
+                                
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-3">Topik Konsultasi:</p>
+                                <p class="text-sm font-semibold text-slate-700">{{ $consultationToRujuk->topik_konsultasi }}</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Alasan Merujuk Kasus Ini <span class="text-rose-500">*</span></label>
+                                <textarea wire:model="alasan_rujukan" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-slate-50" placeholder="Jelaskan alasan mengapa kasus ini memerlukan penanganan Guru BK..."></textarea>
+                                @error('alasan_rujukan') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                            <button type="button" wire:click="$set('showRujukModal', false)" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-sm transition-colors">
+                                Batal
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-md transition-colors">
+                                Kirim Rujukan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- MODAL TANDAI SELESAI & BADGE KARAKTER -->
+    @if($showBadgeModal && $consultationToComplete)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" wire:click="$set('showBadgeModal', false)"></div>
+
+                <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl w-full border border-slate-100">
+                    <form wire:submit.prevent="markCompletedWithBadge">
+                        {{-- Header --}}
+                        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Selesaikan Konsultasi</h3>
+                                <p class="text-emerald-100 text-sm mt-0.5">Berikan apresiasi (badge) opsional untuk siswa.</p>
+                            </div>
+                        </div>
+
+                        {{-- Body --}}
+                        <div class="p-6 space-y-5">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa:</p>
+                                <p class="text-sm font-bold text-slate-800">{{ $consultationToComplete->siswa?->name }}</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Badge Apresiasi (Opsional)</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    @php
+                                        $badges = [
+                                            ['name' => 'Pemberani', 'icon' => '🦁', 'desc' => 'Berani mengemukakan masalah'],
+                                            ['name' => 'Jujur', 'icon' => '🕊️', 'desc' => 'Terbuka dan apa adanya'],
+                                            ['name' => 'Proaktif', 'icon' => '🔥', 'desc' => 'Aktif mencari solusi'],
+                                            ['name' => 'Inspiratif', 'icon' => '🌟', 'desc' => 'Memberikan inspirasi positif'],
+                                        ];
+                                    @endphp
+                                    @foreach($badges as $badge)
+                                        <label class="relative cursor-pointer">
+                                            <input type="radio" wire:model="selectedBadge" value="{{ $badge['name'] }}" class="peer sr-only" name="badge_selection">
+                                            <div class="p-3 rounded-xl border-2 border-slate-100 bg-white hover:bg-slate-50 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 transition-all flex flex-col items-center text-center gap-1">
+                                                <span class="text-2xl">{{ $badge['icon'] }}</span>
+                                                <span class="font-bold text-xs text-slate-800">{{ $badge['name'] }}</span>
+                                                <span class="text-[10px] text-slate-500">{{ $badge['desc'] }}</span>
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            @if($selectedBadge)
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">Catatan Apresiasi (Opsional)</label>
+                                    <textarea wire:model="catatan_apresiasi" rows="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50" placeholder="Tuliskan pesan singkat untuk siswa..."></textarea>
+                                </div>
+                            @endif
+                            
+                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex gap-3 text-xs text-blue-800">
+                                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p>Menyelesaikan konsultasi akan menutup ruang obrolan. Anda dapat melewatinya tanpa memberi badge dengan langsung menekan tombol "Selesaikan Saja".</p>
+                            </div>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                            <button type="button" wire:click="$set('showBadgeModal', false)" class="px-4 py-2 rounded-xl text-slate-500 hover:bg-slate-200 font-bold text-xs transition-colors">
+                                Batal
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-colors">
+                                {{ $selectedBadge ? 'Beri Badge & Selesaikan' : 'Selesaikan Saja' }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

@@ -238,12 +238,12 @@
             <td class="center" style="color: #000;">
                 @if(in_array($k->status_pengajuan, ['Dikonversi ke Jurnal', 'Selesai']))
                     <strong>Selesai</strong>
-                @elseif($k->status_pengajuan === 'Dijadwalkan')
+                @elseif($k->status_pengajuan?->value === 'Dijadwalkan')
                     <strong>Dijadwalkan</strong>
                     @if($k->jadwal_pasti)
                         <div style="font-size: 7pt; color: #000;">{{ \Carbon\Carbon::parse($k->jadwal_pasti)->translatedFormat('d/m/Y H:i') }}</div>
                     @endif
-                @elseif($k->status_pengajuan === 'Ditolak')
+                @elseif($k->status_pengajuan?->value === 'Ditolak')
                     <strong>Ditolak</strong>
                 @else
                     <strong>{{ $k->status_pengajuan }}</strong>

@@ -4,9 +4,8 @@ namespace App\Livewire\PortalGuru\Bk;
 
 use App\Models\EnrollmentSiswa;
 use App\Models\Guru;
-use App\Models\JurnalGuruWali;
-use App\Models\Kelas;
 use App\Models\TahunAjaran;
+use App\Models\KonselingBk;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -71,7 +70,7 @@ class RujukanKasusList extends Component
 
     public function showDetail($id)
     {
-        $this->selectedRujukan = JurnalGuruWali::with(['siswa', 'guru', 'kelompok', 'konselingBk.guru'])
+        $this->selectedRujukan = KonselingBk::with(['siswa', 'guru', 'jurnalGuruWali.guru', 'konsultasiGuruWali.guru'])
             ->find($id);
 
         if ($this->selectedRujukan) {
@@ -85,11 +84,29 @@ class RujukanKasusList extends Component
         $this->selectedRujukan = null;
     }
 
+    public function terimaRujukan($id)
+    {
+        $rujukan = KonselingBk::findOrFail($id);
+        
+        $teacherId = Auth::user()?->teacher?->id;
+        if (!$teacherId) {
+            session()->flash('error', 'Akun ini tidak terhubung dengan profil Guru.');
+            return;
+        }
+
+        $rujukan->update([
+            'teacher_id' => $teacherId,
+            'status_kasus' => \App\Enums\StatusKasus::DalamProses,
+        ]);
+
+        session()->flash('success', 'Rujukan berhasil diterima dan akan ditangani oleh Anda.');
+    }
+
     public function render()
     {
-        // Kueri rujukan dari Guru Wali
-        $query = JurnalGuruWali::with(['siswa', 'guru', 'kelompok', 'konselingBk'])
-            ->where('rujukan_kolaborasi', 'like', '%Guru BK%');
+        // Kueri rujukan dari KonselingBk dengan is_rujukan = true
+        $query = KonselingBk::with(['siswa', 'guru', 'jurnalGuruWali.guru', 'konsultasiGuruWali.guru'])
+            ->where('is_rujukan', true);
 
         // Batasi siswa ke kelas binaan jika bukan akses semua kelas
         if (! $this->canAccessAll) {
@@ -120,30 +137,28 @@ class RujukanKasusList extends Component
         // Search siswa
         if ($this->search) {
             $searchTerm = '%' . trim($this->search) . '%';
-            $query->whereHas('siswa', function ($q) use ($searchTerm) {
-                $q->where('name', 'like', $searchTerm)
-                    ->orWhere('nisn', 'like', $searchTerm)
-                    ->orWhere('nis', 'like', $searchTerm);
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('siswa', function ($sq) use ($searchTerm) {
+                    $sq->where('name', 'like', $searchTerm)
+                        ->orWhere('nisn', 'like', $searchTerm)
+                        ->orWhere('nis', 'like', $searchTerm);
+                })->orWhere('alasan_rujukan', 'like', $searchTerm);
             });
         }
 
         // Filter status tindak lanjut BK
         if ($this->filterStatus === 'menunggu') {
-            $query->whereDoesntHave('konselingBk');
+            $query->whereNull('teacher_id');
         } elseif ($this->filterStatus === 'proses') {
-            $query->whereHas('konselingBk', function ($q) {
-                $q->whereIn('status_kasus', ['Dalam Penanganan', 'Bimbingan Lanjutan']);
-            });
+            $query->whereNotNull('teacher_id')->where('status_kasus', \App\Enums\StatusKasus::DalamProses);
         } elseif ($this->filterStatus === 'selesai') {
-            $query->whereHas('konselingBk', function ($q) {
-                $q->where('status_kasus', 'Tuntas / Selesai');
-            });
+            $query->whereNotNull('teacher_id')->whereIn('status_kasus', [\App\Enums\StatusKasus::Selesai, \App\Enums\StatusKasus::DikonversiKeJurnal]);
         }
 
-        $rujukans = $query->latest('tanggal_waktu')->paginate(10);
+        $rujukans = $query->latest('created_at')->paginate(10);
 
         // Ringkasan metrik
-        $baseCountQuery = JurnalGuruWali::where('rujukan_kolaborasi', 'like', '%Guru BK%');
+        $baseCountQuery = KonselingBk::where('is_rujukan', true);
         if (! $this->canAccessAll) {
             if (! empty($this->accessibleClassIds)) {
                 $scopedStudentIds = EnrollmentSiswa::whereIn('class_id', $this->accessibleClassIds)
@@ -158,13 +173,9 @@ class RujukanKasusList extends Component
         }
 
         $totalRujukan = (clone $baseCountQuery)->count();
-        $totalMenunggu = (clone $baseCountQuery)->whereDoesntHave('konselingBk')->count();
-        $totalProses = (clone $baseCountQuery)->whereHas('konselingBk', function ($q) {
-            $q->whereIn('status_kasus', ['Dalam Penanganan', 'Bimbingan Lanjutan']);
-        })->count();
-        $totalSelesai = (clone $baseCountQuery)->whereHas('konselingBk', function ($q) {
-            $q->where('status_kasus', 'Tuntas / Selesai');
-        })->count();
+        $totalMenunggu = (clone $baseCountQuery)->whereNull('teacher_id')->count();
+        $totalProses = (clone $baseCountQuery)->whereNotNull('teacher_id')->where('status_kasus', \App\Enums\StatusKasus::DalamProses)->count();
+        $totalSelesai = (clone $baseCountQuery)->whereNotNull('teacher_id')->whereIn('status_kasus', [\App\Enums\StatusKasus::Selesai, \App\Enums\StatusKasus::DikonversiKeJurnal])->count();
 
         return view('livewire.portal-guru.bk.rujukan-kasus-list', [
             'rujukans'      => $rujukans,

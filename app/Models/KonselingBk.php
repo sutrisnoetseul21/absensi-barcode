@@ -14,9 +14,13 @@ class KonselingBk extends Model
 
     protected $fillable = [
         'academic_year_id',
+        'class_id',
         'teacher_id',
         'student_id',
         'jurnal_guru_wali_id',
+        'konsultasi_guru_wali_id',
+        'is_rujukan',
+        'alasan_rujukan',
         'tanggal_waktu',
         'jenis_layanan',
         'bidang_bimbingan',
@@ -33,6 +37,8 @@ class KonselingBk extends Model
     protected $casts = [
         'tanggal_waktu' => 'datetime',
         'is_rahasia'    => 'boolean',
+        'is_rujukan'    => 'boolean',
+        'status_kasus'  => \App\Enums\StatusKasus::class,
     ];
 
     /**
@@ -75,5 +81,10 @@ class KonselingBk extends Model
     public function jurnalGuruWali(): BelongsTo
     {
         return $this->belongsTo(JurnalGuruWali::class, 'jurnal_guru_wali_id');
+    }
+
+    public function konsultasiGuruWali(): BelongsTo
+    {
+        return $this->belongsTo(KonsultasiGuruWali::class, 'konsultasi_guru_wali_id');
     }
 }

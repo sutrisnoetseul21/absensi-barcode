@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JurnalGuruWali extends Model
@@ -26,11 +27,15 @@ class JurnalGuruWali extends Model
         'rujukan_kolaborasi',
         'rencana_tindak_lanjut',
         'is_public_note',
+        'academic_year_id',
+        'class_id',
+        'kategori_sentimen',
     ];
 
     protected $casts = [
         'tanggal_waktu'  => 'datetime',
         'is_public_note' => 'boolean',
+        'kategori_sentimen' => \App\Enums\KategoriSentimen::class,
     ];
 
     /**
@@ -87,5 +92,13 @@ class JurnalGuruWali extends Model
     public function konselingBk(): HasOne
     {
         return $this->hasOne(KonselingBk::class, 'jurnal_guru_wali_id');
+    }
+
+    /**
+     * Badge karakter yang diberikan dalam jurnal ini.
+     */
+    public function badge(): MorphOne
+    {
+        return $this->morphOne(BadgeKarakterSiswa::class, 'source');
     }
 }
