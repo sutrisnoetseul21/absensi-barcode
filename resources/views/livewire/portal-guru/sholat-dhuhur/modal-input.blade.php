@@ -75,7 +75,7 @@
                             Ijin Semua
                         </button>
                         <button type="button" wire:click="setAllStatus('tidak_hadir')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors">
-                            Tidak Hadir Semua
+                            Alpa Semua
                         </button>
                     </div>
 
@@ -144,13 +144,13 @@
                                                     </span>
                                                 </label>
 
-                                                <!-- Tidak Hadir -->
+                                                <!-- Alpa -->
                                                 <label class="cursor-pointer">
                                                     <input type="radio" wire:model.live="inputStudents.{{ $index }}.status" value="tidak_hadir" class="sr-only peer">
                                                     <span class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all inline-block border
                                                         peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600
                                                         bg-slate-50 text-slate-600 border-slate-200 hover:bg-rose-50">
-                                                        Absen
+                                                        Alpa
                                                     </span>
                                                 </label>
 

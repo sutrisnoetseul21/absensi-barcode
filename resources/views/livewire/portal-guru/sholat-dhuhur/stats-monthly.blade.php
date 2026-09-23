@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    <!-- Tidak Hadir -->
+    <!-- Alpa -->
     <div class="bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl shadow-lg shadow-rose-500/20 p-6 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
         <div class="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
         <div class="flex items-center justify-between mb-4 relative z-10">
@@ -57,7 +57,7 @@
             @endif
         </div>
         <div class="relative z-10">
-            <p class="text-rose-100 text-sm font-medium mb-1">Total Tidak Hadir</p>
+            <p class="text-rose-100 text-sm font-medium mb-1">Total Alpa</p>
             <h3 class="text-3xl font-black text-white flex items-baseline gap-2">
                 {{ $classMonthlyStats['tidak_hadir'] ?? 0 }} <span class="text-lg font-medium text-rose-100">/ {{ $classMonthlyStats['max_possible'] ?? 0 }}</span>
             </h3>

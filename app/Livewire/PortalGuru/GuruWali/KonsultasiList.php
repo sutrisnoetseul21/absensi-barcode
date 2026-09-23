@@ -43,11 +43,14 @@ class KonsultasiList extends Component
     public $showDetailModal = false;
     public $selectedConsultation = null;
     public $pesanBaru = '';
+    public $pesanInputs = [];
 
     // Rujuk BK variables
     public $showRujukModal = false;
     public $alasan_rujukan = '';
     public $consultationToRujuk;
+
+    public $activeYear;
 
     public function mount()
     {
@@ -63,6 +66,8 @@ class KonsultasiList extends Component
         if (! $this->kelompok || ! $this->kelompok->status_aktif) {
             abort(403, 'Anda belum memiliki tugas penugasan Guru Wali aktif.');
         }
+
+        $this->activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
     }
 
     public function setTab($tab)
@@ -297,7 +302,7 @@ class KonsultasiList extends Component
 
             // Buat record Konseling BK
             \App\Models\KonselingBk::create([
-                'academic_year_id' => $this->academicYear->id,
+                'academic_year_id' => $this->activeYear?->id,
                 'class_id' => $this->consultationToRujuk->siswa->enrollmentAktif->class_id ?? null,
                 'teacher_id' => null, // Belum diambil oleh guru BK spesifik
                 'student_id' => $this->consultationToRujuk->student_id,
@@ -316,14 +321,19 @@ class KonsultasiList extends Component
 
     public function kirimPesanInline($id)
     {
-        $this->validate(['pesanBaru' => 'required|string|min:2|max:2000']);
+        $input = trim($this->pesanInputs[$id] ?? $this->pesanBaru);
+        if (empty($input) || strlen($input) < 2) {
+            $this->addError("pesanInputs.{$id}", 'Pesan balasan minimal 2 karakter.');
+            return;
+        }
+
         $konsul = KonsultasiGuruWali::where('teacher_id', $this->teacher->id)->findOrFail($id);
 
         if (in_array($konsul->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan'])) {
             \App\Models\PesanKonsultasiGuruWali::create([
                 'konsultasi_id' => $konsul->id,
                 'sender_type'   => 'guru',
-                'pesan'         => $this->pesanBaru,
+                'pesan'         => $input,
                 'is_read'       => false,
             ]);
 
@@ -332,6 +342,9 @@ class KonsultasiList extends Component
                 $konsul->update(['status_pengajuan' => \App\Enums\StatusPengajuan::Dijadwalkan]);
             }
 
+            $konsul->update(['tanggapan_guru' => $input]);
+
+            $this->pesanInputs[$id] = '';
             $this->pesanBaru = '';
         }
     }
@@ -339,7 +352,7 @@ class KonsultasiList extends Component
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        $query = KonsultasiGuruWali::with(['siswa.enrollmentAktif.kelas'])
+        $query = KonsultasiGuruWali::with(['siswa.enrollmentAktif.kelas', 'jurnal', 'pesan', 'guru'])
             ->where('teacher_id', $this->teacher->id);
 
         // Filter tab

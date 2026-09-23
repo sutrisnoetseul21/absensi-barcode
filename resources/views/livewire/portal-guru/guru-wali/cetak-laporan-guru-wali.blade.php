@@ -6,9 +6,12 @@
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                <span>Dokumen Resmi &bull; Permendikdasmen No. 11/2025</span>
+                <span>SI-WALI &bull; Dokumen Resmi Permendikdasmen No. 11/2025</span>
             </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Pusat Cetak Laporan Guru Wali</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">SI-WALI: Pusat Cetak Laporan Guru Wali</h1>
+            <p class="text-xs text-brand-primary font-bold mt-1">
+                "Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan"
+            </p>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Kelompok: <strong>{{ $kelompok->nama_kelompok }}</strong> &bull; Cetak laporan berkala individual murid dan laporan kinerja kelompok ekuivalensi 2 JP/Minggu.
             </p>

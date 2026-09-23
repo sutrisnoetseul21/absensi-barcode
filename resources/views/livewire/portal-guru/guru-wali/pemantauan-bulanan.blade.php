@@ -6,9 +6,12 @@
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Standar Kepatuhan Permendikdasmen No. 11/2025</span>
+                <span>SI-WALI • Standar Kepatuhan Permendikdasmen No. 11/2025</span>
             </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Pemantauan Bulanan Binaan</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">SI-WALI: Pemantauan Bulanan Binaan</h1>
+            <p class="text-xs text-brand-primary font-bold mt-1">
+                "Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan"
+            </p>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Kelompok: <strong>{{ $kelompok->nama_kelompok }}</strong> &bull; Target wajib pendampingan minimal 1x per bulan untuk setiap peserta didik.
             </p>

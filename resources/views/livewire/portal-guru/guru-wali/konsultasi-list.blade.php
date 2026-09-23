@@ -6,11 +6,14 @@
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <span>Konsultasi Dua Arah — Siswa & Guru Wali</span>
+                <span>SI-WALI • Ruang Aman Pendampingan Holistik</span>
             </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Permintaan Konsultasi Siswa</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">SI-WALI: Ruang Aman Konsultasi & Curhat Murid</h1>
+            <p class="text-xs text-brand-primary font-bold mt-1">
+                "Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan"
+            </p>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Kelompok: <strong>{{ $kelompok->nama_kelompok }}</strong> &bull; Respon usulan bimbingan dan pertanyaan dari peserta didik binaan.
+                Kelompok: <strong>{{ $kelompok->nama_kelompok }}</strong> &bull; Respon ruang aman cerita dan pertanyaan dari peserta didik binaan.
             </p>
         </div>
 
@@ -38,305 +41,493 @@
         </div>
     @endif
 
-    <!-- Tabs Nav Bar -->
-    <div class="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-800">
-        <button type="button" 
-                wire:click="setTab('menunggu')" 
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'menunggu' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-            <span>Menunggu Konfirmasi</span>
-            @if($countMenunggu > 0)
-                <span class="px-2 py-0.5 rounded-full text-[10px] bg-rose-500 text-white font-black animate-pulse">
+    <!-- Tabs & Filter Bar -->
+    <div class="space-y-4">
+        <!-- Tab Navigation -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+            <button type="button" 
+                    wire:click="setTab('menunggu')" 
+                    class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-2 {{ $activeTab === 'menunggu' ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80' }}">
+                <span>Menunggu Respon</span>
+                <span class="px-2 py-0.5 text-[10px] rounded-full font-black {{ $activeTab === 'menunggu' ? 'bg-white/20 text-white' : ($countMenunggu > 0 ? 'bg-rose-500 text-white animate-pulse' : 'bg-amber-100 text-amber-800') }}">
                     {{ $countMenunggu }}
                 </span>
-            @endif
-        </button>
+            </button>
 
-        <button type="button" 
-                wire:click="setTab('dijadwalkan')" 
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'dijadwalkan' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-            <span>Dijadwalkan</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] {{ $activeTab === 'dijadwalkan' ? 'bg-brand-primary/10 text-brand-primary' : 'bg-slate-300 text-slate-700' }}">
-                {{ $countDijadwalkan }}
-            </span>
-        </button>
+            <button type="button" 
+                    wire:click="setTab('dijadwalkan')" 
+                    class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-2 {{ $activeTab === 'dijadwalkan' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80' }}">
+                <span>Dijadwalkan / Aktif</span>
+                <span class="px-2 py-0.5 text-[10px] rounded-full {{ $activeTab === 'dijadwalkan' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
+                    {{ $countDijadwalkan }}
+                </span>
+            </button>
 
-        <button type="button" 
-                wire:click="setTab('selesai')" 
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'selesai' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-            <span>Selesai / Jurnal</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] {{ $activeTab === 'selesai' ? 'bg-brand-primary/10 text-brand-primary' : 'bg-slate-300 text-slate-700' }}">
-                {{ $countSelesai }}
-            </span>
-        </button>
+            <button type="button" 
+                    wire:click="setTab('selesai')" 
+                    class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-2 {{ $activeTab === 'selesai' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80' }}">
+                <span>Selesai / Jurnal</span>
+                <span class="px-2 py-0.5 text-[10px] rounded-full {{ $activeTab === 'selesai' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
+                    {{ $countSelesai }}
+                </span>
+            </button>
 
-        <button type="button" 
-                wire:click="setTab('ditolak')" 
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'ditolak' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-            <span>Ditolak</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] {{ $activeTab === 'ditolak' ? 'bg-brand-primary/10 text-brand-primary' : 'bg-slate-300 text-slate-700' }}">
-                {{ $countDitolak }}
-            </span>
-        </button>
+            <button type="button" 
+                    wire:click="setTab('ditolak')" 
+                    class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-2 {{ $activeTab === 'ditolak' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80' }}">
+                <span>Ditolak</span>
+                <span class="px-2 py-0.5 text-[10px] rounded-full {{ $activeTab === 'ditolak' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
+                    {{ $countDitolak }}
+                </span>
+            </button>
 
-        <button type="button" 
-                wire:click="setTab('semua')" 
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'semua' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-            <span>Semua</span>
-        </button>
-    </div>
-
-    <!-- Filter Search Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div class="relative w-full sm:w-72">
-            <input type="text" 
-                   wire:model.live.debounce.300ms="search" 
-                   placeholder="Cari siswa atau topik..." 
-                   class="w-full bg-white rounded-2xl border-slate-200 text-xs py-2.5 pl-3.5 pr-9 shadow-xs focus:border-brand-primary focus:ring-1 focus:ring-brand-primary">
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </span>
+            <button type="button" 
+                    wire:click="setTab('semua')" 
+                    class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-2 {{ $activeTab === 'semua' ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80' }}">
+                <span>Semua Sesi</span>
+            </button>
         </div>
 
-        <select wire:model.live="kategori" 
-                class="w-full sm:w-56 bg-white rounded-2xl border-slate-200 text-xs py-2.5 px-3.5 shadow-xs focus:border-brand-primary focus:ring-1 focus:ring-brand-primary">
-            <option value="">Semua Kategori</option>
-            <option value="Akademik">Akademik</option>
-            <option value="Karakter & Kedisiplinan">Karakter & Disiplin</option>
-            <option value="Minat & Bakat / Ekskul">Minat & Bakat</option>
-            <option value="Sosial & Psikologis">Sosial & Psikologis</option>
-        </select>
+        <!-- Search and Filter Bar -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-3">
+            <div class="relative flex-1 w-full">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <input type="text" 
+                       wire:model.live.debounce.300ms="search" 
+                       placeholder="Cari nama murid, NISN, atau topik permasalahan..." 
+                       class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
+            </div>
+
+            <div class="w-full sm:w-auto">
+                <select wire:model.live="kategori" 
+                        class="w-full sm:w-60 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all cursor-pointer">
+                    <option value="">Semua Kategori (4 Pilar)</option>
+                    <option value="Akademik">📚 Akademik & Belajar</option>
+                    <option value="Karakter & Kedisiplinan">🌟 Karakter & Disiplin</option>
+                    <option value="Minat & Bakat / Ekskul">🎨 Minat & Bakat</option>
+                    <option value="Sosial & Psikologis">🤝 Sosial & Psikologis</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <!-- Consultation Cards List -->
     <div class="space-y-4">
         @if($konsultasis->count() > 0)
             @foreach($konsultasis as $item)
-                <div class="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs hover:shadow-md transition-all">
-                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <!-- Left: Info Siswa & Topik -->
-                        <div class="space-y-3 flex-1 min-w-0">
-                            <!-- Siswa & Timestamp Header -->
-                            <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-2xl bg-brand-primary/10 text-brand-primary font-black flex items-center justify-center shrink-0 text-sm">
-                                    {{ strtoupper(substr($item->siswa?->name ?? 'S', 0, 2)) }}
+                @php
+                    $statusBadge = match($item->status_pengajuan?->value) {
+                        'Menunggu Konfirmasi' => ['bg' => 'bg-amber-50', 'border' => 'border-amber-200', 'text' => 'text-amber-800', 'dot' => 'bg-amber-500 animate-pulse', 'label' => 'Menunggu Respon Guru'],
+                        'Dijadwalkan'         => ['bg' => 'bg-blue-50', 'border' => 'border-blue-200', 'text' => 'text-blue-800', 'dot' => 'bg-blue-500', 'label' => 'Dijadwalkan / Aktif'],
+                        'Selesai'             => ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'text' => 'text-emerald-800', 'dot' => 'bg-emerald-500', 'label' => 'Selesai'],
+                        'Dikonversi ke Jurnal'=> ['bg' => 'bg-teal-50', 'border' => 'border-teal-200', 'text' => 'text-teal-800', 'dot' => 'bg-teal-500', 'label' => 'Dicatat di Jurnal'],
+                        'Ditolak'             => ['bg' => 'bg-rose-50', 'border' => 'border-rose-200', 'text' => 'text-rose-800', 'dot' => 'bg-rose-500', 'label' => 'Ditolak'],
+                        default               => ['bg' => 'bg-slate-50', 'border' => 'border-slate-200', 'text' => 'text-slate-800', 'dot' => 'bg-slate-500', 'label' => $item->status_pengajuan?->value ?? '-'],
+                    };
+
+                    $catConfig = match($item->kategori_pendampingan) {
+                        'Akademik'                => ['class' => 'bg-blue-50 text-blue-700 border-blue-200', 'icon' => '📚'],
+                        'Karakter & Kedisiplinan' => ['class' => 'bg-purple-50 text-purple-700 border-purple-200', 'icon' => '🌟'],
+                        'Minat & Bakat / Ekskul'  => ['class' => 'bg-amber-50 text-amber-700 border-amber-200', 'icon' => '🎨'],
+                        'Sosial & Psikologis'     => ['class' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => '🤝'],
+                        default                   => ['class' => 'bg-slate-50 text-slate-700 border-slate-200', 'icon' => '📌'],
+                    };
+                @endphp
+
+                <div 
+                    x-data="{ expanded: false }"
+                    class="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all overflow-hidden"
+                    :class="{ 'ring-2 ring-brand-primary/30 border-brand-primary/60 shadow-md': expanded }"
+                >
+                    {{-- Collapsed Card Header (Touch & Click Friendly) --}}
+                    <div 
+                        @click="expanded = !expanded" 
+                        class="p-4 sm:p-5 cursor-pointer select-none transition-colors hover:bg-slate-50/70"
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-2.5 flex-1 min-w-0">
+                                {{-- Badges Bar --}}
+                                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                    {{-- Status Badge --}}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[11px] sm:text-xs font-extrabold {{ $statusBadge['bg'] }} {{ $statusBadge['text'] }} border {{ $statusBadge['border'] }}">
+                                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full {{ $statusBadge['dot'] }}"></span>
+                                        {{ $statusBadge['label'] }}
+                                    </span>
+
+                                    {{-- Category Badge --}}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold border {{ $catConfig['class'] }}">
+                                        {{ $catConfig['icon'] }} {{ $item->kategori_pendampingan }}
+                                    </span>
+
+                                    {{-- Mode Badge --}}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-slate-100 text-slate-700 inline-flex items-center gap-1">
+                                        @if($item->mode_konsultasi === 'Tatap Muka')
+                                            <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span>🏫 Tatap Muka</span>
+                                        @else
+                                            <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                            <span>💬 Ruang Aman (Chat)</span>
+                                        @endif
+                                    </span>
+
+                                    <span class="text-[11px] sm:text-xs text-slate-400 ml-auto shrink-0 font-medium">
+                                        {{ $item->created_at ? $item->created_at->diffForHumans() : '-' }}
+                                    </span>
                                 </div>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="font-bold text-sm text-slate-900 truncate">{{ $item->siswa?->name }}</h3>
-                                        <span class="text-[11px] text-slate-400">&bull; {{ $item->created_at->diffForHumans() }}</span>
+
+                                {{-- Student Info & Topic --}}
+                                <div class="flex items-start gap-3 pt-0.5">
+                                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-brand-primary/10 to-brand-primary/20 text-brand-primary font-black flex items-center justify-center shrink-0 text-sm shadow-xs border border-brand-primary/20">
+                                        {{ strtoupper(substr($item->siswa?->name ?? 'S', 0, 2)) }}
                                     </div>
-                                    <p class="text-xs text-slate-500">
-                                        NISN: {{ $item->siswa?->nisn ?? '-' }} &bull; Kelas {{ $item->siswa?->enrollmentAktif?->kelas?->name ?? '-' }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Badges (Kategori, Mode, Status) -->
-                            <div class="flex flex-wrap items-center gap-2">
-                                @php
-                                    $catColors = [
-                                        'Akademik'                => 'bg-blue-50 text-blue-700 border-blue-200',
-                                        'Karakter & Kedisiplinan' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                        'Minat & Bakat / Ekskul'  => 'bg-amber-50 text-amber-700 border-amber-200',
-                                        'Sosial & Psikologis'     => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                    ];
-                                @endphp
-                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold border {{ $catColors[$item->kategori_pendampingan] ?? 'bg-slate-100 text-slate-700' }}">
-                                    {{ $item->kategori_pendampingan }}
-                                </span>
-
-                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 inline-flex items-center gap-1">
-                                    @if($item->mode_konsultasi === 'Tatap Muka')
-                                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    @else
-                                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                                    @endif
-                                    <span>Mode: {{ $item->mode_konsultasi }}</span>
-                                </span>
-
-                                @if($item->status_pengajuan?->value === 'Menunggu Konfirmasi')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                        Menunggu Konfirmasi
-                                    </span>
-                                @elseif($item->status_pengajuan?->value === 'Dijadwalkan')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                        Dijadwalkan
-                                    </span>
-                                @elseif($item->status_pengajuan?->value === 'Dikonversi ke Jurnal')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
-                                        Dikonversi ke Jurnal
-                                    </span>
-                                @elseif($item->status_pengajuan?->value === 'Selesai')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        Selesai
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                        Ditolak
-                                    </span>
-                                @endif
-                            </div>
-
-                            <!-- Topik & Isi Pesan Siswa -->
-                            <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/60">
-                                <h4 class="font-bold text-xs text-slate-900 mb-1">
-                                    {{ $item->topik_konsultasi }}
-                                </h4>
-                                <p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed">
-                                    {{ $item->detail_permasalahan }}
-                                </p>
-                            </div>
-
-                            <!-- Waktu Usulan / Jadwal Pasti -->
-                            <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                                @if($item->usulan_tanggal_waktu)
-                                    <div>
-                                        <span class="font-semibold text-slate-700">Usulan Siswa:</span>
-                                        <span>{{ \Carbon\Carbon::parse($item->usulan_tanggal_waktu)->translatedFormat('d M Y, H:i') }} WIB</span>
-                                    </div>
-                                @endif
-
-                                @if($item->jadwal_pasti)
-                                    <div class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold">
-                                        <span>Jadwal Pasti: </span>
-                                        <strong>{{ \Carbon\Carbon::parse($item->jadwal_pasti)->translatedFormat('l, d M Y, H:i') }} WIB</strong>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <!-- Tanggapan Guru / Chat Thread Inline -->
-                            @if($item->mode_konsultasi === 'Pesan Portal' && $item->pesan->count() > 0)
-                                <div class="mt-4 pt-4 border-t border-slate-100 space-y-4 w-full">
-                                    <div class="space-y-4 pr-2 max-h-60 overflow-y-auto custom-scrollbar">
-                                        @foreach($item->pesan as $msg)
-                                            <div class="flex {{ $msg->sender_type === 'guru' ? 'justify-end' : 'justify-start' }}">
-                                                <div class="max-w-[85%] rounded-2xl p-3 {{ $msg->sender_type === 'guru' ? 'bg-brand-primary text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm' }}">
-                                                    @if($msg->sender_type === 'siswa')
-                                                        <p class="text-[10px] font-extrabold text-slate-600 mb-1">{{ $item->siswa?->name }} (Siswa)</p>
-                                                    @endif
-                                                    <p class="text-xs leading-relaxed whitespace-pre-line">{{ $msg->pesan }}</p>
-                                                    <p class="text-[10px] mt-1.5 text-right opacity-70">{{ $msg->created_at->format('H:i') }}</p>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-
-                                    @if(in_array($item->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
-                                        <div class="mt-3 flex gap-2">
-                                            <input type="text" wire:model="pesanBaru" placeholder="Ketik balasan untuk siswa..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
-                                            <button type="button" wire:click="kirimPesanInline('{{ $item->id }}')" class="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer">
-                                                Kirim
-                                            </button>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                            <h3 class="font-extrabold text-sm sm:text-base text-slate-900 truncate">{{ $item->siswa?->name }}</h3>
+                                            <span class="text-xs text-slate-400 font-normal">
+                                                (NISN: {{ $item->siswa?->nisn ?? '-' }} &bull; Kelas {{ $item->siswa?->enrollmentAktif?->kelas?->name ?? '-' }})
+                                            </span>
                                         </div>
-                                        @error('pesanBaru') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
-                                    @elseif(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']))
-                                        <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs text-center rounded-xl font-medium">
-                                            Konsultasi ini telah ditandai Selesai. Ruang obrolan ditutup.
-                                        </div>
-                                    @endif
-                                </div>
-                            @elseif($item->tanggapan_guru)
-                                <div class="bg-brand-primary/5 rounded-2xl p-3 border border-brand-primary/20 text-xs mt-2">
-                                    <span class="font-bold text-brand-primary block mb-0.5">Tanggapan Anda:</span>
-                                    <p class="text-slate-700 whitespace-pre-line line-clamp-3">{{ $item->tanggapan_guru }}</p>
-                                </div>
-                            @endif
 
-                            @if($item->alasan_penolakan)
-                                <div class="bg-rose-50 rounded-2xl p-3 border border-rose-200 text-xs">
-                                    <span class="font-bold text-rose-700 block mb-0.5">Alasan Penolakan:</span>
-                                    <p class="text-slate-700 whitespace-pre-line">{{ $item->alasan_penolakan }}</p>
-                                </div>
-                            @endif
+                                        <h4 class="text-sm font-bold text-slate-800 mt-1">
+                                            {{ $item->topik_konsultasi }}
+                                        </h4>
 
-                            <!-- Ulasan / Feedback Siswa -->
-                            @if(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) && $item->student_feedback_rating)
-                                <div class="mt-3 bg-amber-50/70 rounded-2xl p-3 border border-amber-200">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="font-bold text-amber-700 text-xs">Refleksi & Ulasan Siswa:</span>
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-xs font-black text-amber-500">⭐ {{ $item->student_feedback_rating }}/5</span>
-                                            @if($item->student_feedback_emoji)
-                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-amber-200/50 text-amber-800">{{ $item->student_feedback_emoji->value }}</span>
+                                        {{-- Snippet preview when collapsed --}}
+                                        <p x-show="!expanded" class="text-xs text-slate-500 mt-1 line-clamp-1 leading-relaxed">
+                                            @if($item->mode_konsultasi === 'Pesan Portal' && $item->pesan->count() > 0)
+                                                <span class="font-bold text-slate-700">Pesan terakhir:</span> "{{ Str::limit($item->pesan->last()->pesan, 75) }}"
+                                            @elseif($item->jadwal_pasti)
+                                                <span class="font-bold text-blue-700">🗓️ Jadwal Pertemuan:</span> {{ \Carbon\Carbon::parse($item->jadwal_pasti)->translatedFormat('l, d M Y • H:i') }} WIB
+                                            @else
+                                                {{ Str::limit($item->detail_permasalahan, 95) }}
                                             @endif
-                                        </div>
+                                        </p>
                                     </div>
-                                    @if($item->student_feedback_note)
-                                        <p class="text-xs text-amber-900 mt-1.5 leading-relaxed italic border-l-2 border-amber-300 pl-2">"{{ $item->student_feedback_note }}"</p>
+                                </div>
+
+                                {{-- Quick Info Tag (Pesan & Feedback) --}}
+                                <div class="flex flex-wrap items-center gap-2 pt-0.5 pl-13 sm:pl-14">
+                                    @if($item->mode_konsultasi === 'Pesan Portal')
+                                        <span class="text-[11px] text-slate-500 font-medium inline-flex items-center gap-1 bg-slate-50 border border-slate-200/60 px-2.5 py-0.5 rounded-lg">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                            {{ $item->pesan->count() }} pesan obrolan
+                                        </span>
+                                    @endif
+
+                                    @if(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']))
+                                        @if($item->student_feedback_rating)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold">
+                                                ⭐ {{ $item->student_feedback_rating }}/5 ({{ $item->student_feedback_emoji?->value ?? 'Lega' }})
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-semibold">
+                                                ⏳ Menunggu ulasan murid
+                                            </span>
+                                        @endif
                                     @endif
                                 </div>
-                            @endif
+                            </div>
+
+                            {{-- Toggle Button Chevron --}}
+                            <div class="flex items-center gap-2 shrink-0 self-center">
+                                <button 
+                                    type="button" 
+                                    class="p-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                                    :class="expanded ? 'bg-brand-primary text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                                >
+                                    <span class="hidden sm:inline" x-text="expanded ? 'Tutup' : 'Buka Sesi / Respon'">Buka Sesi / Respon</span>
+                                    <svg class="w-4 h-4 transform transition-transform duration-200" :class="{ 'rotate-180': expanded }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Expanded Accordion Body --}}
+                    <div 
+                        x-show="expanded" 
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-2"
+                        class="border-t border-slate-100 bg-slate-50/50 p-4 sm:p-6 space-y-5"
+                    >
+                        {{-- 1. Mini Status Stepper --}}
+                        <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-xs">
+                            <div class="flex items-center justify-between text-[11px] sm:text-xs">
+                                <!-- Step 1: Diajukan Murid -->
+                                <div class="flex items-center gap-1.5 text-emerald-600 font-extrabold">
+                                    <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]">✓</span>
+                                    <span>Diajukan Murid</span>
+                                </div>
+                                
+                                <div class="flex-1 h-0.5 mx-2 {{ in_array($item->status_pengajuan?->value, ['Dijadwalkan', 'Selesai', 'Dikonversi ke Jurnal', 'Ditolak']) ? 'bg-emerald-500' : 'bg-slate-200' }}"></div>
+
+                                <!-- Step 2: Direspon Guru Wali -->
+                                <div class="flex items-center gap-1.5 {{ in_array($item->status_pengajuan?->value, ['Dijadwalkan', 'Selesai', 'Dikonversi ke Jurnal']) ? 'text-brand-primary font-extrabold' : ($item->status_pengajuan?->value === 'Ditolak' ? 'text-rose-600 font-extrabold' : 'text-slate-400 font-semibold') }}">
+                                    <span class="w-5 h-5 rounded-full {{ in_array($item->status_pengajuan?->value, ['Dijadwalkan', 'Selesai', 'Dikonversi ke Jurnal']) ? 'bg-brand-primary text-white' : ($item->status_pengajuan?->value === 'Ditolak' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-500') }} flex items-center justify-center text-[10px]">
+                                        {{ in_array($item->status_pengajuan?->value, ['Dijadwalkan', 'Selesai', 'Dikonversi ke Jurnal']) ? '✓' : '2' }}
+                                    </span>
+                                    <span>Direspon Guru</span>
+                                </div>
+
+                                <div class="flex-1 h-0.5 mx-2 {{ in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) ? 'bg-emerald-500' : 'bg-slate-200' }}"></div>
+
+                                <!-- Step 3: Selesai / Jurnal -->
+                                <div class="flex items-center gap-1.5 {{ in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold' }}">
+                                    <span class="w-5 h-5 rounded-full {{ in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500' }} flex items-center justify-center text-[10px]">
+                                        {{ in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) ? '✓' : '3' }}
+                                    </span>
+                                    <span>Selesai / Jurnal</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Right: Action Buttons -->
-                        <div class="flex md:flex-col items-center gap-2 shrink-0 self-end md:self-start">
-                            @if($item->status_pengajuan?->value === 'Menunggu Konfirmasi')
-                                @if($item->mode_konsultasi === 'Tatap Muka')
-                                    <button type="button" 
-                                            wire:click="openScheduleModal('{{ $item->id }}')" 
-                                            class="w-full px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                        Jadwalkan Pertemuan
-                                    </button>
-                                @else
-                                    <button type="button" 
-                                            wire:click="openDetail('{{ $item->id }}')" 
-                                            class="w-full px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                        Buka Ruang Obrolan
-                                    </button>
+                        {{-- 2. Uraian Cerita / Keluhan Awal Murid --}}
+                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-2">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span class="font-extrabold uppercase text-[10px] text-brand-primary tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                                    Cerita Awal dari Murid:
+                                </span>
+                                <span>{{ $item->created_at ? $item->created_at->translatedFormat('l, d F Y • H:i') : '' }} WIB</span>
+                            </div>
+                            <h4 class="font-extrabold text-sm text-slate-900">{{ $item->topik_konsultasi }}</h4>
+                            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
+                                {{ $item->detail_permasalahan }}
+                            </p>
+                        </div>
+
+                        {{-- 3. Konten Berdasarkan Mode Konsultasi --}}
+                        @if($item->mode_konsultasi === 'Tatap Muka')
+                            {{-- Card Tiket Janji Temu (Appointment Pass) --}}
+                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl p-4 sm:p-5 border border-blue-200/80 shadow-xs space-y-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-xs font-extrabold uppercase tracking-wider text-blue-900">Jadwal Pertemuan di Sekolah</h5>
+                                            <p class="text-[11px] text-blue-700/80">Siswa: {{ $item->siswa?->name }}</p>
+                                        </div>
+                                    </div>
+                                    @if(in_array($item->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                                        <button type="button" 
+                                                wire:click="openScheduleModal('{{ $item->id }}')" 
+                                                class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all">
+                                            {{ $item->jadwal_pasti ? 'Ubah Jadwal' : 'Tetapkan Jadwal Pasti' }}
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="bg-white/90 backdrop-blur-xs rounded-xl p-3.5 border border-blue-200/60">
+                                        <p class="text-[11px] text-slate-500 font-semibold">Usulan Waktu dari Murid:</p>
+                                        <p class="text-xs font-bold text-slate-800 mt-0.5">
+                                            {{ $item->usulan_tanggal_waktu ? \Carbon\Carbon::parse($item->usulan_tanggal_waktu)->translatedFormat('l, d M Y • H:i') . ' WIB' : 'Tidak ditentukan' }}
+                                        </p>
+                                    </div>
+
+                                    <div class="bg-white/90 backdrop-blur-xs rounded-xl p-3.5 border border-blue-200/60">
+                                        <p class="text-[11px] text-slate-500 font-semibold">Jadwal Pasti Ditetapkan Guru:</p>
+                                        <p class="text-xs font-black {{ $item->jadwal_pasti ? 'text-blue-900' : 'text-amber-600' }} mt-0.5">
+                                            {{ $item->jadwal_pasti ? \Carbon\Carbon::parse($item->jadwal_pasti)->translatedFormat('l, d F Y • H:i') . ' WIB' : 'Belum Dikonfirmasi' }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                @if($item->tanggapan_guru)
+                                    <div class="bg-white/90 rounded-xl p-3.5 border border-blue-200/60 space-y-1">
+                                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-blue-800">Catatan / Arahan Lokasi untuk Murid:</p>
+                                        <p class="text-xs text-slate-800 italic leading-relaxed whitespace-pre-line">"{{ $item->tanggapan_guru }}"</p>
+                                    </div>
                                 @endif
+                            </div>
+                        @else
+                            {{-- Ruang Chat Interaktif --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                                {{-- Chat Stream Header --}}
+                                <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-black text-xs">
+                                            {{ strtoupper(substr($item->siswa?->name ?? 'S', 0, 2)) }}
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-extrabold text-slate-800 leading-none">{{ $item->siswa?->name }}</p>
+                                            <p class="text-[10px] text-slate-400 mt-0.5">Ruang Aman Obrolan Murid & Guru Wali</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-slate-400 flex items-center gap-1" wire:poll.5s>
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync
+                                    </span>
+                                </div>
 
-                                <button type="button" 
-                                        wire:click="openRujukModal('{{ $item->id }}')" 
-                                        class="w-full px-4 py-2 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                    Rujuk ke BK
-                                </button>
+                                {{-- Chat Bubbles Stream --}}
+                                <div class="p-4 space-y-3 max-h-80 overflow-y-auto custom-scrollbar bg-slate-50/30" wire:poll.5s>
+                                    @forelse($item->pesan as $msg)
+                                        <div class="flex {{ $msg->sender_type === 'guru' ? 'justify-end' : 'justify-start' }}">
+                                            <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl p-3 shadow-xs {{ $msg->sender_type === 'guru' ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-tr-xs' : 'bg-white border border-slate-200/80 text-slate-800 rounded-tl-xs' }}">
+                                                @if($msg->sender_type === 'siswa')
+                                                    <p class="text-[10px] font-extrabold text-brand-primary mb-1">{{ $item->siswa?->name }} (Murid)</p>
+                                                @else
+                                                    <p class="text-[10px] font-extrabold text-white/80 mb-1">{{ $teacher->name }} (Guru Wali)</p>
+                                                @endif
+                                                <p class="text-xs leading-relaxed whitespace-pre-line">{{ $msg->pesan }}</p>
+                                                <p class="text-[10px] mt-1 text-right {{ $msg->sender_type === 'guru' ? 'text-white/70' : 'text-slate-400' }}">{{ $msg->created_at->format('H:i') }}</p>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="text-center py-6 text-slate-400 text-xs">
+                                            <p>Belum ada pesan obrolan.</p>
+                                            <p class="text-[11px] mt-1">Tulis tanggapan atau sapaan pertama untuk memulai obrolan bimbingan.</p>
+                                        </div>
+                                    @endforelse
+                                </div>
 
-                                <button type="button" 
-                                        wire:click="openRejectModal('{{ $item->id }}')" 
-                                        class="w-full px-4 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-all text-center">
-                                    Tolak Permintaan
-                                </button>
-                            @elseif($item->status_pengajuan?->value === 'Dijadwalkan')
-                                @if($item->mode_konsultasi === 'Pesan Portal')
-                                    <button type="button" 
-                                            wire:click="openDetail('{{ $item->id }}')" 
-                                            class="w-full px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                        Buka Ruang Obrolan
-                                    </button>
+                                {{-- Chat Input / Selesai Banner --}}
+                                @if(in_array($item->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan']))
+                                    <div class="p-3 bg-white border-t border-slate-100 flex items-center gap-2">
+                                        <input type="text" 
+                                               wire:model="pesanInputs.{{ $item->id }}" 
+                                               wire:keydown.enter.prevent="kirimPesanInline('{{ $item->id }}')"
+                                               placeholder="Tulis tanggapan / bimbingan untuk {{ $item->siswa?->name }}... (Tekan Enter)" 
+                                               class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:bg-white transition-all">
+                                        <button type="button" 
+                                                wire:click="kirimPesanInline('{{ $item->id }}')" 
+                                                class="px-5 py-2.5 bg-brand-primary hover:bg-brand-secondary text-white rounded-xl font-bold text-xs shadow-md shadow-brand-primary/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer shrink-0">
+                                            <span>Kirim</span>
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        </button>
+                                    </div>
+                                    @error("pesanInputs.{$item->id}")
+                                        <div class="px-4 pb-2 text-[11px] text-rose-500 font-semibold">{{ $message }}</div>
+                                    @enderror
                                 @else
-                                    <button type="button" 
-                                            wire:click="openScheduleModal('{{ $item->id }}')" 
-                                            class="w-full px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all text-center">
-                                        Ubah Jadwal
-                                    </button>
+                                    <div class="p-3 bg-emerald-50 border-t border-emerald-100 text-emerald-800 text-xs font-medium text-center flex items-center justify-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span>Sesi obrolan ini telah ditandai selesai. Ruang aman telah ditutup.</span>
+                                    </div>
                                 @endif
+                            </div>
+                        @endif
 
-                                <button type="button" 
-                                        wire:click="openRujukModal('{{ $item->id }}')" 
-                                        class="w-full px-4 py-2 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                    Rujuk ke BK
-                                </button>
+                        {{-- 4. Alasan Penolakan (Jika ditolak) --}}
+                        @if($item->alasan_penolakan)
+                            <div class="bg-rose-50 rounded-2xl p-4 border border-rose-200 text-xs space-y-1">
+                                <span class="font-extrabold text-rose-700 uppercase tracking-wider text-[10px] block">Alasan Penolakan / Pengalihan Jadwal:</span>
+                                <p class="text-rose-950 whitespace-pre-line leading-relaxed">{{ $item->alasan_penolakan }}</p>
+                            </div>
+                        @endif
 
-                                <!-- Konversi ke Jurnal -->
-                                <a href="{{ route('portal-guru.guru-wali.jurnal.create', ['konsultasi_id' => $item->id]) }}" 
-                                   class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all text-center">
-                                    Catat ke Jurnal
-                                </a>
+                        {{-- 5. Refleksi & Ulasan Siswa --}}
+                        @if(in_array($item->status_pengajuan?->value, ['Selesai', 'Dikonversi ke Jurnal']) && $item->student_feedback_rating)
+                            <div class="bg-amber-50/80 rounded-2xl p-4 border border-amber-200/80 shadow-xs space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-extrabold text-amber-800 text-xs uppercase tracking-wider flex items-center gap-1">
+                                        <span>⭐</span> Refleksi & Evaluasi dari Murid:
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                                            ⭐ {{ $item->student_feedback_rating }} / 5
+                                        </span>
+                                        @if($item->student_feedback_emoji)
+                                            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white text-amber-800 border border-amber-200">
+                                                {{ $item->student_feedback_emoji->value }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($item->student_feedback_note)
+                                    <p class="text-xs text-amber-900 mt-1 leading-relaxed italic border-l-2 border-amber-400 pl-3 py-0.5 bg-white/60 rounded-r-lg">
+                                        "{{ $item->student_feedback_note }}"
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
 
-                                <button type="button" 
-                                        wire:click="openBadgeModal('{{ $item->id }}')" 
-                                        class="w-full px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all text-center">
-                                    Selesaikan & Beri Badge
-                                </button>
-                            @else
-                                <button type="button" 
-                                        wire:click="openDetail('{{ $item->id }}')" 
-                                        class="w-full px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all text-center">
-                                    Lihat Riwayat
-                                </button>
-                            @endif
+                        {{-- 6. Action Hub Guru Wali --}}
+                        <div class="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                            <div class="text-[11px] text-slate-400 font-medium">
+                                ID Konsultasi: <code class="text-slate-600 font-mono">{{ substr($item->id, 0, 8) }}</code>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if($item->status_pengajuan?->value === 'Menunggu Konfirmasi')
+                                    @if($item->mode_konsultasi === 'Tatap Muka')
+                                        <button type="button" 
+                                                wire:click="openScheduleModal('{{ $item->id }}')" 
+                                                class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs shadow-md shadow-brand-primary/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span>Jadwalkan Pertemuan</span>
+                                        </button>
+                                    @endif
+
+                                    <button type="button" 
+                                            wire:click="openRujukModal('{{ $item->id }}')" 
+                                            class="px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold text-xs shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                        <span>Rujuk ke Guru BK</span>
+                                    </button>
+
+                                    <button type="button" 
+                                            wire:click="openRejectModal('{{ $item->id }}')" 
+                                            class="px-3.5 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        <span>Tolak Permintaan</span>
+                                    </button>
+
+                                @elseif($item->status_pengajuan?->value === 'Dijadwalkan')
+                                    @if($item->mode_konsultasi === 'Tatap Muka')
+                                        <button type="button" 
+                                                wire:click="openScheduleModal('{{ $item->id }}')" 
+                                                class="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            <span>Ubah Jadwal</span>
+                                        </button>
+                                    @endif
+
+                                    <!-- Konversi / Catat ke Jurnal -->
+                                    <a href="{{ route('portal-guru.guru-wali.jurnal.create', ['konsultasi_id' => $item->id]) }}" 
+                                       class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                        <span>Catat ke Jurnal Pendampingan</span>
+                                    </a>
+
+                                    <button type="button" 
+                                            wire:click="openBadgeModal('{{ $item->id }}')" 
+                                            class="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                        <span>Selesaikan & Beri Badge</span>
+                                    </button>
+
+                                    <button type="button" 
+                                            wire:click="openRujukModal('{{ $item->id }}')" 
+                                            class="px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold text-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                        <span>Rujuk ke BK</span>
+                                    </button>
+
+                                @else
+                                    @if($item->jurnal)
+                                        <a href="{{ route('portal-guru.guru-wali.jurnal') }}" 
+                                           class="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs shadow-xs transition-all flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Terdokumentasi di Jurnal</span>
+                                        </a>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 text-slate-600 font-semibold text-xs">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            <span>Sesi Telah Selesai</span>
+                                        </span>
+                                    @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -525,7 +716,7 @@
                     <div class="bg-brand-primary p-6 text-white flex items-center justify-between">
                         <div>
                             <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-white/20 text-white">
-                                {{ $selectedConsultation->mode_konsultasi === 'Pesan Portal' ? 'Ruang Obrolan' : 'Detail Konsultasi' }}
+                                {{ $selectedConsultation->mode_konsultasi === 'Pesan Portal' ? 'Ruang Aman Obrolan' : 'Detail Sesi Konsultasi' }}
                             </span>
                             <h3 class="text-base font-extrabold mt-1 text-white">{{ $selectedConsultation->siswa?->name }}</h3>
                         </div>
@@ -538,7 +729,7 @@
                     <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                         <div class="flex flex-wrap gap-2 text-xs">
                             <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-bold text-slate-700">Topik: {{ $selectedConsultation->topik_konsultasi }}</span>
-                            <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-semibold text-slate-600">Mode: {{ $selectedConsultation->mode_konsultasi }}</span>
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-100 font-semibold text-slate-600">Mode: {{ $selectedConsultation->mode_konsultasi === 'Pesan Portal' ? 'Ruang Aman (Chat)' : 'Tatap Muka' }}</span>
                         </div>
 
                         {{-- Permasalahan Siswa --}}

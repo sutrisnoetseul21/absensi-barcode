@@ -253,6 +253,36 @@ class KonsultasiGuruWaliList extends Component
         }
     }
 
+    public function simpanFeedbackDirect(string $id, int $rating, string $emoji, ?string $note = null): void
+    {
+        $student = Auth::user()?->student;
+        if (!$student) return;
+
+        if ($rating < 1 || $rating > 5) {
+            session()->flash('error', 'Rating bintang harus antara 1 sampai 5.');
+            return;
+        }
+
+        if (!in_array($emoji, ['Lega', 'Biasa', 'Masih Bingung'])) {
+            session()->flash('error', 'Pilih perasaan yang sesuai.');
+            return;
+        }
+
+        $konsul = KonsultasiGuruWali::where('id', $id)
+            ->where('student_id', $student->id)
+            ->whereIn('status_pengajuan', ['Selesai', 'Dikonversi ke Jurnal'])
+            ->first();
+
+        if ($konsul) {
+            $konsul->update([
+                'student_feedback_rating' => $rating,
+                'student_feedback_emoji'  => \App\Enums\StudentFeedbackEmoji::tryFrom($emoji),
+                'student_feedback_note'   => $note,
+            ]);
+            session()->flash('success', 'Terima kasih! Ulasan dan perasaan Anda berhasil disimpan.');
+        }
+    }
+
     public function batalkanKonsultasi(string $id): void
     {
         $student = Auth::user()?->student;
@@ -336,7 +366,7 @@ class KonsultasiGuruWaliList extends Component
 
                 $catatanPublikList = $catatanQuery->orderBy('tanggal_waktu', 'desc')->paginate(8);
             } else {
-                $query = KonsultasiGuruWali::where('student_id', $student->id)->with(['guru', 'jurnal']);
+                $query = KonsultasiGuruWali::where('student_id', $student->id)->with(['guru', 'jurnal', 'pesan']);
 
                 if ($this->activeTab === 'menunggu') {
                     $query->where('status_pengajuan', 'Menunggu Konfirmasi');

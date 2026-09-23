@@ -11,12 +11,12 @@
             <div>
                 <div class="flex items-center gap-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-brand-primary/10 text-brand-primary">
-                        Bimbingan Kelompok
+                        SI-WALI • Bimbingan Kelompok
                     </span>
                     <span class="text-xs text-slate-400 font-medium">Permendikdasmen No. 11/2025</span>
                 </div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight mt-0.5">
-                    Catat Jurnal Bimbingan Kelompok
+                    SI-WALI: Catat Jurnal Bimbingan Kelompok
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                     Kelompok: <strong>{{ $kelompok->nama_kelompok }}</strong> &bull; Input massal pendampingan untuk seluruh atau beberapa siswa sekaligus.

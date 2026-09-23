@@ -8,11 +8,14 @@
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    <span>Penugasan Guru Wali — Permendikdasmen No. 11/2025</span>
+                    <span>SI-WALI • Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan</span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                    {{ $kelompok->nama_kelompok }}
+                    SI-WALI: {{ $kelompok->nama_kelompok }}
                 </h1>
+                <p class="text-white/80 text-xs font-semibold uppercase tracking-wider mt-0.5">
+                    Sistem Informasi & Pendampingan Guru Wali (Permendikdasmen No. 11/2025)
+                </p>
                 <p class="text-white/90 text-sm mt-1">
                     Pembimbing: <strong>{{ $teacher->name }}</strong> &bull; Beban Ekuivalensi: <strong>2 JP/Minggu</strong>
                 </p>

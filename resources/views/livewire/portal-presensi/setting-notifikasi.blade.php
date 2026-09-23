@@ -404,7 +404,11 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan</label>
                         <textarea wire:model="daily_template_pesan" rows="6" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
-                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_kelas}, {tanggal}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {jumlah_alpa}, {jumlah_sakit}, {jumlah_izin}, {daftar_belum_presensi}</p>
+                        <div class="space-y-1 text-xs text-slate-500 mt-2 font-medium">
+                            <p><strong>Statistik:</strong> {nama_kelas}, {tanggal}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {jumlah_alpa}, {jumlah_sakit}, {jumlah_izin}</p>
+                            <p><strong>Nama Siswa (Segaris):</strong> {nama_sakit}, {nama_izin}, {nama_alpa}, {nama_terlambat}, {nama_belum_presensi} <em>(Contoh: Budi, Ani)</em></p>
+                            <p><strong>Nama Siswa (Daftar List):</strong> {daftar_sakit}, {daftar_izin}, {daftar_alpa}, {daftar_terlambat}, {daftar_belum_presensi} <em>(Contoh: - Budi, - Ani)</em></p>
+                        </div>
                     </div>
                 </div>
             </div>

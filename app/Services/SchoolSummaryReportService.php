@@ -130,8 +130,38 @@ class SchoolSummaryReportService
             $formatNama = fn($str) => $str ? " $str" : "";
 
             $baris = str_replace(
-                ['{nama_kelas}', '{jumlah_hadir}', '{jumlah_terlambat}', '{nama_terlambat}', '{jumlah_sakit}', '{nama_sakit}', '{jumlah_izin}', '{nama_izin}', '{jumlah_alpa}', '{nama_alpa}', '{jumlah_belum_presensi}', '{nama_belum_presensi}'],
-                [$namaKelas, $hadir, $telat, $formatNama($namaTelat), $sakit, $formatNama($namaSakit), $izin, $formatNama($namaIzin), $alpa, $formatNama($namaAlpa), $belum, $formatNama($namaBelum)],
+                [
+                    '{nama_kelas}', 
+                    '{jumlah_hadir}', 
+                    '{jumlah_terlambat}', 
+                    '{nama_terlambat}', 
+                    '{jumlah_sakit}', 
+                    '{nama_sakit}', 
+                    '{jumlah_izin}', 
+                    '{nama_izin}', 
+                    '{jumlah_alpa}', 
+                    '{nama_alpa}', 
+                    '{jumlah_alfa}', 
+                    '{nama_alfa}', 
+                    '{jumlah_belum_presensi}', 
+                    '{nama_belum_presensi}',
+                ],
+                [
+                    $namaKelas, 
+                    $hadir, 
+                    $telat, 
+                    $formatNama($namaTelat), 
+                    $sakit, 
+                    $formatNama($namaSakit), 
+                    $izin, 
+                    $formatNama($namaIzin), 
+                    $alpa, 
+                    $formatNama($namaAlpa), 
+                    $alpa, 
+                    $formatNama($namaAlpa), 
+                    $belum, 
+                    $formatNama($namaBelum),
+                ],
                 $setting->template_row
             );
 

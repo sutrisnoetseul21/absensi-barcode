@@ -841,8 +841,8 @@
                                     @endif
                                 </div>
                                 <div class="flex flex-col text-left min-w-0" x-show="!isCollapsed" x-transition.opacity>
-                                    <span class="text-sm truncate leading-tight">SI-WALI</span>
-                                    <span class="text-[10px] text-slate-400 font-normal leading-tight">Guru Wali (Permen 11/2025)</span>
+                                    <span class="text-sm truncate leading-tight font-extrabold text-brand-primary">SI-WALI</span>
+                                    <span class="text-[10px] text-slate-400 font-medium leading-tight">Pendampingan Guru Wali</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5" x-show="!isCollapsed" x-transition.opacity>
@@ -859,26 +859,26 @@
 
                         <!-- Submenu Dropdown Container -->
                         <div x-show="open && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                            <!-- Kelompok Saya -->
+                            <!-- Kelompok Binaan -->
                             <a href="{{ route('portal-guru.guru-wali.kelompok') }}" 
                                class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isGwKelompok ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                 <span class="w-1.5 h-1.5 rounded-full {{ $isGwKelompok ? 'bg-white' : 'bg-slate-400' }}"></span>
-                                <span class="truncate">Kelompok Saya</span>
+                                <span class="truncate">Kelompok Binaan</span>
                             </a>
 
-                            <!-- Jurnal Siswa -->
+                            <!-- Jurnal Pendampingan -->
                             <a href="{{ route('portal-guru.guru-wali.jurnal') }}" 
                                class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isGwJurnal ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                 <span class="w-1.5 h-1.5 rounded-full {{ $isGwJurnal ? 'bg-white' : 'bg-slate-400' }}"></span>
-                                <span class="truncate">Jurnal Siswa</span>
+                                <span class="truncate">Jurnal Pendampingan</span>
                             </a>
 
-                            <!-- Permintaan Konsultasi -->
+                            <!-- Permintaan Konsultasi / Ruang Aman -->
                             <a href="{{ route('portal-guru.guru-wali.konsultasi') }}" 
                                class="flex items-center justify-between gap-2 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isGwKonsultasi ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                 <div class="flex items-center gap-2.5 min-w-0">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $isGwKonsultasi ? 'bg-white' : 'bg-slate-400' }}"></span>
-                                    <span class="truncate">Konsultasi Siswa</span>
+                                    <span class="truncate">Ruang Aman Cerita</span>
                                 </div>
                                 @if($pendingKonsultasiCount > 0)
                                     <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $isGwKonsultasi ? 'bg-white text-brand-primary' : 'bg-rose-500 text-white' }}">

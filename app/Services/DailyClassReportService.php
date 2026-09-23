@@ -81,29 +81,119 @@ class DailyClassReportService
             ->where('date', $now->toDateString())
             ->get();
 
-        $hadir = $attendances->whereIn('status', ['hadir', 'pulang'])->count();
-        $telat = $attendances->where('status', 'telat')->count();
-        $alpa  = $attendances->where('status', 'alpa')->count();
-        $sakit = $attendances->where('status', 'sakit')->count();
-        $izin  = $attendances->where('status', 'izin')->count();
+        $hadirList = $attendances->whereIn('status', ['hadir', 'pulang']);
+        $telatList = $attendances->where('status', 'telat');
+        $alpaList  = $attendances->where('status', 'alpa');
+        $sakitList = $attendances->where('status', 'sakit');
+        $izinList  = $attendances->where('status', 'izin');
+
+        $hadir = $hadirList->count();
+        $telat = $telatList->count();
+        $alpa  = $alpaList->count();
+        $sakit = $sakitList->count();
+        $izin  = $izinList->count();
+
+        // Helper untuk ekstrak nama siswa dari collection presensi
+        $getStudentNames = function ($attendanceCol) use ($enrollments) {
+            $ids = $attendanceCol->pluck('student_id')->toArray();
+            $names = [];
+            foreach ($enrollments as $en) {
+                if (in_array($en->student_id, $ids)) {
+                    $names[] = $en->siswa->name ?? 'Siswa Tanpa Nama';
+                }
+            }
+            return $names;
+        };
+
+        $sakitNames = $getStudentNames($sakitList);
+        $izinNames  = $getStudentNames($izinList);
+        $alpaNames  = $getStudentNames($alpaList);
+        $telatNames = $getStudentNames($telatList);
 
         $attendanceStudentIds = $attendances->pluck('student_id')->toArray();
         $belumPresensiNames   = [];
         foreach ($enrollments as $enrollment) {
             if (!in_array($enrollment->student_id, $attendanceStudentIds)) {
-                $belumPresensiNames[] = '- ' . ($enrollment->siswa->name ?? 'Siswa Tanpa Nama');
+                $belumPresensiNames[] = $enrollment->siswa->name ?? 'Siswa Tanpa Nama';
             }
         }
 
+        // Format bullet daftar baris
+        $formatDaftar = function (array $names, string $emptyText = 'Tidak ada') {
+            if (empty($names)) {
+                return $emptyText;
+            }
+            return implode("\n", array_map(fn($n) => "- $n", $names));
+        };
+
+        // Format inline koma
+        $formatKoma = function (array $names) {
+            return empty($names) ? '-' : implode(', ', $names);
+        };
+
         $daftarBelumPresensi = empty($belumPresensiNames)
             ? 'Tidak ada (Semua sudah mengisi presensi)'
-            : implode("\n", $belumPresensiNames);
+            : implode("\n", array_map(fn($n) => "- $n", $belumPresensiNames));
+
+        $namaBelumPresensi = $formatKoma($belumPresensiNames);
+        $daftarSakit       = $formatDaftar($sakitNames);
+        $namaSakit         = $formatKoma($sakitNames);
+        $daftarIzin        = $formatDaftar($izinNames);
+        $namaIzin          = $formatKoma($izinNames);
+        $daftarAlpa        = $formatDaftar($alpaNames);
+        $namaAlpa          = $formatKoma($alpaNames);
+        $daftarTelat       = $formatDaftar($telatNames);
+        $namaTelat         = $formatKoma($telatNames);
 
         $namaKelas = $kelasAjaran->kelas ? $kelasAjaran->kelas->name : 'Kelas Tidak Diketahui';
 
         $pesan = str_replace(
-            ['{nama_kelas}', '{tanggal}', '{total_siswa}', '{jumlah_hadir}', '{jumlah_terlambat}', '{jumlah_alpa}', '{jumlah_sakit}', '{jumlah_izin}', '{daftar_belum_presensi}'],
-            [$namaKelas, $tanggal, $totalSiswa, ($hadir + $telat), $telat, $alpa, $sakit, $izin, $daftarBelumPresensi],
+            [
+                '{nama_kelas}', 
+                '{tanggal}', 
+                '{total_siswa}', 
+                '{jumlah_hadir}', 
+                '{jumlah_terlambat}', 
+                '{jumlah_alpa}', 
+                '{jumlah_alfa}', 
+                '{jumlah_sakit}', 
+                '{jumlah_izin}', 
+                '{daftar_belum_presensi}',
+                '{nama_belum_presensi}',
+                '{daftar_sakit}',
+                '{nama_sakit}',
+                '{daftar_izin}',
+                '{nama_izin}',
+                '{daftar_alpa}',
+                '{nama_alpa}',
+                '{daftar_alfa}',
+                '{nama_alfa}',
+                '{daftar_terlambat}',
+                '{nama_terlambat}',
+            ],
+            [
+                $namaKelas, 
+                $tanggal, 
+                $totalSiswa, 
+                ($hadir + $telat), 
+                $telat, 
+                $alpa, 
+                $alpa, 
+                $sakit, 
+                $izin, 
+                $daftarBelumPresensi,
+                $namaBelumPresensi,
+                $daftarSakit,
+                $namaSakit,
+                $daftarIzin,
+                $namaIzin,
+                $daftarAlpa,
+                $namaAlpa,
+                $daftarAlpa,
+                $namaAlpa,
+                $daftarTelat,
+                $namaTelat,
+            ],
             $setting->template_pesan
         );
 

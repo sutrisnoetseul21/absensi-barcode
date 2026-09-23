@@ -354,8 +354,15 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->columnSpanFull(),
                                         Textarea::make('daily_template_pesan')
                                             ->label('Template Pesan')
-                                            ->rows(6)
-                                            ->helperText('Placeholder tersedia: {nama_kelas}, {tanggal}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {jumlah_alpa}, {jumlah_sakit}, {jumlah_izin}, {daftar_belum_presensi}')
+                                            ->rows(8)
+                                            ->helperText(new HtmlString('
+                                                <div class="space-y-1.5 text-xs text-gray-600 dark:text-gray-400 mt-2">
+                                                    <p class="font-bold text-gray-700 dark:text-gray-300">📌 Daftar Placeholder Tersedia:</p>
+                                                    <p>• <strong>Statistik Angka:</strong> <code>{nama_kelas}</code>, <code>{tanggal}</code>, <code>{total_siswa}</code>, <code>{jumlah_hadir}</code>, <code>{jumlah_terlambat}</code>, <code>{jumlah_sakit}</code>, <code>{jumlah_izin}</code>, <code>{jumlah_alpa}</code></p>
+                                                    <p>• <strong>Format Baris Koma (Segaris):</strong> <code>{nama_sakit}</code>, <code>{nama_izin}</code>, <code>{nama_alpa}</code>, <code>{nama_terlambat}</code>, <code>{nama_belum_presensi}</code><br><span class="italic text-gray-500">Contoh hasil: Budi Santoso, Ani Wijaya (atau "-" jika tidak ada).</span></p>
+                                                    <p>• <strong>Format Daftar Baris per Baris:</strong> <code>{daftar_sakit}</code>, <code>{daftar_izin}</code>, <code>{daftar_alpa}</code>, <code>{daftar_terlambat}</code>, <code>{daftar_belum_presensi}</code><br><span class="italic text-gray-500">Contoh hasil:<br>- Budi Santoso<br>- Ani Wijaya<br>(atau "Tidak ada" jika tidak ada).</span></p>
+                                                </div>
+                                            '))
                                             ->columnSpanFull(),
                                     ]),
 
@@ -403,8 +410,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->columnSpanFull(),
                                         Textarea::make('school_template_row')
                                             ->label('Template Baris per Kelas')
-                                            ->rows(3)
-                                            ->helperText('Diulang untuk setiap kelas. Placeholder: {nama_kelas}, {jumlah_hadir}, {jumlah_terlambat}, {nama_terlambat}, {jumlah_sakit}, {nama_sakit}, {jumlah_izin}, {nama_izin}, {jumlah_alpa}, {nama_alpa}, {jumlah_belum_presensi}, {nama_belum_presensi}')
+                                            ->rows(4)
+                                            ->helperText(new HtmlString('
+                                                <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400 mt-2">
+                                                    <p>Diulang otomatis untuk setiap kelas.</p>
+                                                    <p><strong>Placeholder:</strong> <code>{nama_kelas}</code>, <code>{jumlah_hadir}</code>, <code>{jumlah_terlambat}</code>, <code>{nama_terlambat}</code>, <code>{jumlah_sakit}</code>, <code>{nama_sakit}</code>, <code>{jumlah_izin}</code>, <code>{nama_izin}</code>, <code>{jumlah_alpa}</code>, <code>{nama_alpa}</code>, <code>{jumlah_belum_presensi}</code>, <code>{nama_belum_presensi}</code></p>
+                                                    <p class="italic text-gray-500">Keterangan: <code>{nama_sakit}</code>, <code>{nama_izin}</code>, <code>{nama_alpa}</code> otomatis terisi format tanda kurung <code>(Budi, Ani)</code> jika ada siswa, dan kosong jika 0.</p>
+                                                </div>
+                                            '))
                                             ->columnSpanFull(),
                                         Textarea::make('school_template_footer')
                                             ->label('Template Footer')

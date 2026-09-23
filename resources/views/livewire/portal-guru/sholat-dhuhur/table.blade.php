@@ -16,7 +16,7 @@
                 <span class="w-2 h-2 rounded-full bg-blue-500"></span> I: Ijin / Halangan
             </span>
             <span class="inline-flex items-center gap-1.5 text-rose-700 bg-rose-50 px-2 py-1 rounded-md">
-                <span class="w-2 h-2 rounded-full bg-rose-500"></span> A: Tidak Hadir
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span> A: Alpa
             </span>
             <span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-200 px-2 py-1 rounded-md">
                 <span class="w-2 h-2 rounded-full bg-slate-400"></span> L: Libur / Jumat
@@ -79,7 +79,7 @@
                                     default => 'text-slate-300',
                                 };
                             @endphp
-                            <td class="py-2 px-1 text-center" title="{{ $code === 'L' ? 'Hari Libur / Jumat' : ($code === 'I' ? 'Ijin / Halangan' : ($code === 'H' ? 'Hadir' : ($code === 'A' ? 'Tidak Hadir' : ''))) }}">
+                            <td class="py-2 px-1 text-center" title="{{ $code === 'L' ? 'Hari Libur / Jumat' : ($code === 'I' ? 'Ijin / Halangan' : ($code === 'H' ? 'Hadir' : ($code === 'A' ? 'Alpa' : ''))) }}">
                                 <div class="w-6 h-6 mx-auto flex items-center justify-center text-[11px] {{ $colorClass }}">
                                     {{ $code }}
                                 </div>

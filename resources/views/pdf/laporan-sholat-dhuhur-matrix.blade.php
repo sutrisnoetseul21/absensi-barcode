@@ -180,7 +180,7 @@
         <div class="signature-left">
             <p style="font-size:8px; color:#555; margin-top:5px; line-height: 1.4;">
                 <strong>Keterangan Kode:</strong><br>
-                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Tidak Hadir &bull; L = Hari Libur / Sholat Jumat
+                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa &bull; L = Hari Libur / Sholat Jumat
             </p>
         </div>
         <div class="signature-right">

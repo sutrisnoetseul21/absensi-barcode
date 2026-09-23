@@ -13,10 +13,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span>Mode Personal / Individu</span>
+                    <span>SI-WALI • Mode Personal / Individu</span>
                 </div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">
-                    {{ $jurnalId ? 'Edit Jurnal Siswa' : 'Catat Jurnal Individu' }}
+                    {{ $jurnalId ? 'SI-WALI: Edit Jurnal Siswa' : 'SI-WALI: Catat Jurnal Individu' }}
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                     Kelompok: <strong>{{ $kelompok->nama_kelompok }}</strong> &bull; Pendampingan personal 1 peserta didik binaan.

@@ -176,7 +176,7 @@
         <div class="signature-left">
             <p style="font-size:8px; color:#555; margin-top:5px; line-height: 1.4;">
                 <strong>Keterangan:</strong><br>
-                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Tidak Hadir
+                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa
             </p>
         </div>
         <div class="signature-right">
