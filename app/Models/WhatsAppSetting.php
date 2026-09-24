@@ -26,14 +26,14 @@ class WhatsAppSetting extends Model
 
     public function getBaseUrlAttribute($value)
     {
-        $envVal = env('WA_BASE_URL');
-        return !empty($envVal) ? $envVal : $value;
+        $cfgVal = config('services.whatsapp.base_url');
+        return !empty($cfgVal) ? $cfgVal : $value;
     }
 
     public function getApiKeyAttribute($value)
     {
-        $envVal = env('WA_API_KEY');
-        return !empty($envVal) ? $envVal : $value;
+        $cfgVal = config('services.whatsapp.api_key');
+        return !empty($cfgVal) ? $cfgVal : $value;
     }
 
     /**

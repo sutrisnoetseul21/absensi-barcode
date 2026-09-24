@@ -42,6 +42,8 @@ return [
 
     'whatsapp' => [
         'spikap_test_mode' => env('SPIKAP_WA_TEST_MODE', false),
+        'base_url'         => env('WA_BASE_URL'),
+        'api_key'          => env('WA_API_KEY'),
     ],
 
 ];
