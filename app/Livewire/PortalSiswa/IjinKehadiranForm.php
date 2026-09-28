@@ -11,6 +11,8 @@ use Livewire\Attributes\Layout;
 use Illuminate\Support\Carbon;
 use App\Models\PresensiNotificationSetting;
 use App\Models\KelasAjaran;
+use App\Jobs\SendLeaveRequestWaNotificationJob;
+use Illuminate\Support\Facades\DB;
 
 #[Layout('components.layouts.portal')]
 class IjinKehadiranForm extends Component
@@ -199,7 +201,19 @@ class IjinKehadiranForm extends Component
             $record = LeaveRequest::create($data);
             $record->recordLog('created', 'Dibuat oleh siswa');
             $message = 'Pengajuan berhasil dibuat.';
-            
+
+            // -- Integrasi WA Approval (STEP 7) --
+            // Dibungkus try/catch: kegagalan generate token atau dispatch Job
+            // TIDAK boleh menggagalkan submit siswa. Ijin tetap valid & bisa
+            // diapprove manual via Portal Guru jika notifikasi WA gagal.
+            try {
+                $record->generateApprovalToken();
+                DB::afterCommit(fn () => SendLeaveRequestWaNotificationJob::dispatch($record->id));
+            } catch (\Throwable $e) {
+                report($e); // Catat ke log/Sentry tanpa melempar ke UI
+            }
+            // -- Akhir Integrasi WA Approval --
+
             $this->sendNotification($record);
         }
 
@@ -248,6 +262,12 @@ class IjinKehadiranForm extends Component
         $resolvedRecipients = $resolver->resolveRecipients($setting->recipients, $this->student);
 
         foreach ($resolvedRecipients as $recipient) {
+            // SKIP pengiriman biasa untuk wali kelas, karena sudah ditangani secara khusus
+            // oleh SendLeaveRequestWaNotificationJob yang memiliki fitur Link Konfirmasi & Lampiran
+            if ($recipient['type'] === 'wali_kelas') {
+                continue;
+            }
+
             \App\Jobs\SendWhatsAppNotificationJob::dispatch(
                 $recipient['number'],
                 $pesan,

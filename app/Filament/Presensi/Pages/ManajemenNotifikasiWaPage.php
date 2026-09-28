@@ -107,7 +107,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         } else {
             $data['leave_request_notif_is_active']      = false;
             $data['leave_request_notif_recipients']     = ['wali_kelas'];
-            $data['leave_request_notif_template_pesan'] = "Halo Bapak/Ibu {nama_wali_kelas},\nSiswa Anda, *{nama_siswa}* dari kelas *{kelas}* telah mengajukan *{jenis_ijin}* pada tanggal {tanggal_mulai} sampai {tanggal_selesai}.\nAlasan: {alasan}\n\nSilakan login ke Portal Guru untuk meninjau:\n{link_detail}";
+            $data['leave_request_notif_template_pesan'] = "Halo Bapak/Ibu {nama_wali_kelas},\nSiswa Anda, *{nama_siswa}* dari kelas *{kelas}* telah mengajukan *{jenis_ijin}* pada tanggal {tanggal_mulai} sampai {tanggal_selesai}.\nAlasan: {alasan}\n\nSilakan login ke Portal Guru untuk meninjau:\n{link_detail}\n\n🔗 *Link Konfirmasi:*\n{link_konfirmasi}";
         }
 
         // Load data Notification Settings (Persetujuan Ijin)
@@ -291,8 +291,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->columnSpanFull(),
                                         Textarea::make('leave_request_notif_template_pesan')
                                             ->label('Template Pesan Pengajuan Ijin')
-                                            ->rows(5)
-                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {alasan}, {nama_wali_kelas}, {link_detail}')
+                                            ->rows(6)
+                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {alasan}, {nama_wali_kelas}, {link_detail}, {link_konfirmasi}')
                                             ->columnSpanFull(),
                                     ]),
 

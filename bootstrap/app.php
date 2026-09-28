@@ -55,5 +55,21 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Handler 419 (CSRF Token Mismatch) khusus untuk halaman konfirmasi ijin via WA.
+        // In-app browser WhatsApp sering memblokir cookie sehingga sesi CSRF bisa expired.
+        // Guru mendapatkan pesan ramah daripada halaman error generik Laravel.
+        $exceptions->render(function (
+            \Illuminate\Session\TokenMismatchException $e,
+            \Illuminate\Http\Request $request
+        ) {
+            if ($request->is('ijin-approval/*')) {
+                $token = $request->route('token');
+
+                return response()->view('leave-request-approval', [
+                    'state'   => 'csrf_expired',
+                    'token'   => $token,
+                    'backUrl' => route('ijin.approval.show', ['token' => $token]),
+                ], 419);
+            }
+        });
     })->create();

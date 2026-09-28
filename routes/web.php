@@ -497,3 +497,29 @@ Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->gr
         })->name('portal-perpustakaan.logout');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Routes Publik: Konfirmasi Ijin Siswa via WhatsApp
+|--------------------------------------------------------------------------
+| Tidak memerlukan autentikasi. Dilindungi dengan:
+| - Token 8 karakter Base62 (regex constraint)
+| - Throttle 20 request/menit
+| - Single-use guard (update atomik di controller)
+| - URL media memakai Temporary Signed Route (expired 6 jam)
+*/
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('/ijin-approval/{token}', [\App\Http\Controllers\LeaveRequestApprovalController::class, 'show'])
+        ->name('ijin.approval.show')
+        ->where('token', '[A-Za-z0-9]{8}');
+
+    Route::post('/ijin-approval/{token}/action', [\App\Http\Controllers\LeaveRequestApprovalController::class, 'action'])
+        ->name('ijin.approval.action')
+        ->where('token', '[A-Za-z0-9]{8}');
+});
+
+Route::get('/ijin-media/{leaveRequestId}/{index}', [\App\Http\Controllers\LeaveRequestApprovalController::class, 'media'])
+    ->name('ijin.media')
+    ->middleware('signed')
+    ->where(['leaveRequestId' => '[0-9a-f\-]{36}', 'index' => '[0-9]+']);
+
