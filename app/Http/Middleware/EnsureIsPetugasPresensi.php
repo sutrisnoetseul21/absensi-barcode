@@ -23,7 +23,7 @@ class EnsureIsPetugasPresensi
                     'status' => 'unauthenticated'
                 ], 401);
             }
-            return redirect('/portal-presensi/login');
+            return redirect()->guest('/login');
         }
 
         $user = Auth::user();

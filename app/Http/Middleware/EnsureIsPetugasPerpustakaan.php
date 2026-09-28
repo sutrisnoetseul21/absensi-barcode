@@ -17,7 +17,7 @@ class EnsureIsPetugasPerpustakaan
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('web')->check()) {
-            return redirect('/portal-perpustakaan/login');
+            return redirect()->guest('/login');
         }
 
         $user = Auth::user();

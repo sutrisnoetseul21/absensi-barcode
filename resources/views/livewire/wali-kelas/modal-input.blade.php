@@ -21,7 +21,7 @@
                 </button>
             </div>
 
-            <div class="px-6 py-6 max-h-[60vh] overflow-y-auto [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
+            <div class="px-4 sm:px-6 py-6 max-h-[60vh] overflow-y-auto [-webkit-overflow-scrolling:touch]">
                 <!-- Date Picker -->
                 <div class="mb-6 flex items-center gap-4 bg-brand-primary/5 p-4 rounded-xl border border-brand-primary/20">
                     <label class="font-bold text-slate-800 whitespace-nowrap">Pilih Tanggal:</label>
@@ -29,7 +29,7 @@
                 </div>
 
                 @if(count($inputStudents) > 0)
-                    <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm custom-scrollbar [-webkit-overflow-scrolling:touch]">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">

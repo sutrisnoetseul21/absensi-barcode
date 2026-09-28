@@ -38,6 +38,7 @@ class WaliKelasSholatDhuhur extends Component
     public $isInputDateHoliday = false;
     public $inputDateHolidayDesc = '';
     public $inputStudents = [];
+    public $bulkStatus = '';
 
     // Modal Cetak Laporan
     public $showCetakModal = false;
@@ -220,45 +221,21 @@ class WaliKelasSholatDhuhur extends Component
             ->whereDate('date', $this->inputDate)
             ->get()->keyBy('student_id');
 
-        // Ambil presensi pagi hari ini untuk sinkronisasi otomatis
-        $morningAtts = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
-            ->where('class_id', $this->selectedClassId)
-            ->whereDate('date', $this->inputDate)
-            ->get()->keyBy('student_id');
-
         $list = [];
         foreach ($this->students as $student) {
             $sholat = $existingSholat->get($student->id);
-            $morning = $morningAtts->get($student->id);
 
             if ($sholat) {
                 $status = $sholat->status;
                 $ket = $sholat->keterangan;
                 $isHalangan = str_contains((string)$ket, 'Halangan') || str_contains((string)$ket, 'Haid');
-                $isPagiAbsent = false;
-            } else {
-                // SINKRONISASI PRESENSI PAGI:
-                // Jika siswa alpa di pagi hari -> otomatis tidak hadir di sholat
-                // Jika siswa sakit/izin di pagi hari -> otomatis ijin di sholat
-                if ($morning) {
-                    if ($morning->status === 'alpa') {
-                        $status = 'tidak_hadir';
-                        $ket = 'Alpa di presensi pagi';
-                        $isPagiAbsent = true;
-                    } elseif (in_array($morning->status, ['izin', 'sakit'])) {
-                        $status = 'ijin';
-                        $ket = ucfirst($morning->status) . ' di presensi pagi';
-                        $isPagiAbsent = true;
-                    } else {
-                        $status = 'hadir';
-                        $ket = '';
-                        $isPagiAbsent = false;
-                    }
-                } else {
-                    $status = 'hadir';
-                    $ket = '';
-                    $isPagiAbsent = false;
+                if ($isHalangan) {
+                    $status = 'haid';
                 }
+            } else {
+                // Jangan otomatis set 'hadir' jika belum ada data presensi sholat tersimpan!
+                $status = '';
+                $ket = '';
                 $isHalangan = false;
             }
 
@@ -271,38 +248,75 @@ class WaliKelasSholatDhuhur extends Component
                 'status'         => $status,
                 'keterangan'     => $ket,
                 'is_halangan'    => $isHalangan,
-                'is_pagi_absent' => $isPagiAbsent,
+                'is_pagi_absent' => false,
             ];
         }
 
         $this->inputStudents = $list;
+        $this->bulkStatus = '';
+    }
+
+    public function updatedBulkStatus($value)
+    {
+        $this->applyBulkStatus($value);
+    }
+
+    public function applyBulkStatus($status)
+    {
+        if (empty($status)) return;
+
+        foreach ($this->inputStudents as $idx => $student) {
+            $this->inputStudents[$idx]['status'] = $status;
+            if ($status === 'hadir') {
+                $this->inputStudents[$idx]['is_halangan'] = false;
+                if (($this->inputStudents[$idx]['keterangan'] ?? '') === 'Halangan / Haid') {
+                    $this->inputStudents[$idx]['keterangan'] = '';
+                }
+            } elseif ($status === 'tidak_hadir') {
+                $this->inputStudents[$idx]['is_halangan'] = false;
+                if (($this->inputStudents[$idx]['keterangan'] ?? '') === 'Halangan / Haid') {
+                    $this->inputStudents[$idx]['keterangan'] = '';
+                }
+            }
+        }
+    }
+
+    public function updatedInputStudents($value, $key)
+    {
+        $parts = explode('.', $key);
+        if (count($parts) === 2 && $parts[1] === 'status') {
+            $index = (int)$parts[0];
+            if ($value === 'haid') {
+                $this->inputStudents[$index]['is_halangan'] = true;
+                $this->inputStudents[$index]['keterangan'] = 'Halangan / Haid';
+            } else {
+                $this->inputStudents[$index]['is_halangan'] = false;
+                if (($this->inputStudents[$index]['keterangan'] ?? '') === 'Halangan / Haid') {
+                    $this->inputStudents[$index]['keterangan'] = '';
+                }
+            }
+        }
     }
 
     public function setAllStatus(string $status)
     {
-        foreach ($this->inputStudents as $idx => $student) {
-            // Jika siswa berhalangan/haid atau sakit pagi, pertahankan kecuali diubah manual
-            $this->inputStudents[$idx]['status'] = $status;
-            if ($status === 'hadir') {
-                $this->inputStudents[$idx]['is_halangan'] = false;
-            }
-        }
+        $this->bulkStatus = $status;
+        $this->applyBulkStatus($status);
     }
 
     public function toggleHalangan(int $index)
     {
         if (! isset($this->inputStudents[$index])) return;
 
-        $current = $this->inputStudents[$index]['is_halangan'] ?? false;
-        $newVal = ! $current;
-        $this->inputStudents[$index]['is_halangan'] = $newVal;
-
-        if ($newVal) {
-            $this->inputStudents[$index]['status'] = 'ijin';
+        $current = ($this->inputStudents[$index]['status'] ?? '') === 'haid';
+        if (! $current) {
+            $this->inputStudents[$index]['status'] = 'haid';
+            $this->inputStudents[$index]['is_halangan'] = true;
             $this->inputStudents[$index]['keterangan'] = 'Halangan / Haid';
         } else {
             $this->inputStudents[$index]['status'] = 'hadir';
-            if ($this->inputStudents[$index]['keterangan'] === 'Halangan / Haid') {
+            $this->inputStudents[$index]['is_halangan'] = false;
+            if (($this->inputStudents[$index]['keterangan'] ?? '') === 'Halangan / Haid') {
                 $this->inputStudents[$index]['keterangan'] = '';
             }
         }
@@ -310,10 +324,50 @@ class WaliKelasSholatDhuhur extends Component
 
     public function tarikDariPresensiPagi()
     {
-        $this->loadStudentsForInput();
+        if (! $this->selectedClassId || ! $this->selectedAcademicYearId || ! $this->inputDate) return;
+
+        $morningAtts = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
+            ->where('class_id', $this->selectedClassId)
+            ->whereDate('date', $this->inputDate)
+            ->get()->keyBy('student_id');
+
+        if ($morningAtts->isEmpty()) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Belum ada data presensi pagi untuk kelas ini pada tanggal ' . Carbon::parse($this->inputDate)->translatedFormat('d F Y') . '.',
+            ]);
+            return;
+        }
+
+        $syncCount = 0;
+        foreach ($this->inputStudents as $idx => $st) {
+            $morning = $morningAtts->get($st['id']);
+            if ($morning) {
+                $syncCount++;
+                if ($morning->status === 'alpa') {
+                    $this->inputStudents[$idx]['status'] = 'tidak_hadir';
+                    $this->inputStudents[$idx]['keterangan'] = 'Alpa di presensi pagi';
+                    $this->inputStudents[$idx]['is_halangan'] = false;
+                    $this->inputStudents[$idx]['is_pagi_absent'] = true;
+                } elseif (in_array($morning->status, ['izin', 'sakit'])) {
+                    $this->inputStudents[$idx]['status'] = 'ijin';
+                    $this->inputStudents[$idx]['keterangan'] = ucfirst($morning->status) . ' di presensi pagi';
+                    $this->inputStudents[$idx]['is_halangan'] = false;
+                    $this->inputStudents[$idx]['is_pagi_absent'] = true;
+                } else {
+                    $this->inputStudents[$idx]['status'] = 'hadir';
+                    $this->inputStudents[$idx]['is_halangan'] = false;
+                    if (str_contains((string)($this->inputStudents[$idx]['keterangan'] ?? ''), 'presensi pagi')) {
+                        $this->inputStudents[$idx]['keterangan'] = '';
+                    }
+                    $this->inputStudents[$idx]['is_pagi_absent'] = false;
+                }
+            }
+        }
+
         $this->dispatch('notify', [
-            'type'    => 'info',
-            'message' => 'Status berhasil diselaraskan dengan presensi pagi.',
+            'type'    => 'success',
+            'message' => "Berhasil menyelaraskan {$syncCount} data dari presensi pagi.",
         ]);
     }
 
@@ -330,8 +384,14 @@ class WaliKelasSholatDhuhur extends Component
             ->pluck('id', 'student_id')
             ->toArray();
 
+        $savedCount = 0;
         foreach ($this->inputStudents as $stData) {
+            if (empty($stData['status']) || empty($stData['id'])) continue;
+
             $enrId = $enrollmentMap[$stData['id']] ?? null;
+            $rawStatus = $stData['status'];
+            $isHalangan = ($rawStatus === 'haid') || !empty($stData['is_halangan']);
+            $dbStatus = ($rawStatus === 'haid') ? 'ijin' : $rawStatus;
 
             PresensiSholatDhuhur::updateOrCreate(
                 [
@@ -342,11 +402,20 @@ class WaliKelasSholatDhuhur extends Component
                     'academic_year_id'    => $this->selectedAcademicYearId,
                     'class_id'            => $this->selectedClassId,
                     'enrollment_id'       => $enrId,
-                    'status'              => $stData['status'],
-                    'keterangan'          => $stData['keterangan'] ?: ($stData['is_halangan'] ? 'Halangan / Haid' : null),
+                    'status'              => $dbStatus,
+                    'keterangan'          => $stData['keterangan'] ?: ($isHalangan ? 'Halangan / Haid' : null),
                     'input_by_teacher_id' => $teacherId,
                 ]
             );
+            $savedCount++;
+        }
+
+        if ($savedCount === 0) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Pilih status kehadiran siswa terlebih dahulu atau gunakan Set Massal.',
+            ]);
+            return;
         }
 
         $this->showInputModal = false;

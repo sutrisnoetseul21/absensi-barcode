@@ -72,7 +72,7 @@
                         </div>
                         <p class="text-sm font-medium leading-relaxed">{{ session('info_login') }}</p>
                     </div>
-                    <a href="{{ route('portal-siswa.login') }}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-xl whitespace-nowrap shadow-md transition-all shrink-0">
+                    <a href="{{ route('login') }}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-xl whitespace-nowrap shadow-md transition-all shrink-0">
                         <i class="fas fa-sign-in-alt mr-1"></i> Login Portal
                     </a>
                 </div>

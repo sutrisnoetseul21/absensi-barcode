@@ -45,7 +45,7 @@ class GuruProfil extends Component
     {
         $this->user = Auth::user();
         if (!$this->user || !$this->user->teacher) {
-            return redirect()->route('portal-guru.login');
+            return redirect()->route('login');
         }
 
         $this->teacher = $this->user->teacher;

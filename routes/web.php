@@ -55,8 +55,9 @@ Route::get('/pilih-portal', function () {
     return view('pilih-portal', compact('accessiblePortals'));
 })->middleware('auth')->name('pilih-portal');
 
-// Route fallback untuk redirect unauthenticated users ke Filament admin login
-Route::redirect('/pilih-admin', '/admin/login')->name('pilih-admin');
+// Route fallback untuk redirect unauthenticated users ke login
+Route::redirect('/pilih-admin', '/login')->name('pilih-admin');
+Route::redirect('/admin/login', '/login')->name('filament.admin.auth.login');
 Route::get('/presensi', PublicDashboard::class)->name('public.dashboard');
 Route::get('/presensi/dashboardv1', PublicDashboardV1::class)->name('public.dashboard.v1');
 Route::get('/presensi/display', PublicDashboard::class)->name('public.display');
@@ -107,7 +108,7 @@ Route::prefix('portal-presensi')->group(function () {
     // Route dashboard Portal Presensi (sementara menggunakan tampilan kosong)
     Route::get('/', \App\Livewire\PortalPresensiDashboard::class)->middleware('auth.presensi')->name('portal-presensi.dashboard');
 
-    Route::get('/login', \App\Livewire\PetugasPresensiLogin::class)->middleware('guest')->name('portal-presensi.login');
+    Route::redirect('/login', '/login')->name('portal-presensi.login');
     
     Route::middleware('auth.presensi')->group(function () {
         Route::get('/input-manual', \App\Livewire\PortalPresensi\InputPresensiManual::class)->name('portal-presensi.input-manual');
@@ -308,7 +309,7 @@ if (empty($spikapSlug)) {
 
 // Wali Kelas Routes (Portal Guru)
 Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () use ($spikapSlug) {
-    Route::get('/login', WaliKelasLogin::class)->middleware('guest')->name('portal-guru.login');
+    Route::redirect('/login', '/login')->name('portal-guru.login');
     
     // Route untuk semua Guru (tidak harus Wali Kelas)
     Route::middleware('auth')->group(function () {
@@ -382,7 +383,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
 
 // Siswa Routes (Portal Siswa)
 Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function () use ($spikapSlug) {
-    Route::get('/login', SiswaLogin::class)->middleware('guest')->name('portal-siswa.login');
+    Route::redirect('/login', '/login')->name('portal-siswa.login');
     
     Route::middleware('auth.siswa')->group(function () use ($spikapSlug) {
         Route::get('/', \App\Livewire\SiswaMainDashboard::class)->name('portal-siswa.dashboard');
@@ -427,7 +428,7 @@ Route::middleware('auth')->prefix('spikap/lampiran')->name('spikap.lampiran.')->
 
 // Portal Web Sekolah Routes
 Route::prefix('portal-web')->group(function () {
-    Route::get('/login', \App\Livewire\PortalWeb\Login::class)->middleware('guest')->name('portal-web.login');
+    Route::redirect('/login', '/login')->name('portal-web.login');
 
     Route::middleware('auth.web')->group(function () {
         Route::get('/', \App\Livewire\PortalWeb\Dashboard::class)->name('portal-web.dashboard');
@@ -464,7 +465,7 @@ Route::prefix('portal-web')->group(function () {
 
 // Petugas Perpustakaan Routes (Portal Perpustakaan)
 Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->group(function () {
-    Route::get('/login', \App\Livewire\PetugasPerpusLogin::class)->middleware('guest')->name('portal-perpustakaan.login');
+    Route::redirect('/login', '/login')->name('portal-perpustakaan.login');
     
     Route::middleware('auth.perpus')->group(function () {
         Route::get('/', \App\Livewire\PetugasPerpusDashboard::class)->name('portal-perpustakaan.dashboard');

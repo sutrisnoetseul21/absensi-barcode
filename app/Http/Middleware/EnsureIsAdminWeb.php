@@ -17,7 +17,7 @@ class EnsureIsAdminWeb
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('web')->check()) {
-            return redirect('/portal-web/login');
+            return redirect()->guest('/login');
         }
 
         $user = Auth::user();

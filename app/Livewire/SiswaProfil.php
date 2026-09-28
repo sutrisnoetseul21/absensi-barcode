@@ -33,7 +33,7 @@ class SiswaProfil extends Component
     {
         $user = Auth::user();
         if (!$user || !$user->student) {
-            return redirect()->route('portal-siswa.login');
+            return redirect()->guest('/login');
         }
 
         $this->student = $user->student;

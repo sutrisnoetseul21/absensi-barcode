@@ -17,7 +17,7 @@ class EnsureCanAccessSpikapGuru
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('web')->check()) {
-            return redirect('/portal-guru/login');
+            return redirect()->guest('/login');
         }
 
         $user = Auth::user();

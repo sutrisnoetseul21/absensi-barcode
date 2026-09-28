@@ -101,7 +101,6 @@ class AdminPanelProvider extends PanelProvider
                     ->url(fn (): string => url('/portal-web'))
                     ->icon('heroicon-o-computer-desktop'),
             ])
-            ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->profile()
             ->colors([
                 'primary' => Color::Amber,
@@ -159,7 +158,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                \App\Http\Middleware\FilamentAuthenticate::class,
             ])
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
