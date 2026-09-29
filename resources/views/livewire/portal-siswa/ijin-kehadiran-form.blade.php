@@ -202,9 +202,9 @@
                 <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                            Lampiran Bukti
+                            Lampiran Bukti <span class="text-rose-500">*</span>
                         </label>
-                        <span class="text-[11px] text-slate-400 font-medium">Opsional</span>
+                        <span class="text-[11px] text-rose-500 font-semibold">Wajib Diunggah</span>
                     </div>
 
                     <!-- Drag & Drop / File Input Box -->
@@ -277,6 +277,9 @@
                     @if($existing_file_paths && count($existing_file_paths) > 0)
                         <div class="space-y-2">
                         @foreach($existing_file_paths as $path)
+                        @php
+                            $filePath = is_array($path) ? ($path['path'] ?? '') : $path;
+                        @endphp
                         <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
                             <div class="flex items-center gap-2.5 overflow-hidden">
                                 <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
@@ -286,7 +289,7 @@
                                 </div>
                                 <div class="truncate text-xs">
                                     <span class="font-bold text-slate-800 block truncate">Lampiran Tersimpan</span>
-                                    <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-indigo-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
+                                    <a href="{{ asset('storage/' . $filePath) }}" target="_blank" class="text-indigo-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
                                         Lihat / Unduh Dokumen
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </a>

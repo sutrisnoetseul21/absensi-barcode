@@ -28,3 +28,6 @@ Artisan::command('webprofil:fix-disk', function () {
 })->purpose('Copy web-profil files from private to public disk');
 
 \Illuminate\Support\Facades\Schedule::command('scheduler:heartbeat')->everyMinute();
+\Illuminate\Support\Facades\Schedule::command('presensi:send-daily-class-report')->everyMinute();
+\Illuminate\Support\Facades\Schedule::command('presensi:send-school-summary')->everyMinute();
+\Illuminate\Support\Facades\Schedule::command('presensi:auto-alpa')->everyMinute()->withoutOverlapping()->runInBackground();

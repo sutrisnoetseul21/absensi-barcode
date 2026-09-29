@@ -74,8 +74,12 @@
                         <div class="flex flex-wrap gap-4">
                             @foreach($request->attachments as $index => $path)
                                 @php
-                                    $isImage = in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp', 'gif']);
-                                    $fileUrl = asset('storage/' . $path);
+                                    $filePath = is_array($path) ? ($path['path'] ?? '') : $path;
+                                    $fileName = is_array($path) ? ($path['name'] ?? basename($filePath)) : basename($filePath);
+                                    $isImage  = is_array($path) && isset($path['mediatype'])
+                                        ? ($path['mediatype'] === 'image')
+                                        : in_array(strtolower(pathinfo($filePath, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                    $fileUrl  = asset('storage/' . $filePath);
                                 @endphp
                                 
                                 @if($isImage)
@@ -91,7 +95,7 @@
                                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         </div>
                                         <div class="truncate">
-                                            <a href="{{ $fileUrl }}" target="_blank" class="text-sm font-semibold text-brand-primary hover:underline block truncate">Dokumen {{ count($request->attachments) > 1 ? ($index + 1) : '' }}</a>
+                                            <a href="{{ $fileUrl }}" target="_blank" class="text-sm font-semibold text-brand-primary hover:underline block truncate">{{ $fileName ?: ('Dokumen ' . (count($request->attachments) > 1 ? ($index + 1) : '')) }}</a>
                                             <span class="text-xs text-slate-500 block truncate">PDF / File Lain</span>
                                         </div>
                                     </div>

@@ -47,8 +47,18 @@ class IjinKehadiranForm extends Component
             $this->start_date = $record->start_date->format('Y-m-d');
             $this->end_date = $record->end_date->format('Y-m-d');
             $this->duration_days = $record->duration_days;
-            $this->reason = $record->reason;
-            $this->existing_file_paths = $record->attachments ?? [];
+            $rawPaths = [];
+            if (!empty($record->file_path)) {
+                $rawPaths[] = $record->file_path;
+            }
+            if (is_array($record->file_paths)) {
+                foreach ($record->file_paths as $p) {
+                    if (!empty($p)) {
+                        $rawPaths[] = is_array($p) ? ($p['path'] ?? '') : $p;
+                    }
+                }
+            }
+            $this->existing_file_paths = array_values(array_filter(array_unique($rawPaths)));
         } else {
             $this->start_date = now()->format('Y-m-d');
             $this->end_date = now()->format('Y-m-d');
@@ -108,13 +118,20 @@ class IjinKehadiranForm extends Component
 
     public function save()
     {
+        $hasExistingFiles = !empty($this->existing_file_paths) && count($this->existing_file_paths) > 0;
+
         $this->validate([
             'type' => 'required|in:ijin,sakit',
             'duration_days' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'reason' => 'required|string',
-            'attachments' => 'nullable|array|max:5',
+            'attachments' => $hasExistingFiles ? 'nullable|array|max:5' : 'required|array|min:1|max:5',
             'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
+        ], [
+            'attachments.required' => 'Lampiran bukti (surat dokter / surat izin orang tua) wajib diunggah.',
+            'attachments.min' => 'Lampiran bukti (surat dokter / surat izin orang tua) wajib diunggah minimal 1 berkas.',
+            'attachments.*.mimes' => 'Format lampiran harus berupa JPG, PNG, WEBP, atau PDF.',
+            'attachments.*.max' => 'Ukuran setiap lampiran maksimal 2MB.',
         ]);
 
         // Validasi Tahun Ajaran Aktif
