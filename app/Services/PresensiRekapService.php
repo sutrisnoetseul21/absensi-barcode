@@ -65,6 +65,20 @@ class PresensiRekapService
                 : 0,
         ];
 
+        $todayAttendances = [];
+        foreach ($todayAtts as $att) {
+            $todayAttendances[$att->student_id] = [
+                'id'            => $att->id,
+                'status'        => $att->status,
+                'status_pulang' => $att->status_pulang,
+                'scan_time'     => $att->scan_time ? Carbon::parse($att->scan_time)->format('H:i') : null,
+                'scan_out_time' => $att->scan_out_time ? Carbon::parse($att->scan_out_time)->format('H:i') : null,
+                'late_minutes'  => $att->late_minutes,
+                'note'          => $att->note,
+                'is_manual'     => (bool)$att->is_manual_input,
+            ];
+        }
+
         // Rentang bulan yang dipilih
         $startDateObj = Carbon::create($calendarYear, $month, 1)->startOfMonth();
         $daysInMonth  = $startDateObj->daysInMonth;
@@ -163,6 +177,7 @@ class PresensiRekapService
             'monthlyStats'      => $monthlyStats,
             'classMonthlyStats' => $classMonthlyStats,
             'todayStats'        => $todayStats,
+            'todayAttendances'  => $todayAttendances,
             'alerts'            => ['alpa' => $alpaTerlaluBanyak, 'telat' => $telatTerlaluBanyak],
             'daysInMonth'       => $daysInMonth,
             'todayDate'         => $todayDate,

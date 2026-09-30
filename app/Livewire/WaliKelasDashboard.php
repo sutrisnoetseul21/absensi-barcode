@@ -31,6 +31,7 @@ class WaliKelasDashboard extends Component
     public $classMonthlyStats = [];
     public $alerts = [];
     public $todayStats = [];
+    public $todayAttendances = [];
 
     public $daysInMonth = 0;
     public $todayDate;
@@ -146,6 +147,7 @@ class WaliKelasDashboard extends Component
         } else {
             $this->selectedClassId = null;
             $this->todayStats      = [];
+            $this->todayAttendances = [];
         }
 
         $this->loadDashboardData();
@@ -201,6 +203,7 @@ class WaliKelasDashboard extends Component
             $this->classMonthlyStats = [];
             $this->alerts            = [];
             $this->todayStats        = [];
+            $this->todayAttendances  = [];
             return;
         }
         
@@ -222,6 +225,7 @@ class WaliKelasDashboard extends Component
         $this->monthlyStats      = $result['monthlyStats'];
         $this->classMonthlyStats = $result['classMonthlyStats'];
         $this->todayStats        = $result['todayStats'];
+        $this->todayAttendances  = $result['todayAttendances'] ?? [];
         $this->alerts            = $result['alerts'];
         $this->daysInMonth       = $result['daysInMonth'];
         $this->todayDate         = $result['todayDate'];
@@ -342,7 +346,7 @@ class WaliKelasDashboard extends Component
                 ->where('date', $this->inputDate)
                 ->first();
 
-            $newLate = ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0;
+            $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
             $newStatusPulang = empty($data['status_pulang']) ? null : $data['status_pulang'];
 
             // Jika status datang adalah izin, sakit, atau alpa, maka status pulang mengikuti
@@ -350,13 +354,25 @@ class WaliKelasDashboard extends Component
                 $newStatusPulang = $data['status'];
             }
 
+            // Jika data ini adalah hasil scan otomatis (is_manual_input === false)
+            if ($existing && $existing->is_manual_input === false) {
+                // Pertahankan status datang & keterlambatan asli dari mesin scanner kiosk
+                $newLate = $existing->late_minutes;
+                $data['status'] = $existing->status;
+
+                // Jika status pulang juga tidak berubah, lewati langsung secara hening
+                if ($existing->status_pulang === $newStatusPulang) {
+                    continue;
+                }
+            } else {
+                $newLate = ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0;
+            }
+
             // Jika data sudah ada dan tidak ada perubahan sama sekali, lewati penyimpanan agar tidak merusak data otomatis
             if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate && $existing->status_pulang === $newStatusPulang) {
                 continue;
             }
 
-            $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
-            
             // Blokir Guru jika mengedit data kedatangan otomatis (hanya Admin yang boleh)
             // Tapi Bolehkan guru mengisi/mengubah status pulang
             if ($existing && $existing->is_manual_input === false && $isGuru) {

@@ -251,12 +251,72 @@ class PresensiSholatDhuhurService
 
         // Stats hari ini untuk kelas ini
         $todaySholat = $sholatRecords->filter(fn ($item) => $item->date->toDateString() === $todayDate);
+        $todayMorning = $morningRecords->filter(fn ($item) => $item->date->toDateString() === $todayDate);
+
+        $todayAttendances = [];
+        $todayHadir = 0;
+        $todayIjin = 0;
+        $todayTidakHadir = 0;
+
+        foreach ($students as $student) {
+            $sh = $todaySholat->firstWhere('student_id', $student->id);
+            if ($sh) {
+                $status = $sh->status;
+                $todayAttendances[$student->id] = [
+                    'id'         => $sh->id,
+                    'status'     => $status,
+                    'keterangan' => $sh->keterangan,
+                    'time'       => $sh->created_at ? Carbon::parse($sh->created_at)->format('H:i') : null,
+                ];
+                if ($status === 'hadir') $todayHadir++;
+                elseif ($status === 'ijin') $todayIjin++;
+                elseif ($status === 'tidak_hadir') $todayTidakHadir++;
+                continue;
+            }
+
+            // Jika belum ada record sholat, periksa presensi pagi
+            $m = $todayMorning->firstWhere('student_id', $student->id);
+            if ($m) {
+                if ($m->status === 'alpa') {
+                    $todayAttendances[$student->id] = [
+                        'id'         => null,
+                        'status'     => 'tidak_hadir',
+                        'keterangan' => 'Alpa (Presensi Pagi)',
+                        'time'       => null,
+                    ];
+                    $todayTidakHadir++;
+                    continue;
+                } elseif (in_array($m->status, ['izin', 'sakit'])) {
+                    $todayAttendances[$student->id] = [
+                        'id'         => null,
+                        'status'     => 'ijin',
+                        'keterangan' => ucfirst($m->status) . ' (Presensi Pagi)',
+                        'time'       => null,
+                    ];
+                    $todayIjin++;
+                    continue;
+                }
+            }
+
+            // Belum ada presensi sholat
+            $todayAttendances[$student->id] = [
+                'id'         => null,
+                'status'     => 'belum',
+                'keterangan' => null,
+                'time'       => null,
+            ];
+        }
+
+        $todayBelum = max(0, $totalStudents - ($todayHadir + $todayIjin + $todayTidakHadir));
+
         $todayStats = [
-            'hadir'       => $todaySholat->where('status', 'hadir')->count(),
-            'ijin'        => $todaySholat->where('status', 'ijin')->count(),
-            'tidak_hadir' => $todaySholat->where('status', 'tidak_hadir')->count(),
-            'total'       => $totalStudents,
-            'is_holiday'  => !$this->isHariSholatDhuhur(Carbon::parse($todayDate), $classId),
+            'hadir'            => $todayHadir,
+            'ijin'             => $todayIjin,
+            'tidak_hadir'      => $todayTidakHadir,
+            'belum'            => $todayBelum,
+            'total'            => $totalStudents,
+            'persentase_hadir' => $totalStudents > 0 ? round(($todayHadir / $totalStudents) * 100, 1) : 0,
+            'is_holiday'       => !$this->isHariSholatDhuhur(Carbon::parse($todayDate), $classId),
         ];
 
         return [
@@ -264,6 +324,7 @@ class PresensiSholatDhuhurService
             'monthlyStats'      => $monthlyStats,
             'classMonthlyStats' => $classMonthlyStats,
             'todayStats'        => $todayStats,
+            'todayAttendances'  => $todayAttendances,
             'daysInMonth'       => $daysInMonth,
             'calendarYear'      => $calendarYear,
             'month'             => $month,

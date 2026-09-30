@@ -29,6 +29,7 @@ class WaliKelasSholatDhuhur extends Component
     public $monthlyStats = [];
     public $classMonthlyStats = [];
     public $todayStats = [];
+    public $todayAttendances = [];
     public $daysInMonth = 0;
     public $todayDate;
 
@@ -138,6 +139,7 @@ class WaliKelasSholatDhuhur extends Component
         } else {
             $this->selectedClassId = null;
             $this->todayStats = [];
+            $this->todayAttendances = [];
         }
 
         $this->loadDashboardData();
@@ -165,6 +167,7 @@ class WaliKelasSholatDhuhur extends Component
             $this->monthlyStats      = [];
             $this->classMonthlyStats = [];
             $this->todayStats        = [];
+            $this->todayAttendances  = [];
             return;
         }
 
@@ -186,6 +189,7 @@ class WaliKelasSholatDhuhur extends Component
         $this->monthlyStats      = $result['monthlyStats'];
         $this->classMonthlyStats = $result['classMonthlyStats'];
         $this->todayStats        = $result['todayStats'];
+        $this->todayAttendances  = $result['todayAttendances'] ?? [];
         $this->daysInMonth       = $result['daysInMonth'];
         $this->todayDate         = $result['todayDate'];
     }

@@ -1,4 +1,10 @@
-<div class="min-h-full bg-slate-50 font-jakarta pb-12" x-data="{ showInputModal: @entangle('showInputModal').live, showCetakModal: @entangle('showCetakModal').live }">
+<div class="min-h-full bg-slate-50 font-jakarta pb-12" x-data="{ 
+    showInputModal: @entangle('showInputModal').live, 
+    showCetakModal: @entangle('showCetakModal').live,
+    rekapMode: 'harian',
+    dailyFilter: 'all',
+    searchQuery: ''
+}">
     @include('livewire.portal-guru.sholat-dhuhur.header')
 
     <!-- Main Content -->
