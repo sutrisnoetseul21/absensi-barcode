@@ -401,6 +401,8 @@ class KonsultasiList extends Component
             ->count();
 
         return view('livewire.portal-guru.guru-wali.konsultasi-list', [
+            'kelompok'         => $this->kelompok,
+            'teacher'          => $this->teacher,
             'konsultasis'      => $konsultasis,
             'countMenunggu'    => $countMenunggu,
             'countDijadwalkan' => $countDijadwalkan,

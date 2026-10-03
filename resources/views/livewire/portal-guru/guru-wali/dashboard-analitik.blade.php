@@ -8,7 +8,10 @@
                 </svg>
                 <span>Command Center Pimpinan</span>
             </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">SI-WALI: Dasbor Analitik</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <img src="{{ asset('images/logo-si-wali.png') }}" class="w-7 h-7 object-contain" alt="Logo SI-WALI">
+                <span>SI-WALI: Dasbor Analitik</span>
+            </h1>
             <p class="text-[11px] font-bold text-brand-primary mt-1 uppercase tracking-wider">Sistem Informasi & Pendampingan Guru Wali</p>
             <p class="text-xs sm:text-sm text-slate-500 mt-1 italic">
                 "Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan"

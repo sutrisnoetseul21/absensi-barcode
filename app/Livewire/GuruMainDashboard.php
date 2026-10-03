@@ -27,6 +27,8 @@ class GuruMainDashboard extends Component
     public $isWaliKelasMurni = false;
     public $canAccessIjin = false;
     public $isGuruWaliAktif = false;
+    public $pendingKonsultasiCount = 0;
+    public $latestPendingKonsultasi = null;
     public $canAccessBk = false;
     public $pendingBkRujukanCount = 0;
 
@@ -52,6 +54,18 @@ class GuruMainDashboard extends Component
         $this->isWaliKelasMurni = $user->isWaliKelasMurni();
         $this->canAccessIjin = $this->isWaliKelasMurni || ($user->isGuruBk() && $this->teacher?->kelasPantau()->exists());
         $this->isGuruWaliAktif = (bool) ($this->teacher?->kelompokGuruWali && $this->teacher->kelompokGuruWali->status_aktif);
+
+        if ($this->isGuruWaliAktif && $this->teacher) {
+            $pendingQuery = \App\Models\KonsultasiGuruWali::with(['siswa', 'kelompok'])
+                ->where('teacher_id', $this->teacher->id)
+                ->where('status_pengajuan', 'Menunggu Konfirmasi');
+
+            $this->pendingKonsultasiCount = $pendingQuery->count();
+            if ($this->pendingKonsultasiCount > 0) {
+                $this->latestPendingKonsultasi = $pendingQuery->latest('created_at')->first();
+            }
+        }
+
         $this->canAccessBk = $user->canAccessPortalBk();
 
         if ($this->canAccessBk) {
@@ -155,6 +169,31 @@ class GuruMainDashboard extends Component
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        return view('livewire.guru-main-dashboard');
+        return view('livewire.guru-main-dashboard', [
+            'teacher'                    => $this->teacher,
+            'activeAnnouncements'        => $this->activeAnnouncements,
+            'activeBooksCount'           => $this->activeBooksCount,
+            'kelasAmpuCount'             => $this->kelasAmpuCount,
+            'totalStudentsCount'         => $this->totalStudentsCount,
+            'pendingLeaveRequestsCount'  => $this->pendingLeaveRequestsCount,
+            'approvedLeaveRequestsCount' => $this->approvedLeaveRequestsCount,
+            'rejectedLeaveRequestsCount' => $this->rejectedLeaveRequestsCount,
+            'isWaliKelasAktif'           => $this->isWaliKelasAktif,
+            'isWaliKelasMurni'           => $this->isWaliKelasMurni,
+            'canAccessIjin'              => $this->canAccessIjin,
+            'isGuruWaliAktif'            => $this->isGuruWaliAktif,
+            'pendingKonsultasiCount'     => $this->pendingKonsultasiCount,
+            'latestPendingKonsultasi'    => $this->latestPendingKonsultasi,
+            'canAccessBk'                => $this->canAccessBk,
+            'pendingBkRujukanCount'      => $this->pendingBkRujukanCount,
+            'hasSpikapAccess'            => $this->hasSpikapAccess,
+            'spikapCount'                => $this->spikapCount,
+            'spikapAktifCount'           => $this->spikapAktifCount,
+            'spikapDaruratCount'         => $this->spikapDaruratCount,
+            'hasPresensiAccess'          => $this->hasPresensiAccess,
+            'hasPerpusAccess'            => $this->hasPerpusAccess,
+            'hasWebAccess'               => $this->hasWebAccess,
+            'isSuperAdmin'               => $this->isSuperAdmin,
+        ]);
     }
 }

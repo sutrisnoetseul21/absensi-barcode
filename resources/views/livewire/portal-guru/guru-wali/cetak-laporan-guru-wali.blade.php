@@ -3,9 +3,7 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-xs font-semibold mb-2">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
+                <img src="{{ asset('images/logo-si-wali.png') }}" class="w-4 h-4 object-contain" alt="Logo SI-WALI">
                 <span>SI-WALI &bull; Dokumen Resmi Permendikdasmen No. 11/2025</span>
             </div>
             <h1 class="text-2xl font-black text-slate-900 tracking-tight">SI-WALI: Pusat Cetak Laporan Guru Wali</h1>

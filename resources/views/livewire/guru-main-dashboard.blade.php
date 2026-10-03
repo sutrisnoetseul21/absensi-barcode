@@ -34,14 +34,65 @@
                 @endif
                 @if($isGuruWaliAktif)
                 <a href="{{ route('portal-guru.guru-wali.kelompok') }}" 
-                   class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all border border-white/30 backdrop-blur-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    SI-WALI (Guru Wali)
+                   class="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-xs font-bold transition-all border border-white/30 backdrop-blur-sm flex items-center gap-2 relative">
+                    <img src="{{ asset('images/logo-si-wali.png') }}" class="w-4 h-4 object-contain" alt="Logo SI-WALI">
+                    <span>SI-WALI (Guru Wali)</span>
+                    @if($pendingKonsultasiCount > 0)
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs animate-pulse">
+                            {{ $pendingKonsultasiCount }}
+                        </span>
+                    @endif
                 </a>
                 @endif
             </div>
         </div>
     </div>
+
+    <!-- Alert Banner: Permintaan Cerita / Konsultasi SI-WALI Baru -->
+    @if($isGuruWaliAktif && $pendingKonsultasiCount > 0)
+    <div class="relative bg-gradient-to-r from-rose-50 via-white to-amber-50/50 rounded-2xl p-4 sm:p-5 border-2 border-rose-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20">
+                <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+            </div>
+            <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200 uppercase tracking-wider">
+                        Ruang Aman Cerita SI-WALI
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-600 text-white shadow-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                        {{ $pendingKonsultasiCount }} Permintaan Menunggu Konfirmasi
+                    </span>
+                </div>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                    Ada Peserta Didik Mengajukan Cerita / Konsultasi Baru!
+                </h3>
+                @if($latestPendingKonsultasi)
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Siswa <strong>{{ $latestPendingKonsultasi->siswa?->name ?? 'Peserta Didik' }}</strong> mengajukan pendampingan dengan topik:
+                    <span class="text-rose-700 font-semibold italic">"{{ $latestPendingKonsultasi->topik_konsultasi }}"</span>.
+                </p>
+                @else
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Peserta didik di kelompok binaan Anda membutuhkan tanggapan atau konfirmasi jadwal pendampingan.
+                </p>
+                @endif
+            </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+            <a href="{{ route('portal-guru.guru-wali.konsultasi') }}" 
+               class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-md shadow-rose-600/25 flex items-center gap-1.5 hover:scale-105">
+                <span>Buka Ruang Aman Cerita</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </a>
+        </div>
+    </div>
+    @endif
 
     <!-- 4 Main Shortcut Cards Grid (Fitur Utama Guru) -->
     <div class="space-y-3">
@@ -316,17 +367,25 @@
 
             <!-- Shortcut: SI-WALI (Permendikdasmen No. 11/2025) -->
             @if($isGuruWaliAktif)
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/40 transition-all flex flex-col justify-between group">
+            <div class="bg-white rounded-2xl p-5 border {{ $pendingKonsultasiCount > 0 ? 'border-rose-300 ring-2 ring-rose-500/20 bg-rose-50/10' : 'border-slate-200/80' }} shadow-sm hover:shadow-md hover:border-brand-primary/40 transition-all flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <div class="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center group-hover:scale-105 group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xs">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
+                        <div class="w-12 h-12 rounded-2xl {{ $pendingKonsultasiCount > 0 ? 'bg-rose-500/10 border-rose-300' : 'bg-brand-primary/10 border-brand-primary/20' }} p-1.5 flex items-center justify-center group-hover:scale-105 transition-all shadow-xs border">
+                            <img src="{{ asset('images/logo-si-wali.png') }}" alt="Logo SI-WALI" class="w-full h-full object-contain">
                         </div>
-                        <span class="text-[11px] font-extrabold text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-xl border border-brand-primary/20">
-                            Permen 11/2025
-                        </span>
+                        @if($pendingKonsultasiCount > 0)
+                            <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-xl border border-rose-300">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                </span>
+                                {{ $pendingKonsultasiCount }} Menunggu Cerita
+                            </span>
+                        @else
+                            <span class="text-[11px] font-extrabold text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-xl border border-brand-primary/20">
+                                Permen 11/2025
+                            </span>
+                        @endif
                     </div>
                     <div class="space-y-1">
                         <h3 class="text-base font-extrabold text-slate-900 group-hover:text-brand-primary transition-colors flex items-center gap-1.5">
@@ -339,13 +398,34 @@
                         <p class="text-xs text-slate-500 mt-1 leading-relaxed">
                             Sistem Informasi & Pendampingan Guru Wali. Kelola kelompok dampingan, tulis jurnal bimbingan, ruang aman bercerita, dan pantau rekam jejak murid.
                         </p>
+                        @if($pendingKonsultasiCount > 0)
+                            <div class="mt-2.5 flex items-center gap-1.5">
+                                <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200">
+                                    {{ $pendingKonsultasiCount }} Siswa Butuh Pendampingan
+                                </span>
+                            </div>
+                        @endif
                     </div>
                 </div>
-                <a href="{{ route('portal-guru.guru-wali.kelompok') }}" 
-                   class="mt-4 w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-brand-primary hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200/60 hover:border-brand-primary">
-                    Buka Portal SI-WALI
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </a>
+                @if($pendingKonsultasiCount > 0)
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                        <a href="{{ route('portal-guru.guru-wali.konsultasi') }}" 
+                           class="flex-1 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                            Ruang Aman ({{ $pendingKonsultasiCount }})
+                        </a>
+                        <a href="{{ route('portal-guru.guru-wali.kelompok') }}" 
+                           class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all border border-slate-200">
+                            Kelompok
+                        </a>
+                    </div>
+                @else
+                    <a href="{{ route('portal-guru.guru-wali.kelompok') }}" 
+                       class="mt-4 w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-brand-primary hover:text-white text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200/60 hover:border-brand-primary">
+                        Buka Portal SI-WALI
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                @endif
             </div>
             @endif
 

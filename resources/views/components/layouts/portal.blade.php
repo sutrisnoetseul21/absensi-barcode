@@ -630,10 +630,8 @@
 
                         <!-- Menu Konsultasi Guru Wali (Permen 11/2025) -->
                         <a href="{{ route('portal-siswa.guru-wali') }}" :title="isCollapsed ? 'SI-WALI' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isGuruWaliActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                            <div class="p-1.5 rounded-lg {{ $isGuruWaliActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm relative">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
+                            <div class="p-1 rounded-lg {{ $isGuruWaliActive ? 'bg-white shadow-md' : 'bg-slate-100 group-hover:bg-brand-primary/10' }} group-hover:scale-105 transition-transform backdrop-blur-sm relative flex items-center justify-center">
+                                <img src="{{ asset('images/logo-si-wali.png') }}" alt="SI-WALI" class="w-5 h-5 object-contain">
                                 @if($guruWaliNotifCount > 0)
                                     <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full ring-2 ring-white"></span>
                                 @endif
@@ -834,8 +832,8 @@
                                 class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group relative {{ $isGuruWaliGroupActive ? 'bg-brand-primary/10 text-brand-primary font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
                                 :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                             <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="p-1.5 rounded-lg {{ $isGuruWaliGroupActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm relative">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <div class="p-1 rounded-lg {{ $isGuruWaliGroupActive ? 'bg-white shadow-md' : 'bg-slate-100 group-hover:bg-brand-primary/10' }} group-hover:scale-105 transition-transform backdrop-blur-sm relative flex items-center justify-center">
+                                    <img src="{{ asset('images/logo-si-wali.png') }}" alt="SI-WALI" class="w-5 h-5 object-contain">
                                     @if($pendingKonsultasiCount > 0)
                                         <span x-show="isCollapsed" class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"></span>
                                     @endif

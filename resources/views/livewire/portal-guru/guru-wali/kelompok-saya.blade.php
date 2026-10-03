@@ -5,9 +5,7 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold backdrop-blur-md mb-3">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                    <img src="{{ asset('images/logo-si-wali.png') }}" class="w-4 h-4 object-contain" alt="Logo SI-WALI">
                     <span>SI-WALI • Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan</span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">

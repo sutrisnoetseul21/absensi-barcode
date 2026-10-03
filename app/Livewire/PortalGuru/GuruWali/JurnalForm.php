@@ -134,7 +134,22 @@ class JurnalForm extends Component
                     $this->student_id = $konsultasi->student_id;
                     $this->isStudentLocked = true;
                     $this->kategori_pendampingan = $konsultasi->kategori_pendampingan;
-                    $this->uraian_pembahasan = "Topik: " . $konsultasi->topik_konsultasi . "\n\nPermasalahan Siswa:\n" . $konsultasi->detail_permasalahan . ($konsultasi->tanggapan_guru ? "\n\nTanggapan Guru:\n" . $konsultasi->tanggapan_guru : '');
+
+                    $feedbackText = '';
+                    if ($konsultasi->student_feedback_rating) {
+                        $emojiText = $konsultasi->student_feedback_emoji instanceof \BackedEnum ? $konsultasi->student_feedback_emoji->value : ($konsultasi->student_feedback_emoji ?? 'Lega');
+                        $feedbackText = "\n\nUlasan & Refleksi Siswa:\n- Penilaian Sesi: {$konsultasi->student_feedback_rating}/5 (Perasaan: {$emojiText})" . ($konsultasi->student_feedback_note ? "\n- Catatan Murid: \"{$konsultasi->student_feedback_note}\"" : '');
+                    }
+
+                    $this->uraian_pembahasan = "Topik: " . $konsultasi->topik_konsultasi . "\n\nPermasalahan Siswa:\n" . $konsultasi->detail_permasalahan . ($konsultasi->tanggapan_guru ? "\n\nTanggapan Guru:\n" . $konsultasi->tanggapan_guru : '') . $feedbackText;
+
+                    // Pre-fill badge jika sudah diberikan di sesi konsultasi
+                    $consultationBadge = \App\Models\BadgeKarakterSiswa::where('source_id', $konsultasi->id)->first();
+                    if ($consultationBadge) {
+                        $this->give_badge = true;
+                        $this->nama_badge = $consultationBadge->nama_badge;
+                        $this->catatan_apresiasi = $consultationBadge->catatan_apresiasi;
+                    }
                 }
             }
         }
@@ -186,6 +201,19 @@ class JurnalForm extends Component
                         'status_pengajuan' => \App\Enums\StatusPengajuan::DikonversiKeJurnal,
                         'jurnal_id'        => $jurnal->id,
                     ]);
+
+                    // Jika sebelumnya sudah ada badge dari konsultasi, sinkronkan ke jurnal
+                    $consultationBadge = \App\Models\BadgeKarakterSiswa::where('source_id', $konsultasi->id)->first();
+                    if ($consultationBadge) {
+                        if ($this->give_badge) {
+                            $consultationBadge->update([
+                                'source_type' => get_class($jurnal),
+                                'source_id'   => $jurnal->id,
+                            ]);
+                        } else {
+                            $consultationBadge->delete();
+                        }
+                    }
                 }
             }
 

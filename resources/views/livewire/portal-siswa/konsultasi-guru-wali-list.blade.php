@@ -37,8 +37,8 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-white/95 mb-3">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    SI-WALI • Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan
+                    <img src="{{ asset('images/logo-si-wali.png') }}" class="w-4 h-4 object-contain" alt="Logo SI-WALI">
+                    <span>SI-WALI • Satu Klik Ruang Aman, Dampingi Murid Wujudkan Masa Depan</span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
                     Ruang Bimbingan & Curhat Murid

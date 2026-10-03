@@ -302,10 +302,8 @@
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all flex flex-col justify-between group">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center group-hover:scale-105 group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xs">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
+                            <div class="w-12 h-12 rounded-2xl bg-brand-primary/10 p-1.5 flex items-center justify-center group-hover:scale-105 group-hover:bg-brand-primary/20 transition-all shadow-xs border border-brand-primary/20">
+                                <img src="{{ asset('images/logo-si-wali.png') }}" alt="Logo SI-WALI" class="w-full h-full object-contain">
                             </div>
                             @if($dijadwalkanKonsultasiCount > 0)
                                 <span class="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-xl">
