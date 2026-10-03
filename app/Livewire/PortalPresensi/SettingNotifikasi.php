@@ -268,7 +268,7 @@ class SettingNotifikasi extends Component
         try {
             /** @var SchoolSummaryReportService $service */
             $service = app(SchoolSummaryReportService::class);
-            $result  = $service->dispatch();
+            $result  = $service->dispatch(isManual: true);
 
             $setting->recordManualSend();
             $this->canSendSchoolManual = false;

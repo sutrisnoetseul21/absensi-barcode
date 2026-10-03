@@ -331,7 +331,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                             ->icon('heroicon-o-academic-cap')
                             ->schema([
                                 Section::make('Pengaturan Laporan Harian Wali Kelas')
-                                    ->description('Laporan harian dikirim otomatis oleh sistem sesuai jam cutoff. Toleransi pengiriman: 1 jam setelah jam cutoff.')
+                                    ->description('Laporan harian dikirim otomatis oleh sistem sesuai jam cutoff khusus pada Hari Efektif Sekolah (Senin-Jumat/Sabtu sesuai kalender). Toleransi pengiriman: 1 jam setelah jam cutoff.')
                                     ->schema([
                                         Toggle::make('daily_is_active')
                                             ->label('Aktifkan Laporan Harian')
@@ -383,7 +383,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                             ->icon('heroicon-o-building-office-2')
                             ->schema([
                                 Section::make('Pengaturan Rekap Seluruh Sekolah')
-                                    ->description('Rekap presensi seluruh kelas sekaligus (Helicopter View) untuk Manajemen Sekolah. Toleransi pengiriman: 1 jam setelah jam cutoff.')
+                                    ->description('Rekap presensi seluruh kelas sekaligus (Helicopter View) untuk Manajemen Sekolah pada Hari Efektif Sekolah (Senin-Jumat/Sabtu sesuai kalender). Toleransi pengiriman: 1 jam setelah jam cutoff.')
                                     ->schema([
                                         Toggle::make('school_is_active')
                                             ->label('Aktifkan Laporan Rekap Sekolah')
@@ -460,6 +460,24 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     private function buildSchedulerBanner(): HtmlString
     {
+        $now = now('Asia/Jakarta');
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isHariSekolah = $kalenderService->isHariSekolah($now);
+        $workDaysType = $kalenderService->getWorkDaysTypeForDate($now);
+        $workDaysLabel = $workDaysType === '6_hari' ? '6 Hari Kerja (Senin - Sabtu)' : '5 Hari Kerja (Senin - Jumat)';
+
+        $hariLiburRecord = \App\Models\HariLibur::hariIni($now->toDateString())->first();
+        $namaHariIndo = [
+            'Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'
+        ];
+        $namaHariIni = $namaHariIndo[$now->format('l')] ?? $now->format('l');
+        $holidayReason = $hariLiburRecord ? $hariLiburRecord->name : ($now->isWeekend() ? "Libur Akhir Pekan ({$namaHariIni})" : 'Hari Libur');
+
+        $calendarHtml = $isHariSekolah
+            ? "<div class='mt-2 pt-2 border-t border-green-200/60 dark:border-green-800 text-xs font-medium text-green-700 dark:text-green-300 flex items-center gap-1.5'><span>📅</span> Status Kalender: <strong>Hari Efektif Belajar ({$workDaysLabel})</strong> — Laporan otomatis aktif.</div>"
+            : "<div class='mt-2 pt-2 border-t border-amber-300 dark:border-amber-700 text-xs font-medium text-amber-800 dark:text-amber-300 flex items-center gap-1.5'><span>🏖️</span> Status Kalender: <strong>Hari Libur Sekolah ({$holidayReason} / {$workDaysLabel})</strong> — Laporan harian otomatis dijeda & tidak dikirim.</div>";
+
         if ($this->schedulerActive) {
             $html = <<<HTML
             <div class="rounded-xl border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-700 p-4 flex items-start gap-3">
@@ -469,7 +487,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                     <p class="text-sm text-green-700 dark:text-green-400 mt-0.5">
                         Terakhir berjalan: <strong>{$this->schedulerLastRun}</strong> ({$this->schedulerAgeLabel})
                     </p>
-                    <p class="text-sm text-green-600 dark:text-green-500 mt-1">✅ Laporan otomatis akan dikirim sesuai jadwal.</p>
+                    <p class="text-sm text-green-600 dark:text-green-500 mt-1">✅ Laporan otomatis terjadwal oleh sistem.</p>
+                    {$calendarHtml}
                 </div>
             </div>
             HTML;
@@ -711,7 +730,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         try {
             /** @var SchoolSummaryReportService $service */
             $service = app(SchoolSummaryReportService::class);
-            $result  = $service->dispatch();
+            $result  = $service->dispatch(isManual: true);
 
             $setting->recordManualSend();
             $this->canSendSchoolManual = false;

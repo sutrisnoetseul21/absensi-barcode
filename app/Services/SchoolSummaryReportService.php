@@ -22,9 +22,10 @@ class SchoolSummaryReportService
     /**
      * Dispatch rekap presensi seluruh sekolah.
      *
+     * @param  bool  $isManual  Jika true, cutoff dan cek hari libur otomatis dilewati
      * @return array{dispatched: int, skipped: int, errors: string[]}
      */
-    public function dispatch(): array
+    public function dispatch(bool $isManual = false): array
     {
         $setting = PresensiSchoolSummarySetting::current();
 
@@ -37,11 +38,19 @@ class SchoolSummaryReportService
             return ['dispatched' => 0, 'skipped' => 0, 'errors' => ['Tidak ada tahun ajaran aktif.']];
         }
 
+        $now         = Carbon::now();
+        $todayStr    = $now->toDateString();
+
+        // Cek Hari Sekolah jika pengiriman otomatis
+        $kalenderService = app(KalenderSekolahService::class);
+        if (!$isManual && !$kalenderService->isHariSekolah($now)) {
+            Log::info("SchoolSummaryReportService: Hari ini bukan hari sekolah, laporan rekap sekolah otomatis dilewati.");
+            return ['dispatched' => 0, 'skipped' => 0, 'errors' => ['Hari ini bukan hari sekolah (libur). Laporan rekap sekolah otomatis dilewati.']];
+        }
+
         // Dedup Guard
         $relatedType = 'school_summary_report';
         $relatedId   = $currentYear->id;
-        $now         = Carbon::now();
-        $todayStr    = $now->toDateString();
 
         $alreadyDispatched = WhatsAppNotificationLog::where('related_type', $relatedType)
             ->where('related_id', (string) $relatedId)

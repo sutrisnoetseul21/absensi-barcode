@@ -34,6 +34,13 @@ class SendSchoolSummaryReportCommand extends Command
                 $this->info("Bukan waktunya kirim laporan rekap sekolah. Current: $currentTime, Window: {$cutoffTime}–{$windowEndToday->format('H:i')}");
                 return;
             }
+
+            // Cek apakah hari ini hari libur / bukan hari sekolah
+            $kalenderService = app(\App\Services\KalenderSekolahService::class);
+            if (!$kalenderService->isHariSekolah($now)) {
+                $this->info("Hari ini bukan hari sekolah (libur). Laporan rekap sekolah dibatalkan.");
+                return;
+            }
         }
 
         $this->info("Memulai pembuatan laporan rekap sekolah (Cutoff: $cutoffTime)");

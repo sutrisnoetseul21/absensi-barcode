@@ -40,6 +40,12 @@ class DailyClassReportService
         $now = Carbon::now();
         $tanggal = $now->format('d-m-Y');
 
+        $kalenderService = app(KalenderSekolahService::class);
+        if (!$isManual && !$kalenderService->isHariSekolah($now)) {
+            Log::info("DailyClassReportService: Hari ini bukan hari sekolah, laporan harian otomatis dilewati.");
+            return ['dispatched' => 0, 'skipped' => 0, 'errors' => ['Hari ini bukan hari sekolah (libur). Laporan harian otomatis dilewati.']];
+        }
+
         $kelasAjarans = KelasAjaran::with(['kelas', 'guru'])
             ->where('academic_year_id', $currentYear->id)
             ->get();
@@ -49,6 +55,12 @@ class DailyClassReportService
         $errors     = [];
 
         foreach ($kelasAjarans as $kelasAjaran) {
+            // Cek apakah libur khusus untuk kelas ini
+            if (!$isManual && !$kalenderService->isHariSekolah($now, $kelasAjaran->class_id)) {
+                $skipped++;
+                continue;
+            }
+
             $result = $this->processKelas($kelasAjaran, $currentYear, $setting, $tanggal, $now);
             $dispatched += $result['dispatched'];
             $skipped    += $result['skipped'];

@@ -44,6 +44,12 @@ class ProcessAutoAlpaCommand extends Command
         $now = now('Asia/Jakarta');
         $todayStr = $now->toDateString();
 
+        // Cek apakah hari ini adalah hari sekolah (bukan hari libur)
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah($now)) {
+            return;
+        }
+
         // 1. Idempotency guard: cek apakah sudah jalan hari ini
         if ($settings->last_auto_alpa_run_date && $settings->last_auto_alpa_run_date->toDateString() === $todayStr) {
             // Sudah jalan hari ini, batalkan
