@@ -286,27 +286,59 @@ class WhatsAppGatewayService
         }
 
         $cacheKey = 'wa_groups_' . $setting->instance_name;
-        
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(15), function () use ($setting) {
-            try {
-                $endpoint = rtrim($setting->base_url, '/') . '/group/fetchAllGroups/' . $setting->instance_name . '?getParticipants=false';
-                $response = Http::withHeaders([
-                    'apikey' => $setting->api_key,
-                ])->timeout(5)->get($endpoint);
 
-                if ($response->successful()) {
-                    $groups = [];
-                    foreach ($response->json() as $group) {
-                        if (isset($group['id'], $group['subject'])) {
-                            $groups['GROUP:' . $group['id']] = 'Grup WA: ' . $group['subject'];
-                        }
+        $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+        if (is_array($cached) && !empty($cached)) {
+            return $cached;
+        }
+
+        $groups = [];
+
+        // Metode 1: Ambil dari database chat Evolution API (/chat/findChats)
+        // Sangat cepat (0.2s - 0.4s) dan tidak pernah timeout bahkan untuk ratusan chat/grup
+        try {
+            $endpoint = rtrim($setting->base_url, '/') . '/chat/findChats/' . $setting->instance_name;
+            $response = Http::withHeaders([
+                'apikey'       => $setting->api_key,
+                'Content-Type' => 'application/json',
+            ])->timeout(8)->post($endpoint, new \stdClass());
+
+            if ($response->successful() && is_array($response->json())) {
+                foreach ($response->json() as $chat) {
+                    $jid = $chat['remoteJid'] ?? '';
+                    if (str_ends_with($jid, '@g.us')) {
+                        $name = !empty($chat['pushName']) ? $chat['pushName'] : $jid;
+                        $groups['GROUP:' . $jid] = 'Grup WA: ' . $name;
                     }
-                    return $groups;
                 }
-            } catch (\Exception $e) {
-                // Return empty array if request fails, don't throw exception
             }
-            return [];
-        });
+        } catch (\Throwable $e) {
+            // Abaikan dan lanjutkan
+        }
+
+        // Metode 2: Coba juga fetchAllGroups jika tersedia (timeout 3s) untuk melengkapi grup
+        try {
+            $endpoint = rtrim($setting->base_url, '/') . '/group/fetchAllGroups/' . $setting->instance_name . '?getParticipants=false';
+            $response = Http::withHeaders([
+                'apikey' => $setting->api_key,
+            ])->timeout(3)->get($endpoint);
+
+            if ($response->successful() && is_array($response->json())) {
+                foreach ($response->json() as $group) {
+                    if (isset($group['id'], $group['subject'])) {
+                        $groups['GROUP:' . $group['id']] = 'Grup WA: ' . $group['subject'];
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika timeout atau error
+        }
+
+        if (!empty($groups)) {
+            asort($groups, SORT_NATURAL | SORT_FLAG_CASE);
+            \Illuminate\Support\Facades\Cache::put($cacheKey, $groups, now()->addMinutes(15));
+        }
+
+        return $groups;
     }
 }
