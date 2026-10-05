@@ -190,12 +190,18 @@
                     </label>
                     
                     <div class="relative">
-                        <textarea wire:model="reason" rows="4" 
-                                  class="w-full p-3.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10 shadow-sm transition-all" 
-                                  placeholder="Tuliskan keterangan detail alasan tidak dapat hadir..."></textarea>
+                        <textarea wire:model="reason" rows="3" maxlength="100"
+                                  x-data="{ count: $wire.entangle('reason').live.length ?? 0 }"
+                                  x-init="count = ($wire.reason ?? '').length"
+                                  @input="count = $el.value.length"
+                                  class="w-full p-3.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10 shadow-sm transition-all resize-none" 
+                                  placeholder="Contoh: Demam tinggi / Keperluan keluarga..."></textarea>
+                        <span class="absolute bottom-2 right-3 text-[11px]"
+                              :class="count >= 100 ? 'text-rose-500 font-semibold' : 'text-slate-400'"
+                              x-text="count + '/100'"></span>
                     </div>
                     @error('reason') <p class="text-rose-500 text-xs font-medium">{{ $message }}</p> @enderror
-                    <p class="text-[11px] text-slate-400">Contoh: Menghadiri acara keluarga / Mengalami demam dan dianjurkan istirahat dokter.</p>
+                    <p class="text-[11px] text-slate-400">Tuliskan alasan singkat, maksimal 100 karakter. Contoh: <em>Demam tinggi / Menghadiri acara keluarga.</em></p>
                 </div>
 
                 <!-- Card Lampiran Bukti / Surat Keterangan -->
