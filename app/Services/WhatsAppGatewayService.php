@@ -57,6 +57,25 @@ class WhatsAppGatewayService
         $setting = WhatsAppSetting::current();
 
         if (!$setting->is_active) {
+            $errorPayload = json_encode(['error' => 'Gateway WhatsApp dinonaktifkan di pengaturan']);
+            if ($logId) {
+                WhatsAppNotificationLog::where('id', $logId)->update([
+                    'status' => 'failed',
+                    'response_payload' => $errorPayload,
+                ]);
+            } else {
+                WhatsAppNotificationLog::create([
+                    'module' => 'presensi',
+                    'recipient_type' => $recipientType,
+                    'recipient_number' => $toNumber,
+                    'message' => $message,
+                    'status' => 'failed',
+                    'response_payload' => $errorPayload,
+                    'related_type' => $relatedType,
+                    'related_id' => $relatedId,
+                    'sent_at' => null,
+                ]);
+            }
             return false;
         }
 
@@ -180,6 +199,25 @@ class WhatsAppGatewayService
         $setting = WhatsAppSetting::current();
 
         if (!$setting->is_active) {
+            $errorPayload = json_encode(['error' => 'Gateway WhatsApp dinonaktifkan di pengaturan']);
+            if ($logId) {
+                WhatsAppNotificationLog::where('id', $logId)->update([
+                    'status'           => 'failed',
+                    'response_payload' => $errorPayload,
+                ]);
+            } else {
+                WhatsAppNotificationLog::create([
+                    'module'           => 'leave_request',
+                    'recipient_type'   => $recipientType,
+                    'recipient_number' => $toNumber,
+                    'message'          => "[media: {$fileName}]",
+                    'status'           => 'failed',
+                    'response_payload' => $errorPayload,
+                    'related_type'     => $relatedType,
+                    'related_id'       => $relatedId,
+                    'sent_at'          => null,
+                ]);
+            }
             return false;
         }
 

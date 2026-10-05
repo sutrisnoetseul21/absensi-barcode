@@ -61,7 +61,7 @@ class DailyClassReportService
                 continue;
             }
 
-            $result = $this->processKelas($kelasAjaran, $currentYear, $setting, $tanggal, $now);
+            $result = $this->processKelas($kelasAjaran, $currentYear, $setting, $tanggal, $now, $isManual);
             $dispatched += $result['dispatched'];
             $skipped    += $result['skipped'];
             $errors      = array_merge($errors, $result['errors']);
@@ -70,7 +70,7 @@ class DailyClassReportService
         return compact('dispatched', 'skipped', 'errors');
     }
 
-    private function processKelas($kelasAjaran, $currentYear, $setting, $tanggal, $now): array
+    private function processKelas($kelasAjaran, $currentYear, $setting, $tanggal, $now, bool $isManual = false): array
     {
         $dispatched = 0;
         $skipped    = 0;
@@ -220,7 +220,7 @@ class DailyClassReportService
             ->whereIn('status', ['sent', 'pending'])
             ->exists();
 
-        if ($alreadyDispatched) {
+        if (!$isManual && $alreadyDispatched) {
             $skipped++;
             return compact('dispatched', 'skipped', 'errors');
         }

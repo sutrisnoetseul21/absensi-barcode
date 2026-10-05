@@ -135,7 +135,7 @@ class WhatsAppNotificationLogResource extends Resource
                     ->modalHeading('Kirim Ulang Pesan WhatsApp')
                     ->modalDescription('Apakah Anda yakin ingin memasukkan pesan ini kembali ke dalam antrean?')
                     ->modalSubmitActionLabel('Ya, Kirim Ulang')
-                    ->visible(fn (WhatsAppNotificationLog $record): bool => $record->status === 'failed')
+                    ->visible(fn (WhatsAppNotificationLog $record): bool => in_array($record->status, ['failed', 'pending']))
                     ->action(function (WhatsAppNotificationLog $record) {
                         $record->update([
                             'status' => 'pending',
@@ -187,12 +187,12 @@ class WhatsAppNotificationLogResource extends Resource
                         ->color('primary')
                         ->requiresConfirmation()
                         ->modalHeading('Kirim Ulang Notifikasi Terpilih')
-                        ->modalDescription('Hanya baris dengan status "Gagal" yang akan diproses ulang.')
+                        ->modalDescription('Baris dengan status "Gagal" atau "Pending" yang dipilih akan dimasukkan kembali ke antrean kirim.')
                         ->modalSubmitActionLabel('Ya, Kirim Ulang')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
                             $count = 0;
                             foreach ($records as $record) {
-                                if ($record->status !== 'failed') {
+                                if (!in_array($record->status, ['failed', 'pending'])) {
                                     continue;
                                 }
 

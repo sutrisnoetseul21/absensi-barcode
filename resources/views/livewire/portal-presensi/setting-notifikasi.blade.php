@@ -421,7 +421,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">Kirim Manual Laporan Harian</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Kirim laporan harian hari ini secara manual. Maksimal 1x per hari.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Kirim laporan harian hari ini secara manual. Maksimal 5x per hari.</p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -430,20 +430,24 @@
                         <div class="flex items-center gap-2 text-sm text-slate-600">
                             <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <span>Tanggal hari ini: <strong class="font-bold text-slate-900">{{ date('d M Y') }}</strong></span>
-                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700">Belum dikirim</span>
+                            @if($dailyManualSendCount > 0)
+                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700">Terkirim {{ $dailyManualSendCount }} dari 5x</span>
+                            @else
+                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700">Belum dikirim (Maks 5x)</span>
+                            @endif
                         </div>
-                        <button type="button" wire:click="confirmSendDailyManual" wire:confirm="Yakin ingin kirim laporan harian presensi ke semua wali kelas sekarang?" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-brand-primary/20">
+                        <button type="button" wire:click="confirmSendDailyManual" wire:confirm="Yakin ingin kirim laporan harian presensi ke semua wali kelas sekarang? (Pengiriman ke-{{ $dailyManualSendCount + 1 }} dari maksimal 5x hari ini)" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-brand-primary/20">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                            Kirim Laporan Harian Sekarang
+                            Kirim Laporan Harian Sekarang ({{ $dailyManualSendCount }}/5)
                         </button>
                     </div>
                     @else
                     <div class="space-y-4">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            Sudah dikirim manual hari ini
+                            Batas pengiriman tercapai: 5 dari 5x hari ini
                         </span>
-                        <p class="text-sm text-slate-500 font-medium">Pengiriman manual sudah dilakukan hari ini. Tersedia kembali besok.</p>
+                        <p class="text-sm text-slate-500 font-medium">Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
                     </div>
                     @endif
                 </div>
@@ -511,13 +515,13 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Header</label>
                         <textarea wire:model="school_template_header" rows="3" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
-                        <p class="text-xs text-slate-500 mt-1 font-medium">Placeholder: {nama_sekolah}, {hari}, {tanggal}</p>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Placeholder: {nama_sekolah}, {hari}, {tanggal}, {angkatan}, {tingkat}</p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Baris per Kelas</label>
-                        <textarea wire:model="school_template_row" rows="3" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
-                        <p class="text-xs text-slate-500 mt-1 font-medium">Diulang untuk setiap kelas. Placeholder: {nama_kelas}, {jumlah_hadir}, {jumlah_terlambat}, {nama_terlambat}, {jumlah_sakit}, {nama_sakit}, {jumlah_izin}, {nama_izin}, {jumlah_alpa}, {nama_alpa}, {jumlah_belum_presensi}, {nama_belum_presensi}</p>
+                        <textarea wire:model="school_template_row" rows="9" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Pesan otomatis dikirim terpisah per angkatan (Kelas 7, 8, 9). Placeholder: {nama_kelas}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {nama_terlambat}, {jumlah_sakit}, {nama_sakit}, {jumlah_izin}, {nama_izin}, {jumlah_alpa}, {nama_alpa}, {jumlah_belum_presensi}, {nama_belum_presensi}</p>
                     </div>
 
                     <div>
@@ -535,7 +539,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">Kirim Manual Rekap Sekolah</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Kirim rekap seluruh sekolah hari ini secara manual. Maksimal 1x per hari.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Kirim rekap seluruh sekolah hari ini secara manual. Maksimal 5x per hari.</p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -544,20 +548,24 @@
                         <div class="flex items-center gap-2 text-sm text-slate-600">
                             <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <span>Tanggal hari ini: <strong class="font-bold text-slate-900">{{ date('d M Y') }}</strong></span>
-                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700">Belum dikirim</span>
+                            @if($schoolManualSendCount > 0)
+                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700">Terkirim {{ $schoolManualSendCount }} dari 5x</span>
+                            @else
+                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700">Belum dikirim (Maks 5x)</span>
+                            @endif
                         </div>
-                        <button type="button" wire:click="confirmSendSchoolManual" wire:confirm="Yakin ingin kirim rekap presensi seluruh sekolah sekarang?" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-brand-primary/20">
+                        <button type="button" wire:click="confirmSendSchoolManual" wire:confirm="Yakin ingin kirim rekap presensi seluruh sekolah sekarang? (Pengiriman ke-{{ $schoolManualSendCount + 1 }} dari maksimal 5x hari ini)" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-brand-primary/20">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                            Kirim Rekap Sekolah Sekarang
+                            Kirim Rekap Sekolah Sekarang ({{ $schoolManualSendCount }}/5)
                         </button>
                     </div>
                     @else
                     <div class="space-y-4">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            Sudah dikirim manual hari ini
+                            Batas pengiriman tercapai: 5 dari 5x hari ini
                         </span>
-                        <p class="text-sm text-slate-500 font-medium">Pengiriman manual sudah dilakukan hari ini. Tersedia kembali besok.</p>
+                        <p class="text-sm text-slate-500 font-medium">Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
                     </div>
                     @endif
                 </div>

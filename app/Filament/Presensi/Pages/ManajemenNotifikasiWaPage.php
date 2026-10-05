@@ -369,7 +369,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                 // ── Kirim Manual ──────────────────────────
                                 Section::make('Kirim Manual Laporan Harian')
                                     ->icon('heroicon-o-paper-airplane')
-                                    ->description('Kirim laporan harian hari ini secara manual. Maksimal 1x per hari.')
+                                    ->description('Kirim laporan harian hari ini secara manual. Maksimal 5x per hari.')
                                     ->schema([
                                         \Filament\Forms\Components\Placeholder::make('daily_manual_status')
                                             ->hiddenLabel()
@@ -406,16 +406,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                         Textarea::make('school_template_header')
                                             ->label('Template Header')
                                             ->rows(3)
-                                            ->helperText('Placeholder: {nama_sekolah}, {hari}, {tanggal}')
+                                            ->helperText('Placeholder: {nama_sekolah}, {hari}, {tanggal}, {angkatan}, {tingkat}')
                                             ->columnSpanFull(),
                                         Textarea::make('school_template_row')
                                             ->label('Template Baris per Kelas')
-                                            ->rows(4)
+                                            ->rows(9)
                                             ->helperText(new HtmlString('
                                                 <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400 mt-2">
-                                                    <p>Diulang otomatis untuk setiap kelas.</p>
-                                                    <p><strong>Placeholder:</strong> <code>{nama_kelas}</code>, <code>{jumlah_hadir}</code>, <code>{jumlah_terlambat}</code>, <code>{nama_terlambat}</code>, <code>{jumlah_sakit}</code>, <code>{nama_sakit}</code>, <code>{jumlah_izin}</code>, <code>{nama_izin}</code>, <code>{jumlah_alpa}</code>, <code>{nama_alpa}</code>, <code>{jumlah_belum_presensi}</code>, <code>{nama_belum_presensi}</code></p>
-                                                    <p class="italic text-gray-500">Keterangan: <code>{nama_sakit}</code>, <code>{nama_izin}</code>, <code>{nama_alpa}</code> otomatis terisi format tanda kurung <code>(Budi, Ani)</code> jika ada siswa, dan kosong jika 0.</p>
+                                                    <p>Pesan otomatis dikirim terpisah per angkatan (Kelas 7, 8, 9). Template diulang untuk setiap kelas pada angkatan bersangkutan.</p>
+                                                    <p><strong>Placeholder Tersedia:</strong> <code>{nama_kelas}</code>, <code>{total_siswa}</code>, <code>{jumlah_hadir}</code>, <code>{jumlah_terlambat}</code>, <code>{nama_terlambat}</code>, <code>{jumlah_sakit}</code>, <code>{nama_sakit}</code>, <code>{jumlah_izin}</code>, <code>{nama_izin}</code>, <code>{jumlah_alpa}</code>, <code>{nama_alpa}</code>, <code>{jumlah_belum_presensi}</code>, <code>{nama_belum_presensi}</code></p>
+                                                    <p class="italic text-gray-500">Keterangan: <code>{nama_sakit}</code>, <code>{nama_izin}</code>, <code>{nama_alpa}</code>, <code>{nama_belum_presensi}</code> otomatis terisi format tanda kurung <code>(Budi, Ani)</code> jika ada siswa, dan kosong jika 0.</p>
                                                 </div>
                                             '))
                                             ->columnSpanFull(),
@@ -428,7 +428,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                 // ── Kirim Manual ──────────────────────────
                                 Section::make('Kirim Manual Rekap Sekolah')
                                     ->icon('heroicon-o-paper-airplane')
-                                    ->description('Kirim rekap seluruh sekolah hari ini secara manual. Maksimal 1x per hari.')
+                                    ->description('Kirim rekap seluruh sekolah hari ini secara manual. Maksimal 5x per hari.')
                                     ->schema([
                                         \Filament\Forms\Components\Placeholder::make('school_manual_status')
                                             ->hiddenLabel()
@@ -540,30 +540,40 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     private function buildDailyManualStatusHtml(): HtmlString
     {
-        $setting   = PresensiDailyReportSetting::current();
-        $canSend   = $setting->canSendManualToday();
-        $todayDate = now()->format('d M Y');
+        $setting      = PresensiDailyReportSetting::current();
+        $canSend      = $setting->canSendManualToday();
+        $todayDate    = now()->format('d M Y');
+        $todayStr     = now()->toDateString();
+        $lastSendDate = $setting->manual_send_date instanceof \Carbon\Carbon
+            ? $setting->manual_send_date->toDateString()
+            : (string) $setting->manual_send_date;
+        $sendCount    = ($lastSendDate === $todayStr) ? (int) $setting->manual_send_count : 0;
+        $nextCount    = $sendCount + 1;
 
         if ($canSend) {
+            $badgeText = $sendCount > 0
+                ? "Terkirim {$sendCount} dari 5x hari ini"
+                : "Belum dikirim hari ini (Maks 5x)";
+
             $html = <<<HTML
             <div class="space-y-3">
                 <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <span>📅</span>
                     <span>Tanggal hari ini: <strong>{$todayDate}</strong></span>
                     <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        Belum dikirim manual hari ini
+                        {$badgeText}
                     </span>
                 </div>
                 <button
                     wire:click="confirmSendDailyManual"
                     wire:loading.attr="disabled"
-                    wire:confirm="Yakin ingin kirim laporan harian presensi ke semua wali kelas sekarang? Tindakan ini hanya bisa dilakukan 1x per hari."
+                    wire:confirm="Yakin ingin kirim laporan harian presensi ke semua wali kelas sekarang? (Pengiriman ke-{$nextCount} dari maksimal 5x hari ini)"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-50 shadow-sm"
                 >
-                    <span wire:loading.remove wire:target="confirmSendDailyManual">📤 Kirim Laporan Harian Sekarang</span>
+                    <span wire:loading.remove wire:target="confirmSendDailyManual">📤 Kirim Laporan Harian Sekarang ({$sendCount}/5)</span>
                     <span wire:loading wire:target="confirmSendDailyManual">⏳ Memproses...</span>
                 </button>
-                <p class="text-xs text-gray-500 dark:text-gray-500">ℹ️ Laporan akan dikirim ke seluruh wali kelas yang memiliki nomor HP terdaftar. Tombol ini hanya bisa digunakan 1x per hari.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-500">ℹ️ Laporan akan dikirim ke seluruh wali kelas yang memiliki nomor HP terdaftar. Tombol ini bisa digunakan maksimal 5x per hari.</p>
             </div>
             HTML;
         } else {
@@ -571,16 +581,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             <div class="space-y-3">
                 <div class="flex items-center gap-2 text-sm">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                        ✅ Sudah dikirim manual hari ini ({$todayDate})
+                        ✅ Batas pengiriman tercapai: 5 dari 5x hari ini ({$todayDate})
                     </span>
                 </div>
                 <button
                     disabled
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 >
-                    📤 Kirim Laporan Harian Sekarang
+                    📤 Kirim Laporan Harian Sekarang (5/5)
                 </button>
-                <p class="text-xs text-gray-500 dark:text-gray-500">⛔ Pengiriman manual sudah dilakukan hari ini. Tersedia kembali besok.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-500">⛔ Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
             </div>
             HTML;
         }
@@ -590,30 +600,40 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     private function buildSchoolManualStatusHtml(): HtmlString
     {
-        $setting   = PresensiSchoolSummarySetting::current();
-        $canSend   = $setting->canSendManualToday();
-        $todayDate = now()->format('d M Y');
+        $setting      = PresensiSchoolSummarySetting::current();
+        $canSend      = $setting->canSendManualToday();
+        $todayDate    = now()->format('d M Y');
+        $todayStr     = now()->toDateString();
+        $lastSendDate = $setting->manual_send_date instanceof \Carbon\Carbon
+            ? $setting->manual_send_date->toDateString()
+            : (string) $setting->manual_send_date;
+        $sendCount    = ($lastSendDate === $todayStr) ? (int) $setting->manual_send_count : 0;
+        $nextCount    = $sendCount + 1;
 
         if ($canSend) {
+            $badgeText = $sendCount > 0
+                ? "Terkirim {$sendCount} dari 5x hari ini"
+                : "Belum dikirim hari ini (Maks 5x)";
+
             $html = <<<HTML
             <div class="space-y-3">
                 <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <span>📅</span>
                     <span>Tanggal hari ini: <strong>{$todayDate}</strong></span>
                     <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        Belum dikirim manual hari ini
+                        {$badgeText}
                     </span>
                 </div>
                 <button
                     wire:click="confirmSendSchoolManual"
                     wire:loading.attr="disabled"
-                    wire:confirm="Yakin ingin kirim rekap presensi seluruh sekolah sekarang? Tindakan ini hanya bisa dilakukan 1x per hari."
+                    wire:confirm="Yakin ingin kirim rekap presensi seluruh sekolah sekarang? (Pengiriman ke-{$nextCount} dari maksimal 5x hari ini)"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-50 shadow-sm"
                 >
-                    <span wire:loading.remove wire:target="confirmSendSchoolManual">📤 Kirim Rekap Sekolah Sekarang</span>
+                    <span wire:loading.remove wire:target="confirmSendSchoolManual">📤 Kirim Rekap Sekolah Sekarang ({$sendCount}/5)</span>
                     <span wire:loading wire:target="confirmSendSchoolManual">⏳ Memproses...</span>
                 </button>
-                <p class="text-xs text-gray-500 dark:text-gray-500">ℹ️ Rekap akan dikirim ke seluruh penerima yang dipilih. Tombol ini hanya bisa digunakan 1x per hari.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-500">ℹ️ Rekap akan dikirim ke seluruh penerima yang dipilih. Tombol ini bisa digunakan maksimal 5x per hari.</p>
             </div>
             HTML;
         } else {
@@ -621,16 +641,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             <div class="space-y-3">
                 <div class="flex items-center gap-2 text-sm">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                        ✅ Sudah dikirim manual hari ini ({$todayDate})
+                        ✅ Batas pengiriman tercapai: 5 dari 5x hari ini ({$todayDate})
                     </span>
                 </div>
                 <button
                     disabled
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 >
-                    📤 Kirim Rekap Sekolah Sekarang
+                    📤 Kirim Rekap Sekolah Sekarang (5/5)
                 </button>
-                <p class="text-xs text-gray-500 dark:text-gray-500">⛔ Pengiriman manual sudah dilakukan hari ini. Tersedia kembali besok.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-500">⛔ Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
             </div>
             HTML;
         }
@@ -673,8 +693,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
         if (!$setting->canSendManualToday()) {
             Notification::make()
-                ->title('Sudah dikirim hari ini')
-                ->body('Pengiriman manual laporan harian hanya bisa dilakukan 1x per hari.')
+                ->title('Batas pengiriman tercapai')
+                ->body('Pengiriman manual laporan harian sudah mencapai batas maksimal 5x per hari.')
                 ->warning()
                 ->send();
             return;
@@ -686,7 +706,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             $result  = $service->dispatch(isManual: true);
 
             $setting->recordManualSend();
-            $this->canSendDailyManual = false;
+            $this->canSendDailyManual = $setting->fresh()->canSendManualToday();
 
             if ($result['dispatched'] > 0) {
                 Notification::make()
@@ -720,8 +740,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
         if (!$setting->canSendManualToday()) {
             Notification::make()
-                ->title('Sudah dikirim hari ini')
-                ->body('Pengiriman manual rekap sekolah hanya bisa dilakukan 1x per hari.')
+                ->title('Batas pengiriman tercapai')
+                ->body('Pengiriman manual rekap sekolah sudah mencapai batas maksimal 5x per hari.')
                 ->warning()
                 ->send();
             return;
@@ -733,7 +753,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             $result  = $service->dispatch(isManual: true);
 
             $setting->recordManualSend();
-            $this->canSendSchoolManual = false;
+            $this->canSendSchoolManual = $setting->fresh()->canSendManualToday();
 
             if ($result['dispatched'] > 0) {
                 Notification::make()

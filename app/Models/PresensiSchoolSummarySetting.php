@@ -35,15 +35,15 @@ class PresensiSchoolSummarySetting extends Model
                 'is_active'       => false,
                 'cutoff_time'     => '08:15:00',
                 'recipients'      => ['Kepala Sekolah'],
-                'template_header' => "Laporan Absensi Harian Seluruh Kelas\n{nama_sekolah}\n{hari}, {tanggal}\n",
-                'template_row'    => "Kelas {nama_kelas} Hadir= {jumlah_hadir}, Terlambat= {jumlah_terlambat} {nama_terlambat}, Sakit= {jumlah_sakit} {nama_sakit}, Izin= {jumlah_izin} {nama_izin}, Alfa= {jumlah_alpa} {nama_alpa}, Belum Absen= {jumlah_belum_presensi} {nama_belum_presensi}",
-                'template_footer' => "\nDemikian atas perhatiannya kami ucapkan terimakasih",
+                'template_header' => "Laporan Absensi Harian {angkatan}\n{nama_sekolah}\n{hari}, {tanggal}\n",
+                'template_row'    => "Kelas {nama_kelas}\nTotal Siswa : {total_siswa} Siswa\nHadir : {jumlah_hadir} Siswa\nIzin : {jumlah_izin} Siswa {nama_izin}\nSakit : {jumlah_sakit} Siswa {nama_sakit}\nAlpa : {jumlah_alpa} Siswa {nama_alpa}\nBelum Presensi : {jumlah_belum_presensi} Siswa {nama_belum_presensi}\n=============================",
+                'template_footer' => "\nDemikian atas perhatiannya kami ucapkan terimakasih.",
             ]
         );
     }
 
     /**
-     * Cek apakah masih bisa kirim manual hari ini (maks 1x/hari).
+     * Cek apakah masih bisa kirim manual hari ini (maks 5x/hari).
      */
     public function canSendManualToday(): bool
     {
@@ -61,7 +61,7 @@ class PresensiSchoolSummarySetting extends Model
             return true;
         }
 
-        return $this->manual_send_count < 1;
+        return $this->manual_send_count < 5;
     }
 
     /**

@@ -40,7 +40,7 @@ class PresensiDailyReportSetting extends Model
     }
 
     /**
-     * Cek apakah masih bisa kirim manual hari ini (maks 1x/hari).
+     * Cek apakah masih bisa kirim manual hari ini (maks 5x/hari).
      */
     public function canSendManualToday(): bool
     {
@@ -58,7 +58,7 @@ class PresensiDailyReportSetting extends Model
             return true;
         }
 
-        return $this->manual_send_count < 1;
+        return $this->manual_send_count < 5;
     }
 
     /**

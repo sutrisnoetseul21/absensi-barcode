@@ -27,6 +27,8 @@ class SettingNotifikasi extends Component
     // Status kirim manual per tab
     public bool $canSendDailyManual  = true;
     public bool $canSendSchoolManual = true;
+    public int  $dailyManualSendCount = 0;
+    public int  $schoolManualSendCount = 0;
 
     // Available options for recipients
     public $recipientOptions = [];
@@ -187,8 +189,21 @@ class SettingNotifikasi extends Component
 
     private function refreshManualSendStatus(): void
     {
-        $this->canSendDailyManual  = PresensiDailyReportSetting::current()->canSendManualToday();
-        $this->canSendSchoolManual = PresensiSchoolSummarySetting::current()->canSendManualToday();
+        $todayStr = now()->toDateString();
+
+        $daily = PresensiDailyReportSetting::current();
+        $this->canSendDailyManual = $daily->canSendManualToday();
+        $dailyLastDate = $daily->manual_send_date instanceof \Carbon\Carbon
+            ? $daily->manual_send_date->toDateString()
+            : (string) $daily->manual_send_date;
+        $this->dailyManualSendCount = ($dailyLastDate === $todayStr) ? (int) $daily->manual_send_count : 0;
+
+        $school = PresensiSchoolSummarySetting::current();
+        $this->canSendSchoolManual = $school->canSendManualToday();
+        $schoolLastDate = $school->manual_send_date instanceof \Carbon\Carbon
+            ? $school->manual_send_date->toDateString()
+            : (string) $school->manual_send_date;
+        $this->schoolManualSendCount = ($schoolLastDate === $todayStr) ? (int) $school->manual_send_count : 0;
     }
 
     public function setActiveTab($tab): void
@@ -220,7 +235,7 @@ class SettingNotifikasi extends Component
         if (!$setting->canSendManualToday()) {
             $this->dispatch('notify', [
                 'type' => 'warning',
-                'message' => 'Pengiriman manual laporan harian hanya bisa dilakukan 1x per hari.'
+                'message' => 'Pengiriman manual laporan harian sudah mencapai batas maksimal 5x per hari.'
             ]);
             return;
         }
@@ -231,7 +246,7 @@ class SettingNotifikasi extends Component
             $result  = $service->dispatch(isManual: true);
 
             $setting->recordManualSend();
-            $this->canSendDailyManual = false;
+            $this->refreshManualSendStatus();
 
             if ($result['dispatched'] > 0) {
                 $this->dispatch('notify', [
@@ -260,7 +275,7 @@ class SettingNotifikasi extends Component
         if (!$setting->canSendManualToday()) {
             $this->dispatch('notify', [
                 'type' => 'warning',
-                'message' => 'Pengiriman manual rekap sekolah hanya bisa dilakukan 1x per hari.'
+                'message' => 'Pengiriman manual rekap sekolah sudah mencapai batas maksimal 5x per hari.'
             ]);
             return;
         }
@@ -271,7 +286,7 @@ class SettingNotifikasi extends Component
             $result  = $service->dispatch(isManual: true);
 
             $setting->recordManualSend();
-            $this->canSendSchoolManual = false;
+            $this->refreshManualSendStatus();
 
             if ($result['dispatched'] > 0) {
                 $this->dispatch('notify', [
