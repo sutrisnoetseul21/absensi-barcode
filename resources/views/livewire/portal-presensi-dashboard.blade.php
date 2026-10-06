@@ -56,6 +56,24 @@
                 <span class="hidden sm:inline">Rekap Harian</span>
                 <span class="sm:hidden">Rekap</span>
             </button>
+
+            <!-- PDF Cetak MBG Harian -->
+            <button type="button" wire:click="downloadMbgPdf" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 shadow-xs hover:shadow-sm transition-all cursor-pointer">
+                <svg wire:loading.remove wire:target="downloadMbgPdf" class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <svg wire:loading wire:target="downloadMbgPdf" class="w-4 h-4 animate-spin text-violet-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span class="hidden sm:inline">MBG (PDF)</span>
+                <span class="sm:hidden">MBG PDF</span>
+            </button>
+
+            <!-- Excel Cetak MBG Harian -->
+            <button type="button" wire:click="exportMbgExcel" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 shadow-xs hover:shadow-sm transition-all cursor-pointer">
+                <svg wire:loading.remove wire:target="exportMbgExcel" class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <svg wire:loading wire:target="exportMbgExcel" class="w-4 h-4 animate-spin text-violet-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span class="hidden sm:inline">MBG (Excel)</span>
+                <span class="sm:hidden">MBG XL</span>
+            </button>
         </div>
     </div>
 

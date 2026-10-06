@@ -395,6 +395,53 @@ class PortalPresensiDashboard extends Component
         );
     }
 
+    public function downloadMbgPdf()
+    {
+        if (empty($this->classesSummary)) {
+            $this->loadData();
+        }
+
+        $ay = TahunAjaran::find($this->selectedAcademicYearId);
+        $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
+        $dateFormatted = Carbon::parse($date)->locale('id')->translatedFormat('l, d-m-Y');
+
+        $pdf = Pdf::loadView('pdf.laporan-mbg-harian', [
+            'classesSummary' => $this->classesSummary,
+            'tahunAjaran'    => $ay,
+            'dateFormatted'  => $dateFormatted,
+        ])->setPaper('a4', 'portrait');
+
+        $safeDate = str_replace('-', '_', $date);
+        $fileName = "Laporan_MBG_Harian_{$safeDate}.pdf";
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $fileName
+        );
+    }
+
+    public function exportMbgExcel()
+    {
+        if (empty($this->classesSummary)) {
+            $this->loadData();
+        }
+
+        $ay = TahunAjaran::find($this->selectedAcademicYearId);
+        $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
+        
+        $safeDate = str_replace('-', '_', $date);
+        $fileName = "Laporan_MBG_Harian_{$safeDate}.xlsx";
+
+        return Excel::download(
+            new \App\Exports\LaporanMbgHarianExport(
+                $date,
+                $ay,
+                $this->classesSummary
+            ),
+            $fileName
+        );
+    }
+
     public function render()
     {
         return view('livewire.portal-presensi-dashboard', [
