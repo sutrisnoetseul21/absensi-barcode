@@ -213,46 +213,75 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 25px;">No</th>
-                <th style="width: 60px;">Kelas</th>
-                <th style="width: 170px; text-align: left; padding-left: 8px;">Wali Kelas</th>
-                <th style="width: 65px;">Total Siswa</th>
-                <th style="width: 55px;">Hadir</th>
-                <th style="width: 55px;">Terlambat</th>
-                <th style="width: 45px;">Sakit</th>
-                <th style="width: 45px;">Izin</th>
-                <th style="width: 45px;">Alpa</th>
-                <th style="width: 65px;">Belum Absen</th>
-                <th style="width: 60px;">% Hadir</th>
-                <th>Keterangan</th>
+                <th rowspan="2" style="width: 20px;">No</th>
+                <th rowspan="2" style="width: 40px;">Kelas</th>
+                <th rowspan="2" style="width: 120px; text-align: left; padding-left: 6px;">Wali Kelas</th>
+                <th rowspan="2" style="width: 30px;">Total<br>Siswa</th>
+                <th colspan="2" style="width: 40px;">Total L/P</th>
+                <th colspan="2" style="background-color: #047857;">Siswa Hadir</th>
+                <th colspan="2" style="background-color: #9f1239;">Sakit</th>
+                <th colspan="2" style="background-color: #9f1239;">Izin</th>
+                <th colspan="2" style="background-color: #9f1239;">Alpa</th>
+                <th colspan="2">Belum Presensi</th>
+                <th colspan="2">% Hadir</th>
+                <th rowspan="2" style="width: 60px;">Keterangan</th>
+            </tr>
+            <tr class="sub-header">
+                <!-- Total L/P -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Hadir -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Sakit -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Izin -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Alpa -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Belum -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- % -->
+                <th style="width: 25px;">L</th>
+                <th style="width: 25px;">P</th>
             </tr>
         </thead>
         <tbody>
             @forelse($classesSummary as $index => $row)
             <tr>
                 <td class="text-center font-bold">{{ $index + 1 }}</td>
-                <td class="text-center font-bold" style="font-size: 9px;">{{ $row['name'] }}</td>
-                <td class="text-left" style="padding-left: 8px;">{{ $row['wali_kelas'] }}</td>
+                <td class="text-center font-bold" style="font-size: 8.5px;">{{ $row['name'] }}</td>
+                <td class="text-left" style="padding-left: 6px;">{{ $row['wali_kelas'] }}</td>
                 <td class="text-center font-bold">{{ $row['total'] }}</td>
+                <td class="text-center">{{ $row['total_l'] }}</td>
+                <td class="text-center">{{ $row['total_p'] }}</td>
                 
-                <td class="text-center font-bold" style="color: #047857;">{{ $row['hadir'] }}</td>
-                <td class="text-center font-bold" style="color: #b45309;">{{ $row['telat'] ?: '-' }}</td>
-                <td class="text-center" style="color: #6b21a8;">{{ $row['sakit'] ?: '-' }}</td>
-                <td class="text-center" style="color: #1d4ed8;">{{ $row['izin'] ?: '-' }}</td>
-                <td class="text-center font-bold" style="color: #b91c1c;">{{ $row['alpa'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #047857;">{{ $row['hadir_l'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #047857;">{{ $row['hadir_p'] ?: '-' }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $row['sakit_l'] ?: '-' }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $row['sakit_p'] ?: '-' }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $row['izin_l'] ?: '-' }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $row['izin_p'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #b91c1c;">{{ $row['alpa_l'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #b91c1c;">{{ $row['alpa_p'] ?: '-' }}</td>
+                
+                <td class="text-center {{ $row['belum_l'] > 0 ? 'font-bold' : '' }}" style="color: {{ $row['belum_l'] > 0 ? '#ea580c' : '#94a3b8' }};">{{ $row['belum_l'] ?: '-' }}</td>
+                <td class="text-center {{ $row['belum_p'] > 0 ? 'font-bold' : '' }}" style="color: {{ $row['belum_p'] > 0 ? '#ea580c' : '#94a3b8' }};">{{ $row['belum_p'] ?: '-' }}</td>
+                
+                <td class="text-center font-bold">{{ $row['persen_l'] }}%</td>
+                <td class="text-center font-bold">{{ $row['persen_p'] }}%</td>
 
-                <td class="text-center {{ $row['belum'] > 0 ? 'font-bold' : '' }}" style="color: {{ $row['belum'] > 0 ? '#ea580c' : '#94a3b8' }};">
-                    {{ $row['belum'] ?: '0' }}
-                </td>
-
-                <td class="text-center font-bold">{{ $row['persen'] }}%</td>
-                <td class="text-center" style="font-size: 7.5px; color: #64748b;">
+                <td class="text-center" style="font-size: 7px; color: #64748b;">
                     @if($row['belum'] > 0)
-                        <span style="color: #ea580c; font-weight: bold;">{{ $row['belum'] }} belum presensi</span>
+                        <span style="color: #ea580c; font-weight: bold;">{{ $row['belum'] }} blm absen</span>
                     @elseif($row['total'] == $row['total_hadir'])
-                        <span style="color: #047857; font-weight: bold;">Hadir 100%</span>
+                        <span style="color: #047857;">Lengkap (100%)</span>
                     @else
-                        <span>Lengkap</span>
+                        <span>{{ $row['total_hadir'] }} terdata</span>
                     @endif
                 </td>
             </tr>
@@ -266,19 +295,24 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="text-right font-bold" style="padding-right: 8px;">TOTAL KESELURUHAN SEKOLAH:</td>
+                <td colspan="3" class="text-right font-bold" style="padding-right: 8px;">TOTAL SEKOLAH:</td>
                 <td class="text-center">{{ $stats['total_students'] ?? 0 }}</td>
-                <td class="text-center" style="color: #047857;">{{ $stats['hadir'] ?? 0 }}</td>
-                <td class="text-center" style="color: #b45309;">{{ $stats['telat'] ?? 0 }}</td>
-                <td class="text-center" style="color: #6b21a8;">{{ $stats['sakit'] ?? 0 }}</td>
-                <td class="text-center" style="color: #1d4ed8;">{{ $stats['izin'] ?? 0 }}</td>
-                <td class="text-center" style="color: #b91c1c;">{{ $stats['alpa'] ?? 0 }}</td>
-                <td class="text-center" style="color: {{ ($stats['belum'] ?? 0) > 0 ? '#ea580c' : '#64748b' }};">
-                    {{ $stats['belum'] ?? 0 }}
-                </td>
-                <td class="text-center">{{ $stats['persentase_hadir'] ?? 0 }}%</td>
-                <td class="text-center" style="font-size: 8px;">
-                    <strong>{{ $stats['total_hadir'] ?? 0 }} Siswa Hadir</strong>
+                <td class="text-center">{{ $stats['total_l'] ?? 0 }}</td>
+                <td class="text-center">{{ $stats['total_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #047857;">{{ $stats['hadir_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #047857;">{{ $stats['hadir_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $stats['sakit_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $stats['sakit_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $stats['izin_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $stats['izin_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #b91c1c;">{{ $stats['alpa_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #b91c1c;">{{ $stats['alpa_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: {{ ($stats['belum_l'] ?? 0) > 0 ? '#ea580c' : '#64748b' }};">{{ $stats['belum_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: {{ ($stats['belum_p'] ?? 0) > 0 ? '#ea580c' : '#64748b' }};">{{ $stats['belum_p'] ?? 0 }}</td>
+                <td class="text-center">{{ $stats['persen_l'] ?? 0 }}%</td>
+                <td class="text-center">{{ $stats['persen_p'] ?? 0 }}%</td>
+                <td class="text-center" style="font-size: 8px; background-color: #ecfdf5; color: #065f46;">
+                    <strong>{{ $stats['total_hadir'] ?? 0 }} Hadir</strong>
                 </td>
             </tr>
         </tfoot>

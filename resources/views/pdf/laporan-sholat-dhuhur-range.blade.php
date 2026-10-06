@@ -60,6 +60,10 @@
         .text-alpa  { color: #991b1b; font-weight: bold; }
         .bg-total   { background-color: #ecfdf5; font-weight: bold; }
 
+        /* Baris Non-Muslim */
+        .nm-row td { background-color: #eef2ff !important; color: #6366f1; }
+        .nm-row td.nama { font-style: italic; color: #4f46e5; }
+
         /* TANDA TANGAN */
         .signature-section {
             margin-top: 20px;
@@ -139,27 +143,41 @@
             @php $no = 1; @endphp
             @forelse($studentsData as $st)
                 @php
+                    $isNonMuslim = $st['is_non_muslim'] ?? false;
                     $totH = $st['total']['hadir'] ?? 0;
                     $totI = $st['total']['ijin'] ?? 0;
                     $totA = $st['total']['tidak_hadir'] ?? 0;
                     $grandTotal = $totH + $totI + $totA;
-                    $pct = $grandTotal > 0 ? round(($totH / $grandTotal) * 100, 1) : 0;
+                    $pct = (!$isNonMuslim && $grandTotal > 0) ? round(($totH / $grandTotal) * 100, 1) : null;
                 @endphp
-            <tr>
+            <tr class="{{ $isNonMuslim ? 'nm-row' : '' }}">
                 <td class="center">{{ $no++ }}</td>
                 <td class="nisn">{{ $st['nisn'] }}</td>
-                <td class="nama">{{ $st['name'] }}</td>
+                <td class="nama">{{ $st['name'] }}{{ $isNonMuslim ? ' *' : '' }}</td>
                 <td class="center" style="font-weight: bold;">{{ $st['gender'] ?? '-' }}</td>
                 @foreach($monthsList as $m)
                     @php $mStats = $st['months'][$m['key']] ?? []; @endphp
-                    <td class="center text-hadir">{{ $mStats['hadir'] ?? 0 }}</td>
-                    <td class="center text-ijin">{{ $mStats['ijin'] ?? 0 }}</td>
-                    <td class="center text-alpa">{{ $mStats['tidak_hadir'] ?? 0 }}</td>
+                    @if($isNonMuslim)
+                        <td class="center" style="color:#818cf8;font-style:italic;">-</td>
+                        <td class="center" style="color:#818cf8;font-style:italic;">-</td>
+                        <td class="center" style="color:#818cf8;font-style:italic;">-</td>
+                    @else
+                        <td class="center text-hadir">{{ $mStats['hadir'] ?? 0 }}</td>
+                        <td class="center text-ijin">{{ $mStats['ijin'] ?? 0 }}</td>
+                        <td class="center text-alpa">{{ $mStats['tidak_hadir'] ?? 0 }}</td>
+                    @endif
                 @endforeach
-                <td class="center bg-total text-hadir">{{ $totH }}</td>
-                <td class="center bg-total text-ijin">{{ $totI }}</td>
-                <td class="center bg-total text-alpa">{{ $totA }}</td>
-                <td class="center bg-total">{{ $pct }}%</td>
+                @if($isNonMuslim)
+                    <td class="center bg-total" style="color:#818cf8;font-style:italic;">-</td>
+                    <td class="center bg-total" style="color:#818cf8;font-style:italic;">-</td>
+                    <td class="center bg-total" style="color:#818cf8;font-style:italic;">-</td>
+                    <td class="center bg-total" style="color:#818cf8;font-style:italic;font-size:7px;">N/A</td>
+                @else
+                    <td class="center bg-total text-hadir">{{ $totH }}</td>
+                    <td class="center bg-total text-ijin">{{ $totI }}</td>
+                    <td class="center bg-total text-alpa">{{ $totA }}</td>
+                    <td class="center bg-total">{{ $pct }}%</td>
+                @endif
             </tr>
             @empty
             <tr>
@@ -176,7 +194,8 @@
         <div class="signature-left">
             <p style="font-size:8px; color:#555; margin-top:5px; line-height: 1.4;">
                 <strong>Keterangan:</strong><br>
-                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa
+                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa &bull;
+                <span style="color:#6366f1;">* = Non-Muslim (tidak diwajibkan sholat dhuhur, tidak dihitung dalam statistik)</span>
             </p>
         </div>
         <div class="signature-right">

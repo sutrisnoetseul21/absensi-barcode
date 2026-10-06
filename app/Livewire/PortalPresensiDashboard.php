@@ -105,10 +105,24 @@ class PortalPresensiDashboard extends Component
         $schoolAlpa = 0;
         $schoolBelum = 0;
 
+        $schoolTotal_L = 0; $schoolTotal_P = 0;
+        $schoolHadir_L = 0; $schoolHadir_P = 0;
+        $schoolIzin_L = 0;  $schoolIzin_P = 0;
+        $schoolSakit_L = 0; $schoolSakit_P = 0;
+        $schoolAlpa_L = 0;  $schoolAlpa_P = 0;
+        $schoolBelum_L = 0; $schoolBelum_P = 0;
+
         foreach ($this->classes as $cls) {
             $cEnrollments = $enrollments->where('class_id', $cls->id);
             $cTotal = $cEnrollments->count();
             if ($cTotal === 0) continue;
+
+            $cTotal_L = 0; $cTotal_P = 0;
+            $cHadir_L = 0; $cHadir_P = 0;
+            $cIzin_L = 0;  $cIzin_P = 0;
+            $cSakit_L = 0; $cSakit_P = 0;
+            $cAlpa_L = 0;  $cAlpa_P = 0;
+            $cBelum_L = 0; $cBelum_P = 0;
 
             $cHadir = 0;
             $cTelat = 0;
@@ -127,28 +141,44 @@ class PortalPresensiDashboard extends Component
                 $scanOut = null;
                 $note = null;
 
+                if ($st->gender === 'L') {
+                    $cTotal_L++;
+                } else {
+                    $cTotal_P++;
+                }
+
                 if ($att) {
                     $status = $att->status;
                     $scanTime = $att->scan_time ? Carbon::parse($att->scan_time)->format('H:i') : null;
                     $scanOut = $att->scan_out_time ? Carbon::parse($att->scan_out_time)->format('H:i') : null;
                     $note = $att->note;
 
-                    if ($status === 'hadir') {
-                        $cHadir++;
-                    } elseif ($status === 'telat') {
-                        $cTelat++;
+                    if ($status === 'hadir' || $status === 'telat') {
+                        if ($status === 'hadir') $cHadir++;
+                        if ($status === 'telat') $cTelat++;
+                        
+                        if ($st->gender === 'L') {
+                            $cHadir_L++;
+                        } else {
+                            $cHadir_P++;
+                        }
                     } elseif ($status === 'izin') {
                         $cIzin++;
+                        if ($st->gender === 'L') $cIzin_L++; else $cIzin_P++;
                     } elseif ($status === 'sakit') {
                         $cSakit++;
+                        if ($st->gender === 'L') $cSakit_L++; else $cSakit_P++;
                     } elseif ($status === 'alpa') {
                         $cAlpa++;
+                        if ($st->gender === 'L') $cAlpa_L++; else $cAlpa_P++;
                     } else {
                         $cBelum++;
+                        if ($st->gender === 'L') $cBelum_L++; else $cBelum_P++;
                         $status = 'belum';
                     }
                 } else {
                     $cBelum++;
+                    if ($st->gender === 'L') $cBelum_L++; else $cBelum_P++;
                     $status = 'belum';
                 }
 
@@ -191,20 +221,36 @@ class PortalPresensiDashboard extends Component
 
             $cTotalHadir = $cHadir + $cTelat;
             $pct = $cTotal > 0 ? round(($cTotalHadir / $cTotal) * 100, 1) : 0;
+            $pct_L = $cTotal_L > 0 ? round(($cHadir_L / $cTotal_L) * 100, 1) : 0;
+            $pct_P = $cTotal_P > 0 ? round(($cHadir_P / $cTotal_P) * 100, 1) : 0;
 
             $classesSummary[] = [
                 'id'          => $cls->id,
                 'name'        => $cls->name,
                 'wali_kelas'  => $cls->waliKelas($this->selectedAcademicYearId)?->name ?? '-',
                 'total'       => $cTotal,
+                'total_l'     => $cTotal_L,
+                'total_p'     => $cTotal_P,
                 'hadir'       => $cHadir,
                 'telat'       => $cTelat,
                 'total_hadir' => $cTotalHadir,
+                'hadir_l'     => $cHadir_L,
+                'hadir_p'     => $cHadir_P,
                 'izin'        => $cIzin,
+                'izin_l'      => $cIzin_L,
+                'izin_p'      => $cIzin_P,
                 'sakit'       => $cSakit,
+                'sakit_l'     => $cSakit_L,
+                'sakit_p'     => $cSakit_P,
                 'alpa'        => $cAlpa,
+                'alpa_l'      => $cAlpa_L,
+                'alpa_p'      => $cAlpa_P,
                 'belum'       => $cBelum,
+                'belum_l'     => $cBelum_L,
+                'belum_p'     => $cBelum_P,
                 'persen'      => $pct,
+                'persen_l'    => $pct_L,
+                'persen_p'    => $pct_P,
             ];
 
             $schoolTotal += $cTotal;
@@ -214,6 +260,13 @@ class PortalPresensiDashboard extends Component
             $schoolSakit += $cSakit;
             $schoolAlpa  += $cAlpa;
             $schoolBelum += $cBelum;
+
+            $schoolTotal_L += $cTotal_L; $schoolTotal_P += $cTotal_P;
+            $schoolHadir_L += $cHadir_L; $schoolHadir_P += $cHadir_P;
+            $schoolIzin_L  += $cIzin_L;  $schoolIzin_P  += $cIzin_P;
+            $schoolSakit_L += $cSakit_L; $schoolSakit_P += $cSakit_P;
+            $schoolAlpa_L  += $cAlpa_L;  $schoolAlpa_P  += $cAlpa_P;
+            $schoolBelum_L += $cBelum_L; $schoolBelum_P += $cBelum_P;
         }
 
         $schoolTotalHadir = $schoolHadir + $schoolTelat;
@@ -221,15 +274,29 @@ class PortalPresensiDashboard extends Component
 
         $this->stats = [
             'total_students'   => $schoolTotal,
+            'total_l'          => $schoolTotal_L,
+            'total_p'          => $schoolTotal_P,
             'hadir'            => $schoolHadir,
             'telat'            => $schoolTelat,
             'total_hadir'      => $schoolTotalHadir,
+            'hadir_l'          => $schoolHadir_L,
+            'hadir_p'          => $schoolHadir_P,
             'izin'             => $schoolIzin,
+            'izin_l'           => $schoolIzin_L,
+            'izin_p'           => $schoolIzin_P,
             'sakit'            => $schoolSakit,
+            'sakit_l'          => $schoolSakit_L,
+            'sakit_p'          => $schoolSakit_P,
             'alpa'             => $schoolAlpa,
+            'alpa_l'           => $schoolAlpa_L,
+            'alpa_p'           => $schoolAlpa_P,
             'tidak_hadir'      => $schoolIzin + $schoolSakit + $schoolAlpa,
             'belum'            => $schoolBelum,
+            'belum_l'          => $schoolBelum_L,
+            'belum_p'          => $schoolBelum_P,
             'persentase_hadir' => $schoolPct,
+            'persen_l'         => $schoolTotal_L > 0 ? round(($schoolHadir_L / $schoolTotal_L) * 100, 1) : 0,
+            'persen_p'         => $schoolTotal_P > 0 ? round(($schoolHadir_P / $schoolTotal_P) * 100, 1) : 0,
         ];
 
         $this->classesSummary = $classesSummary;
@@ -260,6 +327,8 @@ class PortalPresensiDashboard extends Component
             'sekolah'               => $sekolah,
             'tahunAjaran'           => $ay,
             'selectedDateFormatted' => $dateFormatted,
+            'unattendedStudents'    => $this->unattendedStudents,
+            'allStudents'           => $this->allStudents,
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
         ])->setPaper('a4', 'landscape');
 
@@ -312,6 +381,8 @@ class PortalPresensiDashboard extends Component
             'sekolah'               => $sekolah,
             'tahunAjaran'           => $ay,
             'selectedDateFormatted' => $dateFormatted,
+            'unattendedStudents'    => $this->unattendedStudents,
+            'allStudents'           => $this->allStudents,
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
         ])->setPaper('a4', 'landscape');
 

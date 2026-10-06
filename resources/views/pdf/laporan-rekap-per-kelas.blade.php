@@ -308,22 +308,41 @@
         <thead>
             <tr>
                 <th rowspan="2" style="width: 20px;">No</th>
-                <th rowspan="2" style="width: 50px;">Kelas</th>
-                <th rowspan="2" style="width: 140px; text-align: left; padding-left: 6px;">Wali Kelas</th>
-                <th rowspan="2" style="width: 55px;">Total Siswa</th>
+                <th rowspan="2" style="width: 40px;">Kelas</th>
+                <th rowspan="2" style="width: 120px; text-align: left; padding-left: 6px;">Wali Kelas</th>
+                <th rowspan="2" style="width: 30px;">Total<br>Siswa</th>
+                <th colspan="2" style="width: 40px;">Total L/P</th>
                 <th colspan="2" style="background-color: #047857;">Siswa Hadir</th>
-                <th colspan="3" style="background-color: #9f1239;">Tidak Hadir</th>
-                <th rowspan="2" style="width: 45px;">Belum Absen</th>
-                <th rowspan="2" style="width: 45px;">% Hadir</th>
-                <th rowspan="2" style="width: 90px;">Paraf Wali Kelas / PIC</th>
-                <th rowspan="2" style="width: 80px;">Keterangan</th>
+                <th colspan="2" style="background-color: #9f1239;">Sakit</th>
+                <th colspan="2" style="background-color: #9f1239;">Izin</th>
+                <th colspan="2" style="background-color: #9f1239;">Alpa</th>
+                <th colspan="2">Belum Presensi</th>
+                <th colspan="2">% Hadir</th>
+                <th rowspan="2" style="width: 70px;">Paraf Wali Kelas</th>
+                <th rowspan="2" style="width: 60px;">Keterangan</th>
             </tr>
             <tr class="sub-header">
-                <th style="width: 40px;">Tepat</th>
-                <th style="width: 40px;">Telat</th>
-                <th style="width: 28px;">S</th>
-                <th style="width: 28px;">I</th>
-                <th style="width: 28px;">A</th>
+                <!-- Total L/P -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Hadir -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Sakit -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Izin -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Alpa -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- Belum -->
+                <th style="width: 20px;">L</th>
+                <th style="width: 20px;">P</th>
+                <!-- % -->
+                <th style="width: 25px;">L</th>
+                <th style="width: 25px;">P</th>
             </tr>
         </thead>
         <tbody>
@@ -333,25 +352,30 @@
                 <td class="text-center font-bold" style="font-size: 8.5px;">{{ $row['name'] }}</td>
                 <td class="text-left" style="padding-left: 6px;">{{ $row['wali_kelas'] }}</td>
                 <td class="text-center font-bold">{{ $row['total'] }}</td>
+                <td class="text-center">{{ $row['total_l'] }}</td>
+                <td class="text-center">{{ $row['total_p'] }}</td>
                 
                 <!-- SISWA HADIR (Tepat & Telat) -->
-                <td class="text-center font-bold" style="color: #047857;">{{ $row['hadir'] }}</td>
-                <td class="text-center font-bold" style="color: #b45309;">{{ $row['telat'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #047857;">{{ $row['hadir_l'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #047857;">{{ $row['hadir_p'] ?: '-' }}</td>
 
                 <!-- Ketidakhadiran -->
-                <td class="text-center" style="color: #6b21a8;">{{ $row['sakit'] ?: '-' }}</td>
-                <td class="text-center" style="color: #1d4ed8;">{{ $row['izin'] ?: '-' }}</td>
-                <td class="text-center font-bold" style="color: #b91c1c;">{{ $row['alpa'] ?: '-' }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $row['sakit_l'] ?: '-' }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $row['sakit_p'] ?: '-' }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $row['izin_l'] ?: '-' }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $row['izin_p'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #b91c1c;">{{ $row['alpa_l'] ?: '-' }}</td>
+                <td class="text-center font-bold" style="color: #b91c1c;">{{ $row['alpa_p'] ?: '-' }}</td>
 
                 <!-- Belum Absen -->
-                <td class="text-center {{ $row['belum'] > 0 ? 'font-bold' : '' }}" style="color: {{ $row['belum'] > 0 ? '#ea580c' : '#94a3b8' }};">
-                    {{ $row['belum'] ?: '0' }}
-                </td>
+                <td class="text-center {{ $row['belum_l'] > 0 ? 'font-bold' : '' }}" style="color: {{ $row['belum_l'] > 0 ? '#ea580c' : '#94a3b8' }};">{{ $row['belum_l'] ?: '-' }}</td>
+                <td class="text-center {{ $row['belum_p'] > 0 ? 'font-bold' : '' }}" style="color: {{ $row['belum_p'] > 0 ? '#ea580c' : '#94a3b8' }};">{{ $row['belum_p'] ?: '-' }}</td>
 
                 <!-- Persen -->
-                <td class="text-center font-bold">{{ $row['persen'] }}%</td>
+                <td class="text-center font-bold">{{ $row['persen_l'] }}%</td>
+                <td class="text-center font-bold">{{ $row['persen_p'] }}%</td>
 
-                <!-- Kolom Paraf Serah Terima / Verifikasi -->
+                <!-- Kolom Paraf -->
                 <td>
                     <div class="paraf-box"></div>
                 </td>
@@ -369,7 +393,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="13" class="text-center" style="padding: 15px; color: #94a3b8;">
+                <td colspan="20" class="text-center" style="padding: 15px; color: #94a3b8;">
                     Tidak ada data kelas aktif pada tahun ajaran ini.
                 </td>
             </tr>
@@ -377,17 +401,22 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="text-right font-bold" style="padding-right: 8px;">TOTAL KESELURUHAN SEKOLAH:</td>
+                <td colspan="3" class="text-right font-bold" style="padding-right: 8px;">TOTAL SEKOLAH:</td>
                 <td class="text-center">{{ $stats['total_students'] ?? 0 }}</td>
-                <td class="text-center" style="color: #047857;">{{ $stats['hadir'] ?? 0 }}</td>
-                <td class="text-center" style="color: #b45309;">{{ $stats['telat'] ?? 0 }}</td>
-                <td class="text-center" style="color: #6b21a8;">{{ $stats['sakit'] ?? 0 }}</td>
-                <td class="text-center" style="color: #1d4ed8;">{{ $stats['izin'] ?? 0 }}</td>
-                <td class="text-center" style="color: #b91c1c;">{{ $stats['alpa'] ?? 0 }}</td>
-                <td class="text-center" style="color: {{ ($stats['belum'] ?? 0) > 0 ? '#ea580c' : '#64748b' }};">
-                    {{ $stats['belum'] ?? 0 }}
-                </td>
-                <td class="text-center">{{ $stats['persentase_hadir'] ?? 0 }}%</td>
+                <td class="text-center">{{ $stats['total_l'] ?? 0 }}</td>
+                <td class="text-center">{{ $stats['total_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #047857;">{{ $stats['hadir_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #047857;">{{ $stats['hadir_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $stats['sakit_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #6b21a8;">{{ $stats['sakit_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $stats['izin_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #1d4ed8;">{{ $stats['izin_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: #b91c1c;">{{ $stats['alpa_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: #b91c1c;">{{ $stats['alpa_p'] ?? 0 }}</td>
+                <td class="text-center" style="color: {{ ($stats['belum_l'] ?? 0) > 0 ? '#ea580c' : '#64748b' }};">{{ $stats['belum_l'] ?? 0 }}</td>
+                <td class="text-center" style="color: {{ ($stats['belum_p'] ?? 0) > 0 ? '#ea580c' : '#64748b' }};">{{ $stats['belum_p'] ?? 0 }}</td>
+                <td class="text-center">{{ $stats['persen_l'] ?? 0 }}%</td>
+                <td class="text-center">{{ $stats['persen_p'] ?? 0 }}%</td>
                 <td colspan="2" class="text-center" style="background-color: #ecfdf5; color: #065f46; font-size: 8px;">
                     <strong>{{ $stats['total_hadir'] ?? 0 }} Siswa Hadir di Sekolah</strong>
                 </td>
@@ -433,6 +462,102 @@
                 </div>
             </td>
         </tr>
+    </table>
+
+    <!-- HALAMAN 2: DAFTAR SISWA BELUM PRESENSI -->
+    <div style="page-break-before: always;"></div>
+    
+    <div class="report-header" style="margin-top: 15px;">
+        <h2 class="report-title">DAFTAR SISWA BELUM PRESENSI</h2>
+        <p class="report-subtitle">
+            Hari / Tanggal: <strong>{{ $selectedDateFormatted }}</strong> &bull; Waktu Data: <strong>{{ date('H:i') }} WIB</strong>
+        </p>
+    </div>
+
+    <table class="data-table" style="width: 80%; margin: 0 auto;">
+        <thead>
+            <tr>
+                <th style="width: 30px;">No</th>
+                <th style="width: 100px;">NISN</th>
+                <th style="text-align: left; padding-left: 6px;">Nama Siswa</th>
+                <th style="width: 50px;">L/P</th>
+                <th style="width: 80px;">Kelas</th>
+                <th style="width: 150px;">Wali Kelas</th>
+                <th style="width: 100px;">Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $no = 1; @endphp
+            @forelse($unattendedStudents as $st)
+            <tr>
+                <td class="text-center font-bold">{{ $no++ }}</td>
+                <td class="text-center">{{ $st['nisn'] }}</td>
+                <td class="text-left font-bold" style="padding-left: 6px;">{{ $st['name'] }}</td>
+                <td class="text-center">{{ $st['gender'] }}</td>
+                <td class="text-center font-bold">{{ $st['class_name'] }}</td>
+                <td class="text-center">{{ collect($classesSummary)->firstWhere('id', $st['class_id'])['wali_kelas'] ?? '-' }}</td>
+                <td class="text-center" style="color: #ea580c; font-weight: bold;">Belum Absen</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 15px; color: #047857; font-weight: bold;">
+                    Semua siswa telah tercatat dalam presensi hari ini.
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <!-- HALAMAN 3: RINCIAN KEHADIRAN SELURUH SISWA -->
+    <div style="page-break-before: always;"></div>
+    
+    <div class="report-header" style="margin-top: 15px;">
+        <h2 class="report-title">RINCIAN KEHADIRAN SELURUH SISWA</h2>
+        <p class="report-subtitle">
+            Hari / Tanggal: <strong>{{ $selectedDateFormatted }}</strong> &bull; Waktu Data: <strong>{{ date('H:i') }} WIB</strong>
+        </p>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 30px;">No</th>
+                <th style="width: 100px;">NISN</th>
+                <th style="text-align: left; padding-left: 6px;">Nama Siswa</th>
+                <th style="width: 50px;">L/P</th>
+                <th style="width: 80px;">Kelas</th>
+                <th style="width: 100px;">Status</th>
+                <th style="width: 80px;">Waktu Scan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $noAll = 1; @endphp
+            @forelse($allStudents as $st)
+            <tr>
+                <td class="text-center font-bold">{{ $noAll++ }}</td>
+                <td class="text-center">{{ $st['nisn'] }}</td>
+                <td class="text-left font-bold" style="padding-left: 6px;">{{ $st['name'] }}</td>
+                <td class="text-center">{{ $st['gender'] }}</td>
+                <td class="text-center font-bold">{{ $st['class_name'] }}</td>
+                <td class="text-center font-bold">
+                    @if($st['status'] === 'hadir') <span style="color: #047857;">Hadir</span>
+                    @elseif($st['status'] === 'telat') <span style="color: #b45309;">Terlambat</span>
+                    @elseif($st['status'] === 'izin') <span style="color: #1d4ed8;">Izin</span>
+                    @elseif($st['status'] === 'sakit') <span style="color: #6b21a8;">Sakit</span>
+                    @elseif($st['status'] === 'alpa') <span style="color: #b91c1c;">Alpa</span>
+                    @else <span style="color: #ea580c;">Belum Absen</span>
+                    @endif
+                </td>
+                <td class="text-center">{{ $st['scan_time'] ?? '-' }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 15px; color: #94a3b8;">
+                    Tidak ada data siswa.
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
     </table>
 
 </body>

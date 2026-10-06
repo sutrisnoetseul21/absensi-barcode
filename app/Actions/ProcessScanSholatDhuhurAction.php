@@ -55,6 +55,30 @@ class ProcessScanSholatDhuhurAction
         $academicYearId = $enrollment->academic_year_id;
         $className = $enrollment->kelas?->name ?? 'Kelas';
 
+        // 3. Pengecekan Agama — hanya siswa Islam yang wajib sholat dhuhur
+        $religion = strtolower(trim($siswa->religion ?? ''));
+        $isMuslim = empty($siswa->religion) || $religion === 'islam';
+
+        if (! $isMuslim) {
+            $this->logAttempt($barcode, $siswa->id, 'non_muslim', $now, $ipAddress);
+            return [
+                'status'  => 'non_muslim',
+                'message' => 'Siswa ' . $siswa->name . ' beragama ' . $siswa->religion . '. Presensi sholat dhuhur hanya untuk siswa Muslim.',
+                'student' => [
+                    'id'         => $siswa->id,
+                    'name'       => $siswa->name,
+                    'nisn'       => $siswa->nisn,
+                    'nis'        => $siswa->nis,
+                    'class'      => $className,
+                    'gender'     => $siswa->gender,
+                    'religion'   => $siswa->religion,
+                    'avatar_url' => $siswa->photo_path ? asset('storage/' . $siswa->photo_path) : null,
+                ],
+                'time' => $now->format('H:i:s'),
+                'date' => $now->translatedFormat('l, d F Y'),
+            ];
+        }
+
         $sholatService = app(PresensiSholatDhuhurService::class);
 
         // 3. Pengecekan Hari Libur & Jumat

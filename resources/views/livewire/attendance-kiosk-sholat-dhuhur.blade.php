@@ -182,6 +182,32 @@
                                 </div>
                             </template>
 
+                            <!-- Hasil Scan: NON MUSLIM -->
+                            <template x-if="lastResult && lastResult.status === 'non_muslim'">
+                                <div class="bg-indigo-50 border-2 border-indigo-300 rounded-3xl p-6 animate-fade-in shadow-md">
+                                    <div class="flex items-center gap-4">
+                                        <template x-if="lastResult.student.avatar_url">
+                                            <img :src="lastResult.student.avatar_url" class="w-20 h-20 rounded-2xl object-cover border-2 border-indigo-300 shadow-md">
+                                        </template>
+                                        <template x-if="!lastResult.student.avatar_url">
+                                            <div class="w-20 h-20 rounded-2xl bg-indigo-500 text-white flex items-center justify-center font-black text-2xl shrink-0"
+                                                 x-text="lastResult.student.name.charAt(0)">
+                                            </div>
+                                        </template>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-600 text-white mb-1">
+                                                ℹ️ Non-Muslim
+                                            </span>
+                                            <h3 class="text-xl font-black text-slate-800 truncate" x-text="lastResult.student.name"></h3>
+                                            <p class="text-xs font-bold text-slate-500">
+                                                Kelas <span x-text="lastResult.student.class"></span> &bull; NIS: <span x-text="lastResult.student.nis || '-'"></span>
+                                            </p>
+                                            <p class="text-[11px] text-indigo-700 font-semibold mt-1" x-text="lastResult.message"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
                             <!-- Default State: Standby / Petunjuk Scan -->
                             <template x-if="!lastResult">
                                 <div class="text-center py-8">
@@ -413,6 +439,8 @@
                         this.playAudio('error');
                     } else if (res.status === 'holiday') {
                         this.playAudio('holiday');
+                    } else if (res.status === 'non_muslim') {
+                        this.playAudio('holiday'); // nada info (bukan error keras)
                     } else {
                         this.playAudio('error');
                     }

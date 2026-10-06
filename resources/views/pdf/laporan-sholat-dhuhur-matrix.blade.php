@@ -55,6 +55,16 @@
         .data-table td.nama   { font-weight: 600; text-align: left; padding-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 115px; }
         .data-table td.nisn   { text-align: center; white-space: nowrap; }
 
+        /* Baris Non-Muslim */
+        .nm-row td {
+            background-color: #eef2ff !important;
+            color: #6366f1;
+        }
+        .nm-row td.nama {
+            font-style: italic;
+            color: #4f46e5;
+        }
+
         /* TANDA TANGAN */
         .signature-section {
             margin-top: 15px;
@@ -134,36 +144,45 @@
             @forelse($students as $student)
                 @php
                     $stat = $monthlyStats[$student->id] ?? [];
+                    $isNonMuslim = $stat['is_non_muslim'] ?? false;
                     $hadir = $stat['hadir'] ?? 0;
                     $ijin = $stat['ijin'] ?? 0;
                     $alpa = $stat['tidak_hadir'] ?? 0;
-                    $pct = $effDays > 0 ? round(($hadir / $effDays) * 100, 1) : 0;
+                    $pct = (!$isNonMuslim && $effDays > 0) ? round(($hadir / $effDays) * 100, 1) : null;
                 @endphp
-            <tr>
+            <tr class="{{ $isNonMuslim ? 'nm-row' : '' }}">
                 <td class="center">{{ $no++ }}</td>
                 <td class="nisn">{{ $student->nisn }}</td>
-                <td class="nama">{{ $student->name }}</td>
+                <td class="nama">{{ $student->name }}{{ $isNonMuslim ? ' *' : '' }}</td>
                 <td class="center" style="font-weight: bold;">{{ $student->gender ?? '-' }}</td>
                 @for($d = 1; $d <= $daysInMonth; $d++)
                     @php
                         $code = $stat['daily'][$d] ?? '-';
                         $color = match($code) {
-                            'H' => '#065f46',
-                            'I' => '#1e40af',
-                            'A' => '#991b1b',
-                            'L' => '#9ca3af',
+                            'H'  => '#065f46',
+                            'I'  => '#1e40af',
+                            'A'  => '#991b1b',
+                            'L'  => '#9ca3af',
+                            'NM' => '#818cf8',
                             default => '#666'
                         };
-                        $bgColor = ($code === 'L') ? '#f3f4f6' : 'transparent';
+                        $bgColor = ($code === 'L') ? '#f3f4f6' : (($code === 'NM') ? '#eef2ff' : 'transparent');
                     @endphp
-                    <td class="center" style="color: {{ $color }}; background-color: {{ $bgColor }}; font-weight: bold;">
+                    <td class="center" style="color: {{ $color }}; background-color: {{ $bgColor }}; font-weight: bold; font-size: 7px;">
                         {{ $code }}
                     </td>
                 @endfor
-                <td class="center" style="font-weight: bold; color: #065f46;">{{ $hadir }}</td>
-                <td class="center" style="font-weight: bold; color: #1e40af;">{{ $ijin }}</td>
-                <td class="center" style="font-weight: bold; color: #991b1b;">{{ $alpa }}</td>
-                <td class="center" style="font-weight: bold;">{{ $pct }}%</td>
+                @if($isNonMuslim)
+                    <td class="center" style="color: #818cf8; font-style: italic;">-</td>
+                    <td class="center" style="color: #818cf8; font-style: italic;">-</td>
+                    <td class="center" style="color: #818cf8; font-style: italic;">-</td>
+                    <td class="center" style="color: #818cf8; font-style: italic; font-size: 7px;">N/A</td>
+                @else
+                    <td class="center" style="font-weight: bold; color: #065f46;">{{ $hadir }}</td>
+                    <td class="center" style="font-weight: bold; color: #1e40af;">{{ $ijin }}</td>
+                    <td class="center" style="font-weight: bold; color: #991b1b;">{{ $alpa }}</td>
+                    <td class="center" style="font-weight: bold;">{{ $pct }}%</td>
+                @endif
             </tr>
             @empty
             <tr>
@@ -180,7 +199,8 @@
         <div class="signature-left">
             <p style="font-size:8px; color:#555; margin-top:5px; line-height: 1.4;">
                 <strong>Keterangan Kode:</strong><br>
-                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa &bull; L = Hari Libur / Sholat Jumat
+                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa &bull; L = Hari Libur / Sholat Jumat &bull;
+                <span style="color:#6366f1;">NM = Non-Muslim (tidak diwajibkan sholat dhuhur) *</span>
             </p>
         </div>
         <div class="signature-right">

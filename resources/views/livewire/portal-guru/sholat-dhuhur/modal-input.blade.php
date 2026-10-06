@@ -89,57 +89,89 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 bg-white">
-                                @foreach($inputStudents as $index => $data)
-                                    <tr class="hover:bg-slate-50 transition-colors" wire:key="sholat-st-{{ $data['id'] }}">
-                                        <!-- Nama Siswa -->
-                                        <td class="py-3 px-4 font-bold text-slate-800">
-                                            <div class="flex items-center gap-2.5">
-                                                <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-[11px] text-slate-600 shrink-0">
-                                                    {{ strtoupper(substr($data['name'], 0, 1)) }}
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span class="font-bold text-slate-800 truncate block text-xs" title="{{ $data['name'] }}">{{ $data['name'] }}</span>
-                                                    <div class="flex items-center gap-1.5 mt-0.5">
-                                                        <span class="text-[10px] font-semibold {{ ($data['gender'] ?? '') === 'P' ? 'text-pink-600' : 'text-blue-600' }}">
-                                                            {{ ($data['gender'] ?? '') === 'P' ? 'Perempuan' : 'Laki-laki' }}
-                                                        </span>
-                                                        @if(!empty($data['is_pagi_absent']))
-                                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800">
-                                                                Sinkron Pagi
+                            @foreach($inputStudents as $index => $data)
+                                    @if(!empty($data['is_non_muslim']))
+                                        {{-- Row Non-Muslim: read-only, tidak bisa diinput --}}
+                                        <tr class="bg-indigo-50/60 border-l-4 border-indigo-300" wire:key="sholat-st-{{ $data['id'] }}">
+                                            <td class="py-3 px-4 font-bold text-slate-600">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-[11px] text-indigo-600 shrink-0">
+                                                        {{ strtoupper(substr($data['name'], 0, 1)) }}
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <span class="font-bold text-slate-700 truncate block text-xs" title="{{ $data['name'] }}">{{ $data['name'] }}</span>
+                                                        <div class="flex items-center gap-1.5 mt-0.5">
+                                                            <span class="text-[10px] font-semibold {{ ($data['gender'] ?? '') === 'P' ? 'text-pink-600' : 'text-blue-600' }}">
+                                                                {{ ($data['gender'] ?? '') === 'P' ? 'Perempuan' : 'Laki-laki' }}
                                                             </span>
-                                                        @endif
+                                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                                                Non-Muslim
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
+                                            </td>
+                                            <td class="py-3 px-4 text-center">
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-600 border border-indigo-200">
+                                                    {{ $data['religion'] ?? 'Non-Muslim' }} — Tidak Wajib
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-4 text-xs text-indigo-500 italic">
+                                                Tidak diwajibkan presensi sholat dhuhur
+                                            </td>
+                                        </tr>
+                                    @else
+                                        <tr class="hover:bg-slate-50 transition-colors" wire:key="sholat-st-{{ $data['id'] }}">
+                                            <!-- Nama Siswa -->
+                                            <td class="py-3 px-4 font-bold text-slate-800">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-[11px] text-slate-600 shrink-0">
+                                                        {{ strtoupper(substr($data['name'], 0, 1)) }}
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <span class="font-bold text-slate-800 truncate block text-xs" title="{{ $data['name'] }}">{{ $data['name'] }}</span>
+                                                        <div class="flex items-center gap-1.5 mt-0.5">
+                                                            <span class="text-[10px] font-semibold {{ ($data['gender'] ?? '') === 'P' ? 'text-pink-600' : 'text-blue-600' }}">
+                                                                {{ ($data['gender'] ?? '') === 'P' ? 'Perempuan' : 'Laki-laki' }}
+                                                            </span>
+                                                            @if(!empty($data['is_pagi_absent']))
+                                                                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800">
+                                                                    Sinkron Pagi
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
 
-                                        <!-- Status Dropdown (Persis format portal-guru/akademik) -->
-                                        <td class="py-3 px-4 text-center">
-                                            <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-xs font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm transition-colors
-                                                {{ empty($data['status']) ? 'text-slate-400 bg-white border-slate-200' : '' }}
-                                                {{ ($data['status'] ?? '') === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-300' : '' }}
-                                                {{ ($data['status'] ?? '') === 'ijin' ? 'text-blue-700 bg-blue-50 border-blue-300' : '' }}
-                                                {{ ($data['status'] ?? '') === 'tidak_hadir' ? 'text-red-700 bg-red-50 border-red-300' : '' }}
-                                                {{ ($data['status'] ?? '') === 'haid' ? 'text-pink-700 bg-pink-50 border-pink-300' : '' }}
-                                            ">
-                                                <option value="">-- Pilih --</option>
-                                                <option value="hadir">Hadir</option>
-                                                <option value="ijin">Izin</option>
-                                                <option value="tidak_hadir">Alpa</option>
-                                                @if(($data['gender'] ?? '') === 'P')
-                                                    <option value="haid">🩸 Halangan / Haid</option>
-                                                @endif
-                                            </select>
-                                        </td>
+                                            <!-- Status Dropdown (Persis format portal-guru/akademik) -->
+                                            <td class="py-3 px-4 text-center">
+                                                <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-xs font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm transition-colors
+                                                    {{ empty($data['status']) ? 'text-slate-400 bg-white border-slate-200' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-300' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'ijin' ? 'text-blue-700 bg-blue-50 border-blue-300' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'tidak_hadir' ? 'text-red-700 bg-red-50 border-red-300' : '' }}
+                                                    {{ ($data['status'] ?? '') === 'haid' ? 'text-pink-700 bg-pink-50 border-pink-300' : '' }}
+                                                ">
+                                                    <option value="">-- Pilih --</option>
+                                                    <option value="hadir">Hadir</option>
+                                                    <option value="ijin">Izin</option>
+                                                    <option value="tidak_hadir">Alpa</option>
+                                                    @if(($data['gender'] ?? '') === 'P')
+                                                        <option value="haid">🩸 Halangan / Haid</option>
+                                                    @endif
+                                                </select>
+                                            </td>
 
-                                        <!-- Keterangan -->
-                                        <td class="py-3 px-4">
-                                            <input type="text" 
-                                                   wire:model="inputStudents.{{ $index }}.keterangan" 
-                                                   placeholder="Catatan..." 
-                                                   class="block w-full px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
-                                        </td>
-                                    </tr>
+                                            <!-- Keterangan -->
+                                            <td class="py-3 px-4">
+                                                <input type="text" 
+                                                       wire:model="inputStudents.{{ $index }}.keterangan" 
+                                                       placeholder="Catatan..." 
+                                                       class="block w-full px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                                            </td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>

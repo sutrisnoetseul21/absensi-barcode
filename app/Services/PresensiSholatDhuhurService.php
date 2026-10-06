@@ -102,7 +102,12 @@ class PresensiSholatDhuhurService
               ->with('siswa');
         }])->find($classId);
 
-        $students = $kelas ? $kelas->enrollments->pluck('siswa')->filter()->sortBy('name')->values() : collect();
+        $allStudents = $kelas ? $kelas->enrollments->pluck('siswa')->filter()->sortBy('name')->values() : collect();
+
+        // Pisahkan siswa Muslim dan Non-Muslim
+        // Jika religion kosong/null, dianggap Islam (default)
+        $students       = $allStudents->filter(fn ($s) => empty($s->religion) || strtolower(trim($s->religion)) === 'islam')->values();
+        $nonMuslimStudents = $allStudents->filter(fn ($s) => !empty($s->religion) && strtolower(trim($s->religion)) !== 'islam')->values();
 
         $startDateObj = Carbon::create($calendarYear, $month, 1)->startOfMonth();
         $daysInMonth  = $startDateObj->daysInMonth;
@@ -220,12 +225,13 @@ class PresensiSholatDhuhurService
             $persentase = $totalActive > 0 ? round(($hCount / $totalActive) * 100, 1) : 0;
 
             $monthlyStats[$student->id] = [
-                'hadir'       => $hCount,
-                'ijin'        => $iCount,
-                'tidak_hadir' => $aCount,
-                'persentase'  => $persentase,
-                'daily'       => $daily,
-                'daily_notes' => $dailyNotes,
+                'hadir'          => $hCount,
+                'ijin'           => $iCount,
+                'tidak_hadir'    => $aCount,
+                'persentase'     => $persentase,
+                'daily'          => $daily,
+                'daily_notes'    => $dailyNotes,
+                'is_non_muslim'  => false,
             ];
 
             $totalHadirClass += $hCount;
@@ -233,20 +239,49 @@ class PresensiSholatDhuhurService
             $totalTidakHadirClass += $aCount;
         }
 
+        // Tambahkan entri NM untuk siswa Non-Muslim (tidak masuk statistik)
+        foreach ($nonMuslimStudents as $nm) {
+            $nmDaily = [];
+            $nmNotes = [];
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                if ($holidaysCache[$day]) {
+                    $nmDaily[$day] = 'L';
+                    $nmNotes[$day] = $holidayDescriptions[$day] ?? 'Libur';
+                } else {
+                    $nmDaily[$day] = 'NM';
+                    $nmNotes[$day] = 'Non-Muslim (' . ($nm->religion ?? '-') . ')';
+                }
+            }
+            $monthlyStats[$nm->id] = [
+                'hadir'          => 0,
+                'ijin'           => 0,
+                'tidak_hadir'    => 0,
+                'persentase'     => null,
+                'daily'          => $nmDaily,
+                'daily_notes'    => $nmNotes,
+                'is_non_muslim'  => true,
+            ];
+        }
+
         // Hitung total hari efektif sholat dhuhur bulan ini
         $effectiveDays = count(array_filter($holidaysCache, fn ($isHoliday) => !$isHoliday));
+        // total_students hanya menghitung siswa Muslim (untuk statistik kelas)
         $totalStudents = count($students);
+        // total_all_students mencakup semua siswa (Muslim + Non-Muslim) untuk tampilan tabel
+        $totalAllStudents = $allStudents->count();
         $grandTotalActive = $totalHadirClass + $totalIjinClass + $totalTidakHadirClass;
         $classPercentage = $grandTotalActive > 0 ? round(($totalHadirClass / $grandTotalActive) * 100, 1) : 0;
 
         $classMonthlyStats = [
-            'hadir'            => $totalHadirClass,
-            'ijin'             => $totalIjinClass,
-            'tidak_hadir'      => $totalTidakHadirClass,
-            'effective_days'   => $effectiveDays,
-            'total_students'   => $totalStudents,
-            'max_possible'     => $totalStudents * $effectiveDays,
-            'class_percentage' => $classPercentage,
+            'hadir'               => $totalHadirClass,
+            'ijin'                => $totalIjinClass,
+            'tidak_hadir'         => $totalTidakHadirClass,
+            'effective_days'      => $effectiveDays,
+            'total_students'      => $totalStudents,
+            'total_all_students'  => $totalAllStudents,
+            'non_muslim_count'    => $nonMuslimStudents->count(),
+            'max_possible'        => $totalStudents * $effectiveDays,
+            'class_percentage'    => $classPercentage,
         ];
 
         // Stats hari ini untuk kelas ini
@@ -314,13 +349,18 @@ class PresensiSholatDhuhurService
             'ijin'             => $todayIjin,
             'tidak_hadir'      => $todayTidakHadir,
             'belum'            => $todayBelum,
-            'total'            => $totalStudents,
+            'total'            => $totalStudents,      // hanya Muslim
+            'total_all'        => $totalAllStudents,   // semua siswa (termasuk non-Muslim)
+            'non_muslim_count' => $nonMuslimStudents->count(),
             'persentase_hadir' => $totalStudents > 0 ? round(($todayHadir / $totalStudents) * 100, 1) : 0,
             'is_holiday'       => !$this->isHariSholatDhuhur(Carbon::parse($todayDate), $classId),
         ];
 
+        // Gabungkan untuk tampilan tabel: Muslim dulu, lalu Non-Muslim di bawah
+        $displayStudents = $students->concat($nonMuslimStudents);
+
         return [
-            'students'          => $students,
+            'students'          => $displayStudents,
             'monthlyStats'      => $monthlyStats,
             'classMonthlyStats' => $classMonthlyStats,
             'todayStats'        => $todayStats,
@@ -348,7 +388,11 @@ class PresensiSholatDhuhurService
               ->with('siswa');
         }])->find($classId);
 
-        $students = $kelas ? $kelas->enrollments->pluck('siswa')->filter()->sortBy('name')->values() : collect();
+        $allStudents = $kelas ? $kelas->enrollments->pluck('siswa')->filter()->sortBy('name')->values() : collect();
+
+        // Pisahkan Muslim dan Non-Muslim
+        $students          = $allStudents->filter(fn ($s) => empty($s->religion) || strtolower(trim($s->religion)) === 'islam')->values();
+        $nonMuslimStudents = $allStudents->filter(fn ($s) => !empty($s->religion) && strtolower(trim($s->religion)) !== 'islam')->values();
 
         $start = Carbon::parse($startDate)->startOfMonth();
         $end   = Carbon::parse($endDate)->endOfMonth();
@@ -372,10 +416,12 @@ class PresensiSholatDhuhurService
         $studentsData = [];
         foreach ($students as $st) {
             $studentsData[$st->id] = [
-                'student'     => $st,
-                'name'        => $st->name,
-                'nisn'        => $st->nisn,
-                'gender'      => $st->gender ?? '-',
+                'student'        => $st,
+                'name'           => $st->name,
+                'nisn'           => $st->nisn,
+                'gender'         => $st->gender ?? '-',
+                'religion'       => $st->religion,
+                'is_non_muslim'  => false,
                 'months'      => [],
                 'totals'      => [
                     'hadir'       => 0,
@@ -389,6 +435,30 @@ class PresensiSholatDhuhurService
                 ],
             ];
         }
+
+        // Tambahkan entri Non-Muslim (tanpa statistik sholat)
+        foreach ($nonMuslimStudents as $nm) {
+            $studentsData[$nm->id] = [
+                'student'        => $nm,
+                'name'           => $nm->name,
+                'nisn'           => $nm->nisn,
+                'gender'         => $nm->gender ?? '-',
+                'religion'       => $nm->religion,
+                'is_non_muslim'  => true,
+                'months'      => [],
+                'totals'      => [
+                    'hadir'       => 0,
+                    'ijin'        => 0,
+                    'tidak_hadir' => 0,
+                ],
+                'total'       => [
+                    'hadir'       => 0,
+                    'ijin'        => 0,
+                    'tidak_hadir' => 0,
+                ],
+            ];
+        }
+
 
         foreach ($monthsList as $mKey => $mInfo) {
             $mResult = $this->getMonthlyMatrixData($academicYearId, $classId, $mInfo['month'], $mInfo['year']);

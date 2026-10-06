@@ -93,6 +93,17 @@
                         {{ $todayStats['tidak_hadir'] ?? 0 }}
                     </span>
                 </button>
+
+                <!-- Non-Muslim -->
+                <button type="button" @click="dailyFilter = 'non_muslim'"
+                    :class="dailyFilter === 'non_muslim' ? 'bg-indigo-600 text-white font-bold shadow-sm ring-2 ring-indigo-300' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-semibold'"
+                    class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                    Non-Muslim
+                    <span :class="dailyFilter === 'non_muslim' ? 'bg-white/20 text-white' : 'bg-indigo-200 text-indigo-800'" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold">
+                        {{ $todayStats['non_muslim_count'] ?? 0 }}
+                    </span>
+                </button>
             </div>
 
             <!-- Tombol Cepat Input Presensi Sholat -->
@@ -125,7 +136,8 @@
             @forelse($students as $student)
                 @php
                     $att = $todayAttendances[$student->id] ?? null;
-                    $status = $att['status'] ?? 'belum';
+                    $isNm = !empty($student->religion) && strtolower(trim($student->religion)) !== 'islam';
+                    $status = $isNm ? 'non_muslim' : ($att['status'] ?? 'belum');
                     $keterangan = $att['keterangan'] ?? null;
                     $time = $att['time'] ?? null;
 
@@ -147,7 +159,8 @@
                              (dailyFilter === 'belum' && '{{ $status }}' === 'belum') ||
                              (dailyFilter === 'hadir' && '{{ $status }}' === 'hadir') ||
                              (dailyFilter === 'ijin' && '{{ $status }}' === 'ijin') ||
-                             (dailyFilter === 'tidak_hadir' && '{{ $status }}' === 'tidak_hadir')) && 
+                             (dailyFilter === 'tidak_hadir' && '{{ $status }}' === 'tidak_hadir') ||
+                             (dailyFilter === 'non_muslim' && '{{ $status }}' === 'non_muslim')) && 
                              ('{{ strtolower(addslashes($student->name)) }}'.includes(searchQuery.toLowerCase()) || '{{ $student->nisn }}'.includes(searchQuery))"
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 -translate-y-1"
@@ -176,7 +189,12 @@
 
                         <!-- Status Badge Sholat -->
                         <div>
-                            @if($status === 'hadir')
+                            @if($status === 'non_muslim')
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                    Non-Muslim
+                                </span>
+                            @elseif($status === 'hadir')
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     Hadir {{ $time ? '('.$time.')' : '' }}
@@ -261,7 +279,8 @@
                         @forelse($students as $index => $student)
                             @php
                                 $att = $todayAttendances[$student->id] ?? null;
-                                $status = $att['status'] ?? 'belum';
+                                $isNm = !empty($student->religion) && strtolower(trim($student->religion)) !== 'islam';
+                                $status = $isNm ? 'non_muslim' : ($att['status'] ?? 'belum');
                                 $keterangan = $att['keterangan'] ?? null;
                                 $time = $att['time'] ?? null;
 
@@ -282,7 +301,8 @@
                                          (dailyFilter === 'belum' && '{{ $status }}' === 'belum') ||
                                          (dailyFilter === 'hadir' && '{{ $status }}' === 'hadir') ||
                                          (dailyFilter === 'ijin' && '{{ $status }}' === 'ijin') ||
-                                         (dailyFilter === 'tidak_hadir' && '{{ $status }}' === 'tidak_hadir')) && 
+                                         (dailyFilter === 'tidak_hadir' && '{{ $status }}' === 'tidak_hadir') ||
+                                         (dailyFilter === 'non_muslim' && '{{ $status }}' === 'non_muslim')) && 
                                          ('{{ strtolower(addslashes($student->name)) }}'.includes(searchQuery.toLowerCase()) || '{{ $student->nisn }}'.includes(searchQuery))"
                                 class="hover:bg-slate-50/80 transition-colors">
                                 <td class="py-3.5 px-4 text-center font-bold text-slate-400 text-xs">{{ $loop->iteration }}</td>
@@ -306,7 +326,11 @@
                                     </div>
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
-                                    @if($status === 'hadir')
+                                    @if($status === 'non_muslim')
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                            Non-Muslim
+                                        </span>
+                                    @elseif($status === 'hadir')
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                             Hadir Berjamaah
                                         </span>
@@ -331,20 +355,24 @@
                                     {{ $keterangan ?: '-' }}
                                 </td>
                                 <td class="py-3.5 px-6 text-center">
-                                    <div class="flex items-center justify-center gap-2">
-                                        @if(($status === 'belum' || $status === 'tidak_hadir') && !empty($cleanPhone))
-                                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs" title="Chat WhatsApp Wali">
-                                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-                                                <span>WA Ortu</span>
+                                    @if($status === 'non_muslim')
+                                        <span class="text-xs text-indigo-500 font-semibold italic">Non-Muslim</span>
+                                    @else
+                                        <div class="flex items-center justify-center gap-2">
+                                            @if(($status === 'belum' || $status === 'tidak_hadir') && !empty($cleanPhone))
+                                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs" title="Chat WhatsApp Wali">
+                                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                                    <span>WA Ortu</span>
+                                                </a>
+                                            @endif
+                                            <button type="button" wire:click="openInputModal" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all" title="Input Presensi">
+                                                Input
+                                            </button>
+                                            <a href="{{ !empty($student->id) ? route('portal-guru.student-detail', ['id' => $student->id]) : '#' }}" class="p-1 text-slate-400 hover:text-emerald-600" title="Lihat Profil">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </a>
-                                        @endif
-                                        <button type="button" wire:click="openInputModal" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all" title="Input Presensi">
-                                            Input
-                                        </button>
-                                        <a href="{{ !empty($student->id) ? route('portal-guru.student-detail', ['id' => $student->id]) : '#' }}" class="p-1 text-slate-400 hover:text-emerald-600" title="Lihat Profil">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </a>
-                                    </div>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -384,6 +412,9 @@
                 </span>
                 <span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-200 px-2 py-1 rounded-md">
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span> L: Libur / Jumat
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-1 rounded-md">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400"></span> NM: Non-Muslim
                 </span>
             </div>
         </div>
@@ -438,25 +469,33 @@
                             @for($i = 1; $i <= $daysInMonth; $i++)
                                 @php
                                     $code = $stStats['daily'][$i] ?? '-';
+                                    $isNm = $stStats['is_non_muslim'] ?? false;
                                     $colorClass = match($code) {
-                                        'H' => 'text-emerald-700 font-black bg-emerald-50 rounded border border-emerald-200/50',
-                                        'I' => 'text-blue-700 font-black bg-blue-50 rounded border border-blue-200/50',
-                                        'A' => 'text-rose-700 font-black bg-rose-50 rounded border border-rose-200/50',
-                                        'L' => 'text-slate-400 font-semibold bg-slate-100/90 rounded border border-slate-200/50 cursor-not-allowed',
+                                        'H'  => 'text-emerald-700 font-black bg-emerald-50 rounded border border-emerald-200/50',
+                                        'I'  => 'text-blue-700 font-black bg-blue-50 rounded border border-blue-200/50',
+                                        'A'  => 'text-rose-700 font-black bg-rose-50 rounded border border-rose-200/50',
+                                        'L'  => 'text-slate-400 font-semibold bg-slate-100/90 rounded border border-slate-200/50 cursor-not-allowed',
+                                        'NM' => 'text-indigo-500 font-semibold bg-indigo-50 rounded border border-indigo-200/50 cursor-not-allowed text-[9px]',
                                         default => 'text-slate-300',
                                     };
                                 @endphp
-                                <td class="py-2 px-1 text-center" title="{{ $code === 'L' ? 'Hari Libur / Jumat' : ($code === 'I' ? 'Ijin / Halangan' : ($code === 'H' ? 'Hadir' : ($code === 'A' ? 'Alpa' : ''))) }}">
+                                <td class="py-2 px-1 text-center" title="{{ $code === 'L' ? 'Hari Libur / Jumat' : ($code === 'NM' ? 'Non-Muslim' : ($code === 'I' ? 'Ijin / Halangan' : ($code === 'H' ? 'Hadir' : ($code === 'A' ? 'Alpa' : '')))) }}">
                                     <div class="w-6 h-6 mx-auto flex items-center justify-center text-[11px] {{ $colorClass }}">
                                         {{ $code }}
                                     </div>
                                 </td>
                             @endfor
-                            <td class="py-3 px-3 text-center font-black text-emerald-700 bg-emerald-50/40">{{ $hadirCount }}</td>
-                            <td class="py-3 px-3 text-center font-black text-blue-700 bg-blue-50/40">{{ $ijinCount }}</td>
-                            <td class="py-3 px-3 text-center font-black text-rose-700 bg-rose-50/40">{{ $alpaCount }}</td>
-                            <td class="py-3 px-3 text-center font-bold text-slate-700 bg-slate-50/50">
-                                {{ $pct }}%
+                            <td class="py-3 px-3 text-center font-black bg-emerald-50/40 {{ ($stStats['is_non_muslim'] ?? false) ? 'text-indigo-400' : 'text-emerald-700' }}">
+                                {{ ($stStats['is_non_muslim'] ?? false) ? '-' : $hadirCount }}
+                            </td>
+                            <td class="py-3 px-3 text-center font-black bg-blue-50/40 {{ ($stStats['is_non_muslim'] ?? false) ? 'text-indigo-400' : 'text-blue-700' }}">
+                                {{ ($stStats['is_non_muslim'] ?? false) ? '-' : $ijinCount }}
+                            </td>
+                            <td class="py-3 px-3 text-center font-black bg-rose-50/40 {{ ($stStats['is_non_muslim'] ?? false) ? 'text-indigo-400' : 'text-rose-700' }}">
+                                {{ ($stStats['is_non_muslim'] ?? false) ? '-' : $alpaCount }}
+                            </td>
+                            <td class="py-3 px-3 text-center font-bold bg-slate-50/50 {{ ($stStats['is_non_muslim'] ?? false) ? 'text-indigo-400 italic text-[10px]' : 'text-slate-700' }}">
+                                {{ ($stStats['is_non_muslim'] ?? false) ? 'N/A' : $pct . '%' }}
                             </td>
                         </tr>
                     @empty

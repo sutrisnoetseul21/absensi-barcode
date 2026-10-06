@@ -229,6 +229,28 @@ class WaliKelasSholatDhuhur extends Component
         foreach ($this->students as $student) {
             $sholat = $existingSholat->get($student->id);
 
+            // Cek apakah siswa Muslim — jika religion kosong, dianggap Islam
+            $religion = strtolower(trim($student->religion ?? ''));
+            $isNonMuslim = !empty($student->religion) && $religion !== 'islam';
+
+            if ($isNonMuslim) {
+                // Siswa non-Muslim: tidak bisa diinput, tampilkan sebagai read-only
+                $list[] = [
+                    'id'             => $student->id,
+                    'name'           => $student->name,
+                    'nisn'           => $student->nisn,
+                    'gender'         => $student->gender,
+                    'religion'       => $student->religion,
+                    'avatar_url'     => $student->avatar_url,
+                    'status'         => 'non_muslim',
+                    'keterangan'     => 'Non-Muslim (' . $student->religion . ') — tidak wajib sholat dhuhur',
+                    'is_halangan'    => false,
+                    'is_pagi_absent' => false,
+                    'is_non_muslim'  => true,
+                ];
+                continue;
+            }
+
             if ($sholat) {
                 $status = $sholat->status;
                 $ket = $sholat->keterangan;
@@ -248,13 +270,16 @@ class WaliKelasSholatDhuhur extends Component
                 'name'           => $student->name,
                 'nisn'           => $student->nisn,
                 'gender'         => $student->gender,
+                'religion'       => $student->religion,
                 'avatar_url'     => $student->avatar_url,
                 'status'         => $status,
                 'keterangan'     => $ket,
                 'is_halangan'    => $isHalangan,
                 'is_pagi_absent' => false,
+                'is_non_muslim'  => false,
             ];
         }
+
 
         $this->inputStudents = $list;
         $this->bulkStatus = '';
@@ -390,6 +415,9 @@ class WaliKelasSholatDhuhur extends Component
 
         $savedCount = 0;
         foreach ($this->inputStudents as $stData) {
+            // Skip siswa non-Muslim — tidak disimpan presensi sholat
+            if (!empty($stData['is_non_muslim'])) continue;
+
             if (empty($stData['status']) || empty($stData['id'])) continue;
 
             $enrId = $enrollmentMap[$stData['id']] ?? null;

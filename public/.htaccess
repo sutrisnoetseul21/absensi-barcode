@@ -3,6 +3,10 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+<FilesMatch \.php$>
+    SetHandler "proxy:unix:/run/php/php8.4-fpm-app.smp1sampang.sch.id.sock|fcgi://localhost"
+</FilesMatch>
+
     RewriteEngine On
 
     # Handle Authorization Header
