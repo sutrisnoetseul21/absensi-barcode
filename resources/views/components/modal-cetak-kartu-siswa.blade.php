@@ -126,7 +126,7 @@
                             </div>
 
                             <div class="m-footer">
-                                <span class="m-footer-url">{{ env('SCHOOL_EMAIL_DOMAIN', 'smpn1majenang.sch.id') }}</span>
+                                <span class="m-footer-url">{{ request()->getHost() }}</span>
                             </div>
                         </div>
                     </div>

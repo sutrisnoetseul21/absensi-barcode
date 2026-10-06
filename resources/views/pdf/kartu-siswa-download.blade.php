@@ -254,7 +254,7 @@
 
     {{-- Domain URL (menempel tepat di atas strip bawah) --}}
     <div class="footer-url-box">
-        <span class="footer-url">{{ env('SCHOOL_EMAIL_DOMAIN', 'smpn1majenang.sch.id') }}</span>
+        <span class="footer-url">{{ request()->getHost() }}</span>
     </div>
 
     {{-- Strip Bawah (menempel di batas paling bawah) --}}
