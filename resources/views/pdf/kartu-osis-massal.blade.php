@@ -449,7 +449,7 @@
 
                     <!-- Modern Footer Centered -->
                     <div class="footer">
-                        <span class="footer-url">presensi.smpn1majenang.sch.id</span>
+                        <span class="footer-url">{{ env('SCHOOL_EMAIL_DOMAIN', 'smp1sampang.sch.id') }}</span>
                     </div>
 
                 </div>
