@@ -40,9 +40,12 @@
 </head>
 <body>
 
+    @php
+        $sekolah = \App\Models\PengaturanSekolah::current();
+    @endphp
     <div class="header">
         <p>DAFTAR HARIAN PENGAMBILAN DAN PENGEMBALIAN MBG</p>
-        <p>SMP NEGERI 3 KEDUNGREJA</p>
+        <p>{{ strtoupper($sekolah?->school_name ?? 'SMP NEGERI 3 KEDUNGREJA') }}</p>
         <p>TAHUN AJARAN {{ $tahunAjaran->name ?? '-' }}</p>
     </div>
 
