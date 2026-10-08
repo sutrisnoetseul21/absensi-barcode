@@ -237,6 +237,10 @@ class BukuForm
                             ->helperText('Contoh: INF untuk Informatika, MAT untuk Matematika')
                             ->maxLength(10)
                             ->required()
+                            ->rules(['not_regex:/[0-9]$/'])
+                            ->validationMessages([
+                                'not_regex' => 'Awalan (prefix) tidak boleh diakhiri dengan angka untuk mencegah kerusakan sistem penomoran barcode otomatis.',
+                            ])
                             ->dehydrateStateUsing(fn ($state) => strtoupper($state)),
                     ])
                     ->columns(2)
