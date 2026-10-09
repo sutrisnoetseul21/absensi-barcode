@@ -15,9 +15,13 @@ class RoleAdminSeeder extends Seeder
         DB::beginTransaction();
         try {
             Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+            Role::firstOrCreate(['name' => 'wali_kelas', 'guard_name' => 'web']);
+            Role::firstOrCreate(['name' => 'guru', 'guard_name' => 'web']);
+            Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
             
             DB::commit();
-            $this->command->info("✅ Berhasil generate role: super_admin");
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            $this->command->info("✅ Berhasil generate role: super_admin, wali_kelas, guru, siswa");
         } catch (\Exception $e) {
             DB::rollBack();
             $this->command->error("❌ Gagal: " . $e->getMessage());

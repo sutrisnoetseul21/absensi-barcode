@@ -12,11 +12,15 @@ class GuruAksesSemuaKelasSeeder extends Seeder
      */
     public function run(): void
     {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         Permission::firstOrCreate([
             'name' => 'portal_guru:akses_semua_kelas',
             'guard_name' => 'web',
         ]);
         
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         $this->command->info('✅ Permission portal_guru:akses_semua_kelas berhasil dibuat!');
     }
 }

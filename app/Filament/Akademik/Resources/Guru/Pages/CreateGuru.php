@@ -8,6 +8,7 @@ use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class CreateGuru extends CreateRecord
 {
@@ -28,12 +29,25 @@ class CreateGuru extends CreateRecord
 
         $email = $data['email'] ?? UsernameHelper::generateForGuru($data['name'], $data['nip'] ?? null) . '@' . config('school.email_domain');
 
-        $user = User::create([
-            'name'                 => $data['name'],
-            'email'                => $email,
-            'password'             => $this->generatedPassword,
-            'must_change_password' => false,
-        ]);
+        // Hindari crash duplicate entry jika akun user sudah ada
+        $user = User::firstWhere('email', $email);
+
+        if ($user) {
+            $user->update([
+                'name'                 => $data['name'],
+                'password'             => $this->generatedPassword,
+                'must_change_password' => false,
+            ]);
+        } else {
+            $user = User::create([
+                'name'                 => $data['name'],
+                'email'                => $email,
+                'password'             => $this->generatedPassword,
+                'must_change_password' => false,
+            ]);
+        }
+
+        Role::firstOrCreate(['name' => 'wali_kelas', 'guard_name' => 'web']);
         $user->assignRole('wali_kelas');
 
         $data['user_id'] = $user->id;
@@ -50,6 +64,9 @@ class CreateGuru extends CreateRecord
      */
     protected function afterCreate(): void
     {
+        // Hubungkan relasi 2 arah User -> Teacher
+        $this->record->user?->update(['teacher_id' => $this->record->id]);
+
         \App\Models\KelompokGuruWali::firstOrCreate(
             ['teacher_id' => $this->record->id],
             [

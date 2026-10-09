@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             KelasSeeder::class,
+            JabatanSeeder::class,
             SuperAdminSeeder::class,
             KategoriBukuSeeder::class,
             KlasifikasiDdcSeeder::class,
@@ -24,10 +25,14 @@ class DatabaseSeeder extends Seeder
             RoleAkademikSeeder::class,
             RolePresensiSeeder::class,
             RolePerpustakaanSeeder::class,
+            GuruAksesSemuaKelasSeeder::class,
             WebSarpraSeeder::class,
             WebPillarSeeder::class,
             WebFaqSeeder::class,
             SpikapRoleSeeder::class,
+            PresensiDailyReportSettingSeeder::class,
+            PresensiNotificationSettingSeeder::class,
+            PresensiSchoolSummarySettingSeeder::class,
         ]);
 
         // Akun Admin Filament
