@@ -157,8 +157,9 @@
             </div>
         </div>
 
-        <!-- Terlambat -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+        <!-- Terlambat (Interactive Card to Jump to Siswa Terlambat Tab) -->
+        <div wire:click="$set('activeTab', 'siswa_terlambat')" 
+            class="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col justify-between hover:shadow-md transition-all relative overflow-hidden group cursor-pointer active:scale-95">
             <div class="absolute -right-3 -top-3 w-14 h-14 bg-amber-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
             <div class="relative z-10 flex items-center justify-between mb-3">
                 <div class="p-2 sm:p-2.5 bg-amber-100 text-amber-600 rounded-xl">
@@ -168,7 +169,11 @@
             </div>
             <div class="relative z-10">
                 <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-0.5">Terlambat</p>
-                <h3 class="text-2xl sm:text-3xl font-black text-slate-900">{{ $stats['telat'] ?? 0 }}</h3>
+                <h3 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-baseline gap-1.5">
+                    {{ $stats['telat'] ?? 0 }}
+                    <span class="text-xs font-normal text-slate-400">siswa</span>
+                </h3>
+                <p class="text-[10px] text-amber-600 mt-1 font-medium group-hover:underline">Klik untuk lihat siswa &rarr;</p>
             </div>
         </div>
 
@@ -239,7 +244,7 @@
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden mb-8">
         <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <!-- Tabs (Using brand-primary theme) -->
-            <div class="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200/60 self-start sm:self-auto">
+            <div class="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200/60 self-start sm:self-auto flex-wrap">
                 <button type="button" wire:click="$set('activeTab', 'per_kelas')"
                     class="px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer font-bold {{ $activeTab === 'per_kelas' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
                     <svg class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -251,10 +256,19 @@
 
                 <button type="button" wire:click="$set('activeTab', 'belum_presensi')"
                     class="px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer font-bold {{ $activeTab === 'belum_presensi' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     <span>Belum Presensi</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ ($stats['belum'] ?? 0) > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700' }}">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ ($stats['belum'] ?? 0) > 0 ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-700' }}">
                         {{ $stats['belum'] ?? 0 }}
+                    </span>
+                </button>
+
+                <button type="button" wire:click="$set('activeTab', 'siswa_terlambat')"
+                    class="px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer font-bold {{ $activeTab === 'siswa_terlambat' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Siswa Terlambat</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ ($stats['telat'] ?? 0) > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700' }}">
+                        {{ $stats['telat'] ?? 0 }}
                     </span>
                 </button>
 
@@ -330,7 +344,16 @@
                                     </span>
                                 </td>
                                 <td class="py-3 px-4 text-center font-bold text-amber-700">
-                                    {{ $row['telat'] ?: '-' }}
+                                    @if(($row['telat'] ?? 0) > 0)
+                                        <button type="button" wire:click="filterLateByClass('{{ $row['id'] }}')" 
+                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-200 transition-all cursor-pointer"
+                                            title="Klik untuk lihat siswa terlambat di Kelas {{ $row['name'] }}">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            {{ $row['telat'] }}
+                                        </button>
+                                    @else
+                                        <span class="text-slate-400 font-normal">-</span>
+                                    @endif
                                 </td>
                                 <td class="py-3 px-4 text-center text-slate-600">
                                     {{ $row['sakit'] ?: '-' }}
@@ -559,6 +582,183 @@
                                                 <a href="{{ route('portal-presensi.input-manual') }}?class_id={{ $st['class_id'] }}" 
                                                     class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
                                                     <span>Input</span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        <!-- ========================================================================= -->
+        <!-- TAB: DAFTAR SISWA TERLAMBAT HARI INI -->
+        <!-- ========================================================================= -->
+        @if($activeTab === 'siswa_terlambat')
+            <div class="p-4 sm:p-5">
+                <!-- Filter Dropdown Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-500">Filter Kelas:</label>
+                        <select wire:model.live="selectedClassFilter" class="text-xs sm:text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30">
+                            <option value="all">Semua Kelas ({{ count($lateStudents) }} siswa terlambat)</option>
+                            @foreach($classes as $c)
+                                <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @if($selectedClassFilter !== 'all')
+                        <button type="button" wire:click="$set('selectedClassFilter', 'all')" class="text-xs font-bold text-brand-primary hover:underline">
+                            Reset ke Semua Kelas
+                        </button>
+                    @endif
+                </div>
+
+                @php
+                    $filteredLate = collect($lateStudents)->filter(function($st) use ($selectedClassFilter, $searchQuery) {
+                        if ($selectedClassFilter !== 'all' && $st['class_id'] !== $selectedClassFilter) {
+                            return false;
+                        }
+                        if (!empty($searchQuery)) {
+                            return str_contains(strtolower($st['name']), strtolower($searchQuery)) ||
+                                   str_contains((string)$st['nisn'], $searchQuery) ||
+                                   str_contains(strtolower($st['class_name']), strtolower($searchQuery));
+                        }
+                        return true;
+                    });
+                @endphp
+
+                <!-- Celebration / Empty State Banner if Late is 0 -->
+                @if($filteredLate->isEmpty() && empty($searchQuery))
+                    <div class="p-10 text-center bg-gradient-to-br from-amber-50/50 via-white to-emerald-50/50 rounded-3xl border border-amber-200/60 my-4 shadow-xs">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h4 class="text-lg font-black text-slate-800">Hebat! Tidak Ada Siswa Terlambat Hari Ini 🎉</h4>
+                        <p class="text-sm text-slate-600 mt-1 max-w-md mx-auto font-medium">
+                            {{ $selectedClassFilter !== 'all' ? 'Di kelas ini tidak ada siswa yang tercatat terlambat.' : 'Seluruh siswa yang hadir tercatat hadir tepat waktu tanpa keterlambatan.' }}
+                        </p>
+                    </div>
+                @elseif($filteredLate->isEmpty() && !empty($searchQuery))
+                    <div class="p-8 text-center text-slate-500">
+                        <p class="font-bold text-sm">Tidak ditemukan siswa terlambat dengan kata kunci "{{ $searchQuery }}".</p>
+                    </div>
+                @else
+                    <!-- Mobile Card List -->
+                    <div class="block md:hidden space-y-3">
+                        @foreach($filteredLate as $st)
+                            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-sm shrink-0">
+                                            {{ strtoupper(substr($st['name'], 0, 2)) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-slate-800 text-sm truncate">{{ $st['name'] }}</p>
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                                <span class="font-bold text-brand-primary">Kelas {{ $st['class_name'] }}</span>
+                                                <span>&bull;</span>
+                                                <span>NISN: {{ $st['nisn'] ?? '-' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        {{ $st['late_minutes'] > 0 ? '+'.$st['late_minutes'].' mnt' : 'Terlambat' }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+                                    <div class="flex items-center gap-2 text-slate-600">
+                                        <span class="font-semibold text-slate-500">Scan Masuk:</span>
+                                        <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg">{{ $st['scan_time'] ?: '-' }}</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        @if(!empty($st['wa_link_telat']))
+                                            <a href="{{ $st['wa_link_telat'] }}" target="_blank" 
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-2xs">
+                                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                                <span>WA Ortu</span>
+                                            </a>
+                                        @endif
+
+                                        <a href="{{ route('portal-presensi.input-manual') }}?class_id={{ $st['class_id'] }}" 
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                                            <span>Edit</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-black text-slate-500 uppercase tracking-wider">
+                                    <th class="py-4 px-4 w-12 text-center">No</th>
+                                    <th class="py-4 px-5">Nama Siswa</th>
+                                    <th class="py-4 px-4 text-center">Kelas</th>
+                                    <th class="py-4 px-4 text-center">NISN</th>
+                                    <th class="py-4 px-4 text-center">Jam Datang</th>
+                                    <th class="py-4 px-4 text-center">Keterlambatan</th>
+                                    <th class="py-4 px-4 text-center">Keterangan</th>
+                                    <th class="py-4 px-4 text-center">No HP Wali</th>
+                                    <th class="py-4 px-5 text-center">Aksi Cepat</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($filteredLate as $index => $st)
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $loop->iteration }}</td>
+                                        <td class="py-3 px-5">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-xs shrink-0">
+                                                    {{ strtoupper(substr($st['name'], 0, 2)) }}
+                                                </div>
+                                                <span class="font-bold text-slate-800">{{ $st['name'] }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center font-bold text-brand-primary">
+                                            Kelas {{ $st['class_name'] }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center text-slate-500 font-medium">
+                                            {{ $st['nisn'] ?? '-' }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center font-mono font-bold text-slate-800">
+                                            {{ $st['scan_time'] ?: '-' }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                {{ $st['late_minutes'] > 0 ? $st['late_minutes'] . ' Menit' : 'Terlambat' }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-center text-slate-500 text-xs italic">
+                                            {{ $st['note'] ?: '-' }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center text-slate-600 font-medium">
+                                            {{ $st['phone'] ?: '-' }}
+                                        </td>
+                                        <td class="py-3 px-5 text-center">
+                                            <div class="flex items-center justify-center gap-2">
+                                                @if(!empty($st['wa_link_telat']))
+                                                    <a href="{{ $st['wa_link_telat'] }}" target="_blank" 
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-2xs" title="Chat WhatsApp Wali Murid (Info Terlambat)">
+                                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                                        <span>WA Ortu</span>
+                                                    </a>
+                                                @endif
+
+                                                <a href="{{ route('portal-presensi.input-manual') }}?class_id={{ $st['class_id'] }}" 
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="Edit Presensi">
+                                                    <span>Edit</span>
                                                 </a>
                                             </div>
                                         </td>

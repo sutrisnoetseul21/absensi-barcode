@@ -19,7 +19,7 @@ class PresensiRekapService
         string $academicYearId,
         string $classId,
         string $month, // '07', '08', dst.
-        int $year = null
+        ?int $year = null
     ): array {
         $ay = TahunAjaran::find($academicYearId);
         if (!$ay) {

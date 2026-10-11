@@ -75,6 +75,21 @@ class CreateGuru extends CreateRecord
             ]
         );
 
+        // Auto-generate barcode presensi jika belum ada
+        if (!$this->record->presensiProfile || empty($this->record->presensiProfile->barcode_code)) {
+            $code = $this->record->nip;
+            if (empty($code) || $code === '-') {
+                $code = '2' . mt_rand(100000000, 999999999);
+            }
+            $profile = $this->record->presensiProfile()->firstOrCreate(
+                ['teacher_id' => $this->record->id],
+                ['id' => (string) Str::uuid()]
+            );
+            if (empty($profile->barcode_code)) {
+                $profile->update(['barcode_code' => $code]);
+            }
+        }
+
         Notification::make()
             ->title('Guru berhasil ditambahkan')
             ->body(

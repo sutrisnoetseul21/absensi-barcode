@@ -207,46 +207,94 @@ class GuruTable
                                         $html .= '<th style="display: table-cell; padding: 10px 12px; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; border-right: 1px solid #e5e7eb; background-color: #f3f4f6;">' . htmlspecialchars((string) $th ?? '') . '</th>';
                                     }
                                     $html .= '</tr></thead>';
-                                    
+                                    $headerMap = [];
+                                    foreach ($headers as $colIdx => $th) {
+                                        $h = strtolower(trim((string) $th));
+                                        if (str_contains($h, 'nama') && !isset($headerMap['name'])) {
+                                            $headerMap['name'] = $colIdx;
+                                        } elseif ((str_contains($h, 'kelamin') || str_contains($h, 'jk')) && !isset($headerMap['jenis_kelamin'])) {
+                                            $headerMap['jenis_kelamin'] = $colIdx;
+                                        } elseif (str_contains($h, 'nip') && !isset($headerMap['nip'])) {
+                                            $headerMap['nip'] = $colIdx;
+                                        } elseif ((str_contains($h, 'hp') || str_contains($h, 'wa') || str_contains($h, 'telepon')) && !isset($headerMap['no_hp'])) {
+                                            $headerMap['no_hp'] = $colIdx;
+                                        } elseif (str_contains($h, 'email') && !isset($headerMap['email'])) {
+                                            $headerMap['email'] = $colIdx;
+                                        } elseif (str_contains($h, 'pass') && !isset($headerMap['password'])) {
+                                            $headerMap['password'] = $colIdx;
+                                        } elseif ((str_contains($h, 'facebook') || str_contains($h, 'fb')) && !isset($headerMap['facebook_url'])) {
+                                            $headerMap['facebook_url'] = $colIdx;
+                                        } elseif ((str_contains($h, 'instagram') || str_contains($h, 'ig')) && !isset($headerMap['instagram_url'])) {
+                                            $headerMap['instagram_url'] = $colIdx;
+                                        } elseif (str_contains($h, 'microsite') && !isset($headerMap['microsite_url'])) {
+                                            $headerMap['microsite_url'] = $colIdx;
+                                        }
+                                    }
+
                                     // Body
                                     $html .= '<tbody style="display: table-row-group; background-color: #ffffff;">';
                                     foreach ($rows as $row) {
                                         $html .= '<tr style="display: table-row; border-bottom: 1px solid #e5e7eb;">';
                                         
-                                        $nameVal = trim((string) ($row[0] ?? ''));
-                                        $nipVal = trim((string) ($row[1] ?? ''));
-                                        $noHpVal = trim((string) ($row[2] ?? ''));
-                                        $passVal = trim((string) ($row[3] ?? ''));
+                                        $nameVal = trim((string) ($row[$headerMap['name'] ?? 0] ?? ''));
 
-                                        // Column 0: Nama Guru
-                                        $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($nameVal) . '</td>';
+                                        foreach ($headers as $colIdx => $th) {
+                                            $cellVal = trim((string) ($row[$colIdx] ?? ''));
 
-                                        // Column 1: NIP
-                                        $nipHtml = '';
-                                        if ($nipVal !== '' && $nipVal !== '-') {
-                                            // Cek jika NIP bentrok dengan Guru yang beda namanya di DB
-                                            if (isset($existingNips[$nipVal])) {
-                                                $dbName = $existingNips[$nipVal];
-                                                if (strtolower($dbName) !== strtolower($nameVal)) {
-                                                    $nipHtml = '<span style="display: inline-block; color: #b91c1c; background-color: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;" title="NIP ini sudah terdaftar untuk guru: ' . htmlspecialchars($dbName) . '">⚠️ ' . htmlspecialchars($nipVal) . ' (Milik: ' . htmlspecialchars($dbName) . ')</span>';
+                                            if ($colIdx === ($headerMap['name'] ?? 0)) {
+                                                // Nama Guru
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #4b5563; border-right: 1px solid #e5e7eb; font-weight: 500;">' . htmlspecialchars($nameVal) . '</td>';
+                                            } elseif (isset($headerMap['jenis_kelamin']) && $colIdx === $headerMap['jenis_kelamin']) {
+                                                // Jenis Kelamin
+                                                $jkBadge = preg_match('/^p/i', $cellVal) ? '<span style="color: #ec4899; font-weight: 500;">Perempuan (P)</span>' : (preg_match('/^l/i', $cellVal) ? '<span style="color: #2563eb; font-weight: 500;">Laki-laki (L)</span>' : ($cellVal !== '' ? htmlspecialchars($cellVal) : '<span style="color: #9ca3af;">—</span>'));
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $jkBadge . '</td>';
+                                            } elseif (isset($headerMap['nip']) && $colIdx === $headerMap['nip']) {
+                                                // NIP
+                                                $nipVal = preg_replace('/\D/', '', $cellVal);
+                                                $nipHtml = '';
+                                                if ($nipVal !== '' && $nipVal !== '-') {
+                                                    if (isset($existingNips[$nipVal])) {
+                                                        $dbName = $existingNips[$nipVal];
+                                                        if (strtolower($dbName) !== strtolower($nameVal)) {
+                                                            $nipHtml = '<span style="display: inline-block; color: #b91c1c; background-color: #fee2e2; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;" title="NIP ini sudah terdaftar untuk guru: ' . htmlspecialchars($dbName) . '">⚠️ ' . htmlspecialchars($nipVal) . ' (Milik: ' . htmlspecialchars($dbName) . ')</span>';
+                                                        } else {
+                                                            $nipHtml = '<span style="color: #4b5563;">✓ ' . htmlspecialchars($nipVal) . ' (Update)</span>';
+                                                        }
+                                                    } else {
+                                                        $nipHtml = '<span style="color: #10b981; font-weight: 500;">✓ ' . htmlspecialchars($nipVal) . '</span>';
+                                                    }
                                                 } else {
-                                                    $nipHtml = '<span style="color: #4b5563;">✓ ' . htmlspecialchars($nipVal) . ' (Update)</span>';
+                                                    $nipHtml = '<span style="color: #9ca3af;">—</span>';
                                                 }
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $nipHtml . '</td>';
+                                            } elseif (isset($headerMap['no_hp']) && $colIdx === $headerMap['no_hp']) {
+                                                // No HP
+                                                $noHpHtml = $cellVal !== '' ? htmlspecialchars($cellVal) : '<span style="color: #9ca3af;">—</span>';
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $noHpHtml . '</td>';
+                                            } elseif (isset($headerMap['email']) && $colIdx === $headerMap['email']) {
+                                                // Email
+                                                $emailHtml = $cellVal !== '' ? htmlspecialchars($cellVal) : '<span style="color: #6b7280; font-style: italic;">Auto-generate</span>';
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $emailHtml . '</td>';
+                                            } elseif (isset($headerMap['password']) && $colIdx === $headerMap['password']) {
+                                                // Password
+                                                $passHtml = htmlspecialchars($cellVal === '' ? 'password (default)' : $cellVal);
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; color: #6b7280; border-right: 1px solid #e5e7eb;">' . $passHtml . '</td>';
+                                            } elseif (isset($headerMap['facebook_url']) && $colIdx === $headerMap['facebook_url']) {
+                                                // Link Facebook
+                                                $linkHtml = $cellVal !== '' ? '<span style="color: #2563eb; font-size: 0.8rem;">' . htmlspecialchars(\Illuminate\Support\Str::limit($cellVal, 25)) . '</span>' : '<span style="color: #9ca3af;">—</span>';
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $linkHtml . '</td>';
+                                            } elseif (isset($headerMap['instagram_url']) && $colIdx === $headerMap['instagram_url']) {
+                                                // Link Instagram
+                                                $linkHtml = $cellVal !== '' ? '<span style="color: #db2777; font-size: 0.8rem;">' . htmlspecialchars(\Illuminate\Support\Str::limit($cellVal, 25)) . '</span>' : '<span style="color: #9ca3af;">—</span>';
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $linkHtml . '</td>';
+                                            } elseif (isset($headerMap['microsite_url']) && $colIdx === $headerMap['microsite_url']) {
+                                                // Link Microsite
+                                                $linkHtml = $cellVal !== '' ? '<span style="color: #059669; font-size: 0.8rem;">' . htmlspecialchars(\Illuminate\Support\Str::limit($cellVal, 25)) . '</span>' : '<span style="color: #9ca3af;">—</span>';
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $linkHtml . '</td>';
                                             } else {
-                                                $nipHtml = '<span style="color: #10b981; font-weight: 500;">✓ ' . htmlspecialchars($nipVal) . '</span>';
+                                                $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . htmlspecialchars($cellVal ?: '—') . '</td>';
                                             }
-                                        } else {
-                                            $nipHtml = '<span style="color: #9ca3af;">—</span>';
                                         }
-                                        $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $nipHtml . '</td>';
-
-                                        // Column 2: No. HP
-                                        $noHpHtml = $noHpVal !== '' ? htmlspecialchars($noHpVal) : '<span style="color: #9ca3af;">—</span>';
-                                        $html .= '<td style="display: table-cell; padding: 10px 12px; border-right: 1px solid #e5e7eb;">' . $noHpHtml . '</td>';
-
-                                        // Column 3: Password
-                                        $passHtml = htmlspecialchars($passVal === '' ? 'password (default)' : $passVal);
-                                        $html .= '<td style="display: table-cell; padding: 10px 12px; color: #6b7280; border-right: 1px solid #e5e7eb;">' . $passHtml . '</td>';
 
                                         $html .= '</tr>';
                                     }
@@ -283,16 +331,29 @@ class GuruTable
                                     return;
                                 }
 
+                                $headerMap = [];
+                                foreach ($headers as $colIdx => $th) {
+                                    $h = strtolower(trim((string) $th));
+                                    if (str_contains($h, 'nama') && !isset($headerMap['name'])) {
+                                        $headerMap['name'] = $colIdx;
+                                    } elseif (str_contains($h, 'nip') && !isset($headerMap['nip'])) {
+                                        $headerMap['nip'] = $colIdx;
+                                    }
+                                }
+                                $nameColIdx = $headerMap['name'] ?? 0;
+                                $nipColIdx  = $headerMap['nip'] ?? 1;
+
                                 $rows = array_slice($sheet, 1);
                                 
                                 $existingNips = \App\Models\Guru::whereNotNull('nip')->pluck('name', 'nip')->toArray();
                                 
                                 $conflicts = [];
                                 foreach ($rows as $row) {
-                                    $nameVal = trim((string) ($row[0] ?? ''));
+                                    $nameVal = trim((string) ($row[$nameColIdx] ?? ''));
                                     if ($nameVal === '') continue;
 
-                                    $nipVal = trim((string) ($row[1] ?? ''));
+                                    $rawNipVal = $row[$nipColIdx] ?? '';
+                                    $nipVal = preg_replace('/\D/', '', trim((string) $rawNipVal));
                                     if ($nipVal !== '' && $nipVal !== '-') {
                                         if (isset($existingNips[$nipVal])) {
                                             $dbName = $existingNips[$nipVal];

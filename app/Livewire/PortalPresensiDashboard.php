@@ -23,12 +23,13 @@ class PortalPresensiDashboard extends Component
     public $classes = [];
     public $selectedClassFilter = 'all';
     public $searchQuery = '';
-    public $activeTab = 'per_kelas'; // 'per_kelas' | 'belum_presensi' | 'semua_siswa'
+    public $activeTab = 'per_kelas'; // 'per_kelas' | 'belum_presensi' | 'siswa_terlambat' | 'semua_siswa'
     public $filterStatus = 'all';
 
     public $stats = [];
     public $classesSummary = [];
     public $unattendedStudents = [];
+    public $lateStudents = [];
     public $allStudents = [];
 
     public function mount(): void
@@ -60,6 +61,7 @@ class PortalPresensiDashboard extends Component
             $this->stats = [];
             $this->classesSummary = [];
             $this->unattendedStudents = [];
+            $this->lateStudents = [];
             $this->allStudents = [];
             $this->classes = [];
             return;
@@ -95,6 +97,7 @@ class PortalPresensiDashboard extends Component
         // 4. Kalkulasi statistik per kelas dan sekolah
         $classesSummary = [];
         $unattended = [];
+        $late = [];
         $all = [];
 
         $schoolTotal = 0;
@@ -140,6 +143,7 @@ class PortalPresensiDashboard extends Component
                 $scanTime = null;
                 $scanOut = null;
                 $note = null;
+                $lateMinutes = 0;
 
                 if ($st->gender === 'L') {
                     $cTotal_L++;
@@ -152,6 +156,7 @@ class PortalPresensiDashboard extends Component
                     $scanTime = $att->scan_time ? Carbon::parse($att->scan_time)->format('H:i') : null;
                     $scanOut = $att->scan_out_time ? Carbon::parse($att->scan_out_time)->format('H:i') : null;
                     $note = $att->note;
+                    $lateMinutes = (int) ($att->late_minutes ?? 0);
 
                     if ($status === 'hadir' || $status === 'telat') {
                         if ($status === 'hadir') $cHadir++;
@@ -196,26 +201,35 @@ class PortalPresensiDashboard extends Component
                 $waText = urlencode("Assalamu'alaikum / Selamat pagi Bapak/Ibu wali dari {$st->name} (Kelas {$cls->name}).\n\nKami menginfokan bahwa ananda belum tercatat hadir dalam presensi SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nMohon konfirmasi keterangan kehadiran ananda. Terima kasih.");
                 $waUrl = ! empty($cleanPhone) ? "https://wa.me/{$cleanPhone}?text={$waText}" : null;
 
+                $waTextTelat = urlencode("Assalamu'alaikum / Selamat pagi Bapak/Ibu wali dari {$st->name} (Kelas {$cls->name}).\n\nKami menginfokan bahwa ananda hadir terlambat pada pukul " . ($scanTime ?: '-') . " (terlambat {$lateMinutes} menit) dalam presensi SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nTerima kasih.");
+                $waUrlTelat = ! empty($cleanPhone) ? "https://wa.me/{$cleanPhone}?text={$waTextTelat}" : null;
+
                 $studentItem = [
-                    'id'          => $st->id,
-                    'name'        => $st->name,
-                    'nisn'        => $st->nisn,
-                    'gender'      => $st->gender ?? '-',
-                    'class_id'    => $cls->id,
-                    'class_name'  => $cls->name,
-                    'status'      => $status,
-                    'scan_time'   => $scanTime,
-                    'scan_out'    => $scanOut,
-                    'note'        => $note,
-                    'phone'       => $rawPhone,
-                    'clean_phone' => $cleanPhone,
-                    'wa_link'     => $waUrl,
+                    'id'           => $st->id,
+                    'name'         => $st->name,
+                    'nisn'         => $st->nisn,
+                    'gender'       => $st->gender ?? '-',
+                    'class_id'     => $cls->id,
+                    'class_name'   => $cls->name,
+                    'status'       => $status,
+                    'scan_time'    => $scanTime,
+                    'scan_out'     => $scanOut,
+                    'late_minutes' => $lateMinutes,
+                    'note'         => $note,
+                    'phone'        => $rawPhone,
+                    'clean_phone'  => $cleanPhone,
+                    'wa_link'      => $waUrl,
+                    'wa_link_telat'=> $waUrlTelat,
                 ];
 
                 $all[] = $studentItem;
 
                 if ($status === 'belum') {
                     $unattended[] = $studentItem;
+                }
+
+                if ($status === 'telat') {
+                    $late[] = $studentItem;
                 }
             }
 
@@ -301,6 +315,7 @@ class PortalPresensiDashboard extends Component
 
         $this->classesSummary = $classesSummary;
         $this->unattendedStudents = $unattended;
+        $this->lateStudents = $late;
         $this->allStudents = $all;
     }
 
@@ -308,6 +323,12 @@ class PortalPresensiDashboard extends Component
     {
         $this->selectedClassFilter = $classId;
         $this->activeTab = 'belum_presensi';
+    }
+
+    public function filterLateByClass(string $classId): void
+    {
+        $this->selectedClassFilter = $classId;
+        $this->activeTab = 'siswa_terlambat';
     }
 
     public function downloadRekapKelasPdf()
@@ -456,6 +477,7 @@ class PortalPresensiDashboard extends Component
             'stats'                  => $this->stats,
             'classesSummary'         => $this->classesSummary,
             'unattendedStudents'     => $this->unattendedStudents,
+            'lateStudents'           => $this->lateStudents,
             'allStudents'            => $this->allStudents,
         ])->title('Dashboard Rekapitulasi Presensi Harian');
     }
