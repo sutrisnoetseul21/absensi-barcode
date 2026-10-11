@@ -2,6 +2,7 @@
 
 namespace App\Livewire\PortalGuru\SholatDhuhur;
 
+use App\Exports\RekapSholatDhuhurHarianExport;
 use App\Models\EnrollmentSiswa;
 use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.portal')]
 class WaliKelasSholatDhuhur extends Component
@@ -32,6 +34,7 @@ class WaliKelasSholatDhuhur extends Component
     public $todayAttendances = [];
     public $daysInMonth = 0;
     public $todayDate;
+    public $selectedDailyDate;
 
     // Modal Input Harian
     public $showInputModal = false;
@@ -61,6 +64,8 @@ class WaliKelasSholatDhuhur extends Component
         if ($activeYear) {
             $this->selectedAcademicYearId = $activeYear->id;
         }
+
+        $this->selectedDailyDate = Carbon::today('Asia/Jakarta')->toDateString();
 
         $this->loadClasses();
     }
@@ -292,7 +297,7 @@ class WaliKelasSholatDhuhur extends Component
 
     public function applyBulkStatus($status)
     {
-        if (empty($status)) return;
+        if (empty($status) || $this->isInputDateHoliday) return;
 
         foreach ($this->inputStudents as $idx => $student) {
             $this->inputStudents[$idx]['status'] = $status;
@@ -312,6 +317,8 @@ class WaliKelasSholatDhuhur extends Component
 
     public function updatedInputStudents($value, $key)
     {
+        if ($this->isInputDateHoliday) return;
+
         $parts = explode('.', $key);
         if (count($parts) === 2 && $parts[1] === 'status') {
             $index = (int)$parts[0];
@@ -329,13 +336,14 @@ class WaliKelasSholatDhuhur extends Component
 
     public function setAllStatus(string $status)
     {
+        if ($this->isInputDateHoliday) return;
         $this->bulkStatus = $status;
         $this->applyBulkStatus($status);
     }
 
     public function toggleHalangan(int $index)
     {
-        if (! isset($this->inputStudents[$index])) return;
+        if ($this->isInputDateHoliday || ! isset($this->inputStudents[$index])) return;
 
         $current = ($this->inputStudents[$index]['status'] ?? '') === 'haid';
         if (! $current) {
@@ -351,58 +359,110 @@ class WaliKelasSholatDhuhur extends Component
         }
     }
 
+    public function sinkronPresensiPagiSemuaKelas()
+    {
+        $targetDate = $this->todayDate ?? Carbon::today('Asia/Jakarta')->toDateString();
+        $teacherId = Auth::user()->teacher?->id;
+
+        $service = app(PresensiSholatDhuhurService::class);
+        $result = $service->syncAllClassesFromMorning($targetDate, $teacherId);
+
+        $this->loadDashboardData();
+
+        if ($result['status'] === 'success') {
+            $this->dispatch('notify', [
+                'type'    => 'success',
+                'message' => $result['message'],
+            ]);
+        } elseif ($result['status'] === 'holiday') {
+            $this->dispatch('notify', [
+                'type'    => 'info',
+                'message' => $result['message'],
+            ]);
+        } else {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => $result['message'],
+            ]);
+        }
+    }
+
     public function tarikDariPresensiPagi()
     {
         if (! $this->selectedClassId || ! $this->selectedAcademicYearId || ! $this->inputDate) return;
 
+        $sholatService = app(PresensiSholatDhuhurService::class);
+        $dateObj = Carbon::parse($this->inputDate);
+        if ($this->isInputDateHoliday || ! $sholatService->isHariSholatDhuhur($dateObj, $this->selectedClassId)) {
+            $desc = $sholatService->getHolidayDescription($dateObj, $this->selectedClassId) ?? ($this->inputDateHolidayDesc ?: 'Libur');
+            $this->isInputDateHoliday = true;
+            $this->inputDateHolidayDesc = $desc;
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Tidak dapat menyinkronkan presensi sholat dhuhur pada hari libur (' . $desc . ')!',
+            ]);
+            return;
+        }
+
         $morningAtts = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
             ->where('class_id', $this->selectedClassId)
             ->whereDate('date', $this->inputDate)
+            ->whereIn('status', ['alpa', 'izin', 'sakit'])
             ->get()->keyBy('student_id');
 
         if ($morningAtts->isEmpty()) {
             $this->dispatch('notify', [
-                'type'    => 'warning',
-                'message' => 'Belum ada data presensi pagi untuk kelas ini pada tanggal ' . Carbon::parse($this->inputDate)->translatedFormat('d F Y') . '.',
+                'type'    => 'info',
+                'message' => 'Tidak ditemukan data Alpa, Izin, atau Sakit di presensi pagi untuk kelas ini pada tanggal ' . Carbon::parse($this->inputDate)->translatedFormat('d F Y') . '.',
             ]);
             return;
         }
 
         $syncCount = 0;
         foreach ($this->inputStudents as $idx => $st) {
+            // Lewati siswa non-Muslim
+            if (!empty($st['is_non_muslim'])) continue;
+
             $morning = $morningAtts->get($st['id']);
             if ($morning) {
-                $syncCount++;
                 if ($morning->status === 'alpa') {
                     $this->inputStudents[$idx]['status'] = 'tidak_hadir';
                     $this->inputStudents[$idx]['keterangan'] = 'Alpa di presensi pagi';
                     $this->inputStudents[$idx]['is_halangan'] = false;
                     $this->inputStudents[$idx]['is_pagi_absent'] = true;
+                    $syncCount++;
                 } elseif (in_array($morning->status, ['izin', 'sakit'])) {
                     $this->inputStudents[$idx]['status'] = 'ijin';
                     $this->inputStudents[$idx]['keterangan'] = ucfirst($morning->status) . ' di presensi pagi';
                     $this->inputStudents[$idx]['is_halangan'] = false;
                     $this->inputStudents[$idx]['is_pagi_absent'] = true;
-                } else {
-                    $this->inputStudents[$idx]['status'] = 'hadir';
-                    $this->inputStudents[$idx]['is_halangan'] = false;
-                    if (str_contains((string)($this->inputStudents[$idx]['keterangan'] ?? ''), 'presensi pagi')) {
-                        $this->inputStudents[$idx]['keterangan'] = '';
-                    }
-                    $this->inputStudents[$idx]['is_pagi_absent'] = false;
+                    $syncCount++;
                 }
             }
         }
 
         $this->dispatch('notify', [
             'type'    => 'success',
-            'message' => "Berhasil menyelaraskan {$syncCount} data dari presensi pagi.",
+            'message' => "Berhasil menyelaraskan {$syncCount} data ketidakhadiran (Alpa/Izin/Sakit) dari presensi pagi.",
         ]);
     }
 
     public function saveInput()
     {
         if (! $this->selectedClassId || ! $this->selectedAcademicYearId || ! $this->inputDate) return;
+
+        $sholatService = app(PresensiSholatDhuhurService::class);
+        $dateObj = Carbon::parse($this->inputDate);
+        if ($this->isInputDateHoliday || ! $sholatService->isHariSholatDhuhur($dateObj, $this->selectedClassId)) {
+            $desc = $sholatService->getHolidayDescription($dateObj, $this->selectedClassId) ?? ($this->inputDateHolidayDesc ?: 'Libur');
+            $this->isInputDateHoliday = true;
+            $this->inputDateHolidayDesc = $desc;
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Tidak dapat menyimpan presensi sholat dhuhur pada hari libur (' . $desc . ')!',
+            ]);
+            return;
+        }
 
         $teacherId = Auth::user()->teacher?->id;
 
@@ -566,6 +626,101 @@ class WaliKelasSholatDhuhur extends Component
             'waliKelas'    => Auth::user()->teacher ?? $kelas?->waliKelas($this->selectedAcademicYearId),
             'generatedAt'  => now()->locale('id')->translatedFormat('l, d F Y H:i'),
         ])->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $fileName
+        );
+    }
+
+    // ==========================================
+    // EKSPOR LAPORAN HARIAN SHOLAT DHUHUR
+    // (Rekap Kelas PDF, Export Excel, Rekap Harian PDF)
+    // ==========================================
+
+    public function downloadRekapKelasPdf()
+    {
+        $targetDate = $this->selectedDailyDate ?: ($this->todayDate ?? Carbon::today('Asia/Jakarta')->toDateString());
+        $ayId = $this->selectedAcademicYearId;
+        $sholatService = app(PresensiSholatDhuhurService::class);
+        $summary = $sholatService->getDailySchoolSummaryData($ayId, $targetDate);
+
+        $sekolah = PengaturanSekolah::current();
+        $dateFormatted = Carbon::parse($targetDate)->locale('id')->translatedFormat('l, d F Y');
+
+        $pdf = Pdf::loadView('pdf.laporan-sholat-dhuhur-rekap-per-kelas', [
+            'stats'                 => $summary['stats'],
+            'classesSummary'        => $summary['classesSummary'],
+            'sekolah'               => $sekolah,
+            'tahunAjaran'           => $summary['academic_year'],
+            'selectedDateFormatted' => $dateFormatted,
+            'date'                  => $targetDate,
+            'isHoliday'             => $summary['is_holiday'],
+            'holidayDesc'           => $summary['holiday_desc'],
+            'unattendedStudents'    => $summary['unattendedStudents'],
+            'allStudents'           => $summary['allStudents'],
+            'generatedAt'           => now('Asia/Jakarta')->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
+        ])->setPaper('a4', 'landscape');
+
+        $safeDate = str_replace('-', '_', $targetDate);
+        $fileName = "Rekap_Sholat_Dhuhur_Per_Kelas_{$safeDate}.pdf";
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $fileName
+        );
+    }
+
+    public function exportExcel()
+    {
+        $targetDate = $this->selectedDailyDate ?: ($this->todayDate ?? Carbon::today('Asia/Jakarta')->toDateString());
+        $ayId = $this->selectedAcademicYearId;
+        $sholatService = app(PresensiSholatDhuhurService::class);
+        $summary = $sholatService->getDailySchoolSummaryData($ayId, $targetDate);
+
+        $safeDate = str_replace('-', '_', $targetDate);
+        $fileName = "Rekap_Sholat_Dhuhur_Harian_{$safeDate}.xlsx";
+
+        return Excel::download(
+            new RekapSholatDhuhurHarianExport(
+                $targetDate,
+                $ayId,
+                $summary['stats'],
+                $summary['classesSummary'],
+                $summary['unattendedStudents'],
+                $summary['allStudents']
+            ),
+            $fileName
+        );
+    }
+
+    public function downloadRekapHarianPdf()
+    {
+        $targetDate = $this->selectedDailyDate ?: ($this->todayDate ?? Carbon::today('Asia/Jakarta')->toDateString());
+        $ayId = $this->selectedAcademicYearId;
+        $sholatService = app(PresensiSholatDhuhurService::class);
+        $summary = $sholatService->getDailySchoolSummaryData($ayId, $targetDate);
+
+        $sekolah = PengaturanSekolah::current();
+        $dateFormatted = Carbon::parse($targetDate)->locale('id')->translatedFormat('l, d F Y');
+
+        $pdf = Pdf::loadView('pdf.laporan-sholat-dhuhur-rekap-harian', [
+            'stats'                 => $summary['stats'],
+            'classesSummary'        => $summary['classesSummary'],
+            'gradeGroups'           => $summary['gradeGroups'],
+            'sekolah'               => $sekolah,
+            'tahunAjaran'           => $summary['academic_year'],
+            'selectedDateFormatted' => $dateFormatted,
+            'date'                  => $targetDate,
+            'isHoliday'             => $summary['is_holiday'],
+            'holidayDesc'           => $summary['holiday_desc'],
+            'unattendedStudents'    => $summary['unattendedStudents'],
+            'allStudents'           => $summary['allStudents'],
+            'generatedAt'           => now('Asia/Jakarta')->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
+        ])->setPaper('a4', 'landscape');
+
+        $safeDate = str_replace('-', '_', $targetDate);
+        $fileName = "Rekap_Presensi_Sholat_Dhuhur_Harian_{$safeDate}.pdf";
 
         return response()->streamDownload(
             fn () => print($pdf->output()),

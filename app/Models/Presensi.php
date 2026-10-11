@@ -46,6 +46,11 @@ class Presensi extends Model
         return $this->belongsTo(Siswa::class, 'student_id');
     }
 
+    public function student(): BelongsTo
+    {
+        return $this->siswa();
+    }
+
     // Enrollment siswa (kelas + tahun ajaran)
     public function enrollment(): BelongsTo
     {

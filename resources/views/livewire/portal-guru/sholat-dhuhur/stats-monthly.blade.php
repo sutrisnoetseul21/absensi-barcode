@@ -54,6 +54,43 @@
         </div>
     </div>
 
+    <!-- Action Bar for Rekap Harian (Cetak Rekap Kelas, Export Excel, Rekap Harian) -->
+    <div x-show="rekapMode === 'harian'" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Tanggal:
+            </span>
+            <input type="date" wire:model.live="selectedDailyDate" class="py-1.5 px-3 text-xs bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-2xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all cursor-pointer">
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- PDF Cetak Rekap Per Kelas Button -->
+            <button type="button" wire:click="downloadRekapKelasPdf" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-700 hover:opacity-95 shadow-md shadow-emerald-700/20 transition-all cursor-pointer">
+                <svg wire:loading.remove wire:target="downloadRekapKelasPdf" class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <svg wire:loading wire:target="downloadRekapKelasPdf" class="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Cetak Rekap Kelas (PDF)</span>
+            </button>
+
+            <!-- Export Excel Button -->
+            <button type="button" wire:click="exportExcel" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
+                <svg wire:loading.remove wire:target="exportExcel" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <svg wire:loading wire:target="exportExcel" class="w-3.5 h-3.5 animate-spin text-emerald-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Export Excel</span>
+            </button>
+
+            <!-- PDF Cetak Rekap Harian Button -->
+            <button type="button" wire:click="downloadRekapHarianPdf" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
+                <svg wire:loading.remove wire:target="downloadRekapHarianPdf" class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <svg wire:loading wire:target="downloadRekapHarianPdf" class="w-3.5 h-3.5 animate-spin text-slate-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Rekap Harian</span>
+            </button>
+        </div>
+    </div>
+
     <!-- ==================== MODE HARIAN (2 Kolom di HP, 4 Kolom di Desktop) ==================== -->
     <div x-show="rekapMode === 'harian'" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5 relative z-20">
         <!-- Hadir Berjamaah -->

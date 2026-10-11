@@ -77,7 +77,7 @@
                                     <th class="py-3 px-4 text-center w-1/3">
                                         <div class="flex flex-col items-center gap-1.5">
                                             <span>Status</span>
-                                            <select wire:model.live="bulkStatus" wire:change="applyBulkStatus($event.target.value)" class="text-xs font-bold py-1 px-2.5 rounded-lg border border-emerald-300 bg-white text-slate-800 focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-2xs normal-case">
+                                            <select wire:model.live="bulkStatus" wire:change="applyBulkStatus($event.target.value)" {{ $isInputDateHoliday ? 'disabled' : '' }} class="text-xs font-bold py-1 px-2.5 rounded-lg border border-emerald-300 bg-white text-slate-800 focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-2xs normal-case {{ $isInputDateHoliday ? 'opacity-50 cursor-not-allowed bg-slate-100' : '' }}">
                                                 <option value="">-- Set Massal --</option>
                                                 <option value="hadir">⚡ Hadir Semua</option>
                                                 <option value="ijin">Izin Semua</option>
@@ -146,7 +146,8 @@
 
                                             <!-- Status Dropdown (Persis format portal-guru/akademik) -->
                                             <td class="py-3 px-4 text-center">
-                                                <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-xs font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm transition-colors
+                                                <select wire:model.live="inputStudents.{{ $index }}.status" {{ $isInputDateHoliday ? 'disabled' : '' }} class="block w-full pl-3 pr-8 py-1.5 text-xs font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm transition-colors
+                                                    {{ $isInputDateHoliday ? 'opacity-50 cursor-not-allowed bg-slate-100' : '' }}
                                                     {{ empty($data['status']) ? 'text-slate-400 bg-white border-slate-200' : '' }}
                                                     {{ ($data['status'] ?? '') === 'hadir' ? 'text-emerald-700 bg-emerald-50 border-emerald-300' : '' }}
                                                     {{ ($data['status'] ?? '') === 'ijin' ? 'text-blue-700 bg-blue-50 border-blue-300' : '' }}
@@ -168,7 +169,8 @@
                                                 <input type="text" 
                                                        wire:model="inputStudents.{{ $index }}.keterangan" 
                                                        placeholder="Catatan..." 
-                                                       class="block w-full px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                                                       {{ $isInputDateHoliday ? 'disabled' : '' }}
+                                                       class="block w-full px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-emerald-500 focus:outline-none {{ $isInputDateHoliday ? 'opacity-50 cursor-not-allowed bg-slate-100' : '' }}">
                                             </td>
                                         </tr>
                                     @endif

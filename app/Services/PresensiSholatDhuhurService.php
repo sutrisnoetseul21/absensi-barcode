@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\EnrollmentSiswa;
 use App\Models\HariLibur;
 use App\Models\Kelas;
+use App\Models\PengaturanSekolah;
 use App\Models\Presensi;
 use App\Models\PresensiSholatDhuhur;
 use App\Models\TahunAjaran;
@@ -342,6 +343,16 @@ class PresensiSholatDhuhurService
             ];
         }
 
+        // Tandai siswa Non-Muslim sebagai non_muslim (bebas kewajiban sholat)
+        foreach ($nonMuslimStudents as $nm) {
+            $todayAttendances[$nm->id] = [
+                'id'         => null,
+                'status'     => 'non_muslim',
+                'keterangan' => 'Non-Muslim (' . ($nm->religion ?? '-') . ') — Tidak wajib sholat',
+                'time'       => null,
+            ];
+        }
+
         $todayBelum = max(0, $totalStudents - ($todayHadir + $todayIjin + $todayTidakHadir));
 
         $todayStats = [
@@ -504,4 +515,427 @@ class PresensiSholatDhuhurService
             'holidaysCache'     => [],
         ];
     }
+
+    /**
+     * Menyinkronkan data presensi pagi (Alpa, Izin, Sakit) ke presensi sholat dhuhur untuk SEMUA KELAS.
+     * Siswa hadir/telat pagi TIDAK diubah.
+     * Siswa non-Muslim disinkronkan / dikecualikan dari kewajiban sholat.
+     *
+     * @param string|null $dateString Tanggal (format Y-m-d), default hari ini
+     * @param string|null $actorTeacherId ID Guru yang memicu (jika manual)
+     * @return array
+     */
+    public function syncAllClassesFromMorning(?string $dateString = null, ?string $actorTeacherId = null): array
+    {
+        $today = $dateString ? Carbon::parse($dateString, 'Asia/Jakarta') : now('Asia/Jakarta');
+        $date = $today->toDateString();
+
+        // Cek apakah tanggal ini adalah hari sholat dhuhur
+        if (!$this->isHariSholatDhuhur($today)) {
+            return [
+                'status'        => 'holiday',
+                'message'       => 'Hari ini bukan hari pelaksanaan sholat dhuhur (' . ($this->getHolidayDescription($today) ?? 'Libur') . ').',
+                'synced_count'  => 0,
+                'classes_count' => 0,
+            ];
+        }
+
+        $settings = PengaturanSekolah::current();
+        $academicYearId = $settings->academic_year_id_active ?? null;
+        if (!$academicYearId) {
+            $ay = TahunAjaran::where('status', 'aktif')->first();
+            $academicYearId = $ay?->id;
+        }
+
+        if (!$academicYearId) {
+            return [
+                'status'        => 'error',
+                'message'       => 'Tidak ada Tahun Ajaran aktif.',
+                'synced_count'  => 0,
+                'classes_count' => 0,
+            ];
+        }
+
+        // Ambil data presensi pagi (attendances) untuk hari ini yang berstatus alpa, izin, atau sakit
+        $morningAbsents = Presensi::where('academic_year_id', $academicYearId)
+            ->whereDate('date', $date)
+            ->whereIn('status', ['alpa', 'izin', 'sakit'])
+            ->with(['student'])
+            ->get();
+
+        $syncedCount = 0;
+        $affectedClassIds = [];
+
+        foreach ($morningAbsents as $morning) {
+            $student = $morning->student;
+            if (!$student) continue;
+
+            // Pastikan jika ada hari libur khusus kelas, kelas tersebut dilewati
+            if (!$this->isHariSholatDhuhur($today, $morning->class_id)) {
+                continue;
+            }
+
+            // Cek apakah siswa non-Muslim
+            $religion = strtolower(trim($student->religion ?? ''));
+            $isNonMuslim = !empty($student->religion) && $religion !== 'islam';
+            if ($isNonMuslim) {
+                // Non-Muslim: tidak diwajibkan sholat dhuhur
+                continue;
+            }
+
+            // Tentukan status dan keterangan sholat dhuhur
+            $sholatStatus = match ($morning->status) {
+                'alpa'  => 'tidak_hadir',
+                'izin'  => 'ijin',
+                'sakit' => 'ijin',
+                default => null,
+            };
+
+            if (!$sholatStatus) continue;
+
+            $keterangan = match ($morning->status) {
+                'alpa'  => 'Alpa di presensi pagi',
+                'izin'  => 'Izin di presensi pagi',
+                'sakit' => 'Sakit di presensi pagi',
+                default => null,
+            };
+
+            PresensiSholatDhuhur::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'date'       => $date,
+                ],
+                [
+                    'academic_year_id'    => $academicYearId,
+                    'class_id'            => $morning->class_id,
+                    'enrollment_id'       => $morning->enrollment_id,
+                    'status'              => $sholatStatus,
+                    'keterangan'          => $keterangan,
+                    'input_by_teacher_id' => $actorTeacherId,
+                ]
+            );
+
+            $syncedCount++;
+            $affectedClassIds[$morning->class_id] = true;
+        }
+
+        return [
+            'status'        => 'success',
+            'message'       => "Berhasil menyinkronkan {$syncedCount} siswa (Alpa/Izin/Sakit) dari presensi pagi ke sholat dhuhur untuk semua kelas.",
+            'synced_count'  => $syncedCount,
+            'classes_count' => count($affectedClassIds),
+            'date'          => $date,
+        ];
+    }
+
+    /**
+     * Dapatkan rekapitulasi data harian sholat dhuhur untuk seluruh sekolah.
+     * Digunakan oleh export PDF dan Excel rekap harian sekolah.
+     */
+    public function getDailySchoolSummaryData(string $academicYearId, string $dateString): array
+    {
+        $ay = TahunAjaran::find($academicYearId);
+        if (!$ay) {
+            $ay = TahunAjaran::where('status', 'aktif')->first();
+            $academicYearId = $ay?->id ?? $academicYearId;
+        }
+
+        $dateObj = Carbon::parse($dateString, 'Asia/Jakarta');
+        $date = $dateObj->toDateString();
+
+        $isHoliday = ! $this->isHariSholatDhuhur($dateObj);
+        $holidayDesc = $this->getHolidayDescription($dateObj);
+
+        // 1. Ambil semua kelas di tahun ajaran ini
+        $classes = Kelas::whereHas('kelasAjarans', function ($query) use ($academicYearId) {
+            $query->where('academic_year_id', $academicYearId);
+        })->orderBy('name', 'asc')->get();
+
+        // 2. Ambil seluruh enrollment siswa aktif
+        $enrollments = EnrollmentSiswa::where('academic_year_id', $academicYearId)
+            ->where('status', 'aktif')
+            ->with([
+                'siswa' => fn ($q) => $q->select('id', 'name', 'nisn', 'gender', 'religion', 'no_hp', 'no_hp_orang_tua'),
+                'kelas' => fn ($q) => $q->select('id', 'name', 'grade_level'),
+            ])
+            ->get();
+
+        // 3. Ambil data presensi sholat dhuhur hari ini
+        $sholatRecords = PresensiSholatDhuhur::where('academic_year_id', $academicYearId)
+            ->whereDate('date', $date)
+            ->get()
+            ->keyBy('student_id');
+
+        // 4. Kalkulasi per kelas dan sekolah
+        $classesSummary = [];
+        $unattendedStudents = [];
+        $allStudents = [];
+        $gradeGroups = [];
+
+        $schoolTotal = 0; $schoolTotal_L = 0; $schoolTotal_P = 0;
+        $schoolMuslim = 0; $schoolMuslim_L = 0; $schoolMuslim_P = 0;
+        $schoolNonMuslim = 0; $schoolNonMuslim_L = 0; $schoolNonMuslim_P = 0;
+
+        $schoolHadir = 0; $schoolHadir_L = 0; $schoolHadir_P = 0;
+        $schoolIjin = 0;  $schoolIjin_L = 0;  $schoolIjin_P = 0;
+        $schoolTidakHadir = 0; $schoolTidakHadir_L = 0; $schoolTidakHadir_P = 0;
+        $schoolBelum = 0; $schoolBelum_L = 0; $schoolBelum_P = 0;
+
+        foreach ($classes as $cls) {
+            $cEnrollments = $enrollments->where('class_id', $cls->id);
+            $cTotal = $cEnrollments->count();
+            if ($cTotal === 0) continue;
+
+            $cTotal_L = 0; $cTotal_P = 0;
+            $cMuslim_L = 0; $cMuslim_P = 0;
+            $cNonMuslim_L = 0; $cNonMuslim_P = 0;
+
+            $cHadir_L = 0; $cHadir_P = 0;
+            $cIjin_L = 0;  $cIjin_P = 0;
+            $cTidakHadir_L = 0; $cTidakHadir_P = 0;
+            $cBelum_L = 0; $cBelum_P = 0;
+
+            $cHadir = 0;
+            $cIjin = 0;
+            $cTidakHadir = 0;
+            $cBelum = 0;
+
+            foreach ($cEnrollments as $enr) {
+                $st = $enr->siswa;
+                if (! $st) continue;
+
+                $gender = $st->gender ?? '-';
+                $isL = ($gender === 'L');
+                if ($isL) {
+                    $cTotal_L++;
+                } else {
+                    $cTotal_P++;
+                }
+
+                $religion = strtolower(trim($st->religion ?? ''));
+                $isMuslim = empty($st->religion) || $religion === 'islam';
+
+                if ($isMuslim) {
+                    if ($isL) $cMuslim_L++; else $cMuslim_P++;
+                } else {
+                    if ($isL) $cNonMuslim_L++; else $cNonMuslim_P++;
+                }
+
+                $sholat = $sholatRecords->get($st->id);
+                $status = 'belum';
+                $keterangan = '';
+                $scanTime = null;
+
+                if (! $isMuslim) {
+                    $status = 'non_muslim';
+                    $keterangan = 'Non-Muslim (' . ($st->religion ?: '-') . ')';
+                } elseif ($sholat) {
+                    $status = $sholat->status;
+                    $keterangan = $sholat->keterangan ?? '';
+                    $scanTime = $sholat->updated_at ? Carbon::parse($sholat->updated_at)->format('H:i') : null;
+
+                    if ($status === 'hadir') {
+                        $cHadir++;
+                        if ($isL) $cHadir_L++; else $cHadir_P++;
+                    } elseif ($status === 'ijin') {
+                        $cIjin++;
+                        if ($isL) $cIjin_L++; else $cIjin_P++;
+                    } elseif ($status === 'tidak_hadir') {
+                        $cTidakHadir++;
+                        if ($isL) $cTidakHadir_L++; else $cTidakHadir_P++;
+                    } else {
+                        // Status libur atau lainnya dianggap belum
+                        $cBelum++;
+                        if ($isL) $cBelum_L++; else $cBelum_P++;
+                        $status = 'belum';
+                    }
+                } else {
+                    // Muslim tapi belum ada record presensi sholat
+                    $cBelum++;
+                    if ($isL) $cBelum_L++; else $cBelum_P++;
+                    $status = 'belum';
+                }
+
+                // WhatsApp Phone Processing
+                $rawPhone = $st->no_hp_orang_tua ?: $st->no_hp;
+                $cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone ?? '');
+                if (! empty($cleanPhone)) {
+                    if (str_starts_with($cleanPhone, '0')) {
+                        $cleanPhone = '62' . substr($cleanPhone, 1);
+                    } elseif (str_starts_with($cleanPhone, '8')) {
+                        $cleanPhone = '62' . $cleanPhone;
+                    }
+                }
+
+                $studentItem = [
+                    'id'            => $st->id,
+                    'name'          => $st->name,
+                    'nisn'          => $st->nisn,
+                    'gender'        => $gender,
+                    'religion'      => $st->religion ?? 'Islam',
+                    'class_id'      => $cls->id,
+                    'class_name'    => $cls->name,
+                    'grade_level'   => $cls->grade_level ?? '',
+                    'status'        => $status,
+                    'keterangan'    => $keterangan,
+                    'scan_time'     => $scanTime,
+                    'phone'         => $rawPhone,
+                    'clean_phone'   => $cleanPhone,
+                    'is_non_muslim' => ! $isMuslim,
+                ];
+
+                $allStudents[] = $studentItem;
+
+                if ($status === 'belum' && $isMuslim) {
+                    $unattendedStudents[] = $studentItem;
+                }
+            }
+
+            $cMuslimTotal = $cMuslim_L + $cMuslim_P;
+            $cNonMuslimTotal = $cNonMuslim_L + $cNonMuslim_P;
+
+            // Persentase dihitung dari total siswa Muslim (karena kewajiban sholat hanya siswa Muslim)
+            $pct = $cMuslimTotal > 0 ? round(($cHadir / $cMuslimTotal) * 100, 1) : 0;
+            $pct_L = $cMuslim_L > 0 ? round(($cHadir_L / $cMuslim_L) * 100, 1) : 0;
+            $pct_P = $cMuslim_P > 0 ? round(($cHadir_P / $cMuslim_P) * 100, 1) : 0;
+
+            $classData = [
+                'id'               => $cls->id,
+                'name'             => $cls->name,
+                'grade_level'      => $cls->grade_level ?? '',
+                'wali_kelas'       => $cls->waliKelas($academicYearId)?->name ?? '-',
+                'total'            => $cTotal,
+                'total_l'          => $cTotal_L,
+                'total_p'          => $cTotal_P,
+                'muslim_total'     => $cMuslimTotal,
+                'muslim_l'         => $cMuslim_L,
+                'muslim_p'         => $cMuslim_P,
+                'non_muslim_total' => $cNonMuslimTotal,
+                'non_muslim_l'     => $cNonMuslim_L,
+                'non_muslim_p'     => $cNonMuslim_P,
+                'hadir'            => $cHadir,
+                'hadir_l'          => $cHadir_L,
+                'hadir_p'          => $cHadir_P,
+                'ijin'             => $cIjin,
+                'ijin_l'           => $cIjin_L,
+                'ijin_p'           => $cIjin_P,
+                'tidak_hadir'      => $cTidakHadir,
+                'tidak_hadir_l'    => $cTidakHadir_L,
+                'tidak_hadir_p'    => $cTidakHadir_P,
+                'belum'            => $cBelum,
+                'belum_l'          => $cBelum_L,
+                'belum_p'          => $cBelum_P,
+                'persen'           => $pct,
+                'persen_l'         => $pct_L,
+                'persen_p'         => $pct_P,
+            ];
+
+            $classesSummary[] = $classData;
+
+            // Akumulasi tingkat kelas (Grade 7, 8, 9)
+            $gLevel = (string)($cls->grade_level ?? 'Lainnya');
+            if (!isset($gradeGroups[$gLevel])) {
+                $gradeGroups[$gLevel] = [
+                    'grade_level'      => $gLevel,
+                    'total'            => 0,
+                    'muslim_total'     => 0,
+                    'non_muslim_total' => 0,
+                    'hadir'            => 0,
+                    'ijin'             => 0,
+                    'tidak_hadir'      => 0,
+                    'belum'            => 0,
+                    'persen'           => 0,
+                ];
+            }
+            $gradeGroups[$gLevel]['total'] += $cTotal;
+            $gradeGroups[$gLevel]['muslim_total'] += $cMuslimTotal;
+            $gradeGroups[$gLevel]['non_muslim_total'] += $cNonMuslimTotal;
+            $gradeGroups[$gLevel]['hadir'] += $cHadir;
+            $gradeGroups[$gLevel]['ijin'] += $cIjin;
+            $gradeGroups[$gLevel]['tidak_hadir'] += $cTidakHadir;
+            $gradeGroups[$gLevel]['belum'] += $cBelum;
+
+            // Akumulasi sekolah
+            $schoolTotal += $cTotal;
+            $schoolTotal_L += $cTotal_L;
+            $schoolTotal_P += $cTotal_P;
+
+            $schoolMuslim += $cMuslimTotal;
+            $schoolMuslim_L += $cMuslim_L;
+            $schoolMuslim_P += $cMuslim_P;
+
+            $schoolNonMuslim += $cNonMuslimTotal;
+            $schoolNonMuslim_L += $cNonMuslim_L;
+            $schoolNonMuslim_P += $cNonMuslim_P;
+
+            $schoolHadir += $cHadir;
+            $schoolHadir_L += $cHadir_L;
+            $schoolHadir_P += $cHadir_P;
+
+            $schoolIjin += $cIjin;
+            $schoolIjin_L += $cIjin_L;
+            $schoolIjin_P += $cIjin_P;
+
+            $schoolTidakHadir += $cTidakHadir;
+            $schoolTidakHadir_L += $cTidakHadir_L;
+            $schoolTidakHadir_P += $cTidakHadir_P;
+
+            $schoolBelum += $cBelum;
+            $schoolBelum_L += $cBelum_L;
+            $schoolBelum_P += $cBelum_P;
+        }
+
+        // Hitung persentase grade level
+        foreach ($gradeGroups as $gKey => $gData) {
+            $gradeGroups[$gKey]['persen'] = $gData['muslim_total'] > 0
+                ? round(($gData['hadir'] / $gData['muslim_total']) * 100, 1)
+                : 0;
+        }
+        ksort($gradeGroups);
+
+        $schoolPct = $schoolMuslim > 0 ? round(($schoolHadir / $schoolMuslim) * 100, 1) : 0;
+        $schoolPct_L = $schoolMuslim_L > 0 ? round(($schoolHadir_L / $schoolMuslim_L) * 100, 1) : 0;
+        $schoolPct_P = $schoolMuslim_P > 0 ? round(($schoolHadir_P / $schoolMuslim_P) * 100, 1) : 0;
+
+        $stats = [
+            'total_students'   => $schoolTotal,
+            'total_l'          => $schoolTotal_L,
+            'total_p'          => $schoolTotal_P,
+            'muslim_total'     => $schoolMuslim,
+            'muslim_l'         => $schoolMuslim_L,
+            'muslim_p'         => $schoolMuslim_P,
+            'non_muslim_total' => $schoolNonMuslim,
+            'non_muslim_l'     => $schoolNonMuslim_L,
+            'non_muslim_p'     => $schoolNonMuslim_P,
+            'hadir'            => $schoolHadir,
+            'hadir_l'          => $schoolHadir_L,
+            'hadir_p'          => $schoolHadir_P,
+            'ijin'             => $schoolIjin,
+            'ijin_l'           => $schoolIjin_L,
+            'ijin_p'           => $schoolIjin_P,
+            'tidak_hadir'      => $schoolTidakHadir,
+            'tidak_hadir_l'    => $schoolTidakHadir_L,
+            'tidak_hadir_p'    => $schoolTidakHadir_P,
+            'belum'            => $schoolBelum,
+            'belum_l'          => $schoolBelum_L,
+            'belum_p'          => $schoolBelum_P,
+            'persen'           => $schoolPct,
+            'persen_l'         => $schoolPct_L,
+            'persen_p'         => $schoolPct_P,
+        ];
+
+        return [
+            'academic_year'      => $ay,
+            'date'               => $date,
+            'date_formatted'     => $dateObj->locale('id')->translatedFormat('l, d F Y'),
+            'is_holiday'         => $isHoliday,
+            'holiday_desc'       => $holidayDesc,
+            'stats'              => $stats,
+            'classesSummary'     => $classesSummary,
+            'unattendedStudents' => $unattendedStudents,
+            'allStudents'        => $allStudents,
+            'gradeGroups'        => array_values($gradeGroups),
+        ];
+    }
 }
+
