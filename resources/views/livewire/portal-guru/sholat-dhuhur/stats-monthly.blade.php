@@ -56,12 +56,42 @@
 
     <!-- Action Bar for Rekap Harian (Cetak Rekap Kelas, Export Excel, Rekap Harian) -->
     <div x-show="rekapMode === 'harian'" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs">
-        <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Tanggal:
-            </span>
-            <input type="date" wire:model.live="selectedDailyDate" class="py-1.5 px-3 text-xs bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-2xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all cursor-pointer">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Tanggal:
+                </span>
+                <input type="date" wire:model.live="selectedDailyDate" class="py-1.5 px-3 text-xs bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-2xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all cursor-pointer">
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Koordinator:
+                </span>
+                <div class="relative">
+                    <select wire:model.live="selectedKoordinatorId" class="py-1.5 pl-3 pr-8 text-xs bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-2xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all cursor-pointer max-w-[230px] truncate appearance-none">
+                        @if(!empty($koordinators['pai']))
+                            <optgroup label="Guru PAI">
+                                @foreach($koordinators['pai'] as $guru)
+                                    <option value="{{ $guru['id'] }}">{{ $guru['name'] }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if(!empty($koordinators['others']))
+                            <optgroup label="Guru Lainnya">
+                                @foreach($koordinators['others'] as $guru)
+                                    <option value="{{ $guru['id'] }}">{{ $guru['name'] }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">

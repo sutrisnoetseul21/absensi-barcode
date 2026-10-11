@@ -45,4 +45,30 @@
             </tr>
         @endforelse
     </tbody>
+    <tfoot>
+        <tr></tr>
+        <tr>
+            <td colspan="2" style="text-align: center;">Mengetahui,</td>
+            <td colspan="3"></td>
+            <td colspan="2" style="text-align: center;">Sampang, {{ $selectedDateFormatted }}</td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center; font-weight: bold;">Kepala {{ $sekolah?->school_name ?? 'SMP Negeri 1 Sampang' }}</td>
+            <td colspan="3"></td>
+            <td colspan="2" style="text-align: center; font-weight: bold;">Koordinator Sholat Dhuhur</td>
+        </tr>
+        <tr></tr>
+        <tr></tr>
+        <tr></tr>
+        <tr>
+            <td colspan="2" style="text-align: center; font-weight: bold; text-decoration: underline;">{{ $sekolah?->principal_name ?? 'Drs. DIRWANTO' }}</td>
+            <td colspan="3"></td>
+            <td colspan="2" style="text-align: center; font-weight: bold; text-decoration: underline;">{{ $koordinator?->name ?? 'ASIS, S.Pd.I.' }}</td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center;">NIP. {{ $sekolah?->principal_nip ?? '196705121995121002' }}</td>
+            <td colspan="3"></td>
+            <td colspan="2" style="text-align: center;">NIP. {{ $koordinator?->nip ?? '197601282007011009' }}</td>
+        </tr>
+    </tfoot>
 </table>

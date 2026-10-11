@@ -84,6 +84,27 @@
                         </select>
                     </div>
                 @endif
+
+                <!-- Koordinator Sholat Dhuhur -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Koordinator Sholat Dhuhur (Guru PAI)</label>
+                    <select wire:model.live="selectedKoordinatorId" class="block w-full px-3 py-2.5 text-sm font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        @if(!empty($koordinators['pai']))
+                            <optgroup label="Guru PAI">
+                                @foreach($koordinators['pai'] as $guru)
+                                    <option value="{{ $guru['id'] }}">{{ $guru['name'] }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if(!empty($koordinators['others']))
+                            <optgroup label="Guru Lainnya">
+                                @foreach($koordinators['others'] as $guru)
+                                    <option value="{{ $guru['id'] }}">{{ $guru['name'] }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                    </select>
+                </div>
             </div>
 
             <!-- Modal Footer -->

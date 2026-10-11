@@ -18,7 +18,8 @@ class RekapSholatDhuhurKelasSheet implements FromView, WithTitle, ShouldAutoSize
         protected string $selectedDate,
         protected ?string $academicYearId,
         protected array $stats,
-        protected array $classesSummary
+        protected array $classesSummary,
+        protected mixed $koordinator = null
     ) {}
 
     public function view(): View
@@ -31,6 +32,7 @@ class RekapSholatDhuhurKelasSheet implements FromView, WithTitle, ShouldAutoSize
             'selectedDateFormatted' => $dateFormatted,
             'tahunAjaran'           => $ay,
             'sekolah'               => $sekolah,
+            'koordinator'           => $this->koordinator,
             'stats'                 => $this->stats,
             'classesSummary'        => $this->classesSummary,
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',

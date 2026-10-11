@@ -15,7 +15,8 @@ class RekapSholatDhuhurHarianExport implements WithMultipleSheets
         protected array $stats,
         protected array $classesSummary,
         protected array $unattendedStudents,
-        protected array $allStudents
+        protected array $allStudents,
+        protected mixed $koordinator = null
     ) {}
 
     public function sheets(): array
@@ -25,17 +26,20 @@ class RekapSholatDhuhurHarianExport implements WithMultipleSheets
                 $this->selectedDate,
                 $this->academicYearId,
                 $this->stats,
-                $this->classesSummary
+                $this->classesSummary,
+                $this->koordinator
             ),
             new RekapSholatDhuhurBelumSheet(
                 $this->selectedDate,
                 $this->academicYearId,
-                $this->unattendedStudents
+                $this->unattendedStudents,
+                $this->koordinator
             ),
             new RekapSholatDhuhurDetailSheet(
                 $this->selectedDate,
                 $this->academicYearId,
-                $this->allStudents
+                $this->allStudents,
+                $this->koordinator
             ),
         ];
     }

@@ -73,6 +73,7 @@
         .signature-left {
             display: table-cell;
             width: 50%;
+            text-align: center;
             vertical-align: top;
         }
         .signature-right {
@@ -81,9 +82,9 @@
             text-align: center;
             vertical-align: top;
         }
-        .signature-right .ttd-title { font-size: 9px; margin-bottom: 40px; }
-        .signature-right .ttd-name  { font-weight: bold; text-decoration: underline; font-size: 9.5px; }
-        .signature-right .ttd-nip   { font-size: 8.5px; color: #555; }
+        .ttd-title { font-size: 9px; margin-bottom: 40px; }
+        .ttd-name  { font-weight: bold; text-decoration: underline; font-size: 9.5px; }
+        .ttd-nip   { font-size: 8.5px; color: #555; }
 
         /* FOOTER */
         .footer {
@@ -189,21 +190,28 @@
         </tbody>
     </table>
 
+    {{-- KETERANGAN --}}
+    <div style="font-size:8px; color:#555; margin-top:8px; margin-bottom:12px; line-height: 1.4;">
+        <strong>Keterangan:</strong>
+        H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa &bull;
+        <span style="color:#6366f1;">* = Non-Muslim (tidak diwajibkan sholat dhuhur, tidak dihitung dalam statistik)</span>
+    </div>
+
     {{-- TANDA TANGAN --}}
     <div class="signature-section">
         <div class="signature-left">
-            <p style="font-size:8px; color:#555; margin-top:5px; line-height: 1.4;">
-                <strong>Keterangan:</strong><br>
-                H = Hadir Sholat Berjamaah &bull; I = Ijin / Berhalangan (Haid) &bull; A = Alpa &bull;
-                <span style="color:#6366f1;">* = Non-Muslim (tidak diwajibkan sholat dhuhur, tidak dihitung dalam statistik)</span>
-            </p>
+            <div class="ttd-title">
+                Mengetahui,<br>Kepala {{ $sekolah?->school_name ?? 'SMP Negeri 1 Sampang' }}
+            </div>
+            <div class="ttd-name">{{ $sekolah?->principal_name ?? 'Drs. DIRWANTO' }}</div>
+            <div class="ttd-nip">NIP. {{ $sekolah?->principal_nip ?? '196705121995121002' }}</div>
         </div>
         <div class="signature-right">
             <div class="ttd-title">
-                Mengetahui,<br>Wali Kelas {{ $kelas?->name ?? '' }}
+                Sampang, {{ now()->locale('id')->translatedFormat('d F Y') }}<br>Koordinator Sholat Dhuhur
             </div>
-            <div class="ttd-name">{{ $waliKelas?->name ?? '______________________' }}</div>
-            <div class="ttd-nip">NIP: {{ $waliKelas?->nip ?? '-' }}</div>
+            <div class="ttd-name">{{ $koordinator?->name ?? 'ASIS, S.Pd.I.' }}</div>
+            <div class="ttd-nip">NIP. {{ $koordinator?->nip ?? '197601282007011009' }}</div>
         </div>
     </div>
 

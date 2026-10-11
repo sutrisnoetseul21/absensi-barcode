@@ -17,7 +17,8 @@ class RekapSholatDhuhurDetailSheet implements FromView, WithTitle, ShouldAutoSiz
     public function __construct(
         protected string $selectedDate,
         protected ?string $academicYearId,
-        protected array $allStudents
+        protected array $allStudents,
+        protected mixed $koordinator = null
     ) {}
 
     public function view(): View
@@ -30,6 +31,7 @@ class RekapSholatDhuhurDetailSheet implements FromView, WithTitle, ShouldAutoSiz
             'selectedDateFormatted' => $dateFormatted,
             'tahunAjaran'           => $ay,
             'sekolah'               => $sekolah,
+            'koordinator'           => $this->koordinator,
             'allStudents'           => $this->allStudents,
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
         ]);

@@ -4,7 +4,10 @@ namespace App\Livewire\PortalGuru\SholatDhuhur;
 
 use App\Exports\RekapSholatDhuhurHarianExport;
 use App\Models\EnrollmentSiswa;
+use App\Models\Guru;
 use App\Models\Kelas;
+use App\Models\MataPelajaran;
+use App\Models\Pengajaran;
 use App\Models\PengaturanSekolah;
 use App\Models\Presensi;
 use App\Models\PresensiSholatDhuhur;
@@ -26,6 +29,10 @@ class WaliKelasSholatDhuhur extends Component
     public $availableMonths = [];
     public $academicYears = [];
     public $selectedAcademicYearId;
+
+    // Koordinator Sholat Dhuhur
+    public $selectedKoordinatorId;
+    public $koordinators = [];
 
     public $students = [];
     public $monthlyStats = [];
@@ -67,7 +74,46 @@ class WaliKelasSholatDhuhur extends Component
 
         $this->selectedDailyDate = Carbon::today('Asia/Jakarta')->toDateString();
 
+        $this->loadKoordinators();
         $this->loadClasses();
+    }
+
+    public function loadKoordinators()
+    {
+        $mapelPaiIds = MataPelajaran::where('nama_mapel', 'like', '%Agama Islam%')
+            ->orWhere('kode_mapel', 'PAIBP')
+            ->pluck('id');
+
+        $paiTeacherIds = Pengajaran::whereIn('mata_pelajaran_id', $mapelPaiIds)
+            ->distinct()
+            ->pluck('teacher_id')
+            ->filter()
+            ->toArray();
+
+        $pai = Guru::whereIn('id', $paiTeacherIds)->orderBy('name')->get(['id', 'name', 'nip']);
+        $others = Guru::whereNotIn('id', $paiTeacherIds)->orderBy('name')->get(['id', 'name', 'nip']);
+
+        $this->koordinators = [
+            'pai'    => $pai->toArray(),
+            'others' => $others->toArray(),
+        ];
+
+        if (! $this->selectedKoordinatorId) {
+            $defaultPai = $pai->first(fn($g) => stripos($g->name, 'ASIS') !== false) ?? $pai->first();
+            $this->selectedKoordinatorId = $defaultPai ? $defaultPai->id : ($others->first()?->id ?? null);
+        }
+    }
+
+    public function getSelectedKoordinator(): ?Guru
+    {
+        if ($this->selectedKoordinatorId) {
+            $found = Guru::find($this->selectedKoordinatorId);
+            if ($found) {
+                return $found;
+            }
+        }
+
+        return Guru::where('name', 'like', '%ASIS%')->first() ?? Guru::first();
     }
 
     private function generateAvailableMonths()
@@ -568,9 +614,10 @@ class WaliKelasSholatDhuhur extends Component
     {
         if (! $this->selectedClassId || ! $this->selectedAcademicYearId) return;
 
-        $range   = $this->getCetakDateRange();
-        $kelas   = Kelas::find($this->selectedClassId);
-        $sekolah = PengaturanSekolah::current();
+        $range       = $this->getCetakDateRange();
+        $kelas       = Kelas::find($this->selectedClassId);
+        $sekolah     = PengaturanSekolah::current();
+        $koordinator = $this->getSelectedKoordinator();
 
         $className = $kelas?->name ?? 'Kelas';
         $safeClassName = str_replace(['/', '\\'], '-', $className);
@@ -600,6 +647,7 @@ class WaliKelasSholatDhuhur extends Component
                 'kelas'             => $kelas,
                 'sekolah'           => $sekolah,
                 'waliKelas'         => Auth::user()->teacher ?? $kelas?->waliKelas($this->selectedAcademicYearId),
+                'koordinator'       => $koordinator,
                 'generatedAt'       => now()->locale('id')->translatedFormat('l, d F Y H:i'),
             ])->setPaper('a4', 'landscape');
 
@@ -624,6 +672,7 @@ class WaliKelasSholatDhuhur extends Component
             'kelas'        => $kelas,
             'sekolah'      => $sekolah,
             'waliKelas'    => Auth::user()->teacher ?? $kelas?->waliKelas($this->selectedAcademicYearId),
+            'koordinator'  => $koordinator,
             'generatedAt'  => now()->locale('id')->translatedFormat('l, d F Y H:i'),
         ])->setPaper('a4', 'landscape');
 
@@ -646,12 +695,14 @@ class WaliKelasSholatDhuhur extends Component
         $summary = $sholatService->getDailySchoolSummaryData($ayId, $targetDate);
 
         $sekolah = PengaturanSekolah::current();
+        $koordinator = $this->getSelectedKoordinator();
         $dateFormatted = Carbon::parse($targetDate)->locale('id')->translatedFormat('l, d F Y');
 
         $pdf = Pdf::loadView('pdf.laporan-sholat-dhuhur-rekap-per-kelas', [
             'stats'                 => $summary['stats'],
             'classesSummary'        => $summary['classesSummary'],
             'sekolah'               => $sekolah,
+            'koordinator'           => $koordinator,
             'tahunAjaran'           => $summary['academic_year'],
             'selectedDateFormatted' => $dateFormatted,
             'date'                  => $targetDate,
@@ -677,6 +728,7 @@ class WaliKelasSholatDhuhur extends Component
         $ayId = $this->selectedAcademicYearId;
         $sholatService = app(PresensiSholatDhuhurService::class);
         $summary = $sholatService->getDailySchoolSummaryData($ayId, $targetDate);
+        $koordinator = $this->getSelectedKoordinator();
 
         $safeDate = str_replace('-', '_', $targetDate);
         $fileName = "Rekap_Sholat_Dhuhur_Harian_{$safeDate}.xlsx";
@@ -688,7 +740,8 @@ class WaliKelasSholatDhuhur extends Component
                 $summary['stats'],
                 $summary['classesSummary'],
                 $summary['unattendedStudents'],
-                $summary['allStudents']
+                $summary['allStudents'],
+                $koordinator
             ),
             $fileName
         );
@@ -702,6 +755,7 @@ class WaliKelasSholatDhuhur extends Component
         $summary = $sholatService->getDailySchoolSummaryData($ayId, $targetDate);
 
         $sekolah = PengaturanSekolah::current();
+        $koordinator = $this->getSelectedKoordinator();
         $dateFormatted = Carbon::parse($targetDate)->locale('id')->translatedFormat('l, d F Y');
 
         $pdf = Pdf::loadView('pdf.laporan-sholat-dhuhur-rekap-harian', [
@@ -709,6 +763,7 @@ class WaliKelasSholatDhuhur extends Component
             'classesSummary'        => $summary['classesSummary'],
             'gradeGroups'           => $summary['gradeGroups'],
             'sekolah'               => $sekolah,
+            'koordinator'           => $koordinator,
             'tahunAjaran'           => $summary['academic_year'],
             'selectedDateFormatted' => $dateFormatted,
             'date'                  => $targetDate,

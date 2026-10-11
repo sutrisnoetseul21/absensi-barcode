@@ -373,10 +373,10 @@
             <td style="width: 22%;">
                 <div class="ttd-block">
                     Sampang, {{ \Carbon\Carbon::parse($date)->locale('id')->translatedFormat('d F Y') }}<br>
-                    Koordinator Ibadah / Pembina Keagamaan,
+                    Koordinator Sholat Dhuhur,
                     <div class="ttd-space"></div>
-                    <div class="ttd-name">Guru PAI & Pembina Ibadah</div>
-                    <div class="ttd-nip">NIP. -</div>
+                    <div class="ttd-name">{{ $koordinator?->name ?? 'ASIS, S.Pd.I.' }}</div>
+                    <div class="ttd-nip">NIP. {{ $koordinator?->nip ?? '197601282007011009' }}</div>
                 </div>
             </td>
             <td style="width: 23%;">
@@ -384,8 +384,8 @@
                     Mengetahui,<br>
                     Kepala {{ $sekolah?->school_name ?? 'SMP Negeri 1 Sampang' }},
                     <div class="ttd-space"></div>
-                    <div class="ttd-name">{{ $sekolah?->headmaster_name ?? 'Kepala Sekolah' }}</div>
-                    <div class="ttd-nip">NIP. {{ $sekolah?->headmaster_nip ?? '-' }}</div>
+                    <div class="ttd-name">{{ $sekolah?->principal_name ?? 'Drs. DIRWANTO' }}</div>
+                    <div class="ttd-nip">NIP. {{ $sekolah?->principal_nip ?? '196705121995121002' }}</div>
                 </div>
             </td>
         </tr>
