@@ -40,19 +40,45 @@ class RecipientResolverService
     }
 
     /**
+     * Cek apakah key atau nama jabatan merujuk ke Guru BK.
+     */
+    public function isGuruBkKey(string $key): bool
+    {
+        $clean = strtolower(trim(str_replace(['_', '/', '-'], ' ', $key)));
+        return in_array($clean, ['guru bk', 'guru bk bp', 'bk', 'guru bp', 'bimbingan konseling'])
+            || str_contains($clean, 'guru bk')
+            || str_contains($clean, 'bk bp');
+    }
+
+    /**
+     * Ambil seluruh nomor HP Guru BK di sekolah (sebagai fallback jika kelas belum dipetakan).
+     */
+    public function resolveAllGuruBk(): array
+    {
+        return Guru::whereHas('jabatans', function ($query) {
+            $query->where('nama_jabatan', 'like', '%BK%')
+                  ->orWhere('nama_jabatan', 'like', '%Konseling%');
+        })
+        ->whereNotNull('no_hp')
+        ->where('no_hp', '!=', '')
+        ->pluck('no_hp')
+        ->toArray();
+    }
+
+    /**
      * Dapatkan nomor HP Guru BK pembina kelas siswa (kelasPantau),
-     * atau fallback ke seluruh Guru BK jika belum dipetakan.
+     * atau fallback ke seluruh Guru BK jika kelas belum dipetakan.
      */
     public function resolveGuruBk(Siswa $student): array
     {
         $currentYear = TahunAjaran::aktif()->first();
         if (!$currentYear) {
-            return $this->resolveByJabatan('Guru BK');
+            return $this->resolveAllGuruBk();
         }
 
         $enrollment = $student->enrollments()->where('academic_year_id', $currentYear->id)->first();
         if (!$enrollment) {
-            return $this->resolveByJabatan('Guru BK');
+            return $this->resolveAllGuruBk();
         }
 
         // Cari Guru BK yang membina kelas siswa (kelasPantau)
@@ -67,7 +93,7 @@ class RecipientResolverService
 
         // Jika belum ada pemetaan kelas khusus, fallback ke seluruh Guru BK
         if (empty($bkHpNumbers)) {
-            $bkHpNumbers = $this->resolveByJabatan('Guru BK');
+            $bkHpNumbers = $this->resolveAllGuruBk();
         }
 
         return array_values(array_unique($bkHpNumbers));
@@ -109,9 +135,12 @@ class RecipientResolverService
 
     public function resolveByJabatan(string $namaJabatan): array
     {
+        if ($this->isGuruBkKey($namaJabatan)) {
+            return $this->resolveAllGuruBk();
+        }
+
         $normalized = match (strtolower(str_replace('_', ' ', $namaJabatan))) {
             'kepala sekolah' => 'Kepala Sekolah',
-            'guru bk'        => 'Guru BK',
             'waka kurikulum' => 'Waka Kurikulum',
             'waka kesiswaan' => 'Waka Kesiswaan',
             'waka sarpras'   => 'Waka Sarpras',
@@ -165,11 +194,26 @@ class RecipientResolverService
                         $seenNumbers[$hp] = true;
                     }
                 }
+            } elseif ($this->isGuruBkKey($key)) {
+                // Khusus Guru BK: Filter cerdas hanya ke Guru BK pembina kelas siswa terkait (kelasPantau).
+                // Contoh: Siswa kelas 7 -> hanya dikirim ke Bu Sri (pembina kelas 7).
+                // Fallback: Jika kelas siswa belum ada pembina khusus, otomatis fallback ke seluruh Guru BK.
+                $bkHpNumbers = $this->resolveGuruBk($student);
+                foreach ($bkHpNumbers as $hp) {
+                    if ($hp && !isset($seenNumbers[$hp])) {
+                        $resolved[] = ['number' => $hp, 'type' => $key];
+                        $seenNumbers[$hp] = true;
+                    }
+                }
             } elseif (str_starts_with($key, 'jabatan:')) {
                 // Jabatan custom dari tabel jabatans (prefix 'jabatan:NamaJabatan')
                 $namaJabatan = substr($key, strlen('jabatan:'));
                 if (!empty($namaJabatan)) {
-                    $jabatansHp = $this->resolveByJabatan($namaJabatan);
+                    if ($this->isGuruBkKey($namaJabatan)) {
+                        $jabatansHp = $this->resolveGuruBk($student);
+                    } else {
+                        $jabatansHp = $this->resolveByJabatan($namaJabatan);
+                    }
                     foreach ($jabatansHp as $hp) {
                         if ($hp && !isset($seenNumbers[$hp])) {
                             $resolved[] = ['number' => $hp, 'type' => 'jabatan_custom'];
@@ -184,8 +228,12 @@ class RecipientResolverService
                     $seenNumbers[$groupId] = true;
                 }
             } else {
-                // Jabatan tetap lainnya (guru_bk, waka_kesiswaan, dll.)
-                $jabatansHp = $this->resolveByJabatan($key);
+                // Jabatan tetap lainnya (waka_kesiswaan, dll.)
+                if ($this->isGuruBkKey($key)) {
+                    $jabatansHp = $this->resolveGuruBk($student);
+                } else {
+                    $jabatansHp = $this->resolveByJabatan($key);
+                }
                 foreach ($jabatansHp as $hp) {
                     if ($hp && !isset($seenNumbers[$hp])) {
                         $resolved[] = ['number' => $hp, 'type' => $key];

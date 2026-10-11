@@ -224,6 +224,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
                                                 return array_merge($options, $jabatans, $waGroups);
                                             })
+                                            ->helperText('💡 Pilihan Guru BK/BP otomatis difilter hanya ke Guru BK pembina kelas siswa terkait (sesuai Manajemen Akses Portal).')
                                             ->columnSpanFull(),
                                         Textarea::make('telat_notif_template_pesan')
                                             ->label('Template Pesan Terlambat')
@@ -252,6 +253,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
                                                 return array_merge($options, $jabatans, $waGroups);
                                             })
+                                            ->helperText('💡 Pilihan Guru BK/BP otomatis difilter hanya ke Guru BK pembina kelas siswa terkait (sesuai Manajemen Akses Portal).')
                                             ->columnSpanFull(),
                                         Textarea::make('student_notif_template_pesan')
                                             ->label('Template Pesan Sakit/Izin/Alpa')

@@ -19,10 +19,13 @@ class SettingNotifikasi extends Component
     // Tabs state
     public $activeTab = 'siswa'; // 'siswa', 'harian', 'sekolah'
 
-    // Status scheduler
+    // Status scheduler & kalender
     public bool   $schedulerActive   = false;
     public string $schedulerLastRun  = '';
     public string $schedulerAgeLabel = '';
+    public bool   $isHariSekolah     = true;
+    public string $workDaysLabel     = '';
+    public string $holidayReason     = '';
 
     // Status kirim manual per tab
     public bool $canSendDailyManual  = true;
@@ -31,8 +34,9 @@ class SettingNotifikasi extends Component
     public int  $schoolManualSendCount = 0;
 
     // Available options for recipients
-    public $recipientOptions = [];
-    public $schoolRecipientOptions = [];
+    public array $recipientOptions = [];
+    public array $dailyRecipientOptions = [];
+    public array $schoolRecipientOptions = [];
 
     // Form Data - Tab 1: Terlambat
     public bool $telat_notif_is_active = false;
@@ -78,15 +82,18 @@ class SettingNotifikasi extends Component
 
     private function loadRecipientOptions(): void
     {
+        $waGroups = \App\Services\WhatsAppGatewayService::getAvailableGroups();
         $jabatans = Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
         
-        $this->recipientOptions = array_merge([
+        $options = [
             'siswa'      => 'Siswa',
             'ortu'       => 'Orang Tua',
             'wali_kelas' => 'Wali Kelas',
-        ], $jabatans);
+        ];
 
-        $this->schoolRecipientOptions = $jabatans;
+        $this->recipientOptions = array_merge($options, $jabatans, $waGroups);
+        $this->dailyRecipientOptions = array_merge(['wali_kelas' => 'Wali Kelas'], $jabatans, $waGroups);
+        $this->schoolRecipientOptions = array_merge($jabatans, $waGroups);
     }
 
     private function loadData(): void
@@ -124,7 +131,7 @@ class SettingNotifikasi extends Component
         } else {
             $this->leave_request_notif_is_active      = false;
             $this->leave_request_notif_recipients     = ['wali_kelas'];
-            $this->leave_request_notif_template_pesan = "Halo Bapak/Ibu {nama_wali_kelas},\nSiswa Anda, *{nama_siswa}* dari kelas *{kelas}* telah mengajukan *{jenis_ijin}* pada tanggal {tanggal_mulai} sampai {tanggal_selesai}.\nAlasan: {alasan}\n\nSilakan login ke Portal Guru untuk meninjau:\n{link_detail}";
+            $this->leave_request_notif_template_pesan = "Halo Bapak/Ibu {nama_wali_kelas},\nSiswa Anda, *{nama_siswa}* dari kelas *{kelas}* telah mengajukan *{jenis_ijin}* pada tanggal {tanggal_mulai} sampai {tanggal_selesai}.\nAlasan: {alasan}\n\nSilakan login ke Portal Guru untuk meninjau:\n{link_detail}\n\n🔗 *Link Konfirmasi:*\n{link_konfirmasi}";
         }
 
         // Load data Notification Settings (Persetujuan Ijin)
@@ -164,27 +171,41 @@ class SettingNotifikasi extends Component
             $this->schedulerActive   = false;
             $this->schedulerLastRun  = '';
             $this->schedulerAgeLabel = 'Belum pernah terdeteksi';
-            return;
-        }
-
-        $timestamp  = (int) file_get_contents($heartbeatPath);
-        $tz         = config('app.timezone', 'Asia/Jakarta');
-        $lastRun    = Carbon::createFromTimestamp($timestamp, $tz);
-        $ageMinutes = (int) round($lastRun->floatDiffInMinutes(now()));
-
-        $this->schedulerLastRun = $lastRun->format('H:i:s, d M Y');
-
-        if ($ageMinutes <= 10) {
-            $this->schedulerActive   = true;
-            $this->schedulerAgeLabel = $ageMinutes <= 1
-                ? 'baru saja (< 1 menit)'
-                : "{$ageMinutes} menit yang lalu";
         } else {
-            $this->schedulerActive   = false;
-            $this->schedulerAgeLabel = $ageMinutes < 60
-                ? "{$ageMinutes} menit yang lalu"
-                : $lastRun->diffForHumans();
+            $timestamp  = (int) file_get_contents($heartbeatPath);
+            $tz         = config('app.timezone', 'Asia/Jakarta');
+            $lastRun    = Carbon::createFromTimestamp($timestamp, $tz);
+            $ageMinutes = (int) round($lastRun->floatDiffInMinutes(now()));
+
+            $this->schedulerLastRun = $lastRun->format('H:i:s, d M Y');
+
+            if ($ageMinutes <= 10) {
+                $this->schedulerActive   = true;
+                $this->schedulerAgeLabel = $ageMinutes <= 1
+                    ? 'baru saja (< 1 menit)'
+                    : "{$ageMinutes} menit yang lalu";
+            } else {
+                $this->schedulerActive   = false;
+                $this->schedulerAgeLabel = $ageMinutes < 60
+                    ? "{$ageMinutes} menit yang lalu"
+                    : $lastRun->diffForHumans();
+            }
         }
+
+        // Cek status kalender sekolah
+        $now = now('Asia/Jakarta');
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $this->isHariSekolah = $kalenderService->isHariSekolah($now);
+        $workDaysType = $kalenderService->getWorkDaysTypeForDate($now);
+        $this->workDaysLabel = $workDaysType === '6_hari' ? '6 Hari Kerja (Senin - Sabtu)' : '5 Hari Kerja (Senin - Jumat)';
+
+        $hariLiburRecord = \App\Models\HariLibur::hariIni($now->toDateString())->first();
+        $namaHariIndo = [
+            'Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'
+        ];
+        $namaHariIni = $namaHariIndo[$now->format('l')] ?? $now->format('l');
+        $this->holidayReason = $hariLiburRecord ? $hariLiburRecord->name : ($now->isWeekend() ? "Libur Akhir Pekan ({$namaHariIni})" : 'Hari Libur');
     }
 
     private function refreshManualSendStatus(): void

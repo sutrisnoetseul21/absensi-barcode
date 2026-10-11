@@ -7,23 +7,36 @@
 
     {{-- Scheduler Status Banner --}}
     @if($schedulerActive)
-    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex items-start gap-4">
-        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200">
-            <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 space-y-3">
+        <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <div class="flex-1">
+                <p class="font-black text-emerald-900 text-lg">Scheduler Aktif</p>
+                <p class="text-sm text-emerald-700 mt-0.5">
+                    Terakhir berjalan: <strong class="font-bold">{{ $schedulerLastRun }}</strong> ({{ $schedulerAgeLabel }})
+                </p>
+                <p class="text-sm text-emerald-600 mt-1.5 flex items-center gap-1.5 font-medium">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    Laporan otomatis terjadwal oleh sistem.
+                </p>
+            </div>
+            <button wire:click="testSchedulerRun" class="flex-shrink-0 px-3 py-1.5 bg-white border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-50 transition-colors shadow-sm">
+                Refresh Status
+            </button>
         </div>
-        <div class="flex-1">
-            <p class="font-black text-emerald-900 text-lg">Scheduler Aktif</p>
-            <p class="text-sm text-emerald-700 mt-0.5">
-                Terakhir berjalan: <strong class="font-bold">{{ $schedulerLastRun }}</strong> ({{ $schedulerAgeLabel }})
-            </p>
-            <p class="text-sm text-emerald-600 mt-1.5 flex items-center gap-1.5 font-medium">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                Laporan otomatis akan dikirim sesuai jadwal.
-            </p>
-        </div>
-        <button wire:click="testSchedulerRun" class="flex-shrink-0 px-3 py-1.5 bg-white border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-50 transition-colors shadow-sm">
-            Refresh Status
-        </button>
+
+        {{-- Status Kalender --}}
+        @if($isHariSekolah)
+            <div class="pt-2.5 border-t border-emerald-200/80 text-xs font-medium text-emerald-800 flex items-center gap-2">
+                <span>📅</span> Status Kalender: <strong>Hari Efektif Belajar ({{ $workDaysLabel }})</strong> — Laporan otomatis aktif.
+            </div>
+        @else
+            <div class="pt-2.5 border-t border-amber-300 text-xs font-medium text-amber-800 flex items-center gap-2">
+                <span>🏖️</span> Status Kalender: <strong>Hari Libur Sekolah ({{ $holidayReason }} / {{ $workDaysLabel }})</strong> — Laporan harian otomatis dijeda &amp; tidak dikirim.
+            </div>
+        @endif
     </div>
     @else
     <div class="rounded-2xl border border-rose-200 bg-rose-50 p-5 space-y-4">
@@ -72,10 +85,14 @@
 
     {{-- Tabs Navigation --}}
     <div class="border-b border-slate-200">
-        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+        <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
             <button wire:click="setActiveTab('siswa')" class="{{ $activeTab === 'siswa' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                Notifikasi Siswa
+                Notifikasi Kehadiran Siswa
+            </button>
+            <button wire:click="setActiveTab('ijin')" class="{{ $activeTab === 'ijin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Notifikasi Ijin Online
             </button>
             <button wire:click="setActiveTab('harian')" class="{{ $activeTab === 'harian' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
@@ -85,18 +102,13 @@
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                 Rekap Seluruh Sekolah
             </button>
-        
-            <button wire:click="setActiveTab('ijin')" class="{{ $activeTab === 'ijin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                Notifikasi Ijin Online
-            </button>
         </nav>
     </div>
 
     {{-- Form Content --}}
     <form wire:submit.prevent="save" class="space-y-6">
         
-        {{-- TAB 1: SISWA --}}
+        {{-- TAB 1: KEHADIRAN SISWA --}}
         <div class="{{ $activeTab === 'siswa' ? 'block' : 'hidden' }} space-y-6">
             {{-- Terlambat --}}
             <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
@@ -148,6 +160,7 @@
                                 </template>
                             </div>
                         </div>
+                        <p class="text-xs text-slate-500 mt-1.5 italic">💡 Pilihan Guru BK/BP otomatis difilter hanya ke Guru BK pembina kelas siswa terkait (sesuai Manajemen Akses Portal).</p>
                     </div>
 
                     <div>
@@ -208,6 +221,7 @@
                                 </template>
                             </div>
                         </div>
+                        <p class="text-xs text-slate-500 mt-1.5 italic">💡 Pilihan Guru BK/BP otomatis difilter hanya ke Guru BK pembina kelas siswa terkait (sesuai Manajemen Akses Portal).</p>
                     </div>
 
                     <div>
@@ -216,10 +230,10 @@
                         <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder {status_kehadiran} akan terisi dinamis (Sakit/Izin/Alpa). Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}</p>
                     </div>
                 </div>
+            </div>
         </div>
 
-
-        {-- TAB: IJIN --}
+        {{-- TAB 2: IJIN ONLINE --}}
         <div class="{{ $activeTab === 'ijin' ? 'block' : 'hidden' }} space-y-6">
             {{-- Pengajuan Ijin --}}
             <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
@@ -276,7 +290,7 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Pengajuan Ijin</label>
                         <textarea wire:model="leave_request_notif_template_pesan" rows="5" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
-                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {alasan}, {nama_wali_kelas}, {link_detail}</p>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {jenis_ijin}, {tanggal_mulai}, {tanggal_selesai}, {alasan}, {nama_wali_kelas}, {link_detail}, {link_konfirmasi}</p>
                     </div>
                 </div>
             </div>
@@ -340,15 +354,14 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
-        {{-- TAB 2: HARIAN KELAS --}}
+        {{-- TAB 3: HARIAN KELAS --}}
         <div class="{{ $activeTab === 'harian' ? 'block' : 'hidden' }} space-y-6">
             <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
                     <h3 class="text-lg font-bold text-slate-900">Pengaturan Laporan Harian Wali Kelas</h3>
-                    <p class="text-sm text-slate-500 mt-1">Laporan harian dikirim otomatis oleh sistem sesuai jam cutoff. Toleransi pengiriman: 1 jam setelah jam cutoff.</p>
+                    <p class="text-sm text-slate-500 mt-1">Laporan harian dikirim otomatis oleh sistem sesuai jam cutoff pada Hari Efektif Sekolah. Toleransi pengiriman: 1 jam setelah jam cutoff.</p>
                 </div>
                 <div class="p-6 space-y-6">
                     <div class="flex items-center gap-3">
@@ -367,7 +380,7 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Kirim Ke (Penerima)</label>
                         <div x-data="{
-                                options: {{ json_encode(array_merge(['wali_kelas' => 'Wali Kelas'], $schoolRecipientOptions)) }},
+                                options: {{ json_encode($dailyRecipientOptions) }},
                                 selected: @entangle('daily_recipients'),
                                 open: false,
                                 toggle(key) {
@@ -403,11 +416,12 @@
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan</label>
-                        <textarea wire:model="daily_template_pesan" rows="6" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
-                        <div class="space-y-1 text-xs text-slate-500 mt-2 font-medium">
-                            <p><strong>Statistik:</strong> {nama_kelas}, {tanggal}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {jumlah_alpa}, {jumlah_sakit}, {jumlah_izin}</p>
-                            <p><strong>Nama Siswa (Segaris):</strong> {nama_sakit}, {nama_izin}, {nama_alpa}, {nama_terlambat}, {nama_belum_presensi} <em>(Contoh: Budi, Ani)</em></p>
-                            <p><strong>Nama Siswa (Daftar List):</strong> {daftar_sakit}, {daftar_izin}, {daftar_alpa}, {daftar_terlambat}, {daftar_belum_presensi} <em>(Contoh: - Budi, - Ani)</em></p>
+                        <textarea wire:model="daily_template_pesan" rows="7" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
+                        <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200 mt-2 font-medium">
+                            <p class="font-bold text-slate-800">📌 Daftar Placeholder Tersedia:</p>
+                            <p>• <strong>Statistik Angka:</strong> <code>{nama_kelas}</code>, <code>{tanggal}</code>, <code>{total_siswa}</code>, <code>{jumlah_hadir}</code>, <code>{jumlah_terlambat}</code>, <code>{jumlah_sakit}</code>, <code>{jumlah_izin}</code>, <code>{jumlah_alpa}</code></p>
+                            <p>• <strong>Format Baris Koma (Segaris):</strong> <code>{nama_sakit}</code>, <code>{nama_izin}</code>, <code>{nama_alpa}</code>, <code>{nama_terlambat}</code>, <code>{nama_belum_presensi}</code><br><span class="italic text-slate-500">Contoh hasil: Budi Santoso, Ani Wijaya (atau "-" jika tidak ada).</span></p>
+                            <p>• <strong>Format Daftar Baris per Baris:</strong> <code>{daftar_sakit}</code>, <code>{daftar_izin}</code>, <code>{daftar_alpa}</code>, <code>{daftar_terlambat}</code>, <code>{daftar_belum_presensi}</code><br><span class="italic text-slate-500">Contoh hasil:<br>- Budi Santoso<br>- Ani Wijaya<br>(atau "Tidak ada" jika tidak ada).</span></p>
                         </div>
                     </div>
                 </div>
@@ -454,12 +468,12 @@
             </div>
         </div>
 
-        {{-- TAB 3: REKAP SEKOLAH --}}
+        {{-- TAB 4: REKAP SEKOLAH --}}
         <div class="{{ $activeTab === 'sekolah' ? 'block' : 'hidden' }} space-y-6">
             <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
                     <h3 class="text-lg font-bold text-slate-900">Pengaturan Rekap Seluruh Sekolah</h3>
-                    <p class="text-sm text-slate-500 mt-1">Rekap presensi seluruh kelas sekaligus (Helicopter View) untuk Manajemen Sekolah.</p>
+                    <p class="text-sm text-slate-500 mt-1">Rekap presensi seluruh kelas sekaligus (Helicopter View) untuk Manajemen Sekolah pada Hari Efektif Sekolah. Toleransi pengiriman: 1 jam setelah jam cutoff.</p>
                 </div>
                 <div class="p-6 space-y-6">
                     <div class="flex items-center gap-3">
@@ -521,7 +535,11 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Baris per Kelas</label>
                         <textarea wire:model="school_template_row" rows="9" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
-                        <p class="text-xs text-slate-500 mt-1 font-medium">Pesan otomatis dikirim terpisah per angkatan (Kelas 7, 8, 9). Placeholder: {nama_kelas}, {total_siswa}, {jumlah_hadir}, {jumlah_terlambat}, {nama_terlambat}, {jumlah_sakit}, {nama_sakit}, {jumlah_izin}, {nama_izin}, {jumlah_alpa}, {nama_alpa}, {jumlah_belum_presensi}, {nama_belum_presensi}</p>
+                        <div class="space-y-1 text-xs text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200 mt-2 font-medium">
+                            <p>Pesan otomatis dikirim terpisah per angkatan (Kelas 7, 8, 9). Template diulang untuk setiap kelas pada angkatan bersangkutan.</p>
+                            <p><strong>Placeholder Tersedia:</strong> <code>{nama_kelas}</code>, <code>{total_siswa}</code>, <code>{jumlah_hadir}</code>, <code>{jumlah_terlambat}</code>, <code>{nama_terlambat}</code>, <code>{jumlah_sakit}</code>, <code>{nama_sakit}</code>, <code>{jumlah_izin}</code>, <code>{nama_izin}</code>, <code>{jumlah_alpa}</code>, <code>{nama_alpa}</code>, <code>{jumlah_belum_presensi}</code>, <code>{nama_belum_presensi}</code></p>
+                            <p class="italic text-slate-500">Keterangan: <code>{nama_sakit}</code>, <code>{nama_izin}</code>, <code>{nama_alpa}</code>, <code>{nama_belum_presensi}</code> otomatis terisi format tanda kurung <code>(Budi, Ani)</code> jika ada siswa, dan kosong jika 0.</p>
+                        </div>
                     </div>
 
                     <div>
@@ -570,6 +588,13 @@
                     @endif
                 </div>
             </div>
+        </div>
+
+        {{-- Evolution API Disclaimer --}}
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+            <p class="font-bold text-slate-800">ℹ️ Pemberitahuan Lisensi &amp; Sanggahan (Attribution &amp; Trademark Notice):</p>
+            <p>• Layanan notifikasi ini didukung oleh infrastruktur open-source <strong>Evolution API</strong> (Apache License 2.0 / Evolution Foundation).</p>
+            <p>• <em>Disclaimer:</em> Sistem ERP ini merupakan perangkat lunak independen dan tidak berafiliasi, diawasi, atau didukung secara resmi oleh WhatsApp maupun Meta Platforms, Inc. WhatsApp® adalah merek dagang terdaftar milik Meta Platforms, Inc.</p>
         </div>
 
         {{-- Sticky Footer Save Button --}}
