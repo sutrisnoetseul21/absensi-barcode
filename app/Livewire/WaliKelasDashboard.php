@@ -262,6 +262,9 @@ class WaliKelasDashboard extends Component
         $list = [];
         foreach ($this->students as $student) {
             $att            = $attendances->get($student->id);
+            // Kunci HANYA jika siswa absen langsung lewat scan kiosk (status hadir/telat, ada scan_time, dan bukan input manual)
+            $isLocked       = ($att && $att->is_manual_input === false && !empty($att->scan_time) && in_array($att->status, ['hadir', 'telat']));
+
             $list[] = [
                 'id'          => $student->id,
                 'name'        => $student->name,
@@ -269,6 +272,7 @@ class WaliKelasDashboard extends Component
                 'status_pulang' => $att ? $att->status_pulang : '',
                 'late_minutes' => $att ? $att->late_minutes : null,
                 'is_manual_input' => $att ? $att->is_manual_input : null,
+                'is_locked'   => $isLocked,
             ];
         }
         $this->bulkStatusDatang = '';
@@ -286,8 +290,8 @@ class WaliKelasDashboard extends Component
         if (empty($status)) return;
 
         foreach ($this->inputStudents as $index => $student) {
-            // Lewati siswa yang sudah absen otomatis (is_manual_input === false)
-            if (isset($student['is_manual_input']) && $student['is_manual_input'] === false) {
+            // Lewati siswa yang terkunci (hanya yang sudah absen langsung lewat portal-presensi/scan)
+            if (!empty($student['is_locked'])) {
                 continue;
             }
 
@@ -354,8 +358,10 @@ class WaliKelasDashboard extends Component
                 $newStatusPulang = $data['status'];
             }
 
-            // Jika data ini adalah hasil scan otomatis (is_manual_input === false)
-            if ($existing && $existing->is_manual_input === false) {
+            // Cek apakah data ini adalah hasil scan langsung lewat portal-presensi/scan (kiosk)
+            $isKioskScan = ($existing && $existing->is_manual_input === false && !empty($existing->scan_time) && in_array($existing->status, ['hadir', 'telat']));
+
+            if ($isKioskScan) {
                 // Pertahankan status datang & keterlambatan asli dari mesin scanner kiosk
                 $newLate = $existing->late_minutes;
                 $data['status'] = $existing->status;
@@ -373,13 +379,13 @@ class WaliKelasDashboard extends Component
                 continue;
             }
 
-            // Blokir Guru jika mengedit data kedatangan otomatis (hanya Admin yang boleh)
+            // Blokir Guru jika mengedit data kedatangan hasil scan langsung kiosk (hanya Admin yang boleh)
             // Tapi Bolehkan guru mengisi/mengubah status pulang
-            if ($existing && $existing->is_manual_input === false && $isGuru) {
+            if ($isKioskScan && $isGuru) {
                 if ($existing->status !== $data['status'] || $existing->late_minutes != $newLate) {
                     $this->dispatch('notify', [
                         'type'    => 'error',
-                        'message' => "Gagal mengubah: Status kedatangan sudah terekam otomatis. Hubungi Admin untuk mengubah kehadiran datang.",
+                        'message' => "Gagal mengubah: Status kedatangan sudah terekam langsung oleh scanner presensi. Hubungi Admin untuk mengubah kehadiran datang.",
                     ]);
                     continue;
                 }
@@ -412,11 +418,9 @@ class WaliKelasDashboard extends Component
                     'status'          => $data['status'],
                     'status_pulang'   => $newStatusPulang,
                     'late_minutes'    => $newLate,
-                    // Jika data asli adalah scan otomatis dan guru hanya mengubah status_pulang, tetap pertahankan is_manual_input = false untuk kedatangan?
-                    // Karena is_manual_input lebih ke arah record keseluruhan. Kita ubah jadi true agar menandakan ada sentuhan manual,
-                    // tapi wait, kalau diubah true, besok-besok guru bisa ubah kedatangannya?
-                    // Betul! Kalau diubah true, maka guru punya akses edit kedatangan. Kita biarkan is_manual_input = false jika asalnya false.
-                    'is_manual_input' => $existing ? $existing->is_manual_input : true,
+                    // Jika sebelumnya adalah scan langsung kiosk dan guru hanya mengubah status_pulang, pertahankan is_manual_input = false.
+                    // Jika diedit dari alpa otomatis / belum absen / manual, tandai is_manual_input = true.
+                    'is_manual_input' => $isKioskScan ? false : true,
                     'manual_input_by_id'   => $actor->id,
                     'manual_input_by_type' => $isGuru ? \App\Models\Guru::class : \App\Models\User::class,
                     'note'            => $note,

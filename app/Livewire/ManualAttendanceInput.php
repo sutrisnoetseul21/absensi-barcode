@@ -67,10 +67,11 @@ class ManualAttendanceInput extends Component
 
         $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
         
-        // Blokir Guru jika mengedit data scan otomatis
-        if ($existing && $existing->is_manual_input === false && $isGuru) {
+        // Blokir Guru jika mengedit data scan langsung kiosk (portal-presensi/scan)
+        $isKioskScan = ($existing && $existing->is_manual_input === false && !empty($existing->scan_time) && in_array($existing->status, ['hadir', 'telat']));
+        if ($isKioskScan && $isGuru) {
             throw ValidationException::withMessages([
-                'status' => 'Siswa ini sudah absen otomatis. Hanya Admin yang bisa mengubah data ini.'
+                'status' => 'Siswa ini sudah absen langsung via scanner presensi. Hanya Admin yang bisa mengubah data ini.'
             ]);
         }
 

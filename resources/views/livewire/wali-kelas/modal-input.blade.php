@@ -69,10 +69,10 @@
                                     <tr class="hover:bg-slate-50 transition-colors" wire:key="student-{{ $data['id'] }}">
                                         <td class="py-3 px-4 font-bold text-slate-800">{{ $data['name'] ?? 'Data tidak valid' }}</td>
                                         <td class="py-3 px-4 text-center">
-                                            @if(isset($data['is_manual_input']) && $data['is_manual_input'] === false)
-                                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs cursor-not-allowed" title="Terkunci: Kehadiran telah terekam otomatis oleh scanner presensi kiosk.">
+                                            @if(!empty($data['is_locked']))
+                                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs cursor-not-allowed" title="Terkunci: Kehadiran telah terekam langsung oleh scanner presensi (kiosk).">
                                                     <svg class="w-4 h-4 mr-1.5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                    Sudah Absen Otomatis (🔒 Terkunci)
+                                                    Sudah Absen Scan (🔒 Terkunci)
                                                 </span>
                                             @else
                                                 <select wire:model.live="inputStudents.{{ $index }}.status" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold rounded-lg border-slate-200 focus:ring-2 focus:ring-brand-primary cursor-pointer shadow-sm
