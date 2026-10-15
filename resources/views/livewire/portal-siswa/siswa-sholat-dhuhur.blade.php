@@ -26,7 +26,7 @@
                         Presensi Sholat Dhuhur
                     </h1>
                     <p class="text-xs sm:text-sm text-emerald-100/80 mt-1 max-w-xl leading-relaxed">
-                        Rekapitulasi kehadiran ibadah sholat dhuhur berjamaah Anda. Hari Jumat merupakan hari sholat Jumat (libur dhuhur di sekolah).
+                        Rekapitulasi kehadiran ibadah sholat dhuhur berjamaah Anda.
                     </p>
                 </div>
 
@@ -119,7 +119,7 @@
                         <span class="w-2 h-2 rounded-full bg-rose-500"></span> Tidak Hadir
                     </span>
                     <span class="inline-flex items-center gap-1 text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                        <span class="w-2 h-2 rounded-full bg-slate-400"></span> Libur / Jumat
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span> Libur
                     </span>
                 </div>
             </div>

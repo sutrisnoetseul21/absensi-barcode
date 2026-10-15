@@ -100,6 +100,10 @@
                     
                     <!-- Peringatan Jika Hari Libur / Jumat -->
                     @if(!$isHariSholat)
+                        @php
+                            $enableJumat = (bool) ($settings->enable_sholat_jumat ?? false);
+                            $isJumatLibur = $isFriday && !$enableJumat;
+                        @endphp
                         <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center my-auto">
                             <div class="w-16 h-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-3">
                                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,10 +111,10 @@
                                 </svg>
                             </div>
                             <h3 class="text-lg font-black text-amber-900">
-                                {{ $isFriday ? 'Hari Ini Hari Sholat Jumat' : 'Hari Ini Libur Sholat Dhuhur' }}
+                                {{ $isJumatLibur ? 'Hari Ini Hari Sholat Jumat' : 'Hari Ini Libur Sholat Dhuhur' }}
                             </h3>
                             <p class="text-sm text-amber-800 mt-1 max-w-md mx-auto">
-                                {{ $holidayDesc ?: ($isFriday ? 'Jadwal sholat dhuhur di sekolah ditiadakan karena pelaksanaan Sholat Jumat di lingkungan masing-masing.' : 'Presensi sholat dhuhur di sekolah tidak aktif pada hari libur.') }}
+                                {{ $holidayDesc ?: ($isJumatLibur ? 'Jadwal sholat dhuhur di sekolah ditiadakan karena pelaksanaan Sholat Jumat di lingkungan masing-masing.' : 'Presensi sholat dhuhur di sekolah tidak aktif pada hari libur.') }}
                             </p>
                         </div>
                     @else

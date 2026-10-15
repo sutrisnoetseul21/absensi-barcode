@@ -139,7 +139,7 @@ class SiswaSholatDhuhur extends Component
             if (! $isEffective) {
                 $desc = $sholatService->getHolidayDescription($dateObj, $classId);
                 $status = 'libur';
-                $keterangan = $desc ?: ($dateObj->isFriday() ? 'Hari Sholat Jumat' : 'Hari Libur');
+                $keterangan = $desc ?: 'Hari Libur';
                 $stats['libur']++;
             } else {
                 $effectiveDays++;

@@ -28,7 +28,7 @@
                     Presensi Kehadiran Sholat Dhuhur
                 </h1>
                 <p class="text-xs sm:text-sm text-teal-100/80 mt-1 max-w-2xl leading-relaxed">
-                    Pencatatan dan rekapitulasi kehadiran sholat dhuhur berjamaah peserta didik. Hari Jumat, Minggu, dan hari libur nasional ditandai sebagai hari libur (L).
+                    Pencatatan dan rekapitulasi kehadiran sholat dhuhur berjamaah peserta didik. Hari libur sekolah ditandai sebagai hari libur (L).
                 </p>
             </div>
 

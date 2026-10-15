@@ -85,7 +85,8 @@ class ProcessScanSholatDhuhurAction
         $isSholatDay = $sholatService->isHariSholatDhuhur($now, $classId);
         if (! $isSholatDay) {
             $holidayDesc = $sholatService->getHolidayDescription($now, $classId);
-            $msg = $now->isFriday()
+            $enableJumat = (bool) (\App\Models\PengaturanSekolah::current()->enable_sholat_jumat ?? false);
+            $msg = ($now->isFriday() && !$enableJumat)
                 ? 'Hari ini hari Jumat (jadwal ibadah Sholat Jumat, libur dhuhur di sekolah).'
                 : 'Hari ini libur sholat dhuhur: ' . ($holidayDesc ?: 'Hari Libur');
 

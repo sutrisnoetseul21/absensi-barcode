@@ -56,6 +56,7 @@ class PengaturanPresensiPage extends Page implements HasForms
         $data = $settings ? $settings->toArray() : [];
         $data['enable_checkout'] = $settings ? (bool)($settings->enable_checkout ?? true) : true;
         $data['enable_sholat_dhuhur'] = $settings ? (bool)($settings->enable_sholat_dhuhur ?? true) : true;
+        $data['enable_sholat_jumat'] = $settings ? (bool)($settings->enable_sholat_jumat ?? false) : false;
 
         // Load data WhatsApp Settings (Koneksi API saja)
         $wa = \App\Models\WhatsAppSetting::current();
@@ -114,6 +115,14 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->label('Aktifkan Presensi Sholat Dhuhur')
                             ->helperText('Jika dinonaktifkan, menu dan halaman rekap Sholat Dhuhur akan disembunyikan dari portal siswa dan guru.')
                             ->default(true)
+                            ->reactive()
+                            ->columnSpanFull(),
+
+                        Toggle::make('enable_sholat_jumat')
+                            ->label('Aktifkan Presensi Sholat pada Hari Jumat')
+                            ->helperText('Jika diaktifkan, presensi sholat tetap berjalan di hari Jumat (bukan hari libur otomatis). Jika dinonaktifkan (default), hari Jumat otomatis ditandai sebagai libur sholat.')
+                            ->default(false)
+                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => (bool) $get('enable_sholat_dhuhur'))
                             ->columnSpanFull(),
 
                         Select::make('barcode_scan_mode')

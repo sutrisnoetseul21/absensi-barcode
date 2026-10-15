@@ -30,9 +30,14 @@ class PresensiSholatDhuhurService
      */
     public function isHariSholatDhuhur(Carbon $date, ?string $classId = null): bool
     {
-        // 1. Hari Jumat selalu libur untuk Sholat Dhuhur di sekolah
+        // 1. Hari Jumat: cek apakah presensi sholat hari Jumat diaktifkan di pengaturan sekolah
         if ($date->isFriday()) {
-            return false;
+            $settings = PengaturanSekolah::current();
+            $enableJumat = (bool) ($settings->enable_sholat_jumat ?? false);
+            if (! $enableJumat) {
+                return false;
+            }
+            // Jika diaktifkan, Jumat bukan otomatis libur, tetapi tetap mengikuti aturan libur di bawah (HariLibur)
         }
 
         // 2. Hari Minggu selalu libur
@@ -46,7 +51,7 @@ class PresensiSholatDhuhurService
             return false;
         }
 
-        // 4. Hari Libur Nasional, Cuti Bersama, atau Libur Khusus Kelas
+        // 4. Hari Libur Nasional, Cuti Bersama, atau Libur Khusus Kelas (/admin/pengaturan-hari-libur)
         $isHoliday = HariLibur::hariIni($date->toDateString(), $classId)->exists();
         if ($isHoliday) {
             return false;
@@ -61,7 +66,11 @@ class PresensiSholatDhuhurService
     public function getHolidayDescription(Carbon $date, ?string $classId = null): ?string
     {
         if ($date->isFriday()) {
-            return 'Hari Jumat';
+            $settings = PengaturanSekolah::current();
+            $enableJumat = (bool) ($settings->enable_sholat_jumat ?? false);
+            if (! $enableJumat) {
+                return 'Hari Jumat';
+            }
         }
         if ($date->isSunday()) {
             return 'Hari Minggu';

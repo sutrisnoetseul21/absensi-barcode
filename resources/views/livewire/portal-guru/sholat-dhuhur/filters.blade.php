@@ -24,7 +24,7 @@
             Pilih Kelas
         </label>
         <div class="relative">
-            <select wire:model.live="selectedClassId" class="block w-full pl-4 pr-10 py-3 text-slate-800 border-slate-200/60 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-600/20 sm:text-sm rounded-xl bg-white/50 backdrop-blur-sm font-semibold cursor-pointer appearance-none transition-all duration-200 hover:bg-white shadow-sm">
+            <select wire:model.live="selectedClassId" @change="dailyFilter = 'all'; searchQuery = ''" class="block w-full pl-4 pr-10 py-3 text-slate-800 border-slate-200/60 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-600/20 sm:text-sm rounded-xl bg-white/50 backdrop-blur-sm font-semibold cursor-pointer appearance-none transition-all duration-200 hover:bg-white shadow-sm">
                 @foreach($classes as $kelas)
                     <option value="{{ $kelas->id }}">{{ $kelas->name }}</option>
                 @endforeach

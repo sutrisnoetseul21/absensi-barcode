@@ -36,7 +36,7 @@
     <!-- ========================================================================= -->
     <!-- VIEW 1: DAFTAR PRESENSI SHOLAT HARI INI (OPTIMAL UNTUK HP & MONITORING) -->
     <!-- ========================================================================= -->
-    <div x-show="rekapMode === 'harian'" class="space-y-4">
+    <div x-show="rekapMode === 'harian'" wire:poll.15s="loadDashboardData" class="space-y-4">
         <!-- Filter Chips Bar -->
         <div class="bg-white/90 backdrop-blur-md rounded-2xl p-3 border border-slate-200/80 shadow-sm flex items-center justify-between gap-2 flex-wrap">
             <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
@@ -51,7 +51,7 @@
                 </button>
 
                 <!-- Belum Absen Sholat -->
-                <button type="button" @click="dailyFilter = 'belum'"
+                <button type="button" @click="dailyFilter = (dailyFilter === 'belum' ? 'all' : 'belum')"
                     :class="dailyFilter === 'belum' ? 'bg-indigo-600 text-white font-bold shadow-sm ring-2 ring-indigo-300' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-semibold'"
                     class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full {{ ($todayStats['belum'] ?? 0) > 0 ? 'bg-amber-400 animate-pulse' : 'bg-slate-400' }}"></span>
@@ -62,7 +62,7 @@
                 </button>
 
                 <!-- Hadir Berjamaah -->
-                <button type="button" @click="dailyFilter = 'hadir'"
+                <button type="button" @click="dailyFilter = (dailyFilter === 'hadir' ? 'all' : 'hadir')"
                     :class="dailyFilter === 'hadir' ? 'bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-300' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-semibold'"
                     class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -73,7 +73,7 @@
                 </button>
 
                 <!-- Ijin / Halangan -->
-                <button type="button" @click="dailyFilter = 'ijin'"
+                <button type="button" @click="dailyFilter = (dailyFilter === 'ijin' ? 'all' : 'ijin')"
                     :class="dailyFilter === 'ijin' ? 'bg-blue-600 text-white font-bold shadow-sm ring-2 ring-blue-300' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold'"
                     class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
@@ -84,7 +84,7 @@
                 </button>
 
                 <!-- Tidak Hadir / Alpa -->
-                <button type="button" @click="dailyFilter = 'tidak_hadir'"
+                <button type="button" @click="dailyFilter = (dailyFilter === 'tidak_hadir' ? 'all' : 'tidak_hadir')"
                     :class="dailyFilter === 'tidak_hadir' ? 'bg-rose-600 text-white font-bold shadow-sm ring-2 ring-rose-300' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-semibold'"
                     class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
@@ -95,7 +95,7 @@
                 </button>
 
                 <!-- Non-Muslim -->
-                <button type="button" @click="dailyFilter = 'non_muslim'"
+                <button type="button" @click="dailyFilter = (dailyFilter === 'non_muslim' ? 'all' : 'non_muslim')"
                     :class="dailyFilter === 'non_muslim' ? 'bg-indigo-600 text-white font-bold shadow-sm ring-2 ring-indigo-300' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-semibold'"
                     class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
@@ -106,11 +106,21 @@
                 </button>
             </div>
 
-            <!-- Tombol Cepat Input Presensi Sholat -->
-            <button type="button" wire:click="openInputModal" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-all cursor-pointer ml-auto">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                <span>Input Sholat</span>
-            </button>
+            <!-- Tombol Aksi Kanan: Segarkan & Input Presensi Sholat -->
+            <div class="flex items-center gap-2 ml-auto">
+                <button type="button" wire:click="loadDashboardData" wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                    title="Segarkan data presensi terbaru dari Kiosk (Auto-sync setiap 15 detik)">
+                    <svg wire:loading.remove wire:target="loadDashboardData" class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <svg wire:loading wire:target="loadDashboardData" class="w-3.5 h-3.5 animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                    <span>Segarkan</span>
+                </button>
+
+                <button type="button" wire:click="openInputModal" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-all cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Input Sholat</span>
+                </button>
+            </div>
         </div>
 
         <!-- Banner Spesial jika Filter 'Belum Absen Sholat' dipilih dan nilainya 0 -->
@@ -155,7 +165,8 @@
                     $waText = urlencode("Assalamu'alaikum Bapak/Ibu wali dari {$student->name}.\n\nKami menginfokan bahwa ananda belum tercatat dalam presensi Sholat Dhuhur berjamaah SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nMohon konfirmasi atau perhatiannya. Terima kasih.");
                 @endphp
 
-                <div x-show="(dailyFilter === 'all' || 
+                <div wire:key="today-card-{{ $student->id }}"
+                    x-show="(dailyFilter === 'all' || 
                              (dailyFilter === 'belum' && '{{ $status }}' === 'belum') ||
                              (dailyFilter === 'hadir' && '{{ $status }}' === 'hadir') ||
                              (dailyFilter === 'ijin' && '{{ $status }}' === 'ijin') ||
@@ -297,7 +308,8 @@
                                 $waText = urlencode("Assalamu'alaikum Bapak/Ibu wali dari {$student->name}.\n\nKami menginfokan bahwa ananda belum tercatat dalam presensi Sholat Dhuhur berjamaah SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nMohon konfirmasi atau perhatiannya. Terima kasih.");
                             @endphp
 
-                            <tr x-show="(dailyFilter === 'all' || 
+                            <tr wire:key="today-row-{{ $student->id }}"
+                                x-show="(dailyFilter === 'all' || 
                                          (dailyFilter === 'belum' && '{{ $status }}' === 'belum') ||
                                          (dailyFilter === 'hadir' && '{{ $status }}' === 'hadir') ||
                                          (dailyFilter === 'ijin' && '{{ $status }}' === 'ijin') ||
@@ -397,7 +409,7 @@
                 <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
                 <h3 class="text-base font-bold text-slate-800">Matriks Presensi Sholat Dhuhur Bulanan</h3>
                 <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                    Jumat & Hari Libur Terdata Otomatis (L)
+                    Hari Libur Terdata Otomatis (L)
                 </span>
             </div>
             <div class="flex items-center gap-3 text-xs font-semibold">
@@ -411,7 +423,7 @@
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span> A: Alpa
                 </span>
                 <span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-200 px-2 py-1 rounded-md">
-                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> L: Libur / Jumat
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> L: Libur
                 </span>
                 <span class="inline-flex items-center gap-1.5 text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-1 rounded-md">
                     <span class="w-2 h-2 rounded-full bg-indigo-400"></span> NM: Non-Muslim
@@ -445,7 +457,8 @@
                             $effDays = $classMonthlyStats['effective_days'] ?? 0;
                             $pct = $effDays > 0 ? round(($hadirCount / $effDays) * 100, 1) : 0;
                         @endphp
-                        <tr class="bg-white hover:bg-slate-50/80 transition-colors"
+                        <tr wire:key="monthly-matrix-row-{{ $student->id }}"
+                            class="bg-white hover:bg-slate-50/80 transition-colors"
                             x-show="'{{ strtolower(addslashes($student->name)) }}'.includes(searchQuery.toLowerCase()) || '{{ $student->nisn }}'.includes(searchQuery)">
                             <td class="py-3 px-4 sticky left-0 z-10 shadow-[1px_0_0_0_#f1f5f9] bg-white group-hover:bg-slate-50">
                                 <div class="flex items-center gap-2">
@@ -479,7 +492,7 @@
                                         default => 'text-slate-300',
                                     };
                                 @endphp
-                                <td class="py-2 px-1 text-center" title="{{ $code === 'L' ? 'Hari Libur / Jumat' : ($code === 'NM' ? 'Non-Muslim' : ($code === 'I' ? 'Ijin / Halangan' : ($code === 'H' ? 'Hadir' : ($code === 'A' ? 'Alpa' : '')))) }}">
+                                <td class="py-2 px-1 text-center" title="{{ $code === 'L' ? 'Hari Libur' : ($code === 'NM' ? 'Non-Muslim' : ($code === 'I' ? 'Ijin / Halangan' : ($code === 'H' ? 'Hadir' : ($code === 'A' ? 'Alpa' : '')))) }}">
                                     <div class="w-6 h-6 mx-auto flex items-center justify-center text-[11px] {{ $colorClass }}">
                                         {{ $code }}
                                     </div>
