@@ -30,8 +30,10 @@ class SettingNotifikasi extends Component
     // Status kirim manual per tab
     public bool $canSendDailyManual  = true;
     public bool $canSendSchoolManual = true;
+    public bool $canSendBelumManual  = true;
     public int  $dailyManualSendCount = 0;
     public int  $schoolManualSendCount = 0;
+    public int  $belumManualSendCount  = 0;
 
     // Available options for recipients
     public array $recipientOptions = [];
@@ -47,6 +49,18 @@ class SettingNotifikasi extends Component
     public bool $student_notif_is_active = false;
     public array $student_notif_recipients = [];
     public string $student_notif_template_pesan = '';
+
+    // Form Data - Tab: Belum Hadir
+    public bool $belum_notif_is_active = false;
+    public bool $belum_notif_is_auto_send = false;
+    public string $belum_notif_auto_send_time = '07:30';
+    public array $belum_notif_recipients = [];
+    public string $belum_notif_template_pesan = '';
+
+    // Form Data - Tab: Sholat Dhuhur
+    public bool $sholat_dhuhur_notif_is_active = false;
+    public array $sholat_dhuhur_notif_recipients = [];
+    public string $sholat_dhuhur_notif_template_pesan = '';
 
     // Form Data - Tab 1: Pengajuan Ijin (Oleh Siswa)
     public bool $leave_request_notif_is_active = false;
@@ -119,7 +133,35 @@ class SettingNotifikasi extends Component
         } else {
             $this->telat_notif_is_active      = false;
             $this->telat_notif_recipients     = ['ortu'];
-            $this->telat_notif_template_pesan = "Halo Orang Tua/Wali,\nKami informasikan bahwa ananda {nama_siswa} (Kelas {kelas}) pada tanggal {tanggal} pukul {jam} telah hadir namun terlambat.\n\nSalam,\n{nama_sekolah}";
+            $this->telat_notif_template_pesan = PresensiNotificationSetting::getDefaultTemplate('telat');
+        }
+
+        // Load data Presensi Notification Settings (Belum Presensi Pagi)
+        $belumSetting = PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+        if ($belumSetting) {
+            $this->belum_notif_is_active      = $belumSetting->is_active;
+            $this->belum_notif_is_auto_send   = (bool) ($belumSetting->is_auto_send ?? false);
+            $this->belum_notif_auto_send_time = substr($belumSetting->auto_send_time ?? '07:30:00', 0, 5);
+            $this->belum_notif_recipients     = $belumSetting->recipients ?? ['ortu'];
+            $this->belum_notif_template_pesan = $belumSetting->template_pesan;
+        } else {
+            $this->belum_notif_is_active      = false;
+            $this->belum_notif_is_auto_send   = false;
+            $this->belum_notif_auto_send_time = '07:30';
+            $this->belum_notif_recipients     = ['ortu'];
+            $this->belum_notif_template_pesan = PresensiNotificationSetting::getDefaultTemplate('belum');
+        }
+
+        // Load data Presensi Notification Settings (Sholat Dhuhur)
+        $sholatSetting = PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+        if ($sholatSetting) {
+            $this->sholat_dhuhur_notif_is_active      = $sholatSetting->is_active;
+            $this->sholat_dhuhur_notif_recipients     = $sholatSetting->recipients ?? ['ortu'];
+            $this->sholat_dhuhur_notif_template_pesan = $sholatSetting->template_pesan;
+        } else {
+            $this->sholat_dhuhur_notif_is_active      = false;
+            $this->sholat_dhuhur_notif_recipients     = ['ortu'];
+            $this->sholat_dhuhur_notif_template_pesan = PresensiNotificationSetting::getDefaultTemplate('sholat_dhuhur');
         }
 
         // Load data Notification Settings (Pengajuan Ijin)
@@ -212,19 +254,30 @@ class SettingNotifikasi extends Component
     {
         $todayStr = now()->toDateString();
 
+        $now = now('Asia/Jakarta');
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isHariSekolah = $kalenderService->isHariSekolah($now);
+
         $daily = PresensiDailyReportSetting::current();
-        $this->canSendDailyManual = $daily->canSendManualToday();
+        $this->canSendDailyManual = $isHariSekolah && $daily->canSendManualToday();
         $dailyLastDate = $daily->manual_send_date instanceof \Carbon\Carbon
             ? $daily->manual_send_date->toDateString()
             : (string) $daily->manual_send_date;
         $this->dailyManualSendCount = ($dailyLastDate === $todayStr) ? (int) $daily->manual_send_count : 0;
 
         $school = PresensiSchoolSummarySetting::current();
-        $this->canSendSchoolManual = $school->canSendManualToday();
+        $this->canSendSchoolManual = $isHariSekolah && $school->canSendManualToday();
         $schoolLastDate = $school->manual_send_date instanceof \Carbon\Carbon
             ? $school->manual_send_date->toDateString()
             : (string) $school->manual_send_date;
         $this->schoolManualSendCount = ($schoolLastDate === $todayStr) ? (int) $school->manual_send_count : 0;
+
+        $belum = PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+        $this->canSendBelumManual = $isHariSekolah && ($belum ? $belum->canSendManualToday() : true);
+        $belumLastDate = ($belum && $belum->manual_send_date instanceof \Carbon\Carbon)
+            ? $belum->manual_send_date->toDateString()
+            : ($belum ? (string) $belum->manual_send_date : null);
+        $this->belumManualSendCount = ($belumLastDate === $todayStr && $belum) ? (int) $belum->manual_send_count : 0;
     }
 
     public function setActiveTab($tab): void
@@ -251,6 +304,15 @@ class SettingNotifikasi extends Component
 
     public function confirmSendDailyManual(): void
     {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'message' => 'Hari ini adalah hari libur sekolah. Pengiriman laporan harian dinonaktifkan.'
+            ]);
+            return;
+        }
+
         $setting = PresensiDailyReportSetting::current();
 
         if (!$setting->canSendManualToday()) {
@@ -291,6 +353,15 @@ class SettingNotifikasi extends Component
 
     public function confirmSendSchoolManual(): void
     {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'message' => 'Hari ini adalah hari libur sekolah. Pengiriman rekap sekolah dinonaktifkan.'
+            ]);
+            return;
+        }
+
         $setting = PresensiSchoolSummarySetting::current();
 
         if (!$setting->canSendManualToday()) {
@@ -329,6 +400,57 @@ class SettingNotifikasi extends Component
         }
     }
 
+    public function confirmSendBelumManual(): void
+    {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'message' => 'Hari ini adalah hari libur sekolah. Pengiriman notifikasi belum hadir dinonaktifkan.'
+            ]);
+            return;
+        }
+
+        $setting = PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+
+        if ($setting && !$setting->canSendManualToday()) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'message' => 'Pengiriman manual notifikasi belum hadir sudah mencapai batas maksimal 5x per hari.'
+            ]);
+            return;
+        }
+
+        try {
+            /** @var \App\Services\UnattendedAttendanceNotificationService $service */
+            $service = app(\App\Services\UnattendedAttendanceNotificationService::class);
+            $result  = $service->dispatch(source: 'manual');
+
+            if ($setting) {
+                $setting->recordManualSend();
+            }
+            $this->refreshManualSendStatus();
+
+            if ($result['dispatched'] > 0) {
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => "Notifikasi belum hadir berhasil dikirim. Total {$result['dispatched']} pesan WA diantrekan (Siswa belum hadir: {$result['total_unattended']})."
+                ]);
+            } else {
+                $msg = $result['message'] ?? 'Tidak ada notifikasi yang dikirim atau semua orang tua sudah menerima notifikasi hari ini.';
+                $this->dispatch('notify', [
+                    'type' => 'info',
+                    'message' => $msg
+                ]);
+            }
+        } catch (\Throwable $e) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Gagal mengirim notifikasi: ' . $e->getMessage()
+            ]);
+        }
+    }
+
     public function save(): void
     {
         try {
@@ -352,6 +474,28 @@ class SettingNotifikasi extends Component
                     'is_active'      => $this->telat_notif_is_active,
                     'recipients'     => $this->telat_notif_recipients,
                     'template_pesan' => $this->telat_notif_template_pesan,
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Belum Presensi Pagi)
+            PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'belum'],
+                [
+                    'is_active'      => $this->belum_notif_is_active,
+                    'is_auto_send'   => $this->belum_notif_is_auto_send,
+                    'auto_send_time' => $this->belum_notif_auto_send_time ?: '07:30:00',
+                    'recipients'     => $this->belum_notif_recipients,
+                    'template_pesan' => $this->belum_notif_template_pesan,
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Sholat Dhuhur)
+            PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'sholat_dhuhur'],
+                [
+                    'is_active'      => $this->sholat_dhuhur_notif_is_active,
+                    'recipients'     => $this->sholat_dhuhur_notif_recipients,
+                    'template_pesan' => $this->sholat_dhuhur_notif_template_pesan,
                 ]
             );
 

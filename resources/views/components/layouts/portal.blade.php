@@ -1338,6 +1338,50 @@
             <main class="flex-1 relative p-4 sm:p-6 pb-12 sm:pb-16">
                 {{ $slot }}
             </main>
+        <!-- Global Floating Toast Notification Container -->
+        <div x-data="{ 
+                toasts: [],
+                addToast(e) {
+                    const data = e.detail && e.detail[0] ? e.detail[0] : (e.detail || {});
+                    const id = Date.now() + Math.random();
+                    const toast = {
+                        id: id,
+                        type: data.type || 'success',
+                        message: data.message || 'Operasi berhasil.'
+                    };
+                    this.toasts.push(toast);
+                    setTimeout(() => {
+                        this.toasts = this.toasts.filter(t => t.id !== id);
+                    }, 4500);
+                }
+             }"
+             @notify.window="addToast($event)"
+             class="fixed top-5 right-5 z-[99999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4 sm:px-0">
+            <template x-for="t in toasts" :key="t.id">
+                <div class="pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl border text-sm font-semibold transition-all duration-300 transform animate-in fade-in slide-in-from-top-2"
+                     :class="{
+                         'bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/25': t.type === 'success',
+                         'bg-rose-600 text-white border-rose-500 shadow-rose-500/25': t.type === 'error',
+                         'bg-amber-500 text-white border-amber-400 shadow-amber-500/25': t.type === 'warning',
+                         'bg-slate-900 text-white border-slate-700 shadow-slate-900/30': t.type === 'info'
+                     }">
+                    <div class="shrink-0 mt-0.5">
+                        <template x-if="t.type === 'success'">
+                            <svg class="w-5 h-5 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </template>
+                        <template x-if="t.type === 'error'">
+                            <svg class="w-5 h-5 text-rose-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </template>
+                        <template x-if="t.type !== 'success' && t.type !== 'error'">
+                            <svg class="w-5 h-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </template>
+                    </div>
+                    <div class="flex-1 text-xs sm:text-sm font-medium leading-snug" x-text="t.message"></div>
+                    <button type="button" @click="toasts = toasts.filter(item => item.id !== t.id)" class="shrink-0 text-white/70 hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </template>
         </div>
 
     </body>

@@ -8,6 +8,8 @@ use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
 use App\Models\Presensi;
 use App\Models\TahunAjaran;
+use App\Models\PresensiNotificationSetting;
+use App\Services\WhatsAppGatewayService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
@@ -198,28 +200,49 @@ class PortalPresensiDashboard extends Component
                     }
                 }
 
-                $waText = urlencode("Assalamu'alaikum / Selamat pagi Bapak/Ibu wali dari {$st->name} (Kelas {$cls->name}).\n\nKami menginfokan bahwa ananda belum tercatat hadir dalam presensi SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nMohon konfirmasi keterangan kehadiran ananda. Terima kasih.");
+                $waliKelasName = $cls->waliKelas($this->selectedAcademicYearId)?->name ?? '-';
+
+                $templateDataBelum = [
+                    'nama_siswa'       => $st->name,
+                    'kelas'            => $cls->name,
+                    'tanggal'          => $dateLabel,
+                    'status_kehadiran' => 'Belum Presensi',
+                    'nama_wali_kelas'  => $waliKelasName,
+                ];
+                $waTextRaw = PresensiNotificationSetting::renderTemplate('belum', $templateDataBelum);
+                $waText = urlencode($waTextRaw);
                 $waUrl = ! empty($cleanPhone) ? "https://wa.me/{$cleanPhone}?text={$waText}" : null;
 
-                $waTextTelat = urlencode("Assalamu'alaikum / Selamat pagi Bapak/Ibu wali dari {$st->name} (Kelas {$cls->name}).\n\nKami menginfokan bahwa ananda hadir terlambat pada pukul " . ($scanTime ?: '-') . " (terlambat {$lateMinutes} menit) dalam presensi SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nTerima kasih.");
+                $templateDataTelat = [
+                    'nama_siswa'       => $st->name,
+                    'kelas'            => $cls->name,
+                    'tanggal'          => $dateLabel,
+                    'jam'              => $scanTime ?: '-',
+                    'status_kehadiran' => 'Terlambat ' . ($lateMinutes ? "({$lateMinutes} menit)" : ''),
+                    'nama_wali_kelas'  => $waliKelasName,
+                ];
+                $waTextTelatRaw = PresensiNotificationSetting::renderTemplate('telat', $templateDataTelat);
+                $waTextTelat = urlencode($waTextTelatRaw);
                 $waUrlTelat = ! empty($cleanPhone) ? "https://wa.me/{$cleanPhone}?text={$waTextTelat}" : null;
 
                 $studentItem = [
-                    'id'           => $st->id,
-                    'name'         => $st->name,
-                    'nisn'         => $st->nisn,
-                    'gender'       => $st->gender ?? '-',
-                    'class_id'     => $cls->id,
-                    'class_name'   => $cls->name,
-                    'status'       => $status,
-                    'scan_time'    => $scanTime,
-                    'scan_out'     => $scanOut,
-                    'late_minutes' => $lateMinutes,
-                    'note'         => $note,
-                    'phone'        => $rawPhone,
-                    'clean_phone'  => $cleanPhone,
-                    'wa_link'      => $waUrl,
-                    'wa_link_telat'=> $waUrlTelat,
+                    'id'                => $st->id,
+                    'name'              => $st->name,
+                    'nisn'              => $st->nisn,
+                    'gender'            => $st->gender ?? '-',
+                    'class_id'          => $cls->id,
+                    'class_name'        => $cls->name,
+                    'status'            => $status,
+                    'scan_time'         => $scanTime,
+                    'scan_out'          => $scanOut,
+                    'late_minutes'      => $lateMinutes,
+                    'note'              => $note,
+                    'phone'             => $rawPhone,
+                    'clean_phone'       => $cleanPhone,
+                    'wa_text_raw'       => $waTextRaw,
+                    'wa_text_telat_raw' => $waTextTelatRaw,
+                    'wa_link'           => $waUrl,
+                    'wa_link_telat'     => $waUrlTelat,
                 ];
 
                 $all[] = $studentItem;
@@ -461,6 +484,57 @@ class PortalPresensiDashboard extends Component
             ),
             $fileName
         );
+    }
+
+    public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'belum'): void
+    {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Hari ini adalah hari libur sekolah. Pengiriman notifikasi WA dinonaktifkan.',
+            ]);
+            return;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
+        if (empty($cleanPhone)) {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Nomor WhatsApp orang tua tidak valid atau masih kosong.',
+            ]);
+            return;
+        }
+
+        if (str_starts_with($cleanPhone, '0')) {
+            $cleanPhone = '62' . substr($cleanPhone, 1);
+        } elseif (str_starts_with($cleanPhone, '8')) {
+            $cleanPhone = '62' . $cleanPhone;
+        }
+
+        $waService = app(WhatsAppGatewayService::class);
+        $sent = $waService->sendMessage(
+            toNumber: $cleanPhone,
+            message: $messageText,
+            relatedType: 'presensi_' . $type,
+            relatedId: $studentId,
+            recipientType: 'ortu',
+            logId: null,
+            ignoreDelay: true
+        );
+
+        if ($sent) {
+            $this->dispatch('notify', [
+                'type'    => 'success',
+                'message' => "Pesan WhatsApp berhasil dikirim ke nomor {$cleanPhone}!",
+            ]);
+            $this->dispatch('wa-modal-close');
+        } else {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Gagal mengirim pesan WhatsApp via sistem gateway. Silakan periksa gateway WhatsApp.',
+            ]);
+        }
     }
 
     public function render()

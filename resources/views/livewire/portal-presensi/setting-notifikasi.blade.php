@@ -90,6 +90,14 @@
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 Notifikasi Kehadiran Siswa
             </button>
+            <button wire:click="setActiveTab('belum')" class="{{ $activeTab === 'belum' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Notifikasi Belum Hadir
+            </button>
+            <button wire:click="setActiveTab('sholat')" class="{{ $activeTab === 'sholat' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                Notifikasi Sholat Dhuhur
+            </button>
             <button wire:click="setActiveTab('ijin')" class="{{ $activeTab === 'ijin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 Notifikasi Ijin Online
@@ -228,6 +236,197 @@
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Sakit/Izin/Alpa</label>
                         <textarea wire:model="student_notif_template_pesan" rows="5" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors"></textarea>
                         <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder {status_kehadiran} akan terisi dinamis (Sakit/Izin/Alpa). Placeholder lain: {nama_siswa}, {kelas}, {tanggal}, {jam}, {nama_wali_kelas}, {nama_sekolah}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- TAB: BELUM HADIR --}}
+        <div class="{{ $activeTab === 'belum' ? 'block' : 'hidden' }} space-y-6">
+            <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900">Pengaturan Notifikasi Belum Presensi Pagi</h3>
+                    <p class="text-sm text-slate-500 mt-1">Notifikasi konfirmasi kehadiran dikirim otomatis oleh sistem sesuai jam cut-off atau secara manual kepada orang tua siswa yang belum presensi pagi di Kiosk atau Portal Presensi.</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" wire:model="belum_notif_is_active" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                                <span class="ml-3 text-sm font-bold text-slate-700">Aktifkan Fitur Notifikasi Belum Presensi</span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" wire:model="belum_notif_is_auto_send" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                                <span class="ml-3 text-sm font-bold text-slate-700">Kirim Otomatis Notifikasi Belum Presensi</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Jam Pengiriman (Cut-off Time)</label>
+                        <input type="time" wire:model="belum_notif_auto_send_time" class="w-48 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-2 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors">
+                        <p class="text-xs text-slate-500 mt-1">Contoh: 07:30. Sistem otomatis mengirim WA ke orang tua siswa yang belum absen saat jam cut-off tercapai pada hari efektif sekolah.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kirim Ke (Penerima)</label>
+                        <div x-data="{
+                                options: {{ json_encode($recipientOptions) }},
+                                selected: @entangle('belum_notif_recipients'),
+                                open: false,
+                                toggle(key) {
+                                    if (this.selected.includes(key)) {
+                                        this.selected = this.selected.filter(i => i !== key);
+                                    } else {
+                                        this.selected.push(key);
+                                    }
+                                }
+                            }" class="relative">
+                            <div @click="open = !open" class="min-h-[42px] w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2 cursor-pointer flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary transition-colors">
+                                <template x-if="selected.length === 0">
+                                    <span class="text-slate-500">Pilih satu atau beberapa penerima...</span>
+                                </template>
+                                <template x-for="item in selected" :key="item">
+                                    <span class="inline-flex items-center gap-1 bg-brand-primary/10 text-brand-primary px-2.5 py-1 rounded-md text-xs font-bold">
+                                        <span x-text="options[item] || item"></span>
+                                        <svg @click.stop="toggle(item)" class="w-3 h-3 cursor-pointer hover:text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                            <div x-show="open" @click.away="open = false" x-transition.opacity.duration.200ms class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-1">
+                                <template x-for="[key, label] in Object.entries(options)" :key="key">
+                                    <div @click="toggle(key)" class="px-3 py-2 text-sm rounded-lg cursor-pointer flex items-center justify-between hover:bg-slate-50 transition-colors" :class="selected.includes(key) ? 'text-brand-primary font-bold bg-brand-primary/5' : 'text-slate-700'">
+                                        <span x-text="label"></span>
+                                        <svg x-show="selected.includes(key)" class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Belum Hadir</label>
+                        <textarea wire:model="belum_notif_template_pesan" rows="7" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors font-mono"></textarea>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {tanggal}, {nama_wali_kelas}, {nama_sekolah}</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Kirim Manual Notifikasi Belum Hadir --}}
+            <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+                    <div class="p-2 bg-brand-primary/10 rounded-lg">
+                        <svg class="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Kirim Manual Notifikasi Belum Hadir</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Kirim notifikasi ke orang tua siswa yang belum hadir hari ini secara manual. Maksimal 5x per hari.</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    @if(!$isHariSekolah)
+                    <div class="space-y-4">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
+                            🏖️ Status: Hari Libur Sekolah ({{ $holidayReason }})
+                        </span>
+                        <p class="text-sm text-slate-500 font-medium">Hari ini adalah hari libur sekolah. Pengiriman notifikasi belum hadir dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+                        <button disabled class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-sm font-bold cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                            Kirim Notifikasi Belum Hadir Sekarang
+                        </button>
+                    </div>
+                    @elseif($canSendBelumManual)
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-sm text-slate-600">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <span>Tanggal hari ini: <strong class="font-bold text-slate-900">{{ date('d M Y') }}</strong></span>
+                            @if($belumManualSendCount > 0)
+                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700">Terkirim {{ $belumManualSendCount }} dari 5x</span>
+                            @else
+                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700">Belum dikirim (Maks 5x)</span>
+                            @endif
+                        </div>
+                        <button type="button" wire:click="confirmSendBelumManual" wire:confirm="Yakin ingin mengirim notifikasi WA ke orang tua dari semua siswa yang belum hadir sekarang? (Pengiriman ke-{{ $belumManualSendCount + 1 }} dari maksimal 5x hari ini)" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-brand-primary/20">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                            Kirim Notifikasi Belum Hadir Sekarang ({{ $belumManualSendCount }}/5)
+                        </button>
+                    </div>
+                    @else
+                    <div class="space-y-4">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            Batas pengiriman tercapai: 5 dari 5x hari ini
+                        </span>
+                        <p class="text-sm text-slate-500 font-medium">Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- TAB: SHOLAT DHUHUR --}}
+        <div class="{{ $activeTab === 'sholat' ? 'block' : 'hidden' }} space-y-6">
+            <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900">Aturan Notifikasi: Presensi Sholat Dhuhur</h3>
+                    <p class="text-sm text-slate-500 mt-1">Format pesan WA yang dikirimkan ke orang tua untuk siswa Muslim yang belum tercatat presensi Sholat Dhuhur berjamaah di sekolah.</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="sholat_dhuhur_notif_is_active" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                            <span class="ml-3 text-sm font-bold text-slate-700">Aktifkan Notifikasi Sholat Dhuhur</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kirim Ke (Penerima)</label>
+                        <div x-data="{
+                                options: {{ json_encode($recipientOptions) }},
+                                selected: @entangle('sholat_dhuhur_notif_recipients'),
+                                open: false,
+                                toggle(key) {
+                                    if (this.selected.includes(key)) {
+                                        this.selected = this.selected.filter(i => i !== key);
+                                    } else {
+                                        this.selected.push(key);
+                                    }
+                                }
+                            }" class="relative">
+                            <div @click="open = !open" class="min-h-[42px] w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2 cursor-pointer flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary transition-colors">
+                                <template x-if="selected.length === 0">
+                                    <span class="text-slate-500">Pilih satu atau beberapa penerima...</span>
+                                </template>
+                                <template x-for="item in selected" :key="item">
+                                    <span class="inline-flex items-center gap-1 bg-brand-primary/10 text-brand-primary px-2.5 py-1 rounded-md text-xs font-bold">
+                                        <span x-text="options[item] || item"></span>
+                                        <svg @click.stop="toggle(item)" class="w-3 h-3 cursor-pointer hover:text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                            <div x-show="open" @click.away="open = false" x-transition.opacity.duration.200ms class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-1">
+                                <template x-for="[key, label] in Object.entries(options)" :key="key">
+                                    <div @click="toggle(key)" class="px-3 py-2 text-sm rounded-lg cursor-pointer flex items-center justify-between hover:bg-slate-50 transition-colors" :class="selected.includes(key) ? 'text-brand-primary font-bold bg-brand-primary/5' : 'text-slate-700'">
+                                        <span x-text="label"></span>
+                                        <svg x-show="selected.includes(key)" class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Sholat Dhuhur</label>
+                        <textarea wire:model="sholat_dhuhur_notif_template_pesan" rows="7" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors font-mono"></textarea>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {tanggal}, {nama_wali_kelas}, {nama_sekolah}</p>
                     </div>
                 </div>
             </div>
@@ -439,7 +638,18 @@
                     </div>
                 </div>
                 <div class="p-6">
-                    @if($canSendDailyManual)
+                    @if(!$isHariSekolah)
+                    <div class="space-y-4">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
+                            🏖️ Status: Hari Libur Sekolah ({{ $holidayReason }})
+                        </span>
+                        <p class="text-sm text-slate-500 font-medium">Hari ini adalah hari libur sekolah. Pengiriman laporan harian dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+                        <button disabled class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-sm font-bold cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                            Kirim Laporan Harian Sekarang
+                        </button>
+                    </div>
+                    @elseif($canSendDailyManual)
                     <div class="space-y-4">
                         <div class="flex items-center gap-2 text-sm text-slate-600">
                             <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -561,7 +771,18 @@
                     </div>
                 </div>
                 <div class="p-6">
-                    @if($canSendSchoolManual)
+                    @if(!$isHariSekolah)
+                    <div class="space-y-4">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
+                            🏖️ Status: Hari Libur Sekolah ({{ $holidayReason }})
+                        </span>
+                        <p class="text-sm text-slate-500 font-medium">Hari ini adalah hari libur sekolah. Pengiriman rekap presensi seluruh sekolah dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+                        <button disabled class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-sm font-bold cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                            Kirim Rekap Sekolah Sekarang
+                        </button>
+                    </div>
+                    @elseif($canSendSchoolManual)
                     <div class="space-y-4">
                         <div class="flex items-center gap-2 text-sm text-slate-600">
                             <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>

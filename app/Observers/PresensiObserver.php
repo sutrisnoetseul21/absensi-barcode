@@ -42,6 +42,14 @@ class PresensiObserver
             return;
         }
 
+        // --- Pencegahan Pengiriman Notifikasi di Hari Libur ---
+        // Jika hari ini atau tanggal presensi adalah hari libur sekolah, jangan kirim notifikasi WA
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $presensiDate = $presensi->date ? Carbon::parse($presensi->date) : Carbon::today('Asia/Jakarta');
+        if (!$kalenderService->isHariSekolah($presensiDate, $presensi->class_id)) {
+            return;
+        }
+
         // Ambil aturan untuk status ini
         $setting = PresensiNotificationSetting::where('status_presensi', $status)->first();
         

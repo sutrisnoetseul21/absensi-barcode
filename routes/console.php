@@ -30,5 +30,6 @@ Artisan::command('webprofil:fix-disk', function () {
 \Illuminate\Support\Facades\Schedule::command('scheduler:heartbeat')->everyMinute();
 \Illuminate\Support\Facades\Schedule::command('presensi:send-daily-class-report')->everyMinute();
 \Illuminate\Support\Facades\Schedule::command('presensi:send-school-summary')->everyMinute();
+\Illuminate\Support\Facades\Schedule::command('presensi:send-unattended-notification')->everyMinute()->withoutOverlapping()->runInBackground();
 \Illuminate\Support\Facades\Schedule::command('presensi:auto-alpa')->everyMinute()->withoutOverlapping()->runInBackground();
 \Illuminate\Support\Facades\Schedule::command('presensi:sync-sholat-dhuhur')->everyMinute()->withoutOverlapping()->runInBackground();

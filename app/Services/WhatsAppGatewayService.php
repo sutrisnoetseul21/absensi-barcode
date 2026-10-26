@@ -18,7 +18,8 @@ class WhatsAppGatewayService
         ?string $relatedType = null, 
         ?string $relatedId = null,
         string $recipientType = 'unknown',
-        ?int $logId = null
+        ?int $logId = null,
+        bool $ignoreDelay = false
     ): bool {
         // Mode Pengujian Aman SPIKAP (Mencegah pesan test terkirim ke WhatsApp fisik penerima saat testing)
         $isSpikapTestMode = filter_var(config('services.whatsapp.spikap_test_mode', env('SPIKAP_WA_TEST_MODE', false)), FILTER_VALIDATE_BOOLEAN);
@@ -116,8 +117,8 @@ class WhatsAppGatewayService
             return false;
         }
 
-        // Terapkan delay jika di-set agar tidak terkena rate limit
-        if ($setting->delay_between_messages_seconds > 0) {
+        // Terapkan delay jika di-set agar tidak terkena rate limit (dilewati jika ignoreDelay = true)
+        if (! $ignoreDelay && $setting->delay_between_messages_seconds > 0) {
             sleep($setting->delay_between_messages_seconds);
         }
 

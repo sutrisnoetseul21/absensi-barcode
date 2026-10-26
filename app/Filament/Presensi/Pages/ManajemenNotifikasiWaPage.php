@@ -66,6 +66,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
     // Status kirim manual per tab
     public bool $canSendDailyManual  = true;
     public bool $canSendSchoolManual = true;
+    public bool $canSendBelumManual  = true;
 
     public function mount(): void
     {
@@ -95,7 +96,35 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         } else {
             $data['telat_notif_is_active']      = false;
             $data['telat_notif_recipients']     = ['ortu'];
-            $data['telat_notif_template_pesan'] = "Halo Orang Tua/Wali,\nKami informasikan bahwa ananda {nama_siswa} (Kelas {kelas}) pada tanggal {tanggal} pukul {jam} telah hadir namun terlambat.\n\nSalam,\n{nama_sekolah}";
+            $data['telat_notif_template_pesan'] = \App\Models\PresensiNotificationSetting::getDefaultTemplate('telat');
+        }
+
+        // Load data Presensi Notification Settings (Belum Presensi Pagi)
+        $belumSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+        if ($belumSetting) {
+            $data['belum_notif_is_active']      = $belumSetting->is_active;
+            $data['belum_notif_is_auto_send']   = $belumSetting->is_auto_send ?? false;
+            $data['belum_notif_auto_send_time'] = substr($belumSetting->auto_send_time ?? '07:30:00', 0, 5);
+            $data['belum_notif_recipients']     = $belumSetting->recipients ?? ['ortu'];
+            $data['belum_notif_template_pesan'] = $belumSetting->template_pesan;
+        } else {
+            $data['belum_notif_is_active']      = false;
+            $data['belum_notif_is_auto_send']   = false;
+            $data['belum_notif_auto_send_time'] = '07:30';
+            $data['belum_notif_recipients']     = ['ortu'];
+            $data['belum_notif_template_pesan'] = \App\Models\PresensiNotificationSetting::getDefaultTemplate('belum');
+        }
+
+        // Load data Presensi Notification Settings (Sholat Dhuhur)
+        $sholatSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+        if ($sholatSetting) {
+            $data['sholat_dhuhur_notif_is_active']      = $sholatSetting->is_active;
+            $data['sholat_dhuhur_notif_recipients']     = $sholatSetting->recipients ?? ['ortu'];
+            $data['sholat_dhuhur_notif_template_pesan'] = $sholatSetting->template_pesan;
+        } else {
+            $data['sholat_dhuhur_notif_is_active']      = false;
+            $data['sholat_dhuhur_notif_recipients']     = ['ortu'];
+            $data['sholat_dhuhur_notif_template_pesan'] = \App\Models\PresensiNotificationSetting::getDefaultTemplate('sholat_dhuhur');
         }
 
         // Load data Notification Settings (Pengajuan Ijin)
@@ -180,8 +209,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
      */
     private function refreshManualSendStatus(): void
     {
-        $this->canSendDailyManual  = PresensiDailyReportSetting::current()->canSendManualToday();
-        $this->canSendSchoolManual = PresensiSchoolSummarySetting::current()->canSendManualToday();
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isHariSekolah   = $kalenderService->isHariSekolah(now('Asia/Jakarta'));
+
+        $this->canSendDailyManual  = $isHariSekolah && PresensiDailyReportSetting::current()->canSendManualToday();
+        $this->canSendSchoolManual = $isHariSekolah && PresensiSchoolSummarySetting::current()->canSendManualToday();
+
+        $belumSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+        $this->canSendBelumManual  = $isHariSekolah && ($belumSetting ? $belumSetting->canSendManualToday() : true);
     }
 
     public function form(Schema $schema): Schema
@@ -262,6 +297,93 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->columnSpanFull(),
                                     ]),
 
+                            ]),
+
+                        // ── Tab 2: Notifikasi Belum Hadir ──────────────────
+                        Tab::make('Notifikasi Belum Hadir')
+                            ->icon('heroicon-o-exclamation-triangle')
+                            ->schema([
+                                Section::make('Pengaturan Notifikasi Belum Presensi Pagi')
+                                    ->description('Notifikasi konfirmasi kehadiran dikirim otomatis oleh sistem sesuai jam cut-off atau secara manual kepada orang tua siswa yang belum presensi pagi di Kiosk atau Portal Presensi.')
+                                    ->schema([
+                                        Toggle::make('belum_notif_is_active')
+                                            ->label('Aktifkan Fitur Notifikasi Belum Presensi')
+                                            ->columnSpanFull(),
+                                        Toggle::make('belum_notif_is_auto_send')
+                                            ->label('Kirim Otomatis Notifikasi Belum Presensi')
+                                            ->helperText('Jika diaktifkan, sistem akan otomatis mengirim WA ke orang tua siswa yang belum absen saat jam cut-off tercapai.')
+                                            ->columnSpanFull(),
+                                        TimePicker::make('belum_notif_auto_send_time')
+                                            ->label('Jam Pengiriman (Cut-off Time)')
+                                            ->seconds(false)
+                                            ->default('07:30')
+                                            ->required(),
+                                        Select::make('belum_notif_recipients')
+                                            ->label('Kirim Ke (Penerima)')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Pilih satu atau beberapa penerima...')
+                                            ->options(function () use ($waGroups) {
+                                                $options  = [
+                                                    'ortu'       => 'Orang Tua',
+                                                    'wali_kelas' => 'Wali Kelas',
+                                                ];
+                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                                return array_merge($options, $jabatans, $waGroups);
+                                            })
+                                            ->helperText('💡 Pilihan Guru BK/BP otomatis difilter hanya ke Guru BK pembina kelas siswa terkait.')
+                                            ->columnSpanFull(),
+                                        Textarea::make('belum_notif_template_pesan')
+                                            ->label('Template Pesan Belum Hadir')
+                                            ->rows(8)
+                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {tanggal}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                // ── Kirim Manual Notifikasi Belum Hadir ────
+                                Section::make('Kirim Manual Notifikasi Belum Hadir')
+                                    ->icon('heroicon-o-paper-airplane')
+                                    ->description('Kirim notifikasi ke orang tua siswa yang belum hadir hari ini secara manual. Maksimal 5x per hari.')
+                                    ->schema([
+                                        \Filament\Forms\Components\Placeholder::make('belum_manual_status')
+                                            ->hiddenLabel()
+                                            ->content(fn() => $this->buildBelumManualStatusHtml())
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+
+                        // ── Tab 3: Notifikasi Sholat Dhuhur ────────────────
+                        Tab::make('Notifikasi Sholat Dhuhur')
+                            ->icon('heroicon-o-sun')
+                            ->schema([
+                                Section::make('Aturan Notifikasi: Presensi Sholat Dhuhur')
+                                    ->description('Format pesan WA yang dikirimkan ke orang tua untuk siswa Muslim yang belum tercatat presensi Sholat Dhuhur berjamaah di sekolah.')
+                                    ->schema([
+                                        Toggle::make('sholat_dhuhur_notif_is_active')
+                                            ->label('Aktifkan Fitur Notifikasi Sholat Dhuhur')
+                                            ->columnSpanFull(),
+                                        Select::make('sholat_dhuhur_notif_recipients')
+                                            ->label('Kirim Ke (Penerima)')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Pilih satu atau beberapa penerima...')
+                                            ->options(function () use ($waGroups) {
+                                                $options  = [
+                                                    'ortu'       => 'Orang Tua',
+                                                    'wali_kelas' => 'Wali Kelas',
+                                                ];
+                                                $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
+                                                return array_merge($options, $jabatans, $waGroups);
+                                            })
+                                            ->columnSpanFull(),
+                                        Textarea::make('sholat_dhuhur_notif_template_pesan')
+                                            ->label('Template Pesan Sholat Dhuhur')
+                                            ->rows(8)
+                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {tanggal}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->columnSpanFull(),
+                                    ]),
                             ]),
 
 
@@ -542,15 +664,42 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     private function buildDailyManualStatusHtml(): HtmlString
     {
-        $setting      = PresensiDailyReportSetting::current();
-        $canSend      = $setting->canSendManualToday();
-        $todayDate    = now()->format('d M Y');
-        $todayStr     = now()->toDateString();
-        $lastSendDate = $setting->manual_send_date instanceof \Carbon\Carbon
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isHariSekolah   = $kalenderService->isHariSekolah(now('Asia/Jakarta'));
+        $setting         = PresensiDailyReportSetting::current();
+        $canSend         = $isHariSekolah && $setting->canSendManualToday();
+        $todayDate       = now()->format('d M Y');
+        $todayStr        = now()->toDateString();
+        $lastSendDate    = $setting->manual_send_date instanceof \Carbon\Carbon
             ? $setting->manual_send_date->toDateString()
             : (string) $setting->manual_send_date;
-        $sendCount    = ($lastSendDate === $todayStr) ? (int) $setting->manual_send_count : 0;
-        $nextCount    = $sendCount + 1;
+        $sendCount       = ($lastSendDate === $todayStr) ? (int) $setting->manual_send_count : 0;
+        $nextCount       = $sendCount + 1;
+
+        if (!$isHariSekolah) {
+            $hariLiburRecord = \App\Models\HariLibur::hariIni(now('Asia/Jakarta')->toDateString())->first();
+            $namaHariIndo    = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+            $namaHariIni     = $namaHariIndo[now('Asia/Jakarta')->format('l')] ?? now('Asia/Jakarta')->format('l');
+            $holidayReason   = $hariLiburRecord ? $hariLiburRecord->name : (now('Asia/Jakarta')->isWeekend() ? "Libur Akhir Pekan ({$namaHariIni})" : 'Hari Libur Sekolah');
+
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                        🏖️ Status: Hari Libur Sekolah ({$holidayReason})
+                    </span>
+                </div>
+                <button
+                    disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                >
+                    📤 Kirim Laporan Harian Sekarang
+                </button>
+                <p class="text-xs text-amber-600 dark:text-amber-400">⛔ Hari ini adalah hari libur sekolah. Pengiriman laporan harian dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+            </div>
+            HTML;
+            return new HtmlString($html);
+        }
 
         if ($canSend) {
             $badgeText = $sendCount > 0
@@ -602,15 +751,42 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
     private function buildSchoolManualStatusHtml(): HtmlString
     {
-        $setting      = PresensiSchoolSummarySetting::current();
-        $canSend      = $setting->canSendManualToday();
-        $todayDate    = now()->format('d M Y');
-        $todayStr     = now()->toDateString();
-        $lastSendDate = $setting->manual_send_date instanceof \Carbon\Carbon
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isHariSekolah   = $kalenderService->isHariSekolah(now('Asia/Jakarta'));
+        $setting         = PresensiSchoolSummarySetting::current();
+        $canSend         = $isHariSekolah && $setting->canSendManualToday();
+        $todayDate       = now()->format('d M Y');
+        $todayStr        = now()->toDateString();
+        $lastSendDate    = $setting->manual_send_date instanceof \Carbon\Carbon
             ? $setting->manual_send_date->toDateString()
             : (string) $setting->manual_send_date;
-        $sendCount    = ($lastSendDate === $todayStr) ? (int) $setting->manual_send_count : 0;
-        $nextCount    = $sendCount + 1;
+        $sendCount       = ($lastSendDate === $todayStr) ? (int) $setting->manual_send_count : 0;
+        $nextCount       = $sendCount + 1;
+
+        if (!$isHariSekolah) {
+            $hariLiburRecord = \App\Models\HariLibur::hariIni(now('Asia/Jakarta')->toDateString())->first();
+            $namaHariIndo    = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+            $namaHariIni     = $namaHariIndo[now('Asia/Jakarta')->format('l')] ?? now('Asia/Jakarta')->format('l');
+            $holidayReason   = $hariLiburRecord ? $hariLiburRecord->name : (now('Asia/Jakarta')->isWeekend() ? "Libur Akhir Pekan ({$namaHariIni})" : 'Hari Libur Sekolah');
+
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                        🏖️ Status: Hari Libur Sekolah ({$holidayReason})
+                    </span>
+                </div>
+                <button
+                    disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                >
+                    📤 Kirim Rekap Sekolah Sekarang
+                </button>
+                <p class="text-xs text-amber-600 dark:text-amber-400">⛔ Hari ini adalah hari libur sekolah. Pengiriman rekap sekolah dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+            </div>
+            HTML;
+            return new HtmlString($html);
+        }
 
         if ($canSend) {
             $badgeText = $sendCount > 0
@@ -660,6 +836,93 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         return new HtmlString($html);
     }
 
+    private function buildBelumManualStatusHtml(): HtmlString
+    {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $isHariSekolah   = $kalenderService->isHariSekolah(now('Asia/Jakarta'));
+        $setting         = \App\Models\PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+        $canSend         = $isHariSekolah && ($setting ? $setting->canSendManualToday() : true);
+        $todayDate       = now()->format('d M Y');
+        $todayStr        = now()->toDateString();
+        $lastSendDate    = ($setting && $setting->manual_send_date instanceof \Carbon\Carbon)
+            ? $setting->manual_send_date->toDateString()
+            : ($setting ? (string) $setting->manual_send_date : null);
+        $sendCount       = ($lastSendDate === $todayStr && $setting) ? (int) $setting->manual_send_count : 0;
+        $nextCount       = $sendCount + 1;
+
+        if (!$isHariSekolah) {
+            $hariLiburRecord = \App\Models\HariLibur::hariIni(now('Asia/Jakarta')->toDateString())->first();
+            $namaHariIndo    = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+            $namaHariIni     = $namaHariIndo[now('Asia/Jakarta')->format('l')] ?? now('Asia/Jakarta')->format('l');
+            $holidayReason   = $hariLiburRecord ? $hariLiburRecord->name : (now('Asia/Jakarta')->isWeekend() ? "Libur Akhir Pekan ({$namaHariIni})" : 'Hari Libur Sekolah');
+
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                        🏖️ Status: Hari Libur Sekolah ({$holidayReason})
+                    </span>
+                </div>
+                <button
+                    disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                >
+                    📤 Kirim Notifikasi Belum Hadir Sekarang
+                </button>
+                <p class="text-xs text-amber-600 dark:text-amber-400">⛔ Hari ini adalah hari libur sekolah. Pengiriman notifikasi belum hadir dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+            </div>
+            HTML;
+            return new HtmlString($html);
+        }
+
+        if ($canSend) {
+            $badgeText = $sendCount > 0
+                ? "Terkirim {$sendCount} dari 5x hari ini"
+                : "Belum dikirim hari ini (Maks 5x)";
+
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span>📅</span>
+                    <span>Tanggal hari ini: <strong>{$todayDate}</strong></span>
+                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        {$badgeText}
+                    </span>
+                </div>
+                <button
+                    wire:click="confirmSendBelumManual"
+                    wire:loading.attr="disabled"
+                    wire:confirm="Yakin ingin mengirim notifikasi WA ke orang tua dari semua siswa yang belum hadir sekarang? (Pengiriman ke-{$nextCount} dari maksimal 5x hari ini)"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-50 shadow-sm"
+                >
+                    <span wire:loading.remove wire:target="confirmSendBelumManual">📤 Kirim Notifikasi Belum Hadir Sekarang ({$sendCount}/5)</span>
+                    <span wire:loading wire:target="confirmSendBelumManual">⏳ Memproses...</span>
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-500">ℹ️ Notifikasi akan dikirim ke nomor HP orang tua dari siswa yang belum melakukan presensi hari ini. Tombol ini bisa digunakan maksimal 5x per hari.</p>
+            </div>
+            HTML;
+        } else {
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        ✅ Batas pengiriman tercapai: 5 dari 5x hari ini ({$todayDate})
+                    </span>
+                </div>
+                <button
+                    disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                >
+                    📤 Kirim Notifikasi Belum Hadir Sekarang (5/5)
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-500">⛔ Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
+            </div>
+            HTML;
+        }
+
+        return new HtmlString($html);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Livewire Actions
     // ─────────────────────────────────────────────────────────────────────────
@@ -691,6 +954,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
      */
     public function confirmSendDailyManual(): void
     {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            Notification::make()
+                ->title('Hari Libur Sekolah')
+                ->body('Hari ini adalah hari libur sekolah. Pengiriman laporan harian tidak dapat dilakukan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
         $setting = PresensiDailyReportSetting::current();
 
         if (!$setting->canSendManualToday()) {
@@ -738,6 +1011,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
      */
     public function confirmSendSchoolManual(): void
     {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            Notification::make()
+                ->title('Hari Libur Sekolah')
+                ->body('Hari ini adalah hari libur sekolah. Pengiriman rekap presensi seluruh sekolah tidak dapat dilakukan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
         $setting = PresensiSchoolSummarySetting::current();
 
         if (!$setting->canSendManualToday()) {
@@ -780,6 +1063,65 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         }
     }
 
+    /**
+     * Kirim notifikasi siswa belum hadir secara manual (dipanggil setelah konfirmasi wire:confirm).
+     */
+    public function confirmSendBelumManual(): void
+    {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'))) {
+            Notification::make()
+                ->title('Hari Libur Sekolah')
+                ->body('Hari ini adalah hari libur sekolah. Pengiriman notifikasi belum hadir tidak dapat dilakukan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $setting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'belum')->first();
+
+        if ($setting && !$setting->canSendManualToday()) {
+            Notification::make()
+                ->title('Batas pengiriman tercapai')
+                ->body('Pengiriman manual notifikasi belum hadir sudah mencapai batas maksimal 5x per hari.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        try {
+            /** @var \App\Services\UnattendedAttendanceNotificationService $service */
+            $service = app(\App\Services\UnattendedAttendanceNotificationService::class);
+            $result  = $service->dispatch(source: 'manual');
+
+            if ($setting) {
+                $setting->recordManualSend();
+            }
+            $this->refreshManualSendStatus();
+
+            if ($result['dispatched'] > 0) {
+                Notification::make()
+                    ->title('Notifikasi Belum Hadir Berhasil Dikirim')
+                    ->body("Total {$result['dispatched']} pesan WA berhasil diantrekan (Siswa belum hadir: {$result['total_unattended']}).")
+                    ->success()
+                    ->send();
+            } else {
+                $msg = $result['message'] ?? 'Tidak ada notifikasi yang dikirim atau semua orang tua sudah menerima notifikasi hari ini.';
+                Notification::make()
+                    ->title('Tidak ada notifikasi yang dikirim')
+                    ->body($msg)
+                    ->info()
+                    ->send();
+            }
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Gagal mengirim notifikasi')
+                ->body('Error: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Save
     // ─────────────────────────────────────────────────────────────────────────
@@ -809,6 +1151,28 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                     'is_active'      => $data['telat_notif_is_active'] ?? false,
                     'recipients'     => $data['telat_notif_recipients'] ?? [],
                     'template_pesan' => $data['telat_notif_template_pesan'] ?? '',
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Belum Presensi Pagi)
+            \App\Models\PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'belum'],
+                [
+                    'is_active'      => $data['belum_notif_is_active'] ?? false,
+                    'is_auto_send'   => $data['belum_notif_is_auto_send'] ?? false,
+                    'auto_send_time' => $data['belum_notif_auto_send_time'] ?? '07:30:00',
+                    'recipients'     => $data['belum_notif_recipients'] ?? [],
+                    'template_pesan' => $data['belum_notif_template_pesan'] ?? '',
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Sholat Dhuhur)
+            \App\Models\PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'sholat_dhuhur'],
+                [
+                    'is_active'      => $data['sholat_dhuhur_notif_is_active'] ?? false,
+                    'recipients'     => $data['sholat_dhuhur_notif_recipients'] ?? [],
+                    'template_pesan' => $data['sholat_dhuhur_notif_template_pesan'] ?? '',
                 ]
             );
 

@@ -10,9 +10,11 @@ use App\Models\MataPelajaran;
 use App\Models\Pengajaran;
 use App\Models\PengaturanSekolah;
 use App\Models\Presensi;
+use App\Models\PresensiNotificationSetting;
 use App\Models\PresensiSholatDhuhur;
 use App\Models\TahunAjaran;
 use App\Services\PresensiSholatDhuhurService;
+use App\Services\WhatsAppGatewayService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -781,6 +783,57 @@ class WaliKelasSholatDhuhur extends Component
             fn () => print($pdf->output()),
             $fileName
         );
+    }
+
+    public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'sholat_dhuhur'): void
+    {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'), $this->selectedClassId)) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Hari ini adalah hari libur sekolah. Pengiriman notifikasi WA sholat dhuhur dinonaktifkan.',
+            ]);
+            return;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
+        if (empty($cleanPhone)) {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Nomor WhatsApp orang tua tidak valid atau masih kosong.',
+            ]);
+            return;
+        }
+
+        if (str_starts_with($cleanPhone, '0')) {
+            $cleanPhone = '62' . substr($cleanPhone, 1);
+        } elseif (str_starts_with($cleanPhone, '8')) {
+            $cleanPhone = '62' . $cleanPhone;
+        }
+
+        $waService = app(WhatsAppGatewayService::class);
+        $sent = $waService->sendMessage(
+            toNumber: $cleanPhone,
+            message: $messageText,
+            relatedType: 'presensi_' . $type,
+            relatedId: $studentId,
+            recipientType: 'ortu',
+            logId: null,
+            ignoreDelay: true
+        );
+
+        if ($sent) {
+            $this->dispatch('notify', [
+                'type'    => 'success',
+                'message' => "Pesan WhatsApp berhasil dikirim ke nomor {$cleanPhone}!",
+            ]);
+            $this->dispatch('wa-modal-close');
+        } else {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Gagal mengirim pesan WhatsApp via sistem gateway. Silakan periksa gateway WhatsApp.',
+            ]);
+        }
     }
 
     public function render()

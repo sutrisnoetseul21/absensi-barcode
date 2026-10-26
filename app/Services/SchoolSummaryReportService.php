@@ -41,11 +41,11 @@ class SchoolSummaryReportService
         $now         = Carbon::now();
         $todayStr    = $now->toDateString();
 
-        // Cek Hari Sekolah jika pengiriman otomatis
+        // Cek Hari Sekolah
         $kalenderService = app(KalenderSekolahService::class);
-        if (!$isManual && !$kalenderService->isHariSekolah($now)) {
-            Log::info("SchoolSummaryReportService: Hari ini bukan hari sekolah, laporan rekap sekolah otomatis dilewati.");
-            return ['dispatched' => 0, 'skipped' => 0, 'errors' => ['Hari ini bukan hari sekolah (libur). Laporan rekap sekolah otomatis dilewati.']];
+        if (!$kalenderService->isHariSekolah($now)) {
+            Log::info("SchoolSummaryReportService: Hari ini bukan hari sekolah (libur), laporan rekap sekolah dilewati.");
+            return ['dispatched' => 0, 'skipped' => 0, 'errors' => ['Hari ini bukan hari sekolah (libur). Laporan rekap sekolah dibatalkan.']];
         }
 
         $relatedType = 'school_summary_report';

@@ -155,7 +155,26 @@
                         }
                     }
                     $dateLabel = \Carbon\Carbon::parse($todayDate ?? now())->locale('id')->translatedFormat('l, d F Y');
-                    $waText = urlencode("Assalamu'alaikum / Selamat pagi Bapak/Ibu wali dari {$student->name}.\n\nKami menginfokan bahwa ananda belum tercatat hadir dalam presensi SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nMohon konfirmasi keterangan kehadiran ananda. Terima kasih.");
+                    $currentKelas = collect($classes)->firstWhere('id', $selectedClassId);
+                    $className = $currentKelas?->name ?? '-';
+                    $waliKelasName = Auth::user()->teacher?->name ?? Auth::user()->name;
+
+                    $waTextBelumRaw = \App\Models\PresensiNotificationSetting::renderTemplate('belum', [
+                        'nama_siswa'       => $student->name,
+                        'kelas'            => $className,
+                        'tanggal'          => $dateLabel,
+                        'status_kehadiran' => 'Belum Presensi',
+                        'nama_wali_kelas'  => $waliKelasName,
+                    ]);
+
+                    $waTextTelatRaw = \App\Models\PresensiNotificationSetting::renderTemplate('telat', [
+                        'nama_siswa'       => $student->name,
+                        'kelas'            => $className,
+                        'tanggal'          => $dateLabel,
+                        'jam'              => $scanDatang ?: '-',
+                        'status_kehadiran' => 'Terlambat ' . ($lateMinutes ? "({$lateMinutes} menit)" : ''),
+                        'nama_wali_kelas'  => $waliKelasName,
+                    ]);
                 @endphp
 
                 <div x-show="(dailyFilter === 'all' || 
@@ -242,14 +261,44 @@
 
                         <div class="flex items-center gap-2">
                             @if($status === 'belum')
-                                @if(!empty($cleanPhone))
-                                    <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-2xs">
-                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-                                        <span>WA Ortu</span>
-                                    </a>
-                                @endif
+                                <button type="button" 
+                                    @click="openWaModal({
+                                        id: '{{ $student->id }}',
+                                        name: '{{ addslashes($student->name) }}',
+                                        className: '{{ addslashes($className) }}',
+                                        nisn: '{{ $student->nisn }}',
+                                        cleanPhone: '{{ $cleanPhone }}',
+                                        phone: '{{ $rawPhone }}',
+                                        type: 'belum',
+                                        statusLabel: 'Belum Presensi',
+                                        rawText: {{ json_encode($waTextBelumRaw) }}
+                                    })"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer" title="Kirim Pesan WhatsApp Ortu via Sistem">
+                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                    <span>WA Ortu</span>
+                                </button>
                                 <button type="button" wire:click="openInputModal" class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 border border-brand-primary/20 rounded-xl text-xs font-bold transition-all">
                                     <span>Input Presensi</span>
+                                </button>
+                            @elseif($status === 'telat')
+                                <button type="button" 
+                                    @click="openWaModal({
+                                        id: '{{ $student->id }}',
+                                        name: '{{ addslashes($student->name) }}',
+                                        className: '{{ addslashes($className) }}',
+                                        nisn: '{{ $student->nisn }}',
+                                        cleanPhone: '{{ $cleanPhone }}',
+                                        phone: '{{ $rawPhone }}',
+                                        type: 'telat',
+                                        statusLabel: 'Terlambat ({{ $lateMinutes }}m)',
+                                        rawText: {{ json_encode($waTextTelatRaw) }}
+                                    })"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer" title="Kirim WhatsApp Terlambat ke Orang Tua">
+                                    <svg class="w-3.5 h-3.5 fill-current text-amber-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                    <span>WA Telat</span>
+                                </button>
+                                <button type="button" wire:click="openInputModal" class="inline-flex items-center gap-1 px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs font-semibold">
+                                    <span>Ubah</span>
                                 </button>
                             @else
                                 <button type="button" wire:click="openInputModal" class="inline-flex items-center gap-1 px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs font-semibold">
@@ -305,7 +354,26 @@
                                     }
                                 }
                                 $dateLabel = \Carbon\Carbon::parse($todayDate ?? now())->locale('id')->translatedFormat('l, d F Y');
-                                $waText = urlencode("Assalamu'alaikum / Selamat pagi Bapak/Ibu wali dari {$student->name}.\n\nKami menginfokan bahwa ananda belum tercatat hadir dalam presensi SMP Negeri 3 Kedungreja hari ini ({$dateLabel}).\n\nMohon konfirmasi keterangan kehadiran ananda. Terima kasih.");
+                                $currentKelas = collect($classes)->firstWhere('id', $selectedClassId);
+                                $className = $currentKelas?->name ?? '-';
+                                $waliKelasName = Auth::user()->teacher?->name ?? Auth::user()->name;
+
+                                $waTextBelumRaw = \App\Models\PresensiNotificationSetting::renderTemplate('belum', [
+                                    'nama_siswa'       => $student->name,
+                                    'kelas'            => $className,
+                                    'tanggal'          => $dateLabel,
+                                    'status_kehadiran' => 'Belum Presensi',
+                                    'nama_wali_kelas'  => $waliKelasName,
+                                ]);
+
+                                $waTextTelatRaw = \App\Models\PresensiNotificationSetting::renderTemplate('telat', [
+                                    'nama_siswa'       => $student->name,
+                                    'kelas'            => $className,
+                                    'tanggal'          => $dateLabel,
+                                    'jam'              => $scanDatang ?: '-',
+                                    'status_kehadiran' => 'Terlambat ' . ($lateMinutes ? "({$lateMinutes} menit)" : ''),
+                                    'nama_wali_kelas'  => $waliKelasName,
+                                ]);
                             @endphp
 
                             <tr x-show="(dailyFilter === 'all' || 
@@ -365,11 +433,40 @@
                                 </td>
                                 <td class="py-3.5 px-6 text-center">
                                     <div class="flex items-center justify-center gap-2">
-                                        @if($status === 'belum' && !empty($cleanPhone))
-                                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs" title="Chat WhatsApp Wali">
+                                        @if($status === 'belum')
+                                            <button type="button" 
+                                                @click="openWaModal({
+                                                    id: '{{ $student->id }}',
+                                                    name: '{{ addslashes($student->name) }}',
+                                                    className: '{{ addslashes($className) }}',
+                                                    nisn: '{{ $student->nisn }}',
+                                                    cleanPhone: '{{ $cleanPhone }}',
+                                                    phone: '{{ $rawPhone }}',
+                                                    type: 'belum',
+                                                    statusLabel: 'Belum Presensi',
+                                                    rawText: {{ json_encode($waTextBelumRaw) }}
+                                                })"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer" title="Kirim WhatsApp Belum Hadir via Sistem">
                                                 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
                                                 <span>WA Ortu</span>
-                                            </a>
+                                            </button>
+                                        @elseif($status === 'telat')
+                                            <button type="button" 
+                                                @click="openWaModal({
+                                                    id: '{{ $student->id }}',
+                                                    name: '{{ addslashes($student->name) }}',
+                                                    className: '{{ addslashes($className) }}',
+                                                    nisn: '{{ $student->nisn }}',
+                                                    cleanPhone: '{{ $cleanPhone }}',
+                                                    phone: '{{ $rawPhone }}',
+                                                    type: 'telat',
+                                                    statusLabel: 'Terlambat ({{ $lateMinutes }}m)',
+                                                    rawText: {{ json_encode($waTextTelatRaw) }}
+                                                })"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer" title="Kirim WhatsApp Terlambat via Sistem">
+                                                <svg class="w-3.5 h-3.5 fill-current text-amber-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                                <span>WA Telat</span>
+                                            </button>
                                         @endif
                                         <button type="button" wire:click="openInputModal" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all" title="Input Presensi">
                                             Input
