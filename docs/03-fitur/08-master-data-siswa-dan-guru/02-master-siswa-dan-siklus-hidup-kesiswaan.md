@@ -38,8 +38,14 @@ Formulir kesiswaan pada panel admin dikelompokkan ke dalam 4 seksi logis untuk m
   - Otomatis dinormalisasi ke awalan `628...` sebelum disimpan ke database.
 
 ### D. Seksi 4: Kredensial Login Portal Siswa (`User`)
-- **Email Login**: Otomatis di-generate menggunakan formula `{nisn}@siswa.sekolah.sch.id` jika dikosongkan pada saat registrasi siswa baru.
-- **Password**: Otomatis menggunakan `nisn` sebagai kata sandi awal pada saat pendaftaran. Siswa dapat memperbaruinya secara mandiri di Portal Siswa (`/portal-siswa/profil`).
+- **Email Login (`nullable`)**:
+  - Kolom bersifat opsional (tidak lagi memblokir dengan HTML5 `required` saat mode edit).
+  - Jika dikosongkan pada saat pembuatan baru maupun pengeditan data lama, sistem otomatis men-generate email default: `{nisn}@{school.email_domain}` (misal: `1234567890@smpn3kedungreja.sch.id`).
+- **Password**:
+  - Default kata sandi awal menggunakan `nisn`.
+  - Pada form edit, kolom password dapat dibiarkan kosong jika tidak ingin mengubah password aktif.
+- **Mekanisme *Self-Healing* Akun Siswa Lama / Import**:
+  - Jika data siswa dari migrasi atau import Excel sebelumnya belum memiliki relasi akun `User` (`user_id = NULL`), saat admin menyimpan form edit di [`EditSiswa`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/Siswa/Pages/EditSiswa.php) atau melakukan aksi **Reset Password** di tabel, sistem secara otomatis membuatkan akun `User` baru ber-role `siswa` dan menautkannya ke data siswa tanpa memicu error `Call to a member function update() on null`.
 
 ---
 

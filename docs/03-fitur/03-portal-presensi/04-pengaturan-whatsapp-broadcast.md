@@ -41,23 +41,36 @@ Wassalamu'alaikum Wr. Wb.
 
 ---
 
+---
+
 ## 3. Otomatisasi Background Scheduler (Auto-Send)
 
-Pemberitahuan siswa belum hadir tidak memerlukan admin mengklik tombol setiap pagi:
+Pemberitahuan siswa belum hadir dan belum sholat dhuhur berjalan otomatis melalui Laravel Scheduler:
+
+### A. Notifikasi Siswa Belum Hadir (Presensi Pagi)
 1. Kolom `is_auto_send = true` diaktifkan di tabel `presensi_notification_settings`.
 2. Jam eksekusi diatur pada `auto_send_time = '07:30:00'`.
-3. Laravel Scheduler menjalankan console command:
+3. Console command yang dijalankan scheduler:
    ```bash
    php artisan presensi:send-unattended-notification
    ```
-4. Service [`UnattendedAttendanceNotificationService`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/UnattendedAttendanceNotificationService.php) memfilter siswa yang belum memiliki record kehadiran di hari ini dan mengirimkan pesan WA ke nomor orang tua siswa secara asinkron.
+4. Service [`UnattendedAttendanceNotificationService`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/UnattendedAttendanceNotificationService.php) memfilter siswa yang belum memiliki record kehadiran di hari ini dan mendispatch job `SendWhatsAppNotificationJob` secara asinkron.
+
+### B. Notifikasi Siswa Belum Absen Sholat Dhuhur
+1. Kolom `sholat_dhuhur_notif_is_auto_send = true` diaktifkan pada pengaturan notifikasi sholat dhuhur.
+2. Jam eksekusi diatur pada `sholat_dhuhur_notif_auto_send_time = '13:00:00'`.
+3. Console command yang dijalankan scheduler:
+   ```bash
+   php artisan presensi:send-sholat-dhuhur-notification
+   ```
+4. Service [`UnattendedSholatDhuhurNotificationService`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/UnattendedSholatDhuhurNotificationService.php) memvalidasi hari sholat aktif (bukan hari libur/minggu), memfilter siswa Muslim yang belum absen sholat dhuhur, lalu mengirim notifikasi WA ke orang tua via queue job.
 
 ---
 
 ## 4. Proteksi Kuota Broadcast Manual (*Rate Limiting*)
 
 Untuk mencegah nomor WhatsApp sekolah diblokir atau di-banned oleh pihak WhatsApp karena terindikasi spam:
-- **Batas Maksimal**: Maksimal **5 kali broadcast manual** per hari (`manual_send_count < 5`).
-- **Pengecekan**: Method `canSendManualToday()` memvalidasi tanggal `manual_send_date`.
-- **Reset Otomatis**: Counter otomatis kembali ke `0` saat pergantian hari kalender.
+- **Batas Maksimal**: Maksimal **5 kali broadcast manual** per hari untuk notifikasi belum hadir (`manual_send_count < 5`) maupun notifikasi sholat dhuhur (`sholat_dhuhur_manual_send_count < 5`).
+- **Pengecekan**: Method `canSendManualToday()` dan `canSendSholatDhuhurManualToday()` memvalidasi tanggal broadcast hari ini.
+- **Reset Otomatis**: Counter kuota otomatis kembali ke `0` saat pergantian hari kalender.
 - **Audit Log**: Setiap pesan yang terkirim maupun yang gagal tersimpan dengan rapi di tabel `whatsapp_notification_logs`.
