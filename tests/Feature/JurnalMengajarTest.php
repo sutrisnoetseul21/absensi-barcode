@@ -299,4 +299,129 @@ class JurnalMengajarTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_cetak_pdf_with_semester_and_monthly_periods()
+    {
+        $this->actingAs($this->user);
+
+        // Cetak Bulanan
+        $resBulan = $this->get(route('portal-guru.jurnal-mengajar.cetak', [
+            'periode_type' => 'bulanan',
+            'month_year'   => '10-2026',
+            'class_id'     => $this->kelas->id,
+        ]));
+        $resBulan->assertStatus(200);
+        $resBulan->assertHeader('content-type', 'application/pdf');
+
+        // Cetak Semester Ganjil
+        $resSemester = $this->get(route('portal-guru.jurnal-mengajar.cetak', [
+            'periode_type' => 'semester',
+            'semester'     => 'ganjil',
+            'class_id'     => $this->kelas->id,
+        ]));
+        $resSemester->assertStatus(200);
+        $resSemester->assertHeader('content-type', 'application/pdf');
+
+        // Cetak Tahunan
+        $resTahun = $this->get(route('portal-guru.jurnal-mengajar.cetak', [
+            'periode_type' => 'tahunan',
+            'class_id'     => $this->kelas->id,
+        ]));
+        $resTahun->assertStatus(200);
+        $resTahun->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_download_excel_rekap()
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get(route('portal-guru.jurnal-mengajar.excel', [
+            'teacher_id'        => $this->guru->id,
+            'class_id'          => $this->kelas->id,
+            'mata_pelajaran_id' => $this->mapel->id,
+            'periode_type'      => 'bulanan',
+            'month_year'        => '10-2026',
+        ]));
+
+        $response->assertStatus(200);
+        $this->assertTrue(
+            str_contains($response->headers->get('content-disposition', ''), '.xlsx') ||
+            str_contains($response->headers->get('content-type', ''), 'spreadsheet')
+        );
+    }
+
+    public function test_livewire_modal_cetak_methods()
+    {
+        $this->actingAs($this->user);
+
+        Livewire::test(JurnalMengajarList::class)
+            ->call('openCetakModal')
+            ->assertSet('showCetakModal', true)
+            ->assertSet('cetakTeacherId', $this->guru->id)
+            ->assertSet('cetakMapelId', $this->mapel->id)
+            ->assertCount('cetakAvailableClasses', 1)
+            ->assertSet('cetakJenis', 'bulanan')
+            ->set('cetakJenis', 'semester')
+            ->set('cetakSemester', 'ganjil')
+            ->set('cetakClassId', $this->kelas->id)
+            ->call('downloadCetakPdf')
+            ->assertSet('showCetakModal', false);
+    }
+
+    public function test_jurnal_mengajar_month_filter_and_supervisor_mode()
+    {
+        $this->actingAs($this->user);
+
+        // Buat jurnal bulan Oktober 2026
+        $jurnalOkt = JurnalPembelajaran::create([
+            'academic_year_id'  => $this->tahunAjaran->id,
+            'teacher_id'        => $this->guru->id,
+            'class_id'          => $this->kelas->id,
+            'mata_pelajaran_id' => $this->mapel->id,
+            'tanggal'           => '2026-10-15',
+            'jam_mulai'         => 1,
+            'jam_selesai'       => 2,
+            'durasi_jp'         => 2,
+            'jam_ke_label'      => 'Jam ke 1 - 2 (2 JP)',
+            'materi'            => 'Materi Oktober',
+            'uraian_materi'     => 'Uraian materi bulan Oktober',
+            'total_siswa'       => 2,
+            'total_hadir'       => 2,
+        ]);
+
+        // Buat jurnal bulan November 2026
+        $jurnalNov = JurnalPembelajaran::create([
+            'academic_year_id'  => $this->tahunAjaran->id,
+            'teacher_id'        => $this->guru->id,
+            'class_id'          => $this->kelas->id,
+            'mata_pelajaran_id' => $this->mapel->id,
+            'tanggal'           => '2026-11-20',
+            'jam_mulai'         => 3,
+            'jam_selesai'       => 4,
+            'durasi_jp'         => 2,
+            'jam_ke_label'      => 'Jam ke 3 - 4 (2 JP)',
+            'materi'            => 'Materi November',
+            'uraian_materi'     => 'Uraian materi bulan November',
+            'total_siswa'       => 2,
+            'total_hadir'       => 2,
+        ]);
+
+        // Filter Oktober 2026 -> Hanya muncul Materi Oktober
+        Livewire::test(JurnalMengajarList::class)
+            ->set('selectedMonthYear', '10-2026')
+            ->assertSee('Materi Oktober')
+            ->assertDontSee('Materi November');
+
+        // Filter November 2026 -> Hanya muncul Materi November
+        Livewire::test(JurnalMengajarList::class)
+            ->set('selectedMonthYear', '11-2026')
+            ->assertSee('Materi November')
+            ->assertDontSee('Materi Oktober');
+
+        // Filter Semua Bulan ('') -> Muncul kedua materi
+        Livewire::test(JurnalMengajarList::class)
+            ->set('selectedMonthYear', '')
+            ->assertSee('Materi Oktober')
+            ->assertSee('Materi November');
+    }
 }

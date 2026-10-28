@@ -23,6 +23,9 @@ Dokumen ini memuat daftar tugas teknis (*checklist*), tahapan eksekusi, serta ca
 | **13** | Pengujian Otomatis Fitur (Automated Feature Tests) | ✅ Selesai | 27 Okt 2026 | `tests/Feature/JurnalMengajarTest.php` (5 test case, 18 assertions, 100% pass). |
 | **14** | Konfigurasi Bypass & Supervisi di `/admin/manajemen-akses-portal` | ✅ Selesai | 27 Okt 2026 | Toggle `bypass_semua_kelas` & `supervisi_jurnal_guru` tersambung aman ke Spatie Permission. |
 | **15** | Desain UI/UX Modern Jurnal Mengajar | ✅ Selesai | 28 Okt 2026 | Overhaul visual: dark hero gradients, interactive time slot & JP calculator, quick chips, batch actions, dan sticky action bar. |
+| **16** | Modal Cetak Rekap KBM & Ekspor Excel (.xlsx) | ✅ Selesai | 28 Okt 2026 | Modal dialog interaktif model Akademik: pilihan Bulanan, Semester Ganjil/Genap, Tahunan, filter kelas & mapel, cetak PDF & unduh Excel. |
+| **17** | Penyelarasan Tema Dinamis Sistem Sekolah | ✅ Selesai | 28 Okt 2026 | Hero banner, kartu metrik, badge KBM, focus rings, sticky submit button, dan modal cetak 100% terhubung ke `--color-brand-primary` & `--color-brand-secondary`. |
+| **18** | Filter Simpel 1 Baris (Bulan Juli-Juni & Sembunyikan Tahun Ajaran) | ✅ Selesai | 28 Okt 2026 | Dropdown Tahun Ajaran disembunyikan (otomatis aktif), Tanggal Mulai/Selesai manual digantikan dropdown Bulan (Juli-Juni), filter menyatu dalam 1 baris ringkas, mode supervisi menyertakan nama guru pengampu. |
 
 ---
 
@@ -39,3 +42,18 @@ Dokumen ini memuat daftar tugas teknis (*checklist*), tahapan eksekusi, serta ca
    - Dikelola terpusat oleh Admin/Super Admin melalui menu **Manajemen Akses &rarr; Akses Portal Pengguna** (`/admin/manajemen-akses-portal`).
    - **Bypass Semua Kelas (`portal_guru:akses_semua_kelas`)**: Memberikan wewenang guru/staf untuk memantau absensi seluruh rombel/kelas di sekolah.
    - **Supervisi Jurnal Mengajar (`portal_guru:supervisi_jurnal`)**: Memberikan wewenang kepada Kepala Sekolah / Waka Kurikulum untuk memantau jurnal seluruh guru melalui filter cascade: **Pilih Guru &rarr; Pilih Mapel &rarr; Pilih Kelas**, serta mencetak rekap PDF seluruh guru.
+5. **Logika Cascading Pemilihan (Guru Paten &rarr; Pilih Mapel &rarr; Kelas Baru Aktif)**:
+   - **Guru Tunggal / Reguler**: Identitas guru dipatenkan secara otomatis (*read-only*), guru tidak perlu memilih profil guru lain.
+   - **Mode Supervisi**: Dropdown Guru Pengampu diposisikan di baris teratas sehingga KS/Admin dapat memilih target guru yang disupervisi terlebih dahulu.
+   - **Pilih Mata Pelajaran**: Guru memilih mapel yang diampu. Jika guru hanya mengajar 1 mapel, mapel otomatis terpatri/terpilih langsung.
+   - **Kelas Rombel Baru Aktif**: Dropdown Kelas berstatus *disabled* (terkunci) sebelum Mata Pelajaran terpilih. Begitu Mata Pelajaran dipilih, dropdown Kelas otomatis aktif dan hanya memuat rombel-rombel yang diajar guru pada mapel tersebut. Berlaku konsisten di Modal Cetak, Filter List Halaman, dan Form Input Jurnal.
+6. **Penyelarasan Tema Sistem Sekolah (Dynamic Brand Color)**:
+   - Seluruh elemen hero banner, tombol aksi, quick chips, focus rings, dan dialog modal cetak di Jurnal Mengajar tidak lagi menggunakan warna hardcoded statis (`slate-900`, `indigo-600`, atau `purple-500`).
+   - Semua warna visual terhubung dinamis ke token CSS `@theme` Tailwind v4 (`brand-primary` & `brand-secondary`) yang dihasilkan dari tabel `pengaturan_sekolahs` (`theme_primary` dan `theme_secondary`).
+   - Jika admin/pengguna mengganti warna tema sekolah, seluruh halaman Jurnal Mengajar secara otomatis berubah mengikuti identitas warna instansi sekolah.
+7. **Filter & Pencarian Ringkas 1 Baris**:
+   - **Tahun Ajaran Disembunyikan**: Karena wajib menggunakan tahun ajaran aktif sekolah, dropdown pemilih tahun ajaran dihapus dari filter dan ditampilkan sebagai badge indikator status kecil di kanan atas.
+   - **Filter Bulan Kalender Akademik (Juli – Juni)**: Input tanggal manual (`dateFrom` dan `dateTo`) digantikan dengan dropdown pilihan bulan dari Juli hingga Juni (lengkap dengan opsi *Semua Bulan*), default otomatis memilih bulan berjalan saat ini.
+   - **1 Baris Terpadu**:
+     - *Guru Biasa*: 4 kolom (Bulan KBM &bull; Mata Pelajaran &bull; Kelas Rombel &bull; Cari Materi).
+     - *Mode Supervisi*: 5 kolom (Pilih Guru Pengampu &bull; Bulan KBM &bull; Mata Pelajaran &bull; Kelas Rombel &bull; Cari Materi).

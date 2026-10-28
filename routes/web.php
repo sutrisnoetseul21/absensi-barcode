@@ -318,6 +318,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/jurnal-mengajar/tambah', \App\Livewire\PortalGuru\JurnalMengajar\JurnalMengajarForm::class)->name('portal-guru.jurnal-mengajar.create');
         Route::get('/jurnal-mengajar/{id}/edit', \App\Livewire\PortalGuru\JurnalMengajar\JurnalMengajarForm::class)->name('portal-guru.jurnal-mengajar.edit');
         Route::get('/jurnal-mengajar/cetak-pdf', [\App\Http\Controllers\JurnalMengajarCetakController::class, 'cetak'])->name('portal-guru.jurnal-mengajar.cetak');
+        Route::get('/jurnal-mengajar/download-excel', [\App\Http\Controllers\JurnalMengajarCetakController::class, 'excel'])->name('portal-guru.jurnal-mengajar.excel');
     });
 
     Route::middleware('auth.wali')->group(function () {

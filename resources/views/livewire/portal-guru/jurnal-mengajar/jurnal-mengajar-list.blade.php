@@ -1,60 +1,59 @@
-<div class="space-y-6 max-w-7xl mx-auto pb-20">
-    <!-- HERO HEADER CARD -->
-    <div class="relative bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-indigo-950/20 overflow-hidden border border-indigo-500/20">
+<div class="space-y-6 max-w-7xl mx-auto pb-20" x-data="{ showCetakModal: @entangle('showCetakModal').live }">
+    <!-- HERO HEADER CARD (Sesuai Tema Sistem) -->
+    <div class="relative bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary border border-brand-primary/30 text-white rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden">
         <!-- Ambient Background Glows -->
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-500/15 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -top-12 -right-12 w-80 h-80 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-80 h-80 bg-brand-secondary/20 rounded-full filter blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-                <!-- Top Badge -->
-                <div class="flex flex-wrap items-center gap-2 mb-3">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 text-xs font-bold tracking-wide uppercase">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Portal Guru • KBM & Agenda Mengajar
-                    </span>
-
-                    @if($isSupervisor)
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-amber-500/30 text-amber-200 border border-amber-400/40 text-xs font-bold shadow-xs">
-                            <svg class="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                            Mode Supervisi Kepala Sekolah / Kurikulum
-                        </span>
-                    @endif
+            <div class="flex items-start gap-4">
+                <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white shadow-lg border border-white/30 shrink-0">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
                 </div>
+                <div>
+                    <!-- Top Badge -->
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/15 text-white border border-white/25 text-xs font-bold tracking-wide uppercase backdrop-blur-md">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Portal Guru • KBM & Agenda Mengajar
+                        </span>
 
-                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
-                    Jurnal Mengajar
-                </h1>
-                <p class="text-indigo-200/90 text-sm sm:text-base mt-1.5 max-w-2xl leading-relaxed">
-                    @if($isSupervisor)
-                        Pantau agenda pembelajaran, kehadiran kelas, dan catatan refleksi seluruh guru di sekolah.
-                    @else
-                        Dokumentasikan agenda pembelajaran harian, durasi JP, materi pokok, dan sinkronisasi kehadiran siswa.
-                    @endif
-                </p>
+                        @if($isSupervisor)
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-amber-400/25 text-amber-100 border border-amber-300/40 text-xs font-bold shadow-xs backdrop-blur-md">
+                                <svg class="w-3.5 h-3.5 text-amber-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                Mode Supervisi Kepala Sekolah
+                            </span>
+                        @endif
+                    </div>
+
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white">
+                        Jurnal Mengajar
+                    </h1>
+                    <p class="text-white/80 text-sm sm:text-base mt-1 max-w-2xl leading-relaxed font-medium">
+                        @if($isSupervisor)
+                            Pantau agenda pembelajaran, kehadiran kelas, dan catatan refleksi seluruh guru di sekolah.
+                        @else
+                            Dokumentasikan agenda pembelajaran harian, durasi JP, materi pokok, dan sinkronisasi kehadiran siswa.
+                        @endif
+                    </p>
+                </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
                 <a href="{{ route('portal-guru.jurnal-mengajar.create') }}" 
-                   class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs sm:text-sm font-black shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+                   class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white hover:bg-slate-100 text-brand-primary text-xs sm:text-sm font-extrabold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer border border-transparent">
+                    <svg class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
                     <span>Tulis Jurnal Baru</span>
                 </a>
                 
-                <a href="{{ route('portal-guru.jurnal-mengajar.cetak', [
-                        'academic_year_id' => $selectedAcademicYearId,
-                        'teacher_id'       => $selectedTeacherId,
-                        'mata_pelajaran_id'=> $selectedMapelId,
-                        'class_id'         => $selectedClassId,
-                        'date_from'        => $dateFrom,
-                        'date_to'          => $dateTo,
-                    ]) }}" 
-                   target="_blank"
-                   class="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md text-xs sm:text-sm font-bold shadow-xs hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    <svg class="w-4 h-4 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                    <span>Cetak Rekap PDF</span>
-                </a>
+                <button type="button" wire:click="openCetakModal"
+                   class="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-md text-xs sm:text-sm font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                    <svg class="w-4 h-4 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                    <span>Cetak Laporan KBM</span>
+                </button>
             </div>
         </div>
     </div>
@@ -87,7 +86,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <!-- Card 1: Total Sesi KBM -->
         <div class="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex items-center gap-5">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-600/20 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200/50 shadow-xs">
+            <div class="w-14 h-14 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 shadow-xs">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
             </div>
             <div>
@@ -115,7 +114,7 @@
 
         <!-- Card 3: Rata-Rata Kehadiran -->
         <div class="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex items-center gap-5">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/10 to-fuchsia-600/20 text-purple-600 flex items-center justify-center shrink-0 border border-purple-200/50 shadow-xs">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-secondary/15 to-brand-primary/20 text-brand-secondary flex items-center justify-center shrink-0 border border-brand-secondary/30 shadow-xs">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <div class="flex-1">
@@ -125,41 +124,37 @@
                 </h3>
                 <!-- Mini Progress Bar -->
                 <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-1.5 rounded-full" style="width: {{ min(100, (float)$avgKehadiran) }}%"></div>
+                    <div class="bg-gradient-to-r from-brand-primary to-brand-secondary h-1.5 rounded-full" style="width: {{ min(100, (float)$avgKehadiran) }}%"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- FILTER BAR CARD -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-6 transition-all">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-5">
+    <!-- FILTER BAR CARD (1 Baris Ringkas & Modern) -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-5 sm:p-6 transition-all">
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
             <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                <svg class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                 <span>Filter & Pencarian Jurnal</span>
             </h2>
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Tahun Ajaran: {{ $academicYears->firstWhere('id', $selectedAcademicYearId)?->name ?? 'Aktif' }}</span>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Filter Tahun Ajaran -->
-            <div>
-                <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Tahun Ajaran</label>
-                <select wire:model.live="selectedAcademicYearId" class="w-full rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-semibold shadow-xs">
-                    @foreach($academicYears as $year)
-                        <option value="{{ $year->id }}">{{ $year->name }} {{ $year->status === 'aktif' ? '(Aktif)' : '' }}</option>
-                    @endforeach
-                </select>
-            </div>
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 {{ $isSupervisor ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} gap-4">
             <!-- Filter Guru (Khusus Mode Supervisi) -->
             @if($isSupervisor)
                 <div>
                     <label class="block text-xs font-extrabold text-amber-900 mb-1.5 flex items-center justify-between">
-                        <span>Pilih Guru Pengampu</span>
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            <span>Guru Pengampu</span>
+                        </span>
                         <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-black">Supervisi</span>
                     </label>
-                    <select wire:model.live="selectedTeacherId" class="w-full rounded-2xl border border-amber-300 bg-amber-50/50 text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-amber-500/15 font-semibold shadow-xs">
-                        <option value="">-- Semua Guru Pengampu --</option>
+                    <select wire:model.live="selectedTeacherId" class="w-full rounded-2xl border border-amber-300 bg-amber-50/50 text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-amber-500/15 font-semibold shadow-xs cursor-pointer">
                         @foreach($teachers as $teacher)
                             <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
                         @endforeach
@@ -167,10 +162,27 @@
                 </div>
             @endif
 
+            <!-- Filter Bulan (Juli - Juni Sesuai Kalender Akademik) -->
+            <div>
+                <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <span>Bulan KBM</span>
+                </label>
+                <select wire:model.live="selectedMonthYear" class="w-full rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all font-semibold shadow-xs cursor-pointer">
+                    <option value="">-- Semua Bulan --</option>
+                    @foreach($availableMonths as $val => $label)
+                        <option value="{{ $val }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Filter Mata Pelajaran -->
             <div>
-                <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Mata Pelajaran</label>
-                <select wire:model.live="selectedMapelId" class="w-full rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-semibold shadow-xs">
+                <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    <span>Mata Pelajaran</span>
+                </label>
+                <select wire:model.live="selectedMapelId" class="w-full rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all font-semibold shadow-xs cursor-pointer">
                     <option value="">-- Semua Mata Pelajaran --</option>
                     @foreach($mapels as $mapel)
                         <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
@@ -180,40 +192,35 @@
 
             <!-- Filter Kelas Rombel -->
             <div>
-                <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Kelas Rombel</label>
-                <select wire:model.live="selectedClassId" class="w-full rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-semibold shadow-xs">
-                    <option value="">-- Semua Kelas Rombel --</option>
-                    @foreach($classes as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }}</option>
-                    @endforeach
-                </select>
+                <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    <span>Kelas Rombel</span>
+                </label>
+                @if(!$selectedMapelId)
+                    <select disabled class="w-full rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-sm px-3.5 py-2.5 outline-none font-semibold shadow-xs cursor-not-allowed opacity-75">
+                        <option value="">-- Pilih Mapel Terlebih Dahulu --</option>
+                    </select>
+                @else
+                    <select wire:model.live="selectedClassId" class="w-full rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm px-3.5 py-2.5 outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all font-semibold shadow-xs cursor-pointer animate-fade-in">
+                        <option value="">-- Semua Kelas Rombel --</option>
+                        @foreach($classes as $c)
+                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                        @endforeach
+                    </select>
+                @endif
             </div>
-        </div>
 
-        <!-- Filter Baris 2: Search & Rentang Tanggal -->
-        <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Cari Topik Materi -->
+            <!-- Cari Materi / Refleksi -->
             <div>
-                <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Cari Materi / Refleksi</label>
+                <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <span>Cari Materi / Refleksi</span>
+                </label>
                 <div class="relative">
                     <input type="text" wire:model.live.debounce.300ms="search" placeholder="Ketik kata kunci topik materi..." 
-                           class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-xs font-medium">
+                           class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all shadow-xs font-medium">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-            </div>
-
-            <!-- Tanggal Dari -->
-            <div>
-                <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Tanggal Mulai</label>
-                <input type="date" wire:model.live="dateFrom" 
-                       class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-xs font-semibold">
-            </div>
-
-            <!-- Tanggal Sampai -->
-            <div>
-                <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Tanggal Selesai</label>
-                <input type="date" wire:model.live="dateTo" 
-                       class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-xs font-semibold">
             </div>
         </div>
     </div>
@@ -229,13 +236,13 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <!-- Tanggal -->
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-800 shadow-xs">
-                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 {{ $jurnal->tanggal->translatedFormat('l, d F Y') }}
                             </span>
 
                             <!-- Jam Ke Label -->
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-800 border border-indigo-200/80 shadow-xs">
-                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shadow-xs">
+                                <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 {{ $jurnal->jam_ke_label }}
                             </span>
 
@@ -245,7 +252,7 @@
                             </span>
 
                             <!-- Mata Pelajaran -->
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-extrabold bg-purple-50 text-purple-800 border border-purple-200/80 shadow-xs">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-extrabold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shadow-xs">
                                 📖 {{ $jurnal->mataPelajaran?->nama_mapel }}
                             </span>
 
@@ -260,7 +267,7 @@
 
                         <!-- Materi Pokok & Uraian -->
                         <div class="pt-1">
-                            <h3 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-brand-primary transition-colors">
                                 {{ $jurnal->materi }}
                             </h3>
                             <p class="text-sm text-slate-600 mt-1 leading-relaxed whitespace-pre-line bg-slate-50/60 p-3 rounded-2xl border border-slate-100">
@@ -306,7 +313,7 @@
                         <div class="flex items-center gap-2">
                             @if(!$isSupervisor || auth()->user()->isSuperAdmin() || $jurnal->teacher_id === $currentTeacherId)
                                 <a href="{{ route('portal-guru.jurnal-mengajar.edit', $jurnal->id) }}" 
-                                   class="p-2.5 rounded-2xl text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all shadow-xs" title="Edit Jurnal">
+                                   class="p-2.5 rounded-2xl text-slate-600 hover:text-brand-primary hover:bg-brand-primary/10 border border-slate-200 hover:border-brand-primary/30 transition-all shadow-xs" title="Edit Jurnal">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </a>
 
@@ -322,7 +329,7 @@
             </div>
         @empty
             <div class="bg-white rounded-3xl border border-slate-200/90 p-12 text-center shadow-sm">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-3xl bg-indigo-50 text-indigo-500 flex items-center justify-center shadow-inner">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-3xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shadow-inner">
                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                 </div>
                 <h3 class="text-base font-extrabold text-slate-800">Belum Ada Catatan Jurnal Mengajar</h3>
@@ -330,7 +337,7 @@
                     Belum ada riwayat pembelajaran yang tercatat pada filter tahun ajaran, guru, atau kelas yang dipilih.
                 </p>
                 <div class="mt-6">
-                    <a href="{{ route('portal-guru.jurnal-mengajar.create') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs sm:text-sm font-black shadow-lg shadow-indigo-600/25 transition-all">
+                    <a href="{{ route('portal-guru.jurnal-mengajar.create') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white text-xs sm:text-sm font-black shadow-lg shadow-brand-primary/25 transition-all">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
                         <span>Tulis Jurnal Baru Sekarang</span>
                     </a>
@@ -343,4 +350,7 @@
     <div class="mt-6">
         {{ $jurnals->links() }}
     </div>
+
+    <!-- Modal Cetak Laporan (Model Akademik) -->
+    @include('livewire.portal-guru.jurnal-mengajar.modal-cetak')
 </div>

@@ -1,44 +1,44 @@
 <div class="space-y-6 max-w-7xl mx-auto pb-20">
-    <!-- HERO HEADER CARD -->
-    <div class="relative bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-indigo-950/20 overflow-hidden border border-indigo-500/20">
+    <!-- HERO HEADER CARD (Sesuai Tema Sistem) -->
+    <div class="relative bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary border border-brand-primary/30 text-white rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden">
         <!-- Ambient Background Glows -->
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-500/15 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -top-12 -right-12 w-80 h-80 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-80 h-80 bg-brand-secondary/20 rounded-full filter blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
                 <!-- Top Breadcrumb & Badge -->
                 <div class="flex flex-wrap items-center gap-2.5 mb-3">
                     <a href="{{ route('portal-guru.jurnal-mengajar') }}" 
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all shadow-xs">
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold backdrop-blur-md border border-white/25 transition-all shadow-xs">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         <span>Daftar Jurnal</span>
                     </a>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 text-xs font-bold tracking-wide uppercase">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white/15 text-white border border-white/25 text-xs font-bold tracking-wide uppercase backdrop-blur-md">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         Presensi & Jurnal Digital KBM
                     </span>
                     @if($isEdit)
-                        <span class="px-2.5 py-1 rounded-xl bg-amber-500/30 text-amber-200 border border-amber-400/30 text-xs font-bold">
+                        <span class="px-2.5 py-1 rounded-xl bg-amber-400/25 text-amber-100 border border-amber-300/40 text-xs font-bold backdrop-blur-md">
                             Mode Edit
                         </span>
                     @endif
                 </div>
 
-                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white">
                     {{ $isEdit ? 'Perbarui Jurnal Mengajar' : 'Tulis Jurnal Mengajar' }}
                 </h1>
-                <p class="text-indigo-200/90 text-sm sm:text-base mt-1.5 max-w-2xl leading-relaxed">
+                <p class="text-white/80 text-sm sm:text-base mt-1.5 max-w-2xl leading-relaxed font-medium">
                     Dokumentasi agenda pembelajaran, kalkulasi JP otomatis, dan sinkronisasi langsung dengan kehadiran gerbang sekolah.
                 </p>
             </div>
 
             <!-- Quick Status Badge -->
             <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
-                <div class="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-xs">
-                    <span class="text-indigo-200 block font-medium">Tahun Ajaran Aktif</span>
+                <div class="px-4 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 text-xs">
+                    <span class="text-white/80 block font-medium">Tahun Ajaran Aktif</span>
                     <span class="text-white font-extrabold text-sm flex items-center gap-1.5 mt-0.5">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <svg class="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         {{ \App\Models\TahunAjaran::find($academic_year_id)?->name ?? 'Tahun Aktif' }}
                     </span>
                 </div>
@@ -64,7 +64,7 @@
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-6 sm:p-8 transition-all hover:shadow-md">
             <!-- Header Langkah -->
             <div class="flex items-center gap-3.5 border-b border-slate-100 pb-4 mb-6">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-black text-sm shadow-md shadow-indigo-500/25 shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary text-white flex items-center justify-center font-black text-sm shadow-md shadow-brand-primary/25 shrink-0">
                     01
                 </div>
                 <div>
@@ -87,7 +87,7 @@
                     </label>
                     <div class="relative">
                         <input type="text" value="{{ $teacher_name }}" readonly 
-                               class="w-full px-3.5 py-2.5 pl-9 rounded-2xl border border-slate-200 bg-slate-100/70 text-slate-700 text-sm font-bold cursor-not-allowed shadow-inner">
+                                class="w-full px-3.5 py-2.5 pl-9 rounded-2xl border border-slate-200 bg-slate-100/70 text-slate-700 text-sm font-bold cursor-not-allowed shadow-inner">
                         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     </div>
                 </div>
@@ -95,40 +95,22 @@
                 <!-- Tanggal Pelaksanaan KBM -->
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         <span>Tanggal KBM <span class="text-rose-500">*</span></span>
                     </label>
                     <input type="date" wire:model.live="tanggal" 
-                           class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-xs hover:border-slate-400">
+                           class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all shadow-xs hover:border-slate-400">
                     @error('tanggal') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                 </div>
 
-                <!-- Kelas Rombel -->
+                <!-- Mata Pelajaran (Dipilih Dulu) -->
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                        <span>Kelas Rombel <span class="text-rose-500">*</span></span>
-                    </label>
-                    <div class="relative">
-                        <select wire:model.live="class_id" 
-                                class="w-full px-3.5 py-2.5 pr-8 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-xs hover:border-slate-400 cursor-pointer">
-                            <option value="">-- Pilih Kelas Rombel --</option>
-                            @foreach($availableClasses as $kelas)
-                                <option value="{{ $kelas->id }}">{{ $kelas->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @error('class_id') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
-                </div>
-
-                <!-- Mata Pelajaran -->
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                        <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                         <span>Mata Pelajaran <span class="text-rose-500">*</span></span>
                     </label>
                     @if($singleMapel && count($availableMapels) === 1)
-                        <div class="px-3.5 py-2 rounded-2xl border border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-950 text-sm font-bold flex items-center justify-between shadow-xs">
+                        <div class="px-3.5 py-2.5 rounded-2xl border border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-950 text-sm font-bold flex items-center justify-between shadow-xs">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                 <span>{{ $availableMapels[0]->nama_mapel }}</span>
@@ -139,7 +121,7 @@
                         </div>
                     @else
                         <select wire:model.live="mata_pelajaran_id" 
-                                class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all shadow-xs hover:border-slate-400 cursor-pointer">
+                                class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all shadow-xs hover:border-slate-400 cursor-pointer">
                             <option value="">-- Pilih Mata Pelajaran --</option>
                             @foreach($availableMapels as $m)
                                 <option value="{{ $m->id }}">{{ $m->nama_mapel }}</option>
@@ -148,10 +130,35 @@
                     @endif
                     @error('mata_pelajaran_id') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                 </div>
+
+                <!-- Kelas Rombel (Baru aktif setelah Mapel dipilih) -->
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        <span>Kelas Rombel <span class="text-rose-500">*</span></span>
+                    </label>
+                    <div class="relative">
+                        @if(!$mata_pelajaran_id)
+                            <select disabled 
+                                    class="w-full px-3.5 py-2.5 pr-8 rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-sm font-semibold cursor-not-allowed shadow-inner opacity-75">
+                                <option value="">-- Pilih Mapel Terlebih Dahulu --</option>
+                            </select>
+                        @else
+                            <select wire:model.live="class_id" 
+                                    class="w-full px-3.5 py-2.5 pr-8 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all shadow-xs hover:border-slate-400 cursor-pointer animate-fade-in">
+                                <option value="">-- Pilih Kelas Rombel --</option>
+                                @foreach($availableClasses as $kelas)
+                                    <option value="{{ $kelas->id }}">{{ $kelas->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+                    @error('class_id') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
+                </div>
             </div>
 
             <!-- INTERACTIVE TIME SLOT & SMART JP CALCULATOR STRIP -->
-            <div class="mt-6 pt-5 border-t border-slate-100 bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-50 rounded-2xl p-5 border border-indigo-100/60">
+            <div class="mt-6 pt-5 border-t border-slate-100 bg-gradient-to-br from-slate-50 via-brand-primary/5 to-slate-50 rounded-2xl p-5 border border-brand-primary/20">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                     <!-- Jam Mulai -->
                     <div class="md:col-span-3">
@@ -161,12 +168,12 @@
                         </label>
                         <div class="flex items-center gap-2">
                             <input type="number" min="1" max="15" wire:model.live="jam_mulai" 
-                                   class="w-20 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-base font-black text-center outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs">
+                                   class="w-20 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-base font-black text-center outline-none focus:ring-2 focus:ring-brand-primary/20 shadow-xs">
                             <!-- Quick Chips Jam Mulai -->
                             <div class="flex flex-wrap gap-1">
                                 @foreach([1, 3, 5, 7] as $jamOpt)
                                     <button type="button" wire:click="setJamMulai({{ $jamOpt }})" 
-                                            class="px-2 py-1 rounded-lg text-xs font-bold transition-all {{ $jam_mulai === $jamOpt ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+                                            class="px-2 py-1 rounded-lg text-xs font-bold transition-all {{ $jam_mulai === $jamOpt ? 'bg-brand-primary text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
                                         {{ $jamOpt }}
                                     </button>
                                 @endforeach
@@ -183,27 +190,27 @@
                         <div class="flex items-center gap-1.5">
                             @foreach([1, 2, 3, 4] as $jpOpt)
                                 <button type="button" wire:click="setDurasi({{ $jpOpt }})" 
-                                        class="flex-1 py-2 px-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1 {{ $durasi_jp === $jpOpt ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/25 scale-[1.03]' : 'bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200' }}">
+                                        class="flex-1 py-2 px-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1 {{ $durasi_jp === $jpOpt ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/25 scale-[1.03]' : 'bg-white text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary border border-slate-200' }}">
                                     <span>{{ $jpOpt }} JP</span>
                                 </button>
                             @endforeach
                             <input type="number" min="1" max="10" wire:model.live="durasi_jp" title="Kustom JP"
-                                   class="w-14 px-2 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs font-black text-center outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs">
+                                   class="w-14 px-2 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs font-black text-center outline-none focus:ring-2 focus:ring-brand-primary/20 shadow-xs">
                         </div>
                     </div>
 
                     <!-- Dynamic Live Output Widget -->
                     <div class="md:col-span-5">
-                        <label class="block text-xs font-extrabold text-indigo-900 mb-1.5">Hasil Kalkulasi Waktu KBM</label>
-                        <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 text-white rounded-2xl p-3.5 sm:p-4 shadow-lg shadow-indigo-600/25 flex items-center justify-between gap-3">
+                        <label class="block text-xs font-extrabold text-brand-primary mb-1.5">Hasil Kalkulasi Waktu KBM</label>
+                        <div class="bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary text-white rounded-2xl p-3.5 sm:p-4 shadow-lg shadow-brand-primary/25 flex items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
-                                    <svg class="w-5 h-5 text-indigo-100 animate-spin" style="animation-duration: 15s;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30">
+                                    <svg class="w-5 h-5 text-white animate-spin" style="animation-duration: 15s;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="text-[11px] font-semibold text-indigo-200 uppercase tracking-wider block">Rentang KBM Terjadwal</span>
+                                    <span class="text-[11px] font-semibold text-white/80 uppercase tracking-wider block">Rentang KBM Terjadwal</span>
                                     <h3 class="text-base sm:text-lg font-black tracking-tight leading-none text-white mt-0.5">
                                         {{ $jam_ke_label }}
                                     </h3>
@@ -222,7 +229,7 @@
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-6 sm:p-8 transition-all hover:shadow-md">
             <!-- Header Langkah -->
             <div class="flex items-center gap-3.5 border-b border-slate-100 pb-4 mb-6">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-purple-500/25 shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-secondary to-brand-primary text-white flex items-center justify-center font-black text-sm shadow-md shadow-brand-secondary/25 shrink-0">
                     02
                 </div>
                 <div>
@@ -240,13 +247,13 @@
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center justify-between">
                         <span class="flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                            <svg class="w-3.5 h-3.5 text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
                             <span>Materi Pokok / Bab / Topik Pembelajaran <span class="text-rose-500">*</span></span>
                         </span>
                         <span class="text-[11px] font-medium text-slate-400">Wajib diisi</span>
                     </label>
                     <input type="text" wire:model="materi" placeholder="Contoh: Bab 3 - Persamaan Linier Dua Variabel (SPLDV)" 
-                           class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 transition-all shadow-xs hover:border-slate-400">
+                           class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-xs hover:border-slate-400">
                     @error('materi') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                 </div>
 
@@ -254,14 +261,14 @@
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center justify-between">
                         <span class="flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                            <svg class="w-3.5 h-3.5 text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                             <span>Uraian Aktivitas KBM & Penugasan <span class="text-rose-500">*</span></span>
                         </span>
                         <span class="text-[11px] font-medium text-slate-400">Minimal 5 karakter</span>
                     </label>
                     <textarea rows="3" wire:model="uraian_materi" 
                               placeholder="Deskripsikan secara ringkas kegiatan pembelajaran: apersepsi, penyampaian materi, diskusi kelompok, praktikum, latihan soal, atau evaluasi harian..." 
-                              class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-normal outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 transition-all shadow-xs hover:border-slate-400 leading-relaxed"></textarea>
+                              class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-normal outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-xs hover:border-slate-400 leading-relaxed"></textarea>
                     @error('uraian_materi') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                 </div>
 
@@ -334,8 +341,8 @@
 
             @if(empty($studentList))
                 <!-- Empty State -->
-                <div class="p-10 text-center bg-gradient-to-br from-slate-50 via-indigo-50/15 to-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-inner">
+                <div class="p-10 text-center bg-gradient-to-br from-slate-50 via-brand-primary/5 to-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shadow-inner">
                         <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
                     <h3 class="text-sm sm:text-base font-extrabold text-slate-800">Daftar Siswa Belum Dimuat</h3>
@@ -367,7 +374,7 @@
                                     <!-- Nama & NISN Siswa -->
                                     <td class="px-4 py-3.5 whitespace-nowrap">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/10 to-indigo-700/20 text-indigo-700 font-black text-xs flex items-center justify-center shrink-0 border border-indigo-200/50">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-primary/10 to-brand-secondary/20 text-brand-primary font-black text-xs flex items-center justify-center shrink-0 border border-brand-primary/20">
                                                 {{ strtoupper(substr($item['name'], 0, 2)) }}
                                             </div>
                                             <div>
@@ -466,7 +473,7 @@
                                         @else
                                             <input type="text" wire:model="studentList.{{ $studentId }}.keterangan" 
                                                    placeholder="Catatan opsional..." 
-                                                   class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/70 text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium hover:border-slate-300 transition-all">
+                                                   class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/70 text-slate-800 outline-none focus:ring-2 focus:ring-brand-primary/20 font-medium hover:border-slate-300 transition-all">
                                         @endif
                                     </td>
                                 </tr>
@@ -492,7 +499,7 @@
 
                 <button type="submit" 
                         wire:loading.attr="disabled"
-                        class="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-brand-primary text-white text-sm font-black shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer">
+                        class="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary text-white text-sm font-black shadow-lg shadow-brand-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer">
                     <span wire:loading.remove class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         <span>{{ $isEdit ? 'Simpan Perubahan Jurnal' : 'Simpan Jurnal Mengajar' }}</span>

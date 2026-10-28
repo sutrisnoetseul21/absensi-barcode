@@ -113,7 +113,7 @@ class JurnalMengajarForm extends Component
             $this->teacher_name = $guru?->name ?? $user->name;
 
             $this->calculateJamSelesai();
-            $this->loadAvailableClasses();
+            $this->loadAvailableMapels();
         }
     }
 
@@ -140,21 +140,61 @@ class JurnalMengajarForm extends Component
         $this->calculateJamSelesai();
     }
 
-    public function loadAvailableClasses(): void
+    public function loadAvailableMapels(): void
     {
         if (!$this->teacher_id || !$this->academic_year_id) {
-            $this->availableClasses = [];
+            $this->availableMapels = [];
+            $this->mata_pelajaran_id = null;
+            $this->singleMapel = false;
             return;
         }
 
         $pengajarans = Pengajaran::where('teacher_id', $this->teacher_id)
+            ->whereHas('kelasAjaran', fn($q) => $q->where('academic_year_id', $this->academic_year_id))
+            ->with('mataPelajaran')
+            ->get();
+
+        $this->availableMapels = $pengajarans->pluck('mataPelajaran')->unique('id')->filter()->values();
+
+        // Jika guru hanya mengajar 1 mapel, otomatis pilih dan kunci
+        if ($this->availableMapels->count() === 1) {
+            $this->mata_pelajaran_id = $this->availableMapels->first()->id;
+            $this->singleMapel = true;
+            $this->loadAvailableClasses();
+        } else {
+            $this->singleMapel = false;
+            if ($this->mata_pelajaran_id) {
+                $this->loadAvailableClasses();
+            } else {
+                $this->availableClasses = [];
+            }
+        }
+    }
+
+    public function updatedMataPelajaranId(): void
+    {
+        $this->class_id = null;
+        $this->studentList = [];
+        $this->loadAvailableClasses();
+    }
+
+    public function loadAvailableClasses(): void
+    {
+        if (!$this->teacher_id || !$this->academic_year_id || !$this->mata_pelajaran_id) {
+            $this->availableClasses = [];
+            $this->class_id = null;
+            return;
+        }
+
+        $pengajarans = Pengajaran::where('teacher_id', $this->teacher_id)
+            ->where('mata_pelajaran_id', $this->mata_pelajaran_id)
             ->whereHas('kelasAjaran', fn($q) => $q->where('academic_year_id', $this->academic_year_id))
             ->with('kelasAjaran.kelas')
             ->get();
 
         $this->availableClasses = $pengajarans->pluck('kelasAjaran.kelas')->unique('id')->filter()->values();
 
-        // Jika hanya 1 kelas, langsung pilih
+        // Jika hanya 1 kelas untuk mapel ini, langsung pilih
         if ($this->availableClasses->count() === 1 && empty($this->class_id)) {
             $this->class_id = $this->availableClasses->first()->id;
             $this->updatedClassId();
@@ -163,36 +203,7 @@ class JurnalMengajarForm extends Component
 
     public function updatedClassId(): void
     {
-        $this->loadAvailableMapels();
         $this->loadStudentsAndGateAttendance();
-    }
-
-    public function loadAvailableMapels(): void
-    {
-        if (!$this->teacher_id || !$this->class_id || !$this->academic_year_id) {
-            $this->availableMapels = [];
-            $this->mata_pelajaran_id = null;
-            $this->singleMapel = false;
-            return;
-        }
-
-        $pengajarans = Pengajaran::where('teacher_id', $this->teacher_id)
-            ->whereHas('kelasAjaran', function ($q) {
-                $q->where('class_id', $this->class_id)
-                  ->where('academic_year_id', $this->academic_year_id);
-            })
-            ->with('mataPelajaran')
-            ->get();
-
-        $this->availableMapels = $pengajarans->pluck('mataPelajaran')->unique('id')->filter()->values();
-
-        // Jika guru hanya mengajar 1 mapel di kelas ini, otomatis pilih dan kunci
-        if ($this->availableMapels->count() === 1) {
-            $this->mata_pelajaran_id = $this->availableMapels->first()->id;
-            $this->singleMapel = true;
-        } else {
-            $this->singleMapel = false;
-        }
     }
 
     public function updatedTanggal(): void

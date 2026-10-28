@@ -122,7 +122,7 @@
     <!-- Judul Dokumen -->
     <div class="title-section">
         <h3>JURNAL AGENDA PEMBELAJARAN GURU</h3>
-        <p>Tahun Ajaran: {{ $tahunAjaran?->name ?? '-' }} | Periode: {{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : 'Awal' }} s.d. {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : 'Sekarang' }}</p>
+        <p>Tahun Ajaran: {{ $tahunAjaran?->name ?? '-' }} | Periode: {{ $periodeLabel ?? ($dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') . ' s.d. ' . \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : 'Semua Periode') }}</p>
     </div>
 
     <!-- Metadata Pengampu -->
