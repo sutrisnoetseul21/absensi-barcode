@@ -41,9 +41,26 @@ Wassalamu'alaikum Wr. Wb.
 
 ---
 
+## 3. Hierarki Saklar Notifikasi (Master Switch & Scheduler)
+
+Sistem menerapkan hierarki kontrol dua lapis untuk menjaga kontrol admin atas lalu lintas pesan WhatsApp:
+
+1. **Toggle 1: `Aktifkan Fitur Notifikasi` (`is_active` - Master Switch)**:
+   - Berfungsi sebagai saklar utama di seluruh ekosistem aplikasi.
+   - **Jika OFF**:
+     - Tombol cepat `[WA Ortu]` / `[Kirim WA]` di `/portal-guru/akademik`, `/portal-presensi`, dan `/portal-guru/sholat-dhuhur` **otomatis disembunyikan**.
+     - Guru maupun staf presensi tidak dapat mengirim pesan personal ke nomor orang tua siswa.
+     - Background scheduler otomatis juga otomatis tidak akan mengeksekusi pengiriman.
+   - **Jika ON**:
+     - Tombol cepat `[WA Ortu]` aktif dan dapat digunakan guru/wali kelas untuk mengirim pesan secara personal.
+
+2. **Toggle 2: `Kirim Otomatis Notifikasi` (`is_auto_send` - Scheduler Switch)**:
+   - Khusus mengatur apakah **background scheduler/cron job** mengirim broadcast otomatis massal saat jam cut-off tercapai.
+   - Jika Toggle 1 **ON** tetapi Toggle 2 **OFF**, robot scheduler **TIDAK** akan mengirim pesan massal otomatis, namun guru/wali kelas **tetap dapat mengirim pesan secara manual per siswa** melalui tombol di tabel.
+
 ---
 
-## 3. Otomatisasi Background Scheduler (Auto-Send)
+## 4. Otomatisasi Background Scheduler (Auto-Send)
 
 Pemberitahuan siswa belum hadir dan belum sholat dhuhur berjalan otomatis melalui Laravel Scheduler:
 
@@ -67,7 +84,7 @@ Pemberitahuan siswa belum hadir dan belum sholat dhuhur berjalan otomatis melalu
 
 ---
 
-## 4. Proteksi Kuota Broadcast Manual (*Rate Limiting*)
+## 5. Proteksi Kuota Broadcast Manual (*Rate Limiting*)
 
 Untuk mencegah nomor WhatsApp sekolah diblokir atau di-banned oleh pihak WhatsApp karena terindikasi spam:
 - **Batas Maksimal**: Maksimal **5 kali broadcast manual** per hari untuk notifikasi belum hadir (`manual_send_count < 5`) maupun notifikasi sholat dhuhur (`sholat_dhuhur_manual_send_count < 5`).

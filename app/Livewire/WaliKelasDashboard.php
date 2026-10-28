@@ -608,6 +608,15 @@ class WaliKelasDashboard extends Component
 
     public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'belum'): void
     {
+        $notifSetting = PresensiNotificationSetting::where('status_presensi', $type)->first();
+        if ($notifSetting && !$notifSetting->is_active) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Fitur notifikasi WhatsApp untuk kategori ini dinonaktifkan oleh Administrator.',
+            ]);
+            return;
+        }
+
         $kalenderService = app(\App\Services\KalenderSekolahService::class);
         if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'), $this->selectedClassId)) {
             $this->dispatch('notify', [
@@ -659,6 +668,12 @@ class WaliKelasDashboard extends Component
 
     public function render()
     {
-        return view('livewire.wali-kelas-dashboard');
+        $isNotifBelumActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'belum')->value('is_active') ?? false);
+        $isNotifTelatActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'telat')->value('is_active') ?? false);
+
+        return view('livewire.wali-kelas-dashboard', [
+            'isNotifBelumActive' => $isNotifBelumActive,
+            'isNotifTelatActive' => $isNotifTelatActive,
+        ]);
     }
 }

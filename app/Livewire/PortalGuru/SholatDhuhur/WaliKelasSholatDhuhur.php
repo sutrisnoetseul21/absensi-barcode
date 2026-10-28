@@ -787,6 +787,15 @@ class WaliKelasSholatDhuhur extends Component
 
     public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'sholat_dhuhur'): void
     {
+        $notifSetting = PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+        if ($notifSetting && !$notifSetting->is_active) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Fitur notifikasi WhatsApp Sholat Dhuhur sedang dinonaktifkan oleh Administrator.',
+            ]);
+            return;
+        }
+
         $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
         if (empty($cleanPhone)) {
             $this->dispatch('notify', [
@@ -829,6 +838,10 @@ class WaliKelasSholatDhuhur extends Component
 
     public function render()
     {
-        return view('livewire.portal-guru.sholat-dhuhur.wali-kelas-sholat-dhuhur');
+        $isNotifSholatActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->value('is_active') ?? false);
+
+        return view('livewire.portal-guru.sholat-dhuhur.wali-kelas-sholat-dhuhur', [
+            'isNotifSholatActive' => $isNotifSholatActive,
+        ]);
     }
 }
