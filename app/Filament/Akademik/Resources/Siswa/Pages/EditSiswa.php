@@ -3,6 +3,7 @@
 namespace App\Filament\Akademik\Resources\Siswa\Pages;
 
 use App\Filament\Akademik\Resources\Siswa\SiswaResource;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -55,19 +56,42 @@ class EditSiswa extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $userData = [];
+        if (!empty($data['name'])) {
+            $userData['name'] = $data['name'];
+        }
         if (!empty($data['email'])) {
             $userData['email'] = $data['email'];
         }
         if (!empty($data['password'])) {
-            // Note: SiswaForm already hashes password in dehydrateStateUsing? No, we removed it in previous step!
-            // Wait, we removed dehydrateStateUsing in SiswaForm? Let's check what we did.
-            // Yes, we removed dehydrateStateUsing.
             $userData['password'] = $data['password'];
             $userData['must_change_password'] = false;
         }
 
-        if (!empty($userData)) {
-            $this->record->user->update($userData);
+        if ($this->record->user) {
+            if (!empty($userData)) {
+                $this->record->user->update($userData);
+            }
+        } else {
+            // Jika siswa belum memiliki akun User, buatkan atau tautkan akun
+            $email = $userData['email'] ?? ($data['email'] ?? ($this->record->nisn ? $this->record->nisn . '@' . config('school.email_domain') : 'siswa_' . $this->record->id . '@' . config('school.email_domain')));
+            $password = $userData['password'] ?? ($this->record->nisn ?: 'password');
+
+            $user = User::where('email', $email)->first();
+            if ($user) {
+                $user->update(array_merge($userData, [
+                    'name' => $data['name'] ?? $this->record->name,
+                ]));
+            } else {
+                $user = User::create([
+                    'name'                 => $data['name'] ?? $this->record->name,
+                    'email'                => $email,
+                    'password'             => $password,
+                    'must_change_password' => false,
+                ]);
+                $user->assignRole('siswa');
+            }
+
+            $data['user_id'] = $user->id;
         }
 
         unset($data['email'], $data['password']);

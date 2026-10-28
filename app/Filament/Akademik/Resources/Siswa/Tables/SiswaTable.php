@@ -291,10 +291,30 @@ class SiswaTable
                     ->modalHeading('Reset Password Siswa')
                     ->modalSubmitActionLabel('Ganti Password')
                     ->action(function (Siswa $record, array $data): void {
-                        $record->user->update([
-                            'password'             => $data['password'],
-                            'must_change_password' => false,
-                        ]);
+                        if ($record->user) {
+                            $record->user->update([
+                                'password'             => $data['password'],
+                                'must_change_password' => false,
+                            ]);
+                        } else {
+                            $email = $record->nisn ? $record->nisn . '@' . config('school.email_domain') : 'siswa_' . $record->id . '@' . config('school.email_domain');
+                            $user = \App\Models\User::where('email', $email)->first();
+                            if ($user) {
+                                $user->update([
+                                    'password'             => $data['password'],
+                                    'must_change_password' => false,
+                                ]);
+                            } else {
+                                $user = \App\Models\User::create([
+                                    'name'                 => $record->name,
+                                    'email'                => $email,
+                                    'password'             => $data['password'],
+                                    'must_change_password' => false,
+                                ]);
+                                $user->assignRole('siswa');
+                            }
+                            $record->update(['user_id' => $user->id]);
+                        }
 
                         Notification::make()
                             ->title('Password berhasil diubah')
