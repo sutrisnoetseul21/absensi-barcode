@@ -52,6 +52,12 @@ docs/
 ├── 06-template/                        # Standarisasi & templat kerja
 │   ├── template-adr.md                 # Format dokumentasi keputusan teknis baru
 │   └── template-fitur-baru.md          # Format Product Requirements Document (PRD)
+├── 07-aplikasi-mobile/                 # 📱 Perencanaan Aplikasi Mobile Flutter (Portal Siswa & Guru)
+│   ├── README.md                       # Peta umum arsitektur & integrasi mobile
+│   ├── 01-arsitektur-dan-tech-stack-mobile.md # Tech stack Flutter & state management
+│   ├── 02-cakupan-menu-dan-spesifikasi-fitur.md # Fitur terpilih Portal Siswa & Guru
+│   ├── 03-desain-rest-api-laravel-sanctum.md # Desain endpoint REST API & Sanctum
+│   └── 04-roadmap-dan-tahapan-implementasi.md # Roadmap bertahap dari API ke APK
 └── data_lama/                          # Arsip catatan historis sebelumnya
 ```
 
@@ -68,6 +74,7 @@ docs/
 | [`04-operasional`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/04-operasional/README.md) | Petunjuk pemeliharaan server produksi, konfigurasi crontab scheduler, prosedur backup, dan tanggap insiden. |
 | [`05-keputusan`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/05-keputusan) | Kumpulan **Architecture Decision Records (ADR)** yang mendokumentasikan alasan di balik setiap keputusan teknis penting. |
 | [`06-template`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/06-template) | Cetak biru (*boilerplate template*) untuk penulisan PRD fitur baru dan pembuatan catatan ADR baru. |
+| [`07-aplikasi-mobile`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/07-aplikasi-mobile/README.md) | Perencanaan arsitektur aplikasi mobile berbasis **Flutter**, spesifikasi endpoint REST API Laravel Sanctum, dan cakupan menu terpilih (Portal Siswa & Portal Guru). |
 | [`data_lama`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/data_lama) | Arsip catatan fase pengembangan awal yang tetap dipertahankan untuk referensi historis. |
 
 ---
