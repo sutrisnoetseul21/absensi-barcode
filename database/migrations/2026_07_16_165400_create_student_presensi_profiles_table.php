@@ -26,12 +26,26 @@ return new class extends Migration
         });
 
         // Copy data from students to student_presensi_profiles
-        DB::statement('
-            INSERT INTO student_presensi_profiles (id, student_id, barcode_code, barcode_active, created_at, updated_at)
-            SELECT UUID(), id, barcode_code, barcode_active, NOW(), NOW()
-            FROM students
-            WHERE barcode_code IS NOT NULL
-        ');
+        if (DB::getDriverName() === 'sqlite') {
+            $students = DB::table('students')->whereNotNull('barcode_code')->get();
+            foreach ($students as $student) {
+                DB::table('student_presensi_profiles')->insert([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'student_id' => $student->id,
+                    'barcode_code' => $student->barcode_code,
+                    'barcode_active' => $student->barcode_active ?? 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } else {
+            DB::statement('
+                INSERT INTO student_presensi_profiles (id, student_id, barcode_code, barcode_active, created_at, updated_at)
+                SELECT UUID(), id, barcode_code, barcode_active, NOW(), NOW()
+                FROM students
+                WHERE barcode_code IS NOT NULL
+            ');
+        }
     }
 
     /**

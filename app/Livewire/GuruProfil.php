@@ -132,8 +132,12 @@ class GuruProfil extends Component
             Storage::disk('public')->delete($this->teacher->photo_path);
         }
 
-        // Store new photo
-        $filename = 'guru_' . $this->teacher->id . '_' . time() . '.' . $this->photo->getClientOriginalExtension();
+        // Store new photo with safe, verified extension
+        $ext = strtolower($this->photo->guessExtension() ?: $this->photo->extension() ?: 'jpg');
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            $ext = 'jpg';
+        }
+        $filename = 'guru_' . $this->teacher->id . '_' . time() . '.' . $ext;
         $path = $this->photo->storeAs('guru-photos', $filename, 'public');
 
         $this->teacher->update([

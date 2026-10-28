@@ -91,6 +91,11 @@ class ManajemenAksesPortalResource extends Resource
                             ->label('Akses Semua Kelas (Bypass Mode)')
                             ->helperText('Hanya aktifkan jika guru ini diberi hak khusus untuk memantau presensi seluruh kelas di sekolah.')
                             ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
+
+                        Toggle::make('supervisi_jurnal_guru')
+                            ->label('Supervisi Jurnal Mengajar (Akses Seluruh Guru)')
+                            ->helperText('Aktifkan jika pengguna ini (misal Kepala Sekolah / Waka Kurikulum) berwenang memantau, memeriksa riwayat KBM, dan mencetak rekap jurnal seluruh guru.')
+                            ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
                     ])->columns(1),
 
                 Section::make('Akses Kelas Binaan BK (Khusus Guru BK)')
@@ -160,20 +165,26 @@ class ManajemenAksesPortalResource extends Resource
                     ->label('Akses Portal Guru')
                     ->badge()
                     ->state(function (User $record): string {
-                        if ($record->hasPermissionTo('portal_guru:akses_semua_kelas')) {
-                            return 'Bypass Semua Kelas';
+                        $labels = [];
+                        if ($record->can('portal_guru:akses_semua_kelas')) {
+                            $labels[] = 'Bypass Semua Kelas';
+                        }
+                        if ($record->can('portal_guru:supervisi_jurnal')) {
+                            $labels[] = 'Supervisi Jurnal';
                         }
                         if ($record->hasRole('wali_kelas')) {
                             $activeYear = TahunAjaran::where('status', 'aktif')->first();
                             if ($record->teacher && $activeYear) {
                                 $count = $record->teacher->kelasAjarans()->where('academic_year_id', $activeYear->id)->count();
-                                return "Wali Kelas ({$count} Kelas)";
+                                $labels[] = "Wali Kelas ({$count} Kelas)";
+                            } else {
+                                $labels[] = 'Wali Kelas';
                             }
-                            return 'Wali Kelas';
                         }
-                        return 'Tidak Aktif';
+                        return empty($labels) ? 'Tidak Aktif' : implode(', ', $labels);
                     })
                     ->color(fn (string $state): string => match (true) {
+                        str_contains($state, 'Supervisi') => 'warning',
                         str_contains($state, 'Bypass') => 'success',
                         str_contains($state, 'Wali Kelas') => 'info',
                         default => 'gray',

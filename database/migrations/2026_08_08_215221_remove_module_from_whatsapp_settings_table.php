@@ -12,6 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('whatsapp_settings', function (Blueprint $table) {
+            try {
+                $table->dropUnique(['module']);
+            } catch (\Throwable $e) {}
             $table->dropColumn('module');
         });
     }

@@ -18,6 +18,16 @@ class MataPelajaran extends Model
         'kkm_default' => 'decimal:2',
     ];
 
+    public function getNamaAttribute(): ?string
+    {
+        return $this->nama_mapel;
+    }
+
+    public function getKodeAttribute(): ?string
+    {
+        return $this->kode_mapel;
+    }
+
     public function pengajarans(): HasMany
     {
         return $this->hasMany(Pengajaran::class, 'mata_pelajaran_id');

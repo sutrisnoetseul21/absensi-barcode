@@ -817,8 +817,10 @@ class DataSiswaList extends Component
                         $imageManager = new ImageManager(new Driver());
                         $image = $imageManager->decode($this->editDataPhoto->getRealPath());
                         $image->scaleDown(width: 500, height: 500);
-
-                        $ext = strtolower($this->editDataPhoto->getClientOriginalExtension());
+                        $ext = strtolower($this->editDataPhoto->guessExtension() ?: $this->editDataPhoto->extension() ?: 'jpg');
+                        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                            $ext = 'jpg';
+                        }
                         $newFilename = Str::random(24) . '.' . $ext;
                         $destDir = storage_path('app/public/siswa-photos');
                         if (!file_exists($destDir)) {

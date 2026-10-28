@@ -22,7 +22,8 @@ class EditManajemenAksesPortal extends EditRecord
         $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
         $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
         $data['akses_portal_web'] = $user->hasRole('admin_portal_web');
-        $data['bypass_semua_kelas'] = $user->hasPermissionTo('portal_guru:akses_semua_kelas');
+        $data['bypass_semua_kelas'] = $user->can('portal_guru:akses_semua_kelas');
+        $data['supervisi_jurnal_guru'] = $user->can('portal_guru:supervisi_jurnal');
 
         $pantauClassIds = [];
         if ($user->teacher && $activeYearId) {
@@ -57,10 +58,24 @@ class EditManajemenAksesPortal extends EditRecord
 
         // Bypass Semua Kelas
         $bypassSemua = !empty($formData['bypass_semua_kelas']);
-        if ($hasAksesGuru && $bypassSemua) {
+        if ($bypassSemua) {
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'portal_guru:akses_semua_kelas', 'guard_name' => 'web']);
             $user->givePermissionTo('portal_guru:akses_semua_kelas');
         } else {
-            $user->revokePermissionTo('portal_guru:akses_semua_kelas');
+            if ($user->can('portal_guru:akses_semua_kelas')) {
+                $user->revokePermissionTo('portal_guru:akses_semua_kelas');
+            }
+        }
+
+        // Supervisi Jurnal Guru (Akses Semua Guru & Mapel)
+        $supervisiJurnal = !empty($formData['supervisi_jurnal_guru']);
+        if ($supervisiJurnal) {
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'portal_guru:supervisi_jurnal', 'guard_name' => 'web']);
+            $user->givePermissionTo('portal_guru:supervisi_jurnal');
+        } else {
+            if ($user->can('portal_guru:supervisi_jurnal')) {
+                $user->revokePermissionTo('portal_guru:supervisi_jurnal');
+            }
         }
 
         // Sync kelas binaan BK (jika user adalah Guru BK)

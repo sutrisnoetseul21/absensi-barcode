@@ -26,4 +26,9 @@ Thumbs.db
 
 *.zip
 *.sql
+*.sql.gz
+*.tar.gz
+*.tgz
+*.gz
+docs/**/*.pdf
 docs/*.pdf

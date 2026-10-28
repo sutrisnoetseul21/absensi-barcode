@@ -27,6 +27,11 @@ class EnrollmentSiswa extends Model
         return $this->belongsTo(Siswa::class, 'student_id');
     }
 
+    public function student(): BelongsTo
+    {
+        return $this->siswa();
+    }
+
     // Kelas yang diambil
     public function kelas(): BelongsTo
     {

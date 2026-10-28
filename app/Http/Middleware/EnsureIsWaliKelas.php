@@ -22,8 +22,8 @@ class EnsureIsWaliKelas
 
         $user = Auth::user();
 
-        // Izinkan super_admin dan admin_presensi untuk bypass pengecekan guru
-        if (!$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
+        // Izinkan super_admin, admin_presensi, dan pemegang izin supervisi/bypass untuk mengakses portal guru
+        if (!$user->hasAnyRole(['super_admin', 'admin_presensi']) && !$user->can('portal_guru:supervisi_jurnal') && !$user->can('portal_guru:akses_semua_kelas')) {
             if (!$user->hasRole('wali_kelas') || $user->teacher === null) {
                 // Jika user adalah siswa, arahkan ke dashboard siswa
                 if ($user->hasRole('siswa')) {

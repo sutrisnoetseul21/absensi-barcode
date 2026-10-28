@@ -9,6 +9,14 @@
 
     RewriteEngine On
 
+    # SECURITY: Anti-Webshell (php2shell) - Block execution of PHP & script files inside storage and upload directories
+    RewriteCond %{REQUEST_URI} ^/storage/.*\.(php|phar|phtml|php[0-9]?|inc|cgi|pl|sh)$ [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/uploads/.*\.(php|phar|phtml|php[0-9]?|inc|cgi|pl|sh)$ [NC]
+    RewriteRule .* - [F,L]
+
+    # SECURITY: Block access to hidden files and directories (.env, .git, etc.)
+    RewriteRule (^\.|/\.) - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

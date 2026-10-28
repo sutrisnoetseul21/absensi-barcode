@@ -44,6 +44,10 @@ class GuruMainDashboard extends Component
     public $hasWebAccess = false;
     public $isSuperAdmin = false;
 
+    // Jurnal Mengajar Metrics
+    public $jurnalHariIniCount = 0;
+    public $totalJurnalCount = 0;
+
     public function mount()
     {
         $user = Auth::user();
@@ -163,6 +167,14 @@ class GuruMainDashboard extends Component
                 $this->approvedLeaveRequestsCount = 0;
                 $this->rejectedLeaveRequestsCount = 0;
             }
+        }
+
+        if ($this->teacher) {
+            $this->jurnalHariIniCount = \App\Models\JurnalPembelajaran::where('teacher_id', $this->teacher->id)
+                ->whereDate('tanggal', today())
+                ->count();
+            $this->totalJurnalCount = \App\Models\JurnalPembelajaran::where('teacher_id', $this->teacher->id)
+                ->count();
         }
     }
 

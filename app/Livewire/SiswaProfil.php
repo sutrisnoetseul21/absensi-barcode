@@ -79,8 +79,12 @@ class SiswaProfil extends Component
             Storage::disk('public')->delete($this->student->photo_path);
         }
 
-        // Store new photo
-        $filename = 'siswa_' . $this->student->id . '_' . time() . '.' . $this->photo->getClientOriginalExtension();
+        // Store new photo with safe, verified extension
+        $ext = strtolower($this->photo->guessExtension() ?: $this->photo->extension() ?: 'jpg');
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            $ext = 'jpg';
+        }
+        $filename = 'siswa_' . $this->student->id . '_' . time() . '.' . $ext;
         $path = $this->photo->storeAs('siswa-photos', $filename, 'public');
 
         $this->student->update([

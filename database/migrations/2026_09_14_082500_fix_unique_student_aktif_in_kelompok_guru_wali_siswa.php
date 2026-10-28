@@ -12,6 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::table('kelompok_guru_wali_siswa', function (Blueprint $table) {
+                if (!Schema::hasColumn('kelompok_guru_wali_siswa', 'active_student_id')) {
+                    $table->string('active_student_id', 36)->nullable();
+                }
+            });
+            return;
+        }
+
         $indexes = collect(DB::select("SHOW INDEX FROM kelompok_guru_wali_siswa"))->pluck('Key_name')->unique()->toArray();
 
         // 1. Buat index baru untuk student_id terlebih dahulu agar foreign key constraint tetap terpenuhi

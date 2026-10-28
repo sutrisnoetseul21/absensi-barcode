@@ -23,7 +23,11 @@ return new class extends Migration
 
         // 2. Isi start_year & end_year dari data yang sudah ada (ambil dari start_date/end_date)
         if (Schema::hasColumn('academic_years', 'start_date')) {
-            DB::statement("UPDATE academic_years SET start_year = YEAR(start_date), end_year = YEAR(end_date) WHERE start_date IS NOT NULL");
+            if (DB::getDriverName() === 'sqlite') {
+                DB::statement("UPDATE academic_years SET start_year = CAST(strftime('%Y', start_date) AS INTEGER), end_year = CAST(strftime('%Y', end_date) AS INTEGER) WHERE start_date IS NOT NULL");
+            } else {
+                DB::statement("UPDATE academic_years SET start_year = YEAR(start_date), end_year = YEAR(end_date) WHERE start_date IS NOT NULL");
+            }
         }
 
         // 3. Jika ada baris dengan start_year masih NULL, isi dengan PHP loop

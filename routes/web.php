@@ -314,6 +314,10 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
     // Route untuk semua Guru (tidak harus Wali Kelas)
     Route::middleware('auth')->group(function () {
         Route::get('/nilai', \App\Livewire\PortalGuru\DaftarNilai::class)->name('portal-guru.nilai');
+        Route::get('/jurnal-mengajar', \App\Livewire\PortalGuru\JurnalMengajar\JurnalMengajarList::class)->name('portal-guru.jurnal-mengajar');
+        Route::get('/jurnal-mengajar/tambah', \App\Livewire\PortalGuru\JurnalMengajar\JurnalMengajarForm::class)->name('portal-guru.jurnal-mengajar.create');
+        Route::get('/jurnal-mengajar/{id}/edit', \App\Livewire\PortalGuru\JurnalMengajar\JurnalMengajarForm::class)->name('portal-guru.jurnal-mengajar.edit');
+        Route::get('/jurnal-mengajar/cetak-pdf', [\App\Http\Controllers\JurnalMengajarCetakController::class, 'cetak'])->name('portal-guru.jurnal-mengajar.cetak');
     });
 
     Route::middleware('auth.wali')->group(function () {

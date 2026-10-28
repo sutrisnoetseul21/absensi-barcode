@@ -34,8 +34,8 @@ class PortalGuruBypassTest extends TestCase
 
         // Setup Academic Year & Classes
         $this->ay = TahunAjaran::create(['name' => '2025/2026', 'start_year' => 2025, 'end_year' => 2026, 'status' => 'aktif']);
-        $this->kelasWali = Kelas::create(['name' => 'Kelas XA']);
-        $this->kelasBukanWali = Kelas::create(['name' => 'Kelas XB']);
+        $this->kelasWali = Kelas::create(['name' => 'Kelas XA', 'grade_level' => 10]);
+        $this->kelasBukanWali = Kelas::create(['name' => 'Kelas XB', 'grade_level' => 10]);
 
         // Guru B (Wali Kelas Biasa, tanpa bypass)
         $this->guruB = User::create(['name' => 'Guru B Test', 'email' => 'gurub@test.com', 'password' => bcrypt('password')]);
@@ -48,8 +48,8 @@ class PortalGuruBypassTest extends TestCase
         $this->guruA->assignRole('wali_kelas');
         $this->guruA->givePermissionTo('portal_guru:akses_semua_kelas');
         $this->profileA = Guru::create(['user_id' => $this->guruA->id, 'name' => 'Profile Guru A', 'nip' => '222', 'nuptk' => '222']);
-        // Guru A is also assigned to Kelas XA, but wants to see XB
-        KelasAjaran::create(['class_id' => $this->kelasWali->id, 'academic_year_id' => $this->ay->id, 'teacher_id' => $this->profileA->id]);
+        // Guru A is assigned to Kelas XB, but bypass allows seeing all classes
+        KelasAjaran::create(['class_id' => $this->kelasBukanWali->id, 'academic_year_id' => $this->ay->id, 'teacher_id' => $this->profileA->id]);
 
         // Guru C (Fail Closed, null teacher profile)
         $this->guruC = User::create(['name' => 'Guru C Test', 'email' => 'guruc@test.com', 'password' => bcrypt('password')]);
@@ -65,8 +65,7 @@ class PortalGuruBypassTest extends TestCase
             'status' => 'aktif'
         ]);
         
-        // Buat kelas ajaran kosong untuk Kelas XB agar aktif di tahun ajaran ini (diperlukan filter bypass)
-        KelasAjaran::create(['class_id' => $this->kelasBukanWali->id, 'academic_year_id' => $this->ay->id, 'teacher_id' => $this->profileB->id]);
+        // KelasAjaran untuk Kelas XB sudah dibuat di baris 52 dengan profileA
     }
 
     public function test_guru_b_cannot_bypass()

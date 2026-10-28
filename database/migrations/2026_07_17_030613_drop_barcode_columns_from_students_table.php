@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('students', function (Blueprint $table) {
+            try {
+                $table->dropUnique(['barcode_code']);
+            } catch (\Throwable $e) {
+                // Ignore if index doesn't exist
+            }
             $table->dropColumn(['barcode_code', 'barcode_active']);
         });
     }

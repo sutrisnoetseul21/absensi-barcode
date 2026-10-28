@@ -130,32 +130,40 @@ class SpikapLaporanForm extends Component
 
             // 2. Simpan lampiran foto
             foreach ($this->foto_bukti as $foto) {
+                $fotoExt = strtolower($foto->guessExtension() ?: $foto->extension() ?: 'jpg');
+                if (!in_array($fotoExt, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                    $fotoExt = 'jpg';
+                }
                 $path = $foto->storeAs(
                     'spikap/' . $laporan->id,
-                    'foto_' . uniqid() . '.' . $foto->getClientOriginalExtension(),
+                    'foto_' . uniqid() . '.' . $fotoExt,
                     'local'
                 );
                 SpikapLampiran::create([
                     'laporan_id' => $laporan->id,
                     'tipe_file'  => 'foto',
                     'path_file'  => $path,
-                    'nama_asli'  => $foto->getClientOriginalName(),
+                    'nama_asli'  => strip_tags($foto->getClientOriginalName()),
                     'ukuran_bytes' => $foto->getSize(),
                 ]);
             }
 
             // 3. Simpan lampiran video
             foreach ($this->video_bukti as $video) {
+                $videoExt = strtolower($video->guessExtension() ?: $video->extension() ?: 'mp4');
+                if (!in_array($videoExt, ['mp4', 'mov', 'avi', 'mkv', 'webm'], true)) {
+                    $videoExt = 'mp4';
+                }
                 $path = $video->storeAs(
                     'spikap/' . $laporan->id,
-                    'video_' . uniqid() . '.' . $video->getClientOriginalExtension(),
+                    'video_' . uniqid() . '.' . $videoExt,
                     'local'
                 );
                 SpikapLampiran::create([
                     'laporan_id' => $laporan->id,
                     'tipe_file'  => 'video',
                     'path_file'  => $path,
-                    'nama_asli'  => $video->getClientOriginalName(),
+                    'nama_asli'  => strip_tags($video->getClientOriginalName()),
                     'ukuran_bytes' => $video->getSize(),
                 ]);
             }

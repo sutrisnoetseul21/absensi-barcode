@@ -18,11 +18,20 @@ return new class extends Migration
         });
 
         // 2. Backfill: copy tahun_masuk dari kelompok ke tiap baris anggotanya
-        DB::statement('
-            UPDATE kelompok_guru_wali_siswa kgs
-            INNER JOIN kelompok_guru_wali kg ON kgs.kelompok_id = kg.id
-            SET kgs.tahun_masuk = kg.tahun_masuk
-        ');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('
+                UPDATE kelompok_guru_wali_siswa
+                SET tahun_masuk = (
+                    SELECT kg.tahun_masuk FROM kelompok_guru_wali kg WHERE kg.id = kelompok_guru_wali_siswa.kelompok_id
+                )
+            ');
+        } else {
+            DB::statement('
+                UPDATE kelompok_guru_wali_siswa kgs
+                INNER JOIN kelompok_guru_wali kg ON kgs.kelompok_id = kg.id
+                SET kgs.tahun_masuk = kg.tahun_masuk
+            ');
+        }
 
         // 3. Jadikan tahun_masuk NOT NULL setelah terisi
         Schema::table('kelompok_guru_wali_siswa', function (Blueprint $table) {

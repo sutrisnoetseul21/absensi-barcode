@@ -12,10 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('teachers', function (Blueprint $table) {
+            try {
+                $table->dropUnique(['username']);
+            } catch (\Throwable $e) {}
             $table->dropColumn(['username', 'password', 'must_change_password']);
         });
 
         Schema::table('students', function (Blueprint $table) {
+            try {
+                $table->dropUnique(['username']);
+            } catch (\Throwable $e) {}
             $table->dropColumn(['username', 'password', 'must_change_password']);
         });
     }

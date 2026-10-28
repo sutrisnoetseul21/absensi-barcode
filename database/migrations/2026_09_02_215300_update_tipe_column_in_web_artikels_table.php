@@ -13,7 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         // Alter column 'tipe' to string to support 'prestasi' and any future post types
-        DB::statement("ALTER TABLE `web_artikels` MODIFY COLUMN `tipe` VARCHAR(50) NOT NULL DEFAULT 'berita'");
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::table('web_artikels', function (Blueprint $table) {
+                $table->string('tipe', 50)->default('berita')->change();
+            });
+        } else {
+            DB::statement("ALTER TABLE `web_artikels` MODIFY COLUMN `tipe` VARCHAR(50) NOT NULL DEFAULT 'berita'");
+        }
     }
 
     /**

@@ -19,11 +19,11 @@ class TinyMCEUploadController extends Controller
     public function upload(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'file' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ], [
             'file.required' => 'Tidak ada file gambar yang diunggah.',
             'file.image'    => 'File yang diunggah harus berupa gambar.',
-            'file.mimes'    => 'Format gambar yang diperbolehkan: jpeg, png, jpg, gif, webp, svg.',
+            'file.mimes'    => 'Format gambar yang diperbolehkan: jpeg, png, jpg, gif, webp.',
             'file.max'      => 'Ukuran gambar maksimal 5MB.',
         ]);
 
@@ -35,7 +35,17 @@ class TinyMCEUploadController extends Controller
 
         try {
             $file = $request->file('file');
+            
+            // Whitelist folder tujuan untuk mencegah directory traversal (../)
+            $allowedFolders = [
+                'web-profil/editor',
+                'artikel/editor',
+                'berita/editor',
+            ];
             $folder = $request->input('folder', 'web-profil/editor');
+            if (!in_array($folder, $allowedFolders, true)) {
+                $folder = 'web-profil/editor';
+            }
             
             // Simpan gambar ke disk public
             $path = $file->store($folder, 'public');
