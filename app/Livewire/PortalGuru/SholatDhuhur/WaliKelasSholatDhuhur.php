@@ -787,15 +787,6 @@ class WaliKelasSholatDhuhur extends Component
 
     public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'sholat_dhuhur'): void
     {
-        $kalenderService = app(\App\Services\KalenderSekolahService::class);
-        if (!$kalenderService->isHariSekolah(now('Asia/Jakarta'), $this->selectedClassId)) {
-            $this->dispatch('notify', [
-                'type'    => 'warning',
-                'message' => 'Hari ini adalah hari libur sekolah. Pengiriman notifikasi WA sholat dhuhur dinonaktifkan.',
-            ]);
-            return;
-        }
-
         $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
         if (empty($cleanPhone)) {
             $this->dispatch('notify', [
@@ -831,7 +822,7 @@ class WaliKelasSholatDhuhur extends Component
         } else {
             $this->dispatch('notify', [
                 'type'    => 'error',
-                'message' => 'Gagal mengirim pesan WhatsApp via sistem gateway. Silakan periksa gateway WhatsApp.',
+                'message' => 'Gagal mengirim via sistem gateway WhatsApp. Anda dapat menggunakan tombol "Buka di WhatsApp (Web / HP)" sebagai alternatif.',
             ]);
         }
     }

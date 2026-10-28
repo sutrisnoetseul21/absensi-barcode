@@ -67,6 +67,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
     public bool $canSendDailyManual  = true;
     public bool $canSendSchoolManual = true;
     public bool $canSendBelumManual  = true;
+    public bool $canSendSholatManual = true;
 
     public function mount(): void
     {
@@ -119,10 +120,14 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         $sholatSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
         if ($sholatSetting) {
             $data['sholat_dhuhur_notif_is_active']      = $sholatSetting->is_active;
+            $data['sholat_dhuhur_notif_is_auto_send']   = $sholatSetting->is_auto_send ?? false;
+            $data['sholat_dhuhur_notif_auto_send_time'] = substr($sholatSetting->auto_send_time ?? '13:00:00', 0, 5);
             $data['sholat_dhuhur_notif_recipients']     = $sholatSetting->recipients ?? ['ortu'];
             $data['sholat_dhuhur_notif_template_pesan'] = $sholatSetting->template_pesan;
         } else {
             $data['sholat_dhuhur_notif_is_active']      = false;
+            $data['sholat_dhuhur_notif_is_auto_send']   = false;
+            $data['sholat_dhuhur_notif_auto_send_time'] = '13:00';
             $data['sholat_dhuhur_notif_recipients']     = ['ortu'];
             $data['sholat_dhuhur_notif_template_pesan'] = \App\Models\PresensiNotificationSetting::getDefaultTemplate('sholat_dhuhur');
         }
@@ -217,6 +222,10 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
         $belumSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'belum')->first();
         $this->canSendBelumManual  = $isHariSekolah && ($belumSetting ? $belumSetting->canSendManualToday() : true);
+
+        $sholatSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+        $sholatService = app(\App\Services\PresensiSholatDhuhurService::class);
+        $this->canSendSholatManual = $sholatService->isHariSholatDhuhur(now('Asia/Jakarta')) && ($sholatSetting ? $sholatSetting->canSendManualToday() : true);
     }
 
     public function form(Schema $schema): Schema
@@ -358,11 +367,20 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                             ->icon('heroicon-o-sun')
                             ->schema([
                                 Section::make('Aturan Notifikasi: Presensi Sholat Dhuhur')
-                                    ->description('Format pesan WA yang dikirimkan ke orang tua untuk siswa Muslim yang belum tercatat presensi Sholat Dhuhur berjamaah di sekolah.')
+                                    ->description('Notifikasi konfirmasi kehadiran sholat dhuhur dikirim otomatis oleh sistem sesuai jam cut-off atau secara manual kepada orang tua siswa Muslim yang belum tercatat presensi Sholat Dhuhur berjamaah di sekolah.')
                                     ->schema([
                                         Toggle::make('sholat_dhuhur_notif_is_active')
                                             ->label('Aktifkan Fitur Notifikasi Sholat Dhuhur')
                                             ->columnSpanFull(),
+                                        Toggle::make('sholat_dhuhur_notif_is_auto_send')
+                                            ->label('Kirim Otomatis Notifikasi Sholat Dhuhur')
+                                            ->helperText('Jika diaktifkan, sistem akan otomatis mengirim WA ke orang tua siswa yang belum absen sholat saat jam cut-off tercapai.')
+                                            ->columnSpanFull(),
+                                        TimePicker::make('sholat_dhuhur_notif_auto_send_time')
+                                            ->label('Jam Pengiriman (Cut-off Time)')
+                                            ->seconds(false)
+                                            ->default('13:00')
+                                            ->required(),
                                         Select::make('sholat_dhuhur_notif_recipients')
                                             ->label('Kirim Ke (Penerima)')
                                             ->multiple()
@@ -377,11 +395,23 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                                 $jabatans = \App\Models\Jabatan::pluck('nama_jabatan', 'nama_jabatan')->toArray();
                                                 return array_merge($options, $jabatans, $waGroups);
                                             })
+                                            ->helperText('💡 Pilihan Guru BK/BP otomatis difilter hanya ke Guru BK pembina kelas siswa terkait.')
                                             ->columnSpanFull(),
                                         Textarea::make('sholat_dhuhur_notif_template_pesan')
                                             ->label('Template Pesan Sholat Dhuhur')
                                             ->rows(8)
                                             ->helperText('Placeholder: {nama_siswa}, {kelas}, {tanggal}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                // ── Kirim Manual Notifikasi Sholat Dhuhur ──
+                                Section::make('Kirim Manual Notifikasi Sholat Dhuhur')
+                                    ->icon('heroicon-o-paper-airplane')
+                                    ->description('Kirim notifikasi ke orang tua siswa yang belum presensi sholat dhuhur hari ini secara manual. Maksimal 5x per hari.')
+                                    ->schema([
+                                        \Filament\Forms\Components\Placeholder::make('sholat_dhuhur_manual_status')
+                                            ->hiddenLabel()
+                                            ->content(fn() => $this->buildSholatDhuhurManualStatusHtml())
                                             ->columnSpanFull(),
                                     ]),
                             ]),
@@ -923,6 +953,91 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         return new HtmlString($html);
     }
 
+    private function buildSholatDhuhurManualStatusHtml(): HtmlString
+    {
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $sholatService   = app(\App\Services\PresensiSholatDhuhurService::class);
+        $isHariSholat    = $sholatService->isHariSholatDhuhur(now('Asia/Jakarta'));
+        $setting         = \App\Models\PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+        $canSend         = $isHariSholat && ($setting ? $setting->canSendManualToday() : true);
+        $todayDate       = now()->format('d M Y');
+        $todayStr        = now()->toDateString();
+        $lastSendDate    = ($setting && $setting->manual_send_date instanceof \Carbon\Carbon)
+            ? $setting->manual_send_date->toDateString()
+            : ($setting ? (string) $setting->manual_send_date : null);
+        $sendCount       = ($lastSendDate === $todayStr && $setting) ? (int) $setting->manual_send_count : 0;
+        $nextCount       = $sendCount + 1;
+
+        if (!$isHariSholat) {
+            $holidayDesc = $sholatService->getHolidayDescription(now('Asia/Jakarta')) ?? 'Hari Libur / Bukan Hari Sholat';
+
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                        🏖️ Status: {$holidayDesc}
+                    </span>
+                </div>
+                <button
+                    disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                >
+                    📤 Kirim Notifikasi Sholat Dhuhur Sekarang
+                </button>
+                <p class="text-xs text-amber-600 dark:text-amber-400">⛔ Hari ini bukan hari pelaksanaan sholat dhuhur. Pengiriman notifikasi dinonaktifkan demi mencegah terkirimnya pesan di hari libur.</p>
+            </div>
+            HTML;
+            return new HtmlString($html);
+        }
+
+        if ($canSend) {
+            $badgeText = $sendCount > 0
+                ? "Terkirim {$sendCount} dari 5x hari ini"
+                : "Belum dikirim hari ini (Maks 5x)";
+
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span>📅</span>
+                    <span>Tanggal hari ini: <strong>{$todayDate}</strong></span>
+                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        {$badgeText}
+                    </span>
+                </div>
+                <button
+                    wire:click="confirmSendSholatDhuhurManual"
+                    wire:loading.attr="disabled"
+                    wire:confirm="Yakin ingin mengirim notifikasi WA ke orang tua dari semua siswa yang belum presensi sholat dhuhur sekarang? (Pengiriman ke-{$nextCount} dari maksimal 5x hari ini)"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-50 shadow-sm"
+                >
+                    <span wire:loading.remove wire:target="confirmSendSholatDhuhurManual">📤 Kirim Notifikasi Sholat Dhuhur Sekarang ({$sendCount}/5)</span>
+                    <span wire:loading wire:target="confirmSendSholatDhuhurManual">⏳ Memproses...</span>
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-500">ℹ️ Notifikasi akan dikirim ke nomor HP orang tua dari siswa Muslim yang belum tercatat presensi sholat dhuhur hari ini. Tombol ini bisa digunakan maksimal 5x per hari.</p>
+            </div>
+            HTML;
+        } else {
+            $html = <<<HTML
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        ✅ Batas pengiriman tercapai: 5 dari 5x hari ini ({$todayDate})
+                    </span>
+                </div>
+                <button
+                    disabled
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                >
+                    📤 Kirim Notifikasi Sholat Dhuhur Sekarang (5/5)
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-500">⛔ Pengiriman manual sudah mencapai batas maksimal 5x hari ini. Tersedia kembali besok.</p>
+            </div>
+            HTML;
+        }
+
+        return new HtmlString($html);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Livewire Actions
     // ─────────────────────────────────────────────────────────────────────────
@@ -1122,6 +1237,62 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         }
     }
 
+    public function confirmSendSholatDhuhurManual(): void
+    {
+        $sholatService = app(\App\Services\PresensiSholatDhuhurService::class);
+        if (!$sholatService->isHariSholatDhuhur(now('Asia/Jakarta'))) {
+            Notification::make()
+                ->title('Bukan Hari Sholat Dhuhur')
+                ->body('Hari ini bukan hari pelaksanaan sholat dhuhur. Pengiriman notifikasi tidak dapat dilakukan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $setting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+
+        if ($setting && !$setting->canSendManualToday()) {
+            Notification::make()
+                ->title('Batas pengiriman tercapai')
+                ->body('Pengiriman manual notifikasi sholat dhuhur sudah mencapai batas maksimal 5x per hari.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        try {
+            /** @var \App\Services\UnattendedSholatDhuhurNotificationService $service */
+            $service = app(\App\Services\UnattendedSholatDhuhurNotificationService::class);
+            $result  = $service->dispatch(source: 'manual');
+
+            if ($setting) {
+                $setting->recordManualSend();
+            }
+            $this->refreshManualSendStatus();
+
+            if ($result['dispatched'] > 0) {
+                Notification::make()
+                    ->title('Notifikasi Sholat Dhuhur Berhasil Dikirim')
+                    ->body("Total {$result['dispatched']} pesan WA berhasil diantrekan (Siswa belum sholat: {$result['total_unattended']}).")
+                    ->success()
+                    ->send();
+            } else {
+                $msg = $result['message'] ?? 'Tidak ada notifikasi yang dikirim atau semua orang tua sudah menerima notifikasi hari ini.';
+                Notification::make()
+                    ->title('Tidak ada notifikasi yang dikirim')
+                    ->body($msg)
+                    ->info()
+                    ->send();
+            }
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Gagal mengirim notifikasi')
+                ->body('Error: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Save
     // ─────────────────────────────────────────────────────────────────────────
@@ -1171,6 +1342,8 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                 ['status_presensi' => 'sholat_dhuhur'],
                 [
                     'is_active'      => $data['sholat_dhuhur_notif_is_active'] ?? false,
+                    'is_auto_send'   => $data['sholat_dhuhur_notif_is_auto_send'] ?? false,
+                    'auto_send_time' => $data['sholat_dhuhur_notif_auto_send_time'] ?? '13:00:00',
                     'recipients'     => $data['sholat_dhuhur_notif_recipients'] ?? [],
                     'template_pesan' => $data['sholat_dhuhur_notif_template_pesan'] ?? '',
                 ]

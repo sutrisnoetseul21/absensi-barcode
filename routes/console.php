@@ -33,3 +33,4 @@ Artisan::command('webprofil:fix-disk', function () {
 \Illuminate\Support\Facades\Schedule::command('presensi:send-unattended-notification')->everyMinute()->withoutOverlapping()->runInBackground();
 \Illuminate\Support\Facades\Schedule::command('presensi:auto-alpa')->everyMinute()->withoutOverlapping()->runInBackground();
 \Illuminate\Support\Facades\Schedule::command('presensi:sync-sholat-dhuhur')->everyMinute()->withoutOverlapping()->runInBackground();
+\Illuminate\Support\Facades\Schedule::command('presensi:send-sholat-dhuhur-notification')->everyMinute()->withoutOverlapping()->runInBackground();

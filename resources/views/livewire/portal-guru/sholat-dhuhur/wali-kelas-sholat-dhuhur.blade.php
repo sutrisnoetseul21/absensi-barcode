@@ -41,10 +41,38 @@
             return;
         }
         this.isSending = true;
-        $wire.sendWaDirect(this.waStudentId, this.waRecipientPhone, this.waMessage, this.waStatusType)
+        const wire = this.$wire || (typeof $wire !== 'undefined' ? $wire : null) || (window.Livewire ? window.Livewire.find(this.$el.closest('[wire\\:id]')?.getAttribute('wire:id')) : null);
+        if (!wire) {
+            alert('Livewire controller tidak ditemukan.');
+            this.isSending = false;
+            return;
+        }
+        wire.sendWaDirect(this.waStudentId, this.waRecipientPhone, this.waMessage, this.waStatusType)
+            .catch(err => {
+                console.error('Error sendWaDirect:', err);
+                alert('Terjadi kesalahan saat memproses pengiriman: ' + (err?.message || err));
+            })
             .finally(() => {
                 this.isSending = false;
             });
+    },
+    openWhatsAppWeb() {
+        if (!this.waRecipientPhone.trim()) {
+            alert('Silakan masukkan nomor WhatsApp tujuan!');
+            return;
+        }
+        if (!this.waMessage.trim()) {
+            alert('Isi pesan tidak boleh kosong!');
+            return;
+        }
+        let cleanPhone = this.waRecipientPhone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('0')) {
+            cleanPhone = '62' + cleanPhone.substring(1);
+        } else if (cleanPhone.startsWith('8')) {
+            cleanPhone = '62' + cleanPhone;
+        }
+        const url = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(this.waMessage);
+        window.open(url, '_blank');
     }
 }"
 @wa-modal-close.window="showWaModal = false">
@@ -176,12 +204,22 @@
                         Batal
                     </button>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <!-- Tombol Buka WhatsApp Web/HP langsung -->
+                        <button type="button" @click="openWhatsAppWeb" :disabled="isSending"
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-all cursor-pointer"
+                            title="Buka chat WhatsApp langsung di tab baru (WhatsApp Web / Aplikasi WA)">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                            <span>Buka di WA (Web / HP)</span>
+                        </button>
+
+                        <!-- Tombol Kirim via Gateway Sistem -->
                         <button type="button" @click="submitSend" :disabled="isSending"
-                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50">
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
+                            title="Kirim pesan langsung via gateway sistem WhatsApp tanpa membuka WhatsApp Web">
                             <svg x-show="!isSending" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
                             <svg x-show="isSending" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                            <span x-text="isSending ? 'Mengirim via Gateway...' : 'Kirim Sekarang (via Sistem)'"></span>
+                            <span x-text="isSending ? 'Mengirim via Gateway...' : 'Kirim Sekarang (via Gateway)'"></span>
                         </button>
                     </div>
                 </div>
@@ -204,8 +242,6 @@
                         timer: 3000,
                         timerProgressBar: true,
                     });
-                } else {
-                    alert(data.message);
                 }
             });
         });
