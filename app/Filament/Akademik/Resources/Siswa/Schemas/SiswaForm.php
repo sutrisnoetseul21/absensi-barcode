@@ -238,10 +238,10 @@ class SiswaForm
                             ->label('Email Login')
                             ->email()
                             ->autocomplete('off')
-                            ->required(fn (string $operation): bool => $operation === 'edit')
+                            ->nullable()
                             ->maxLength(255)
-                            ->helperText('Otomatis di-generate jika dikosongkan saat create.')
-                            ->formatStateUsing(fn (?\Illuminate\Database\Eloquent\Model $record) => $record?->user?->email),
+                            ->helperText('Otomatis di-generate dari NISN jika dikosongkan (contoh: nisn@' . (config('school.email_domain') ?: 'sekolah.sch.id') . ').')
+                            ->formatStateUsing(fn (?\Illuminate\Database\Eloquent\Model $record) => $record?->user?->email ?? ($record?->nisn ? $record->nisn . '@' . config('school.email_domain') : null)),
 
                         TextInput::make('password')
                             ->password()

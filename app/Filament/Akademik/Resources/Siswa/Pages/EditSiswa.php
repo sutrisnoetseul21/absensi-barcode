@@ -59,21 +59,24 @@ class EditSiswa extends EditRecord
         if (!empty($data['name'])) {
             $userData['name'] = $data['name'];
         }
-        if (!empty($data['email'])) {
-            $userData['email'] = $data['email'];
-        }
+
+        $defaultEmail = ($this->record->nisn ?: ($data['nisn'] ?? null))
+            ? ($this->record->nisn ?: $data['nisn']) . '@' . config('school.email_domain')
+            : 'siswa_' . $this->record->id . '@' . config('school.email_domain');
+
+        // Jika email diinput gunakan nilai tsb, jika dikosongkan otomatis generate dari NISN
+        $email = !empty($data['email']) ? $data['email'] : $defaultEmail;
+        $userData['email'] = $email;
+
         if (!empty($data['password'])) {
             $userData['password'] = $data['password'];
             $userData['must_change_password'] = false;
         }
 
         if ($this->record->user) {
-            if (!empty($userData)) {
-                $this->record->user->update($userData);
-            }
+            $this->record->user->update($userData);
         } else {
             // Jika siswa belum memiliki akun User, buatkan atau tautkan akun
-            $email = $userData['email'] ?? ($data['email'] ?? ($this->record->nisn ? $this->record->nisn . '@' . config('school.email_domain') : 'siswa_' . $this->record->id . '@' . config('school.email_domain')));
             $password = $userData['password'] ?? ($this->record->nisn ?: 'password');
 
             $user = User::where('email', $email)->first();
