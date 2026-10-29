@@ -59,7 +59,13 @@ docs/
 │   ├── 03-desain-rest-api-laravel-sanctum.md # Desain endpoint REST API & Sanctum
 │   ├── 04-roadmap-dan-tahapan-implementasi.md # Roadmap bertahap dari API ke APK
 │   ├── 05-strategi-multi-sekolah-dan-server.md # Penanganan server paten & build per sekolah
-│   └── 06-implementasi-api-login-dan-identitas-sekolah.md # Implementasi API school-info, login minimalis, & splash logo
+│   ├── 06-implementasi-api-login-dan-identitas-sekolah.md # Implementasi API school-info, login minimalis, & splash logo
+│   ├── 07-rencana-bertahap-portal-guru.md # Master Plan 9 Menu Kotak-Kotak Portal Guru Android
+│   ├── 08-plan-menu-1-presensi-guru.md # Analisa & Plan Matang Menu 1: Presensi (/portal-guru/akademik)
+│   ├── 09-revisi-akses-kelas-dan-tahun-ajaran-presensi.md # Revisi Akses Kelas & Kunci Tahun Ajaran
+│   ├── 10-plan-menu-2-presensi-sholat-dhuhur.md # Analisa & Plan Matang Menu 2: Presensi Sholat Dhuhur
+│   ├── 11-plan-menu-3-jurnal-mengajar.md # Analisa & Plan Matang Menu 3: Jurnal Mengajar
+│   └── 12-plan-menu-4-persetujuan-ijin.md # Analisa & Plan Matang Menu 4: Persetujuan Ijin
 └── data_lama/                          # Arsip catatan historis sebelumnya
 ```
 
