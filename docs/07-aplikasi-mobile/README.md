@@ -29,7 +29,8 @@ docs/07-aplikasi-mobile/
 ├── 09-revisi-akses-kelas-dan-tahun-ajaran-presensi.md     # Revisi Penguncian Tahun Ajaran Aktif & Hak Akses Kelas (Wali Kelas & Guru BK)
 ├── 10-plan-menu-2-presensi-sholat-dhuhur.md               # Analisa & Plan Matang Menu 2: Presensi Sholat Dhuhur (/portal-guru/sholat-dhuhur)
 ├── 11-plan-menu-3-jurnal-mengajar.md                      # Analisa & Plan Matang Menu 3: Jurnal Mengajar (/portal-guru/jurnal-mengajar)
-└── 12-plan-menu-4-persetujuan-ijin.md                      # Analisa & Plan Matang Menu 4: Persetujuan Ijin (/portal-guru/ijin-kehadiran)
+├── 12-plan-menu-4-persetujuan-ijin.md                      # Analisa & Plan Matang Menu 4: Persetujuan Ijin (/portal-guru/ijin-kehadiran)
+└── 13-plan-menu-5-guru-wali.md                             # Analisa & Plan Matang Menu 5: Guru Wali SI-WALI (/portal-guru/guru-wali/*)
 ```
 
 ---
