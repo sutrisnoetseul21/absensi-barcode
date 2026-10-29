@@ -186,8 +186,12 @@ Untuk mewujudkan mandat pengguna: *"jika siswa kirim pesan maka akan keluar noti
 
 ## 4. Desain Kontrak REST API Backend (`/api/v1/guru/guru-wali/*`)
 
-Untuk mendukung antarmuka mobile, dibuat controller baru:
-[`GuruWaliApiController.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWaliApiController.php) dengan middleware `auth:sanctum`:
+Untuk menjaga kebersihan kode (*clean code* & *Single Responsibility Principle*) agar tidak menumpuk dalam 1 file besar, backend dibagi menjadi **4 Sub-Controller Modular** di dalam namespace [`App\Http\Controllers\Api\Mobile\GuruWali`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWali):
+1. [`GuruWaliBaseController.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWali/GuruWaliBaseController.php): Logika resolusi autentikasi guru, kelompok aktif, dan tahun ajaran.
+2. [`GuruWaliDashboardController.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWali/GuruWaliDashboardController.php): Dashboard, statistik metrik, dan grid kotak siswa asuh aktif/arsip.
+3. [`GuruWaliJurnalController.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWali/GuruWaliJurnalController.php): CRUD jurnal individu, jurnal massal klasikal, dan eskalasi rujuk BK.
+4. [`GuruWaliKonsultasiController.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWali/GuruWaliKonsultasiController.php): Manajemen tiket ruang aman cerita, obrolan chat dua arah, jadwal tatap muka, dan konversi ke jurnal.
+5. [`GuruWaliLaporanController.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/Api/Mobile/GuruWali/GuruWaliLaporanController.php): Matriks pemantauan 12 bulan (Juli–Juni) dan streaming cetak PDF resmi.
 
 ### 1. `GET /api/v1/guru/guru-wali/dashboard`
 Mengambil data utama command center:

@@ -8,7 +8,10 @@ use App\Http\Controllers\Api\Mobile\GuruPresensiController;
 use App\Http\Controllers\Api\Mobile\GuruSholatDhuhurController;
 use App\Http\Controllers\Api\Mobile\GuruJurnalMengajarController;
 use App\Http\Controllers\Api\Mobile\GuruIjinKehadiranController;
-use App\Http\Controllers\Api\Mobile\GuruWaliApiController;
+use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliDashboardController;
+use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliJurnalController;
+use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliKonsultasiController;
+use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliLaporanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,25 +72,32 @@ Route::prefix('v1')->group(function () {
         Route::post('/ijin-kehadiran/{id}/reset', [GuruIjinKehadiranController::class, 'reset']);
 
         // Menu 5: Guru Wali (SI-WALI) (/portal-guru/guru-wali/*)
-        Route::get('/guru-wali/dashboard', [GuruWaliApiController::class, 'dashboard']);
-        Route::get('/guru-wali/jurnal', [GuruWaliApiController::class, 'jurnalIndex']);
-        Route::post('/guru-wali/jurnal/individual', [GuruWaliApiController::class, 'jurnalStoreIndividual']);
-        Route::post('/guru-wali/jurnal/klasikal', [GuruWaliApiController::class, 'jurnalStoreKlasikal']);
-        Route::get('/guru-wali/jurnal/{id}', [GuruWaliApiController::class, 'jurnalShow']);
-        Route::put('/guru-wali/jurnal/{id}', [GuruWaliApiController::class, 'jurnalUpdate']);
-        Route::delete('/guru-wali/jurnal/{id}', [GuruWaliApiController::class, 'jurnalDestroy']);
-        Route::post('/guru-wali/jurnal/{id}/rujuk-bk', [GuruWaliApiController::class, 'jurnalRujukBk']);
+        Route::prefix('guru-wali')->group(function () {
+            // 1. Dashboard & Siswa Asuh
+            Route::get('/dashboard', [GuruWaliDashboardController::class, 'dashboard']);
 
-        Route::get('/guru-wali/konsultasi', [GuruWaliApiController::class, 'konsultasiIndex']);
-        Route::get('/guru-wali/konsultasi/{id}', [GuruWaliApiController::class, 'konsultasiShow']);
-        Route::post('/guru-wali/konsultasi/{id}/pesan', [GuruWaliApiController::class, 'konsultasiKirimPesan']);
-        Route::post('/guru-wali/konsultasi/{id}/jadwalkan', [GuruWaliApiController::class, 'konsultasiJadwalkan']);
-        Route::post('/guru-wali/konsultasi/{id}/balas', [GuruWaliApiController::class, 'konsultasiBalas']);
-        Route::post('/guru-wali/konsultasi/{id}/tolak', [GuruWaliApiController::class, 'konsultasiTolak']);
-        Route::post('/guru-wali/konsultasi/{id}/konversi-jurnal', [GuruWaliApiController::class, 'konsultasiKonversiJurnal']);
+            // 2. Jurnal Bimbingan
+            Route::get('/jurnal', [GuruWaliJurnalController::class, 'index']);
+            Route::post('/jurnal/individual', [GuruWaliJurnalController::class, 'storeIndividual']);
+            Route::post('/jurnal/klasikal', [GuruWaliJurnalController::class, 'storeKlasikal']);
+            Route::get('/jurnal/{id}', [GuruWaliJurnalController::class, 'show']);
+            Route::put('/jurnal/{id}', [GuruWaliJurnalController::class, 'update']);
+            Route::delete('/jurnal/{id}', [GuruWaliJurnalController::class, 'destroy']);
+            Route::post('/jurnal/{id}/rujuk-bk', [GuruWaliJurnalController::class, 'rujukBk']);
 
-        Route::get('/guru-wali/pemantauan', [GuruWaliApiController::class, 'pemantauanIndex']);
-        Route::get('/guru-wali/cetak/pdf', [GuruWaliApiController::class, 'cetakPdf']);
+            // 3. Ruang Aman Cerita / Konsultasi
+            Route::get('/konsultasi', [GuruWaliKonsultasiController::class, 'index']);
+            Route::get('/konsultasi/{id}', [GuruWaliKonsultasiController::class, 'show']);
+            Route::post('/konsultasi/{id}/pesan', [GuruWaliKonsultasiController::class, 'kirimPesan']);
+            Route::post('/konsultasi/{id}/jadwalkan', [GuruWaliKonsultasiController::class, 'jadwalkan']);
+            Route::post('/konsultasi/{id}/balas', [GuruWaliKonsultasiController::class, 'balas']);
+            Route::post('/konsultasi/{id}/tolak', [GuruWaliKonsultasiController::class, 'tolak']);
+            Route::post('/konsultasi/{id}/konversi-jurnal', [GuruWaliKonsultasiController::class, 'konversiJurnal']);
+
+            // 4. Pemantauan & Cetak Laporan
+            Route::get('/pemantauan', [GuruWaliLaporanController::class, 'pemantauan']);
+            Route::get('/cetak/pdf', [GuruWaliLaporanController::class, 'cetakPdf']);
+        });
     });
 
     // 4. Endpoint Terproteksi & Autentikasi Tambahan
