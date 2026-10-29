@@ -17,6 +17,7 @@ Jika Anda (AI / Developer) sedang mengerjakan fitur tertentu, **langsung buka do
 | **Perpustakaan Digital, Buku, Sirkulasi** | `bukus`, `eksemplar_bukus`, `peminjamans`, `klasifikasi_ddcs`, `kategori_bukus`, `kunjungan_perpustakaans` | [`05-perpustakaan.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/05-perpustakaan.md) |
 | **CBT, Nilai, Mata Pelajaran, Asesmen** | `mata_pelajarans`, `jenis_ujians`, `ujian_akademiks`, `student_cbt_profiles`, `nilai_ujians` | [`06-cbt-dan-akademik.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/06-cbt-dan-akademik.md) |
 | **Portal Web Sekolah, Profil, Pengaduan, Alumni** | `web_settings`, `web_artikels`, `web_sarpras`, `pengaduans`, `alumnis` | [`07-portal-web-dan-pengaduan.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/07-portal-web-dan-pengaduan.md) |
+| **Autentikasi Mobile & Sanctum Token** | `personal_access_tokens` | [`09-autentikasi-api-dan-tokens.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/09-autentikasi-api-dan-tokens.md) |
 | **Panduan Reset & Seeder** | Eksekusi migrasi, urutan seeder, akun default | [`panduan-migrasi-seeder.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/panduan-migrasi-seeder.md) |
 
 ---

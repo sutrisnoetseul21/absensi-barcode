@@ -62,8 +62,8 @@ class JurnalMengajarForm extends Component
             'tanggal'           => 'required|date',
             'class_id'          => 'required|exists:classes,id',
             'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
-            'jam_mulai'         => 'required|integer|min:1|max:15',
-            'durasi_jp'         => 'required|integer|min:1|max:10',
+            'jam_mulai'         => 'required|integer|min:1|max:9',
+            'durasi_jp'         => 'required|integer|min:1|max:5',
             'materi'            => 'required|string|max:255',
             'uraian_materi'     => 'required|string|min:5',
             'refleksi'          => 'nullable|string',
@@ -77,7 +77,11 @@ class JurnalMengajarForm extends Component
             'class_id.required'          => 'Pilih kelas rombongan belajar.',
             'mata_pelajaran_id.required' => 'Pilih mata pelajaran.',
             'jam_mulai.required'         => 'Jam mulai wajib ditentukan.',
+            'jam_mulai.min'              => 'Jam mulai minimal jam ke-1.',
+            'jam_mulai.max'              => 'Jam mulai maksimal jam ke-9.',
             'durasi_jp.required'         => 'Durasi JP wajib ditentukan.',
+            'durasi_jp.min'              => 'Durasi JP minimal 1 JP.',
+            'durasi_jp.max'              => 'Durasi JP maksimal 5 JP.',
             'materi.required'            => 'Judul materi pokok pembelajaran wajib diisi.',
             'uraian_materi.required'     => 'Uraian aktivitas KBM wajib diisi.',
         ];
@@ -119,8 +123,10 @@ class JurnalMengajarForm extends Component
 
     public function calculateJamSelesai(): void
     {
-        $mulai = max(1, (int)$this->jam_mulai);
-        $durasi = max(1, (int)$this->durasi_jp);
+        $mulai = max(1, min(9, (int)$this->jam_mulai));
+        $durasi = max(1, min(5, (int)$this->durasi_jp));
+        $this->jam_mulai = $mulai;
+        $this->durasi_jp = $durasi;
         $this->jam_selesai = $mulai + $durasi - 1;
 
         if ($durasi === 1) {
@@ -315,13 +321,13 @@ class JurnalMengajarForm extends Component
 
     public function setDurasi(int $jp): void
     {
-        $this->durasi_jp = max(1, min(10, $jp));
+        $this->durasi_jp = max(1, min(5, $jp));
         $this->calculateJamSelesai();
     }
 
     public function setJamMulai(int $jam): void
     {
-        $this->jam_mulai = max(1, min(15, $jam));
+        $this->jam_mulai = max(1, min(9, $jam));
         $this->calculateJamSelesai();
     }
 

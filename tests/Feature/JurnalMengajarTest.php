@@ -424,4 +424,36 @@ class JurnalMengajarTest extends TestCase
             ->assertSee('Materi Oktober')
             ->assertSee('Materi November');
     }
+
+    /**
+     * Test Jam Mulai (1-9), Durasi Pembelajaran (1-5 JP), dan kalkulasi menit (40 menit/JP)
+     */
+    public function test_jam_mulai_1_to_9_and_durasi_1_to_5_calculation(): void
+    {
+        $this->actingAs($this->user);
+
+        Livewire::test(JurnalMengajarForm::class)
+            ->call('setJamMulai', 9)
+            ->call('setDurasi', 2)
+            ->assertSet('jam_mulai', 9)
+            ->assertSet('durasi_jp', 2)
+            ->assertSet('jam_selesai', 10)
+            ->assertSet('jam_ke_label', 'Jam ke 9 - 10 (2 JP)')
+            ->assertSee('80 Menit')
+            ->assertSee('40 Menit / JP')
+            ->assertSee('1 JP = 40 Menit')
+            // Test clamping pada setter (maks 9 untuk jam mulai, maks 5 untuk durasi):
+            ->call('setJamMulai', 15)
+            ->assertSet('jam_mulai', 9)
+            ->call('setDurasi', 10)
+            ->assertSet('durasi_jp', 5)
+            ->call('setJamMulai', 0)
+            ->assertSet('jam_mulai', 1)
+            ->call('setDurasi', 0)
+            ->assertSet('durasi_jp', 1)
+            ->assertSet('jam_selesai', 1)
+            ->assertSet('jam_ke_label', 'Jam ke 1 (1 JP)')
+            ->assertSee('40 Menit');
+    }
 }
+

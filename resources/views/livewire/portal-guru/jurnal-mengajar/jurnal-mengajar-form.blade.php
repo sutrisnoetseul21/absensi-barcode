@@ -158,69 +158,125 @@
             </div>
 
             <!-- INTERACTIVE TIME SLOT & SMART JP CALCULATOR STRIP -->
-            <div class="mt-6 pt-5 border-t border-slate-100 bg-gradient-to-br from-slate-50 via-brand-primary/5 to-slate-50 rounded-2xl p-5 border border-brand-primary/20">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                    <!-- Jam Mulai -->
-                    <div class="md:col-span-3">
-                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center justify-between">
-                            <span>Jam Mulai (Ke-)</span>
-                            <span class="text-[11px] font-medium text-slate-400">1 - 15</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <input type="number" min="1" max="15" wire:model.live="jam_mulai" 
-                                   class="w-20 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-base font-black text-center outline-none focus:ring-2 focus:ring-brand-primary/20 shadow-xs">
-                            <!-- Quick Chips Jam Mulai -->
-                            <div class="flex flex-wrap gap-1">
-                                @foreach([1, 3, 5, 7] as $jamOpt)
-                                    <button type="button" wire:click="setJamMulai({{ $jamOpt }})" 
-                                            class="px-2 py-1 rounded-lg text-xs font-bold transition-all {{ $jam_mulai === $jamOpt ? 'bg-brand-primary text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <div class="mt-6 pt-5 border-t border-slate-100 bg-slate-50/80 rounded-3xl p-3.5 sm:p-5 border border-slate-200/90 shadow-inner">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
+                    
+                    <!-- KOTAK 1: Jam Mulai (Ke-) 1 s.d. 8 -->
+                    <div class="lg:col-span-4 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between transition-all hover:border-brand-primary/40 hover:shadow-md">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+                                <label class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-[11px] font-black">1</span>
+                                    <span>Jam Mulai (Ke-)</span>
+                                </label>
+                                <span class="text-[11px] font-bold text-brand-primary bg-brand-primary/10 px-2.5 py-0.5 rounded-lg border border-brand-primary/20 shadow-2xs">
+                                    Jam Ke-{{ $jam_mulai }}
+                                </span>
+                            </div>
+
+                            <!-- Pilihan Langsung Angka 1-9 (Tanpa Input Manual) -->
+                            <div class="grid grid-cols-9 gap-1 sm:gap-1.5">
+                                @foreach(range(1, 9) as $jamOpt)
+                                    <button type="button" 
+                                            wire:key="jam-mulai-btn-{{ $jamOpt }}"
+                                            wire:click="setJamMulai({{ $jamOpt }})" 
+                                            aria-label="Jam Mulai Ke-{{ $jamOpt }}"
+                                            aria-pressed="{{ $jam_mulai === $jamOpt ? 'true' : 'false' }}"
+                                            title="Jam Mulai Ke-{{ $jamOpt }}"
+                                            class="h-10 sm:h-11 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center cursor-pointer select-none active:scale-95 {{ $jam_mulai === $jamOpt ? 'bg-gradient-to-br from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/30 ring-2 ring-brand-primary/25 scale-[1.03]' : 'bg-slate-50 text-slate-700 hover:text-brand-primary hover:bg-brand-primary/10 border border-slate-200/90 shadow-2xs' }}">
                                         {{ $jamOpt }}
                                     </button>
                                 @endforeach
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Durasi JP -->
-                    <div class="md:col-span-4">
-                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5 flex items-center justify-between">
-                            <span>Durasi Pembelajaran (JP)</span>
-                            <span class="text-[11px] font-medium text-slate-400">1 - 10 JP</span>
-                        </label>
-                        <div class="flex items-center gap-1.5">
-                            @foreach([1, 2, 3, 4] as $jpOpt)
-                                <button type="button" wire:click="setDurasi({{ $jpOpt }})" 
-                                        class="flex-1 py-2 px-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1 {{ $durasi_jp === $jpOpt ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/25 scale-[1.03]' : 'bg-white text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary border border-slate-200' }}">
-                                    <span>{{ $jpOpt }} JP</span>
-                                </button>
-                            @endforeach
-                            <input type="number" min="1" max="10" wire:model.live="durasi_jp" title="Kustom JP"
-                                   class="w-14 px-2 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs font-black text-center outline-none focus:ring-2 focus:ring-brand-primary/20 shadow-xs">
+                        <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 px-0.5">
+                            <span class="text-[10px] text-slate-400 font-medium">Jam Awal KBM</span>
+                            <span class="text-[10px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">Maks. Jam ke-9</span>
                         </div>
+                        @error('jam_mulai') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Dynamic Live Output Widget -->
-                    <div class="md:col-span-5">
-                        <label class="block text-xs font-extrabold text-brand-primary mb-1.5">Hasil Kalkulasi Waktu KBM</label>
-                        <div class="bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary text-white rounded-2xl p-3.5 sm:p-4 shadow-lg shadow-brand-primary/25 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30">
-                                    <svg class="w-5 h-5 text-white animate-spin" style="animation-duration: 15s;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                    <!-- KOTAK 2: Durasi Pembelajaran 1 s.d. 5 JP -->
+                    <div class="lg:col-span-4 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between transition-all hover:border-brand-secondary/40 hover:shadow-md">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+                                <label class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-lg bg-brand-secondary/10 text-brand-secondary flex items-center justify-center text-[11px] font-black">2</span>
+                                    <span>Durasi Pembelajaran</span>
+                                </label>
+                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200 shadow-2xs">
+                                    40 Menit / JP
+                                </span>
+                            </div>
+
+                            <!-- Pilihan Langsung 1-5 JP (Tanpa Input Manual) -->
+                            <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                @foreach(range(1, 5) as $jpOpt)
+                                    <button type="button" 
+                                            wire:key="durasi-jp-btn-{{ $jpOpt }}"
+                                            wire:click="setDurasi({{ $jpOpt }})" 
+                                            aria-label="{{ $jpOpt }} Jam Pelajaran"
+                                            aria-pressed="{{ $durasi_jp === $jpOpt ? 'true' : 'false' }}"
+                                            title="{{ $jpOpt }} JP ({{ $jpOpt * 40 }} Menit)"
+                                            class="h-10 sm:h-11 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center cursor-pointer select-none active:scale-95 {{ $durasi_jp === $jpOpt ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/30 ring-2 ring-brand-secondary/25 scale-[1.03]' : 'bg-slate-50 text-slate-700 hover:text-brand-primary hover:bg-brand-primary/10 border border-slate-200/90 shadow-2xs' }}">
+                                        {{ $jpOpt }} JP
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 px-0.5">
+                            <span class="text-[10px] text-slate-400 font-medium">Pilihan: 1 s.d. 5 JP</span>
+                            <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70">{{ $durasi_jp * 40 }} Menit KBM</span>
+                        </div>
+                        @error('durasi_jp') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- KOTAK 3: Hasil Kalkulasi Waktu KBM -->
+                    <div class="lg:col-span-4 bg-gradient-to-br from-brand-primary via-brand-primary to-brand-secondary text-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-brand-primary/25 border border-white/20 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-white/15">
+                                <label class="text-xs font-extrabold text-white flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-lg bg-white/20 text-white flex items-center justify-center text-[11px] font-black">✓</span>
+                                    <span>Hasil Kalkulasi Jadwal</span>
+                                </label>
+                                <span class="text-[11px] font-bold text-white bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-lg border border-white/25 shadow-2xs">
+                                    Otomatis
+                                </span>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-3 py-1">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30">
+                                        <svg class="w-5 h-5 text-white animate-spin" style="animation-duration: 15s;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="truncate">
+                                        <span class="text-[10px] sm:text-[11px] font-semibold text-white/80 uppercase tracking-wider block">Rentang KBM Terjadwal</span>
+                                        <h3 class="text-sm sm:text-base font-black tracking-tight leading-tight text-white mt-0.5 truncate">
+                                            {{ $jam_ke_label }}
+                                        </h3>
+                                    </div>
                                 </div>
-                                <div>
-                                    <span class="text-[11px] font-semibold text-white/80 uppercase tracking-wider block">Rentang KBM Terjadwal</span>
-                                    <h3 class="text-base sm:text-lg font-black tracking-tight leading-none text-white mt-0.5">
-                                        {{ $jam_ke_label }}
-                                    </h3>
+                                <div class="text-right shrink-0">
+                                    <span class="inline-block px-3 py-1 rounded-xl bg-white/25 backdrop-blur-md text-xs sm:text-sm font-black text-white border border-white/30 shadow-xs whitespace-nowrap">
+                                        {{ $durasi_jp * 40 }} Menit
+                                    </span>
+                                    <span class="text-[10px] text-white/85 font-semibold block mt-0.5">
+                                        {{ $durasi_jp }} JP × 40 mnt
+                                    </span>
                                 </div>
                             </div>
-                            <span class="px-2.5 py-1 rounded-xl bg-white/20 backdrop-blur-md text-[11px] font-black text-white border border-white/20 shrink-0">
-                                {{ $durasi_jp * 40 }} Menit
-                            </span>
+                        </div>
+
+                        <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-white/15 px-0.5">
+                            <span class="text-[10px] text-white/75 font-medium">Standar Durasi</span>
+                            <span class="text-[10px] text-white font-extrabold bg-white/20 px-2 py-0.5 rounded-md">1 JP = 40 Menit</span>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>

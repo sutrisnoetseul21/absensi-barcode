@@ -21,7 +21,8 @@ docs/07-aplikasi-mobile/
 ├── 01-arsitektur-dan-tech-stack-mobile.md     # Arsitektur Flutter, state management, & konektivitas
 ├── 02-cakupan-menu-dan-spesifikasi-fitur.md    # Detail fitur terpilih (Portal Siswa & Portal Guru)
 ├── 03-desain-rest-api-laravel-sanctum.md      # Spesifikasi endpoint API & format JSON response
-└── 04-roadmap-dan-tahapan-implementasi.md     # Tahapan kerja bertahap dari backend ke APK
+├── 04-roadmap-dan-tahapan-implementasi.md     # Tahapan kerja bertahap dari backend ke APK
+└── 05-strategi-multi-sekolah-dan-server.md    # Penanganan multi-tenant, server dinamis & build flavors
 ```
 
 ---
