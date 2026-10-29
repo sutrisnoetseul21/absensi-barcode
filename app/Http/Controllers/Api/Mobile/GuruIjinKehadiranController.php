@@ -67,6 +67,16 @@ class GuruIjinKehadiranController extends Controller
                 if ($userByTeacher) {
                     return $userByTeacher;
                 }
+
+                // Fallback objek user jika profil guru belum ter-link ke akun user
+                $virtualUser = new User();
+                $virtualUser->id = $guru->id;
+                $virtualUser->name = $guru->name;
+                $virtualUser->email = ($guru->nip ?: 'guru') . '@sekolah.id';
+                $virtualUser->teacher_id = $guru->id;
+                $virtualUser->setRelation('teacher', $guru);
+                $virtualUser->setRelation('guru', $guru);
+                return $virtualUser;
             }
 
             $user = User::where('email', $identifier)
@@ -125,17 +135,26 @@ class GuruIjinKehadiranController extends Controller
             $isGuruBk = method_exists($user, 'isGuruBk') && $user->isGuruBk();
         } catch (\Throwable $e) {}
 
-        $actor = $user->teacher ?: Guru::where('user_id', $user->id)->first();
+        $actor = $user->teacher
+            ?: ($user->teacher_id ? Guru::find($user->teacher_id) : null)
+            ?: Guru::where('user_id', $user->id)->first();
+
+        if (!$actor) {
+            $reqIdent = trim((string) (request()->header('X-User-Identifier') ?: request()->input('identifier', '')));
+            if ($reqIdent !== '') {
+                $actor = Guru::where('nip', $reqIdent)->orWhere('name', $reqIdent)->first();
+            }
+        }
 
         if ($isAdminMode || $hasBypass) {
             $rawClasses = Kelas::whereHas('kelasAjarans', function ($query) use ($activeYearId) {
                 $query->where('academic_year_id', $activeYearId);
             })->orderBy('name')->get();
 
-            $allIds = $rawClasses->pluck('id')->toArray();
+            $allIds = $rawClasses->pluck('id')->map(fn($id) => (string) $id)->toArray();
             $formatted = $rawClasses->map(function ($c) {
                 return [
-                    'id' => $c->id,
+                    'id' => (string) $c->id,
                     'name' => $c->name,
                     'access_label' => 'Semua Kelas',
                     'is_wali' => true,
@@ -168,36 +187,41 @@ class GuruIjinKehadiranController extends Controller
             ];
         }
 
-        // 1. Kelas Wali Kelas
-        $waliClasses = $actor->kelasAjarans()
-            ->where('academic_year_id', $activeYearId)
-            ->with('kelas')
-            ->get()
-            ->pluck('kelas')
-            ->filter();
+        // 1. Kelas Wali Kelas Utama
+        $waliClassIds = $actor->kelasAjarans()
+            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+            ->pluck('class_id')
+            ->filter()
+            ->map(fn($id) => (string) $id)
+            ->toArray();
+        if (empty($waliClassIds) && $activeYearId) {
+            $waliClassIds = $actor->kelasAjarans()->pluck('class_id')->filter()->map(fn($id) => (string) $id)->toArray();
+        }
 
-        $waliClassIds = $waliClasses->pluck('id')->toArray();
-
-        // 2. Kelas Pantau (BK)
-        $pantauClasses = $actor->kelasPantau()
-            ->where('academic_year_id', $activeYearId)
-            ->with('kelas')
-            ->get()
-            ->pluck('kelas')
-            ->filter();
-
-        $pantauClassIds = $pantauClasses->pluck('id')->toArray();
+        // 2. Kelas Pantau (Binaan BK)
+        $pantauClassIds = $actor->kelasPantau()
+            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+            ->pluck('class_id')
+            ->filter()
+            ->map(fn($id) => (string) $id)
+            ->toArray();
+        if (empty($pantauClassIds) && $activeYearId) {
+            $pantauClassIds = $actor->kelasPantau()->pluck('class_id')->filter()->map(fn($id) => (string) $id)->toArray();
+        }
 
         $allClassIds = array_values(array_unique(array_merge($waliClassIds, $pantauClassIds)));
-        $allClasses = Kelas::whereIn('id', $allClassIds)->orderBy('name')->get();
+        $allClasses = !empty($allClassIds)
+            ? Kelas::whereIn('id', $allClassIds)->orderBy('name')->get()
+            : collect();
 
         $formatted = $allClasses->map(function ($c) use ($waliClassIds, $pantauClassIds) {
-            $isWali = in_array($c->id, $waliClassIds);
-            $isBk = in_array($c->id, $pantauClassIds);
+            $cid = (string) $c->id;
+            $isWali = in_array($cid, $waliClassIds, true);
+            $isBk = in_array($cid, $pantauClassIds, true);
 
-            $label = $isWali ? 'Wali Kelas' : ($isBk ? 'Binaan BK' : 'Kelas');
+            $label = $isWali ? 'Wali Kelas' : ($isBk ? 'Binaan BK' : 'Kelas Binaan');
             return [
-                'id' => $c->id,
+                'id' => $cid,
                 'name' => $c->name,
                 'access_label' => $label,
                 'is_wali' => $isWali,
@@ -254,7 +278,7 @@ class GuruIjinKehadiranController extends Controller
         if (!$studentClassId) return false;
 
         // Hanya Wali Kelas dari rombel tersebut yang berhak memutuskan
-        return in_array($studentClassId, $accessInfo['wali_class_ids']);
+        return in_array((string) $studentClassId, $accessInfo['wali_class_ids'], true);
     }
 
     /**
