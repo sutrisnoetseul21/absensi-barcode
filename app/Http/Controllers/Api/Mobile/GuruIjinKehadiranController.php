@@ -334,7 +334,7 @@ class GuruIjinKehadiranController extends Controller
             if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
                 $url = $path;
             } else {
-                $url = asset('storage/' . $cleanPath);
+                $url = url('/api/v1/guru/ijin-kehadiran/file-stream?path=' . urlencode($cleanPath));
             }
 
             $attachmentsData[] = [
@@ -1054,6 +1054,57 @@ class GuruIjinKehadiranController extends Controller
             // Notifikasi WA gagal tidak boleh membatalkan aksi persetujuan di UI
             report($e);
         }
+    }
+
+    /**
+     * GET /api/v1/guru/ijin-kehadiran/file-stream
+     * Melayani file lampiran dengan header Access-Control-Allow-Origin: *
+     * agar gambar dapat dimuat di Flutter Web / Mobile tanpa terblokir CORS policy browser.
+     */
+    public function streamFile(Request $request): \Symfony\Component\HttpFoundation\Response
+    {
+        $path = $request->input('path');
+        if (empty($path)) {
+            abort(404, 'Path berkas tidak diberikan.');
+        }
+
+        $cleanPath = ltrim(str_replace(['public/', '/storage/', 'storage/'], '', $path), '/');
+
+        // Cegah path traversal
+        if (str_contains($cleanPath, '..')) {
+            abort(403, 'Akses path tidak valid.');
+        }
+
+        $disk = Storage::disk('public');
+        if (!$disk->exists($cleanPath)) {
+            if (!str_contains($cleanPath, '/') && $disk->exists('leave-requests/' . $cleanPath)) {
+                $cleanPath = 'leave-requests/' . $cleanPath;
+            } else {
+                // Jika file fisik tidak ada di disk (misal dump db tanpa folder storage), kembalikan SVG placeholder
+                $fileNameEscaped = htmlspecialchars(basename($cleanPath));
+                $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240"><rect width="100%" height="100%" fill="#F1F5F9" rx="12"/><path d="M170 80h60v20h-60zm-20 30h100v12H150zm10 20h80v12h-80z" fill="#94A3B8"/><text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#334155">' . $fileNameEscaped . '</text><text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#64748B">(Berkas lampiran tercatat di database)</text></svg>';
+                return response($svg, 200, [
+                    'Content-Type' => 'image/svg+xml',
+                    'Access-Control-Allow-Origin' => '*',
+                    'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+                    'Access-Control-Allow-Headers' => '*',
+                    'Cache-Control' => 'no-cache',
+                ]);
+            }
+        }
+
+        $fullPath = $disk->path($cleanPath);
+        $mime = $disk->mimeType($cleanPath) ?: 'application/octet-stream';
+        $filename = basename($cleanPath);
+
+        return response()->file($fullPath, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+            'Access-Control-Allow-Headers' => '*',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 }
 

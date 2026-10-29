@@ -61,6 +61,7 @@ Route::prefix('v1')->group(function () {
         // Menu 4: Persetujuan Ijin (/portal-guru/ijin-kehadiran)
         Route::get('/ijin-kehadiran', [GuruIjinKehadiranController::class, 'index']);
         Route::get('/ijin-kehadiran/notification-check', [GuruIjinKehadiranController::class, 'notificationCheck']);
+        Route::get('/ijin-kehadiran/file-stream', [GuruIjinKehadiranController::class, 'streamFile']);
         Route::get('/ijin-kehadiran/{id}', [GuruIjinKehadiranController::class, 'show']);
         Route::post('/ijin-kehadiran/{id}/approve', [GuruIjinKehadiranController::class, 'approve']);
         Route::post('/ijin-kehadiran/{id}/reject', [GuruIjinKehadiranController::class, 'reject']);
