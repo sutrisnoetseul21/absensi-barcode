@@ -327,26 +327,29 @@ Seluruh rute mobile ditempatkan di bawah prefix `api/v1/guru/ijin-kehadiran` dan
 │          - Daftarkan 6 rute API di `routes/api.php`                    │
 │          - Sinkronkan rute konstanta ke `ApiEndpoints.dart` (Flutter)  │
 ├────────────────────────────────────────────────────────────────────────┤
-│ TAHAP 2: Sistem Notifikasi Backend (WhatsApp & Android Push)           │
+│ TAHAP 2: Sistem Notifikasi Backend (WhatsApp & Android Push) [SELESAI ✅]│
 │          - Verifikasi antrean WhatsApp Notification                    │
 │          - Buat tabel & model `fcm_device_tokens`                      │
-│          - Implementasi endpoint pendaftaran token FCM                 │
-│          - Buat job `SendLeaveRequestFcmNotificationJob`               │
+│          - Implementasi endpoint `POST/DELETE /api/v1/auth/fcm-token`  │
+│          - Buat job `SendLeaveRequestFcmNotificationJob` & dispatch    │
+│            saat siswa mengajukan izin baru                             │
 ├────────────────────────────────────────────────────────────────────────┤
-│ TAHAP 3: Lapisan Service & State Flutter (apk-android-presensi)        │
-│          - Tambahkan endpoint di `ApiEndpoints.dart`                   │
-│          - Buat service `ijin_kehadiran_service.dart` via Dio         │
-│          - Buat model data `leave_request_model.dart`                  │
+│ TAHAP 3: Lapisan Service & Endpoint Flutter (apk-android-presensi) [SELESAI ✅]
+│          - Sinkronkan endpoint Menu 4 di `ApiEndpoints.dart`           │
+│          - Integrasi Dio dengan token Bearer & fallback identifier     │
 ├────────────────────────────────────────────────────────────────────────┤
-│ TAHAP 4: Antarmuka Flutter (UI Screens & Interactive Modals)           │
-│          - Layar utama `ijin_kehadiran_screen.dart` (Tab, Filter, List)│
-│          - Modal detail `detail_ijin_kehadiran_modal.dart`             │
-│          - Modal viewer lampiran foto zoomable `attachment_viewer.dart`│
-│          - Form penolakan & dialog konfirmasi setuju                   │
+│ TAHAP 4: Antarmuka Flutter (UI Screens & Interactive Modals) [SELESAI ✅]
+│          - Layar utama `ijin_kehadiran_screen.dart` (4 Tab status,     │
+│            filter kelas binaan, filter bulan, pencarian siswa)         │
+│          - Modal detail izin `_DetailIjinModal` (profil siswa, nomor   │
+│            ortu WA cepat, galeri berkas zoomable, log audit)           │
+│          - Tombol aksi keputusan: Setujui (Auto Presensi), Tolak       │
+│            (Form alasan min 3 chr), dan Kembalikan ke Pending          │
 ├────────────────────────────────────────────────────────────────────────┤
-│ TAHAP 5: In-App Notification Banner & Realtime Badge Dashboard         │
-│          - Integrasikan badge counter pada Card Menu 4 di Beranda      │
-│          - Pasang In-App Notification banner jika ada pengajuan pending│
+│ TAHAP 5: In-App Notification Banner & Realtime Badge Dashboard [SELESAI ✅]
+│          - Pasang In-App Notification banner menyala jika ada pending  │
+│          - Hubungkan Card Menu 4 di Beranda dengan `isReady: true`     │
+│            dan pintasan navigasi ke `IjinKehadiranScreen`              │
 ├────────────────────────────────────────────────────────────────────────┤
 │ TAHAP 6: Pengujian Komprehensif & Verifikasi Kualitas                  │
 │          - Uji alur Approve -> Cek tabel `attendances` & log WA        │

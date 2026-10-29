@@ -67,7 +67,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/ijin-kehadiran/{id}/reset', [GuruIjinKehadiranController::class, 'reset']);
     });
 
-    // 4. Endpoint Terproteksi Sanctum Bearer Token
+    // 4. Endpoint Terproteksi & Autentikasi Tambahan
+    Route::post('/auth/fcm-token', [AuthController::class, 'registerFcmToken']);
+    Route::delete('/auth/fcm-token', [AuthController::class, 'deleteFcmToken']);
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);

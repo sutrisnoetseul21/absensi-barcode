@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use App\Models\PresensiNotificationSetting;
 use App\Models\KelasAjaran;
 use App\Jobs\SendLeaveRequestWaNotificationJob;
+use App\Jobs\SendLeaveRequestFcmNotificationJob;
 use Illuminate\Support\Facades\DB;
 
 #[Layout('components.layouts.portal')]
@@ -225,7 +226,10 @@ class IjinKehadiranForm extends Component
             // diapprove manual via Portal Guru jika notifikasi WA gagal.
             try {
                 $record->generateApprovalToken();
-                DB::afterCommit(fn () => SendLeaveRequestWaNotificationJob::dispatch($record->id));
+                DB::afterCommit(function () use ($record) {
+                    SendLeaveRequestWaNotificationJob::dispatch($record->id);
+                    SendLeaveRequestFcmNotificationJob::dispatch($record->id);
+                });
             } catch (\Throwable $e) {
                 report($e); // Catat ke log/Sentry tanpa melempar ke UI
             }

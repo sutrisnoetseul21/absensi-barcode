@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Siswa;
 use App\Models\Guru;
+use App\Models\FcmDeviceToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -168,6 +170,105 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Sesi login berhasil diakhiri (Logout sukses).',
         ]);
+    }
+
+    /**
+     * Mendaftarkan / memperbarui token FCM perangkat Android pengguna.
+     */
+    public function registerFcmToken(Request $request): JsonResponse
+    {
+        $user = $request->user() ?: $this->resolveUserFallback($request);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak terautentikasi.',
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string|max:500',
+            'platform' => 'nullable|string|max:50',
+            'device_name' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $token = trim((string) $request->input('token'));
+        $platform = (string) $request->input('platform', 'android');
+        $deviceName = $request->input('device_name');
+
+        FcmDeviceToken::updateOrCreate(
+            ['token' => $token],
+            [
+                'user_id' => $user->id,
+                'platform' => $platform,
+                'device_name' => $deviceName,
+                'last_used_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM Device Token berhasil didaftarkan.',
+        ]);
+    }
+
+    /**
+     * Menghapus FCM Device Token saat pengguna logout dari aplikasi Android.
+     */
+    public function deleteFcmToken(Request $request): JsonResponse
+    {
+        $token = $request->input('token');
+        if ($token) {
+            FcmDeviceToken::where('token', $token)->delete();
+        } else {
+            $user = $request->user() ?: $this->resolveUserFallback($request);
+            if ($user) {
+                FcmDeviceToken::where('user_id', $user->id)->delete();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM Device Token berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Helper fallback resolve user jika Sanctum auth guard belum aktif.
+     */
+    protected function resolveUserFallback(Request $request): ?User
+    {
+        $bearer = $request->bearerToken();
+        if (!empty($bearer) && !str_contains($bearer, '|')) {
+            $decoded = base64_decode($bearer, true);
+            if ($decoded && str_contains($decoded, '|')) {
+                $parts = explode('|', $decoded);
+                $userId = $parts[0] ?? null;
+                if ($userId) {
+                    return User::find($userId);
+                }
+            }
+        }
+
+        $identifier = trim((string) ($request->header('X-User-Identifier') ?: $request->input('identifier', '')));
+        if ($identifier !== '') {
+            $guru = Guru::where('nip', $identifier)->orWhere('name', $identifier)->first();
+            if ($guru && $guru->user_id) {
+                $u = User::find($guru->user_id);
+                if ($u) return $u;
+            }
+            return User::where('email', $identifier)->orWhere('name', $identifier)->first();
+        }
+
+        return null;
     }
 }
 

@@ -441,4 +441,9 @@ class User extends Authenticatable implements FilamentUser
             }
         );
     }
+
+    public function fcmTokens(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(FcmDeviceToken::class, 'user_id');
+    }
 }
