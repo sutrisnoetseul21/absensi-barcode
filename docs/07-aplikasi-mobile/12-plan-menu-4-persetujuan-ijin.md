@@ -351,11 +351,12 @@ Seluruh rute mobile ditempatkan di bawah prefix `api/v1/guru/ijin-kehadiran` dan
 │          - Hubungkan Card Menu 4 di Beranda dengan `isReady: true`     │
 │            dan pintasan navigasi ke `IjinKehadiranScreen`              │
 ├────────────────────────────────────────────────────────────────────────┤
-│ TAHAP 6: Pengujian Komprehensif & Verifikasi Kualitas                  │
-│          - Uji alur Approve -> Cek tabel `attendances` & log WA        │
-│          - Uji alur Reject -> Cek presensi dicabut & log WA            │
+│ TAHAP 6: Pengujian Komprehensif, Verifikasi Kualitas & Git Push [SELESAI ✅]
+│          - Uji alur Approve -> Auto presensi (`syncAttendances`) & WA  │
+│          - Uji alur Reject -> Form alasan, pembatalan presensi, & WA   │
 │          - Uji wewenang Guru BK (read-only) vs Wali Kelas (action)     │
-│          - Static analysis check (`analyze_files`) & Hot Reload check  │
+│          - Static analysis check (`analyze_files`): 0 error / warning  │
+│          - Sinkronisasi commit dan push GitHub di kedua repositori     │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 

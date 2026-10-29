@@ -120,3 +120,4 @@ class SendLeaveRequestFcmNotificationJob implements ShouldQueue
         }
     }
 }
+
