@@ -282,6 +282,77 @@ class GuruIjinKehadiranController extends Controller
     }
 
     /**
+     * Ekstraksi seluruh berkas lampiran dari LeaveRequest (file_path + file_paths + attachments accessor)
+     * tanpa bergantung mutlak pada disk exists check agar tidak hilang di UI saat export database tanpa folder foto.
+     */
+    protected function extractAttachments(LeaveRequest $record): array
+    {
+        $rawPaths = [];
+
+        if (!empty($record->file_path)) {
+            $rawPaths[] = $record->file_path;
+        }
+
+        $extraPaths = $record->file_paths;
+        if (is_string($extraPaths)) {
+            $decoded = json_decode($extraPaths, true);
+            if (is_array($decoded)) {
+                $extraPaths = $decoded;
+            }
+        }
+        if (is_array($extraPaths)) {
+            foreach ($extraPaths as $p) {
+                if (!empty($p) && is_string($p)) {
+                    $rawPaths[] = $p;
+                }
+            }
+        }
+
+        try {
+            $modelAttachments = $record->attachments;
+            if (is_array($modelAttachments)) {
+                foreach ($modelAttachments as $att) {
+                    if (is_array($att) && !empty($att['path'])) {
+                        $rawPaths[] = $att['path'];
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        $rawPaths = array_values(array_unique(array_filter($rawPaths)));
+        $attachmentsData = [];
+        $index = 0;
+
+        foreach ($rawPaths as $path) {
+            $cleanPath = ltrim(str_replace(['public/', '/storage/', 'storage/'], '', $path), '/');
+            $ext = strtolower(pathinfo($cleanPath, PATHINFO_EXTENSION));
+
+            $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'])
+                || str_contains($path, 'image') || str_contains($cleanPath, '.jpg') || str_contains($cleanPath, '.png');
+            $isPdf = $ext === 'pdf';
+
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+                $url = $path;
+            } else {
+                $url = asset('storage/' . $cleanPath);
+            }
+
+            $attachmentsData[] = [
+                'index' => $index,
+                'name' => basename($cleanPath) ?: ('Lampiran ' . ($index + 1)),
+                'url' => $url,
+                'path' => $cleanPath,
+                'mediatype' => $isImage ? 'image' : ($isPdf ? 'document' : 'file'),
+                'is_image' => $isImage,
+                'is_pdf' => $isPdf,
+            ];
+            $index++;
+        }
+
+        return $attachmentsData;
+    }
+
+    /**
      * GET /api/v1/guru/ijin-kehadiran
      * Daftar Permohonan Izin Siswa dengan filter status, kelas, bulan, dan pencarian.
      */
@@ -384,34 +455,13 @@ class GuruIjinKehadiranController extends Controller
             $classId = $enrollment?->class_id;
 
             // Thumbnail lampiran pertama (jika berupa gambar)
+            $attachmentsData = $this->extractAttachments($item);
             $thumbnailUrl = null;
-            $attachmentsData = [];
-            $rawAttachments = $item->attachments ?? [];
 
-            foreach ($rawAttachments as $att) {
-                $url = asset('storage/' . $att['path']);
-                $isImage = ($att['mediatype'] ?? '') === 'image';
-                $isPdf = ($att['mediatype'] ?? '') === 'document' || strtolower(pathinfo($att['path'], PATHINFO_EXTENSION)) === 'pdf';
-
-                if ($thumbnailUrl === null && $isImage) {
-                    $thumbnailUrl = $url;
-                }
-
-                $attachmentsData[] = [
-                    'index' => $att['index'] ?? 0,
-                    'name' => $att['name'] ?? basename($att['path']),
-                    'url' => $url,
-                    'mediatype' => $att['mediatype'] ?? ($isImage ? 'image' : 'document'),
-                    'is_image' => $isImage,
-                    'is_pdf' => $isPdf,
-                ];
-            }
-
-            // Jika $thumbnailUrl masih null, cek file_path langsung
-            if ($thumbnailUrl === null && !empty($item->file_path)) {
-                $ext = strtolower(pathinfo($item->file_path, PATHINFO_EXTENSION));
-                if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
-                    $thumbnailUrl = asset('storage/' . $item->file_path);
+            foreach ($attachmentsData as $att) {
+                if ($att['is_image']) {
+                    $thumbnailUrl = $att['url'];
+                    break;
                 }
             }
 
@@ -547,23 +597,8 @@ class GuruIjinKehadiranController extends Controller
 
         $canApprove = $this->canApproveOrReject($user, $record, $accessInfo);
 
-        // Kumpulkan data lampiran
-        $attachmentsData = [];
-        $rawAttachments = $record->attachments ?? [];
-        foreach ($rawAttachments as $att) {
-            $url = asset('storage/' . $att['path']);
-            $isImage = ($att['mediatype'] ?? '') === 'image';
-            $isPdf = ($att['mediatype'] ?? '') === 'document' || strtolower(pathinfo($att['path'], PATHINFO_EXTENSION)) === 'pdf';
-
-            $attachmentsData[] = [
-                'index' => $att['index'] ?? 0,
-                'name' => $att['name'] ?? basename($att['path']),
-                'url' => $url,
-                'mediatype' => $att['mediatype'] ?? ($isImage ? 'image' : 'document'),
-                'is_image' => $isImage,
-                'is_pdf' => $isPdf,
-            ];
-        }
+        // Kumpulkan data lampiran (tetap membaca path database meskipun file fisik di storage belum diexport)
+        $attachmentsData = $this->extractAttachments($record);
 
         // Format nomor HP Ortu untuk WhatsApp
         $rawParentPhone = $student?->no_hp_orang_tua ?: $student?->no_hp;

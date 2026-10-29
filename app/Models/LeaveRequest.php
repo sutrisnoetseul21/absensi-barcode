@@ -89,32 +89,31 @@ class LeaveRequest extends Model
         $index  = 0;
 
         foreach ($rawPaths as $path) {
-            // Skip file yang tidak ada di disk
-            if (!Storage::disk('public')->exists($path)) {
-                Log::warning("LeaveRequest #{$this->id}: file lampiran tidak ditemukan di storage: {$path}");
-                continue;
+            $cleanPath = ltrim(str_replace(['public/', '/storage/', 'storage/'], '', $path), '/');
+            $existsOnDisk = Storage::disk('public')->exists($cleanPath) || Storage::disk('public')->exists($path);
+
+            $mime = 'application/octet-stream';
+            if ($existsOnDisk) {
+                try {
+                    $mime = Storage::disk('public')->mimeType($cleanPath) ?: (Storage::disk('public')->mimeType($path) ?: 'application/octet-stream');
+                } catch (\Throwable $e) {}
             }
 
-            $mime      = Storage::disk('public')->mimeType($path) ?: 'application/octet-stream';
-            $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $extension = strtolower(pathinfo($cleanPath, PATHINFO_EXTENSION));
 
             $mediatype = match ($extension) {
-                'jpg', 'jpeg', 'png', 'webp' => 'image',
-                'pdf'                        => 'document',
-                default                      => null,
+                'jpg', 'jpeg', 'png', 'webp', 'gif' => 'image',
+                'pdf'                               => 'document',
+                default                             => 'document',
             };
 
-            if ($mediatype === null) {
-                Log::warning("LeaveRequest #{$this->id}: tipe lampiran tidak didukung untuk WA: {$extension} ({$path})");
-                continue;
-            }
-
             $result[] = [
-                'index'     => $index,
-                'path'      => $path,
-                'name'      => basename($path),
-                'mime'      => $mime,
-                'mediatype' => $mediatype,
+                'index'          => $index,
+                'path'           => $cleanPath,
+                'name'           => basename($cleanPath) ?: ('Lampiran ' . ($index + 1)),
+                'mime'           => $mime,
+                'mediatype'      => $mediatype,
+                'exists_on_disk' => $existsOnDisk,
             ];
 
             $index++;
