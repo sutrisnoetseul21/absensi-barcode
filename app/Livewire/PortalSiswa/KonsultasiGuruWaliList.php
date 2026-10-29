@@ -113,7 +113,7 @@ class KonsultasiGuruWaliList extends Component
             return;
         }
 
-        KonsultasiGuruWali::create([
+        $konsul = KonsultasiGuruWali::create([
             'student_id'           => $student->id,
             'teacher_id'           => $keanggotaan->kelompok->teacher_id,
             'kelompok_id'          => $keanggotaan->kelompok_id,
@@ -124,6 +124,16 @@ class KonsultasiGuruWaliList extends Component
             'usulan_tanggal_waktu' => $this->usulan_tanggal_waktu ? Carbon::parse($this->usulan_tanggal_waktu) : null,
             'status_pengajuan'     => 'Menunggu Konfirmasi',
         ]);
+
+        // Pemicu Push Notification FCM ke HP Android Guru Wali yang bersangkutan
+        try {
+            \App\Jobs\SendKonsultasiGuruWaliFcmNotificationJob::dispatch(
+                $konsul->id,
+                'pengajuan_baru'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal dispatch FCM Guru Wali: ' . $e->getMessage());
+        }
 
         $this->closeModal();
         session()->flash('success', 'Permohonan konsultasi berhasil dikirimkan ke Guru Wali Anda!');
@@ -155,12 +165,24 @@ class KonsultasiGuruWaliList extends Component
         $konsul = KonsultasiGuruWali::findOrFail($id);
 
         if (in_array($konsul->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan'])) {
-            \App\Models\PesanKonsultasiGuruWali::create([
+            $pesan = \App\Models\PesanKonsultasiGuruWali::create([
                 'konsultasi_id' => $konsul->id,
                 'sender_type'   => 'siswa',
                 'pesan'         => $this->pesanBaru,
                 'is_read'       => false,
             ]);
+
+            // Pemicu Push Notification FCM ke HP Android Guru Wali
+            try {
+                \App\Jobs\SendKonsultasiGuruWaliFcmNotificationJob::dispatch(
+                    $konsul->id,
+                    'pesan_baru',
+                    $pesan->id
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gagal dispatch FCM Guru Wali (inline): ' . $e->getMessage());
+            }
+
             $this->pesanBaru = '';
         }
     }
@@ -176,12 +198,23 @@ class KonsultasiGuruWaliList extends Component
 
         // Boleh membalas jika belum Selesai/Ditolak/Dikonversi
         if (in_array($this->selectedKonsultasi->status_pengajuan?->value, ['Menunggu Konfirmasi', 'Dijadwalkan'])) {
-            \App\Models\PesanKonsultasiGuruWali::create([
+            $pesan = \App\Models\PesanKonsultasiGuruWali::create([
                 'konsultasi_id' => $this->selectedKonsultasi->id,
                 'sender_type'   => 'siswa',
                 'pesan'         => $this->pesanBaru,
                 'is_read'       => false,
             ]);
+
+            // Pemicu Push Notification FCM ke HP Android Guru Wali
+            try {
+                \App\Jobs\SendKonsultasiGuruWaliFcmNotificationJob::dispatch(
+                    $this->selectedKonsultasi->id,
+                    'pesan_baru',
+                    $pesan->id
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gagal dispatch FCM Guru Wali: ' . $e->getMessage());
+            }
 
             $this->pesanBaru = '';
             $this->selectedKonsultasi->load('pesan');

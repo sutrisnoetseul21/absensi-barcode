@@ -137,3 +137,4 @@ abstract class GuruWaliBaseController extends Controller
             ?: TahunAjaran::orderBy('start_year', 'desc')->first();
     }
 }
+

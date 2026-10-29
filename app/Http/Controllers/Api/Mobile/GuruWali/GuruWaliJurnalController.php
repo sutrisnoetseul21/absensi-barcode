@@ -516,3 +516,4 @@ class GuruWaliJurnalController extends GuruWaliBaseController
         }
     }
 }
+
