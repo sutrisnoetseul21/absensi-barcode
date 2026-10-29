@@ -52,12 +52,14 @@ docs/
 ├── 06-template/                        # Standarisasi & templat kerja
 │   ├── template-adr.md                 # Format dokumentasi keputusan teknis baru
 │   └── template-fitur-baru.md          # Format Product Requirements Document (PRD)
-├── 07-aplikasi-mobile/                 # 📱 Perencanaan Aplikasi Mobile Flutter (Portal Siswa & Guru)
+├── 07-aplikasi-mobile/                 # 📱 Aplikasi Mobile Flutter (Portal Siswa & Guru)
 │   ├── README.md                       # Peta umum arsitektur & integrasi mobile
 │   ├── 01-arsitektur-dan-tech-stack-mobile.md # Tech stack Flutter & state management
 │   ├── 02-cakupan-menu-dan-spesifikasi-fitur.md # Fitur terpilih Portal Siswa & Guru
 │   ├── 03-desain-rest-api-laravel-sanctum.md # Desain endpoint REST API & Sanctum
-│   └── 04-roadmap-dan-tahapan-implementasi.md # Roadmap bertahap dari API ke APK
+│   ├── 04-roadmap-dan-tahapan-implementasi.md # Roadmap bertahap dari API ke APK
+│   ├── 05-strategi-multi-sekolah-dan-server.md # Penanganan server paten & build per sekolah
+│   └── 06-implementasi-api-login-dan-identitas-sekolah.md # Implementasi API school-info, login minimalis, & splash logo
 └── data_lama/                          # Arsip catatan historis sebelumnya
 ```
 

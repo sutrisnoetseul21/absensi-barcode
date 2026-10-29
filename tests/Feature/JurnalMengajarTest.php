@@ -442,6 +442,7 @@ class JurnalMengajarTest extends TestCase
             ->assertSee('80 Menit')
             ->assertSee('40 Menit / JP')
             ->assertSee('1 JP = 40 Menit')
+            ->assertSee(hari_tanggal_indonesia(now()))
             // Test clamping pada setter (maks 9 untuk jam mulai, maks 5 untuk durasi):
             ->call('setJamMulai', 15)
             ->assertSet('jam_mulai', 9)
