@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Mobile\GuruPresensiController;
 use App\Http\Controllers\Api\Mobile\GuruSholatDhuhurController;
 use App\Http\Controllers\Api\Mobile\GuruJurnalMengajarController;
 use App\Http\Controllers\Api\Mobile\GuruIjinKehadiranController;
+use App\Http\Controllers\Api\Mobile\GuruWaliApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +67,27 @@ Route::prefix('v1')->group(function () {
         Route::post('/ijin-kehadiran/{id}/approve', [GuruIjinKehadiranController::class, 'approve']);
         Route::post('/ijin-kehadiran/{id}/reject', [GuruIjinKehadiranController::class, 'reject']);
         Route::post('/ijin-kehadiran/{id}/reset', [GuruIjinKehadiranController::class, 'reset']);
+
+        // Menu 5: Guru Wali (SI-WALI) (/portal-guru/guru-wali/*)
+        Route::get('/guru-wali/dashboard', [GuruWaliApiController::class, 'dashboard']);
+        Route::get('/guru-wali/jurnal', [GuruWaliApiController::class, 'jurnalIndex']);
+        Route::post('/guru-wali/jurnal/individual', [GuruWaliApiController::class, 'jurnalStoreIndividual']);
+        Route::post('/guru-wali/jurnal/klasikal', [GuruWaliApiController::class, 'jurnalStoreKlasikal']);
+        Route::get('/guru-wali/jurnal/{id}', [GuruWaliApiController::class, 'jurnalShow']);
+        Route::put('/guru-wali/jurnal/{id}', [GuruWaliApiController::class, 'jurnalUpdate']);
+        Route::delete('/guru-wali/jurnal/{id}', [GuruWaliApiController::class, 'jurnalDestroy']);
+        Route::post('/guru-wali/jurnal/{id}/rujuk-bk', [GuruWaliApiController::class, 'jurnalRujukBk']);
+
+        Route::get('/guru-wali/konsultasi', [GuruWaliApiController::class, 'konsultasiIndex']);
+        Route::get('/guru-wali/konsultasi/{id}', [GuruWaliApiController::class, 'konsultasiShow']);
+        Route::post('/guru-wali/konsultasi/{id}/pesan', [GuruWaliApiController::class, 'konsultasiKirimPesan']);
+        Route::post('/guru-wali/konsultasi/{id}/jadwalkan', [GuruWaliApiController::class, 'konsultasiJadwalkan']);
+        Route::post('/guru-wali/konsultasi/{id}/balas', [GuruWaliApiController::class, 'konsultasiBalas']);
+        Route::post('/guru-wali/konsultasi/{id}/tolak', [GuruWaliApiController::class, 'konsultasiTolak']);
+        Route::post('/guru-wali/konsultasi/{id}/konversi-jurnal', [GuruWaliApiController::class, 'konsultasiKonversiJurnal']);
+
+        Route::get('/guru-wali/pemantauan', [GuruWaliApiController::class, 'pemantauanIndex']);
+        Route::get('/guru-wali/cetak/pdf', [GuruWaliApiController::class, 'cetakPdf']);
     });
 
     // 4. Endpoint Terproteksi & Autentikasi Tambahan

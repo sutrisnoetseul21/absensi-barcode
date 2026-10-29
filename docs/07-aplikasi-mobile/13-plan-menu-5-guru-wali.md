@@ -300,3 +300,4 @@ lib/features/guru/
 3. ✅ **Bimbingan Klasikal & Individu**: Guru dapat mencatat bimbingan untuk 1 siswa atau langsung serentak 1 kelompok bimbingan hanya dengan beberapa sentuhan.
 4. ✅ **Push Notifikasi FCM**: Saat siswa mengirimkan cerita atau pesan di portal siswa, notifikasi langsung berdering/muncul di notification bar HP Android Guru Wali.
 5. ✅ **Kerahasiaan Terjamin**: Hanya Guru Wali yang bersangkutan yang dapat melihat rekam jejak dan percakapan siswa asuhnya.
+
