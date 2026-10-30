@@ -18,6 +18,10 @@ use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaCetakController;
 use App\Http\Controllers\Api\Mobile\Spikap\SpikapInboxController;
 use App\Http\Controllers\Api\Mobile\Spikap\SpikapDetailController;
 use App\Http\Controllers\Api\Mobile\Spikap\SpikapAnalitikController;
+use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanKatalogController;
+use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanPeminjamanController;
+use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanKunjunganController;
+use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanSiswaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -128,6 +132,22 @@ Route::prefix('v1')->group(function () {
             Route::post('/laporan/{id}/status', [SpikapDetailController::class, 'updateStatus']);
             Route::get('/lampiran/{id}', [SpikapDetailController::class, 'lampiran']);
             Route::get('/analitik', [SpikapAnalitikController::class, 'analitik']);
+        });
+
+        // Menu 8: Perpustakaan (/portal-guru/perpustakaan)
+        Route::prefix('perpustakaan')->group(function () {
+            Route::get('/summary', [PerpustakaanKatalogController::class, 'summary']);
+            Route::get('/kategori', [PerpustakaanKatalogController::class, 'kategori']);
+            Route::get('/katalog', [PerpustakaanKatalogController::class, 'katalog']);
+            Route::get('/katalog/{id}', [PerpustakaanKatalogController::class, 'detail']);
+
+            Route::get('/pinjaman-saya', [PerpustakaanPeminjamanController::class, 'pinjamanSaya']);
+            Route::get('/riwayat-pinjaman', [PerpustakaanPeminjamanController::class, 'riwayatPinjaman']);
+
+            Route::get('/kunjungan-saya', [PerpustakaanKunjunganController::class, 'kunjunganSaya']);
+
+            Route::get('/kelas-ampu', [PerpustakaanSiswaController::class, 'kelasAmpu']);
+            Route::get('/pinjaman-siswa', [PerpustakaanSiswaController::class, 'pinjamanSiswa']);
         });
     });
 
