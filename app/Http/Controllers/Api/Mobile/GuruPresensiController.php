@@ -331,6 +331,7 @@ class GuruPresensiController extends Controller
             'data' => [
                 'teacher_name' => $teacher?->name ?? $user?->display_name ?? $user?->name ?? 'Bapak/Ibu Guru',
                 'nip' => $teacher?->nip ?? '-',
+                'photo_url' => $teacher?->photo_path ? asset('storage/' . $teacher->photo_path) : null,
                 'role_summary' => $accessInfo['role_summary'],
                 'is_bk' => $accessInfo['is_bk'],
                 'kelas_ampu_count' => $kelasAmpuCount,

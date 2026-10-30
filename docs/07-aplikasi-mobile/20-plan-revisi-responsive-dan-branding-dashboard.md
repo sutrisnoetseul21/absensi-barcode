@@ -224,7 +224,7 @@ Rencana ini secara langsung merespons evaluasi visual pengguna pada pengujian ta
 
 ## 3. Status Rencana Eksekusi
 - [x] **Tahap 1: Konfigurasi Navigasi Sistem Android & Sinkronisasi Logo Sekolah**
-- [ ] **Tahap 2: Tampilan Dashboard Guru (AppBar Logo & Foto Hero)**
-- [ ] **Tahap 3: Implementasi Layout Responsif Multi-Kolom di Dashboard Guru**
-- [ ] **Tahap 4: Penerapan Desain Serupa di Dashboard Siswa & Finalisasi**
+- [x] **Tahap 2: Tampilan Dashboard Guru (AppBar Logo & Foto Hero)**
+- [x] **Tahap 3: Implementasi Layout Responsif 3 Kolom di Dashboard Guru**
+- [x] **Tahap 4: Penerapan Desain Serupa di Dashboard Siswa & Finalisasi**
 
