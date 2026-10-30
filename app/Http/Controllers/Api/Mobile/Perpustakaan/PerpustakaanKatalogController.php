@@ -325,3 +325,4 @@ class PerpustakaanKatalogController extends PerpustakaanBaseController
         ], 'Detail buku berhasil dimuat');
     }
 }
+

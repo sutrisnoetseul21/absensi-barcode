@@ -212,4 +212,4 @@ Prefix: `/api/v1/guru/perpustakaan`
 - [x] **Tahap 3: Layar Utama & Tab 1 Katalog Buku**
 - [x] **Tahap 4: Tab 2 Pinjaman Pribadi & Tab 3 Riwayat Pribadi**
 - [x] **Tahap 5: Tab 4 Kunjungan & Tab 5 Siswa Kelas Ampu**
-- [ ] **Tahap 6: Integrasi Dashboard Guru & Finalisasi**
+- [x] **Tahap 6: Integrasi Dashboard Guru & Finalisasi**
