@@ -202,3 +202,4 @@ Untuk mengeksekusi fitur ini nanti, diperlukan 2 berkas konfigurasi dari **Fireb
 - [ ] **Tahap 4: Handling Interaksi Notifikasi & Deep Linking**
 - [ ] **Tahap 5: Upgrade Backend Laravel ke FCM HTTP v1 & Triggers**
 - [ ] **Tahap 6: Pengujian End-to-End, Troubleshooting HP & Finalisasi**
+
