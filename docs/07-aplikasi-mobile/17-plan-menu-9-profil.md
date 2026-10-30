@@ -263,5 +263,5 @@ Kami membuat controller modular khusus di backend Laravel:
 - [x] **Tahap 3: Layar Utama, Hero Header & Tab 1 Kontak/Biodata**
 - [x] **Tahap 4: Integrasi Upload & Hapus Foto Profil (Camera/Gallery)**
 - [x] **Tahap 5: Tab 2 Penugasan Akademik & Tab 3 Keamanan Sandi + Logout**
-- [ ] **Tahap 6: Integrasi Dashboard Guru & Finalisasi**
+- [x] **Tahap 6: Integrasi Dashboard Guru & Finalisasi**
 
