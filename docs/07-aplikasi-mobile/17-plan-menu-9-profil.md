@@ -259,7 +259,7 @@ Kami membuat controller modular khusus di backend Laravel:
 
 ## 6. Status Eksekusi Fitur
 - [x] **Tahap 1: Backend REST API Modular Profil Guru (Laravel)**
-- [ ] **Tahap 2: Dart Models, Constants & Service (Flutter)**
+- [x] **Tahap 2: Dart Models, Constants & Service (Flutter)**
 - [ ] **Tahap 3: Layar Utama, Hero Header & Tab 1 Kontak/Biodata**
 - [ ] **Tahap 4: Integrasi Upload & Hapus Foto Profil (Camera/Gallery)**
 - [ ] **Tahap 5: Tab 2 Penugasan Akademik & Tab 3 Keamanan Sandi + Logout**
