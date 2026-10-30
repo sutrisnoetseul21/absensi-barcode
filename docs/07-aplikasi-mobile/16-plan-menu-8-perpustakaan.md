@@ -210,6 +210,6 @@ Prefix: `/api/v1/guru/perpustakaan`
 - [x] **Tahap 1: Backend REST API Modular Perpustakaan (Laravel)**
 - [x] **Tahap 2: Dart Models & PerpustakaanService (Flutter)**
 - [x] **Tahap 3: Layar Utama & Tab 1 Katalog Buku**
-- [ ] **Tahap 4: Tab 2 Pinjaman Pribadi & Tab 3 Riwayat Pribadi**
+- [x] **Tahap 4: Tab 2 Pinjaman Pribadi & Tab 3 Riwayat Pribadi**
 - [ ] **Tahap 5: Tab 4 Kunjungan & Tab 5 Siswa Kelas Ampu**
 - [ ] **Tahap 6: Integrasi Dashboard Guru & Finalisasi**
