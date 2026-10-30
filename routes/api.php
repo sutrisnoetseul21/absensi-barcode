@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanKatalogController;
 use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanPeminjamanController;
 use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanKunjunganController;
 use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanSiswaController;
+use App\Http\Controllers\Api\Mobile\GuruProfilController;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,6 +149,15 @@ Route::prefix('v1')->group(function () {
 
             Route::get('/kelas-ampu', [PerpustakaanSiswaController::class, 'kelasAmpu']);
             Route::get('/pinjaman-siswa', [PerpustakaanSiswaController::class, 'pinjamanSiswa']);
+        });
+
+        // Menu 9: Profil Saya (/portal-guru/profil)
+        Route::prefix('profil')->group(function () {
+            Route::get('/', [GuruProfilController::class, 'getProfile']);
+            Route::post('/kontak', [GuruProfilController::class, 'updateContact']);
+            Route::post('/foto', [GuruProfilController::class, 'updatePhoto']);
+            Route::delete('/foto', [GuruProfilController::class, 'removePhoto']);
+            Route::post('/password', [GuruProfilController::class, 'updatePassword']);
         });
     });
 
