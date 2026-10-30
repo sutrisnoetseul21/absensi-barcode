@@ -166,3 +166,4 @@ Prefix: `/api/v1/guru/data-siswa`
    - Validasi minimal 6 karakter, password ter-hash aman dengan `Hash::make()` di backend.
 5. **Kinerja & Responsivitas**:
    - Waktu muat daftar siswa < 200ms dengan paginasi atau lazy list.
+

@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliDashboardController;
 use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliJurnalController;
 use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliKonsultasiController;
 use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliLaporanController;
+use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaListController;
+use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaEditController;
+use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaCetakController;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,6 +100,21 @@ Route::prefix('v1')->group(function () {
             // 4. Pemantauan & Cetak Laporan
             Route::get('/pemantauan', [GuruWaliLaporanController::class, 'pemantauan']);
             Route::get('/cetak/pdf', [GuruWaliLaporanController::class, 'cetakPdf']);
+        });
+
+        // Menu 6: Data Siswa (/portal-guru/data-siswa)
+        Route::prefix('data-siswa')->group(function () {
+            Route::get('/options', [DataSiswaListController::class, 'options']);
+            Route::get('/students', [DataSiswaListController::class, 'students']);
+            Route::get('/student/{id}', [DataSiswaEditController::class, 'detail']);
+            Route::put('/student/{id}/biodata', [DataSiswaEditController::class, 'updateBiodata']);
+            Route::patch('/student/{id}/no-hp', [DataSiswaEditController::class, 'updateNoHp']);
+            Route::post('/student/{id}/ganti-password', [DataSiswaEditController::class, 'gantiPassword']);
+            Route::post('/student/{id}/upload-foto', [DataSiswaEditController::class, 'uploadFoto']);
+            Route::get('/student/{id}/cetak-kartu', [DataSiswaCetakController::class, 'cetakKartu']);
+            Route::get('/student/{id}/cetak-biodata', [DataSiswaCetakController::class, 'cetakBiodata']);
+            Route::get('/cetak-kartu-massal', [DataSiswaCetakController::class, 'cetakKartuMassal']);
+            Route::get('/cetak-biodata-massal', [DataSiswaCetakController::class, 'cetakBiodataMassal']);
         });
     });
 
