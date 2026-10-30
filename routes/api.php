@@ -15,6 +15,9 @@ use App\Http\Controllers\Api\Mobile\GuruWali\GuruWaliLaporanController;
 use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaListController;
 use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaEditController;
 use App\Http\Controllers\Api\Mobile\DataSiswa\DataSiswaCetakController;
+use App\Http\Controllers\Api\Mobile\Spikap\SpikapInboxController;
+use App\Http\Controllers\Api\Mobile\Spikap\SpikapDetailController;
+use App\Http\Controllers\Api\Mobile\Spikap\SpikapAnalitikController;
 
 /*
 |--------------------------------------------------------------------------
@@ -115,6 +118,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/student/{id}/cetak-biodata', [DataSiswaCetakController::class, 'cetakBiodata']);
             Route::get('/cetak-kartu-massal', [DataSiswaCetakController::class, 'cetakKartuMassal']);
             Route::get('/cetak-biodata-massal', [DataSiswaCetakController::class, 'cetakBiodataMassal']);
+        });
+
+        // Menu 7: SPIKAP (/portal-guru/spikap) - Proteksi Khusus BK, Wali Kelas, dan Kepala Sekolah
+        Route::prefix('spikap')->group(function () {
+            Route::get('/check-access', [SpikapInboxController::class, 'checkAccess']);
+            Route::get('/inbox', [SpikapInboxController::class, 'inbox']);
+            Route::get('/laporan/{id}', [SpikapDetailController::class, 'detail']);
+            Route::post('/laporan/{id}/status', [SpikapDetailController::class, 'updateStatus']);
+            Route::get('/lampiran/{id}', [SpikapDetailController::class, 'lampiran']);
+            Route::get('/analitik', [SpikapAnalitikController::class, 'analitik']);
         });
     });
 

@@ -292,9 +292,33 @@ class GuruPresensiController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        $canAccessSpikap = false;
+        $spikapRoleLabel = 'Guru Mata Pelajaran';
+
         if ($user) {
             try {
-                if (method_exists($user, 'canAccessSpikapGuru') && $user->canAccessSpikapGuru()) {
+                $isAdmin = $user->hasAnyRole(['super_admin', 'spikap_admin']);
+                $isKs = $user->isKepalaSekolah() || $user->hasRole('spikap_kepala_sekolah');
+                $isBk = $user->isGuruBk() || $user->hasRole('spikap_guru_bk');
+                $isWk = $user->isWaliKelasMurni() || ($user->hasRole('wali_kelas') && $user->teacher !== null);
+
+                if (method_exists($user, 'canAccessSpikapGuru')) {
+                    $canAccessSpikap = $user->canAccessSpikapGuru();
+                } else {
+                    $canAccessSpikap = $isAdmin || $isKs || $isBk || $isWk;
+                }
+
+                if ($isAdmin) {
+                    $spikapRoleLabel = 'Administrator SPIKAP';
+                } elseif ($isKs) {
+                    $spikapRoleLabel = 'Kepala Sekolah';
+                } elseif ($isBk) {
+                    $spikapRoleLabel = 'Guru Bimbingan Konseling (BK)';
+                } elseif ($isWk) {
+                    $spikapRoleLabel = 'Wali Kelas';
+                }
+
+                if ($canAccessSpikap) {
                     $spikapCount = SpikapLaporan::forUser($user)->count();
                     $spikapAktifCount = SpikapLaporan::forUser($user)->aktif()->count();
                     $spikapDaruratCount = SpikapLaporan::forUser($user)->darurat()->aktif()->count();
@@ -318,6 +342,8 @@ class GuruPresensiController extends Controller
                 'rejected_leave_count' => $rejectedLeaveCount,
                 'active_books_count' => $activeBooksCount,
                 'pending_konsultasi_count' => $pendingKonsultasiCount,
+                'can_access_spikap' => $canAccessSpikap,
+                'spikap_role_label' => $spikapRoleLabel,
                 'spikap_count' => $spikapCount,
                 'spikap_aktif_count' => $spikapAktifCount,
                 'spikap_darurat_count' => $spikapDaruratCount,

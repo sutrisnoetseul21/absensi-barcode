@@ -196,3 +196,4 @@ Prefix: `/api/v1/guru/spikap`
    - Laporan berkategori darurat memiliki indikator visual merah menyala dan ditempatkan pada urutan teratas.
 3. **Audit Trail**:
    - Setiap pergantian status tercatat dengan rapi beserta nama guru dan catatan investigasinya.
+
