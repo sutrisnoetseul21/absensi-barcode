@@ -197,3 +197,14 @@ Prefix: `/api/v1/guru/spikap`
 3. **Audit Trail**:
    - Setiap pergantian status tercatat dengan rapi beserta nama guru dan catatan investigasinya.
 
+---
+
+## 6. Status Eksekusi Fitur
+- [x] **Tahap 1: Backend API Modular & Otorisasi Hak Akses Ketat** (Selesai - Commit `2640e8f`)
+- [x] **Tahap 2: Dart Models & SpikapService (Flutter)** (Selesai - `spikap_models.dart`, `spikap_service.dart`)
+- [x] **Tahap 3: Proteksi & Penanganan Hak Akses di Dashboard Guru** (Selesai - `DialogAksesSpikapDitolak`, `DashboardGuruScreen`)
+- [x] **Tahap 4: Layar Kotak Masuk SPIKAP** (Selesai - `SpikapScreen`)
+- [x] **Tahap 5: Lembar Detail Kasus & Form Status** (Selesai - `SpikapDetailScreen`)
+- [x] **Tahap 6: Dasbor Analitik Kasus & Finalisasi** (Selesai - `SpikapAnalitikScreen`)
+
+
