@@ -41,14 +41,12 @@ Rencana ini secara langsung merespons evaluasi visual pengguna pada pengujian ta
 ### A. Layout Responsif (Smartphone vs Tablet/Layar Lebar)
 * **Smartphone Portrait (Lebar < 650dp)**:
   - Tetap menampilkan layout 1 kolom vertikal yang nyaman dioperasikan satu tangan (seperti tampilan HP di Gambar 2).
-* **Tablet / Layar Lebar (Lebar >= 650dp & < 1100dp)**:
-  - Menggunakan `LayoutBuilder` yang memecah daftar menu menjadi **Grid 2 Kolom berdampingan (*Side-by-Side*)**.
-  - Setiap kartu memiliki tinggi seragam yang proporsional (*aspect ratio* seimbang).
-* **Tablet Besar / Desktop / Layar Sangat Lebar (Lebar >= 1100dp)**:
-  - Tampilkan **3 Kolom Grid**, atau batasi lebar kontainer dengan `ConstrainedBox(maxWidth: 1100)` terpusat di tengah (`Center`) agar tetap estetik.
+* **Tablet / Layar Lebar (Lebar >= 650dp)**:
+  - Menggunakan `LayoutBuilder` yang memecah daftar menu menjadi **Grid 3 Kolom dalam satu baris (*3 Cards per row*)** sesuai arahan pengguna.
+  - Setiap kartu memiliki tinggi seragam yang proporsional (*aspect ratio* seimbang) dan padding rapi.
 * **Terapkan pada Kedua Portal**:
-  - `DashboardGuruScreen` (9 Menu Utama Guru).
-  - `DashboardSiswaScreen` (7 Menu Utama Siswa).
+  - `DashboardGuruScreen` (9 Menu Utama Guru -> Rapi terbagi dalam 3 baris x 3 kolom = 9 menu pas!).
+  - `DashboardSiswaScreen` (7 Menu Utama Siswa -> Rapi dalam format multi-kolom).
 
 ---
 
@@ -225,7 +223,8 @@ Rencana ini secara langsung merespons evaluasi visual pengguna pada pengujian ta
 ---
 
 ## 3. Status Rencana Eksekusi
-- [ ] **Tahap 1: Konfigurasi Navigasi Sistem Android & Sinkronisasi Logo Sekolah**
+- [x] **Tahap 1: Konfigurasi Navigasi Sistem Android & Sinkronisasi Logo Sekolah**
 - [ ] **Tahap 2: Tampilan Dashboard Guru (AppBar Logo & Foto Hero)**
 - [ ] **Tahap 3: Implementasi Layout Responsif Multi-Kolom di Dashboard Guru**
 - [ ] **Tahap 4: Penerapan Desain Serupa di Dashboard Siswa & Finalisasi**
+
