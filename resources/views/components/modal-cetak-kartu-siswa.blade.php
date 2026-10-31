@@ -110,7 +110,6 @@
 
                             <div class="m-student-info">
                                 <div class="m-student-name">{{ $student->name }}</div>
-                                <div class="m-student-class">Kelas: {{ $className }}</div>
                             </div>
 
                             <div class="m-login-box">

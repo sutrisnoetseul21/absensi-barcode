@@ -436,7 +436,6 @@
                     <!-- Student Info -->
                     <div class="name-section">
                         <div class="student-name">{{ $student->name }}</div>
-                        <div class="student-class">Kelas: {{ $className }}</div>
                     </div>
 
                     <!-- Glassmorphism Login Box -->

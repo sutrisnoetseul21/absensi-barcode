@@ -163,18 +163,13 @@
             text-align: center;
         }
 
-        /* Nama & Kelas */
+        /* Nama Siswa */
         .student-name {
             font-size: 8.5pt;
             font-weight: bold;
             color: #1e3a8a;
-            line-height: 1.1;
-            margin-bottom: 1pt;
-        }
-        .student-class {
-            font-size: 6pt;
-            color: #475569;
-            margin-bottom: 3.5pt;
+            line-height: 1.15;
+            margin-bottom: 4pt;
         }
 
         /* Login Box */
@@ -240,7 +235,6 @@
         </div>
 
         <div class="student-name">{{ $student->name }}</div>
-        <div class="student-class">Kelas: {{ $className }}</div>
 
         <div class="login-box">
             <div class="login-label">Username ({{ $identifierLabel }})</div>

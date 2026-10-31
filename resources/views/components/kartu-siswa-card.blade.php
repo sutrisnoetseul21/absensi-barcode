@@ -60,7 +60,6 @@
 
             <div class="p-student-info">
                 <div class="p-student-name">{{ $student->name }}</div>
-                <div class="p-student-class">Kelas: {{ $className }}</div>
             </div>
 
             <div class="p-login-box">
@@ -148,9 +147,8 @@
     }
     .p-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
     .p-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #64748b; font-weight: bold; background: #f1f5f9; }
-    .p-student-info { text-align: center; margin-top: 7px; padding: 0 10px; }
-    .p-student-name { font-size: 10px; font-weight: 800; color: #1e3a8a; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .p-student-class { font-size: 7px; color: #64748b; font-weight: 600; text-align: center; margin-top: 2px; }
+    .p-student-info { text-align: center; margin-top: 9px; padding: 0 10px; }
+    .p-student-name { font-size: 10px; font-weight: 800; color: #1e3a8a; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
     .p-login-box {
         margin: 6px 12px 0; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(191, 219, 254, 0.9); border-radius: 8px; padding: 5px 4px; text-align: center; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.08); backdrop-filter: blur(8px);
     }

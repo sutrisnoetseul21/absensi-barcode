@@ -555,7 +555,6 @@
 
                     <div class="student-info">
                         <div class="student-name">{{ $student->name }}</div>
-                        <div class="student-class">Kelas: {{ $className }}</div>
                     </div>
 
                     <div class="login-box">

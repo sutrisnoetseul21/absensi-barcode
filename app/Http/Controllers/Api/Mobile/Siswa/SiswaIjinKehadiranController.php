@@ -62,6 +62,8 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             'pending' => LeaveRequest::where('student_id', $student->id)->where('status', 'pending')->count(),
             'approved' => LeaveRequest::where('student_id', $student->id)->where('status', 'approved')->count(),
             'rejected' => LeaveRequest::where('student_id', $student->id)->where('status', 'rejected')->count(),
+            'sakit' => LeaveRequest::where('student_id', $student->id)->where('type', 'sakit')->count(),
+            'ijin' => LeaveRequest::where('student_id', $student->id)->where('type', 'ijin')->count(),
         ];
 
         return response()->json([
