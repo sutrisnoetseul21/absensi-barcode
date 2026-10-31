@@ -23,6 +23,13 @@ use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanPeminjamanControlle
 use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanKunjunganController;
 use App\Http\Controllers\Api\Mobile\Perpustakaan\PerpustakaanSiswaController;
 use App\Http\Controllers\Api\Mobile\GuruProfilController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaDashboardController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaIjinKehadiranController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaGuruWaliController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaSpikapController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaPerpustakaanController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaKartuController;
+use App\Http\Controllers\Api\Mobile\Siswa\SiswaProfilController;
 
 /*
 |--------------------------------------------------------------------------
@@ -161,7 +168,69 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // 4. Endpoint Terproteksi & Autentikasi Tambahan
+    // 4. Modul Portal Siswa (Mendukung Sanctum Token & Fallback Token)
+    Route::prefix('siswa')->group(function () {
+        // Menu 1: Dashboard & Presensi / Kalender Akademik
+        Route::get('/dashboard-summary', [SiswaDashboardController::class, 'dashboardSummary']);
+        Route::get('/akademik/dashboard', [SiswaDashboardController::class, 'akademikDashboard']);
+
+        // Menu 2: Pengajuan Ijin Kehadiran
+        Route::prefix('ijin-kehadiran')->group(function () {
+            Route::get('/', [SiswaIjinKehadiranController::class, 'index']);
+            Route::get('/check-holidays', [SiswaIjinKehadiranController::class, 'checkHolidays']);
+            Route::post('/', [SiswaIjinKehadiranController::class, 'store']);
+            Route::get('/{id}', [SiswaIjinKehadiranController::class, 'show']);
+            Route::delete('/{id}', [SiswaIjinKehadiranController::class, 'destroy']);
+        });
+
+        // Menu 3: Guru Wali (SI-WALI)
+        Route::prefix('guru-wali')->group(function () {
+            Route::get('/dashboard', [SiswaGuruWaliController::class, 'dashboard']);
+            Route::get('/konsultasi', [SiswaGuruWaliController::class, 'konsultasi']);
+            Route::post('/konsultasi', [SiswaGuruWaliController::class, 'store']);
+            Route::get('/konsultasi/{id}', [SiswaGuruWaliController::class, 'show']);
+            Route::post('/konsultasi/{id}/pesan', [SiswaGuruWaliController::class, 'storePesan']);
+            Route::delete('/konsultasi/{id}', [SiswaGuruWaliController::class, 'destroy']);
+            Route::post('/konsultasi/{id}/feedback', [SiswaGuruWaliController::class, 'storeFeedback']);
+            Route::get('/pendampingan-klasikal', [SiswaGuruWaliController::class, 'pendampinganKlasikal']);
+        });
+
+        // Menu 4: SPIKAP (Anti-Perundungan & Karakter)
+        Route::prefix('spikap')->group(function () {
+            Route::get('/dashboard', [SiswaSpikapController::class, 'dashboard']);
+            Route::get('/laporan', [SiswaSpikapController::class, 'index']);
+            Route::post('/laporan', [SiswaSpikapController::class, 'store']);
+            Route::get('/laporan/{id}', [SiswaSpikapController::class, 'show']);
+            Route::get('/lampiran/{id}', [SiswaSpikapController::class, 'streamLampiran']);
+            Route::get('/lampiran/{id}/download', [SiswaSpikapController::class, 'downloadLampiran']);
+        });
+
+        // Menu 5: Perpustakaan Siswa (Pinjaman Aktif, Riwayat, & Kunjungan)
+        Route::prefix('perpustakaan')->group(function () {
+            Route::get('/summary', [SiswaPerpustakaanController::class, 'summary']);
+            Route::get('/pinjaman-aktif', [SiswaPerpustakaanController::class, 'pinjamanAktif']);
+            Route::get('/riwayat-pinjam', [SiswaPerpustakaanController::class, 'riwayatPinjam']);
+            Route::get('/riwayat-kunjungan', [SiswaPerpustakaanController::class, 'riwayatKunjungan']);
+        });
+
+        // Menu 6: Kartu Pelajar Digital & Unduh PDF
+        Route::prefix('kartu')->group(function () {
+            Route::get('/digital-info', [SiswaKartuController::class, 'digitalInfo']);
+            Route::get('/download-pdf', [SiswaKartuController::class, 'downloadPdf']);
+            Route::get('/biodata-pdf', [SiswaKartuController::class, 'biodataPdf']);
+        });
+
+        // Menu 7: Profil Saya & Akun Pelajar
+        Route::prefix('profil')->group(function () {
+            Route::get('/info', [SiswaProfilController::class, 'info']);
+            Route::post('/update-kontak', [SiswaProfilController::class, 'updateKontak']);
+            Route::post('/update-foto', [SiswaProfilController::class, 'updateFoto']);
+            Route::delete('/hapus-foto', [SiswaProfilController::class, 'hapusFoto']);
+            Route::post('/update-password', [SiswaProfilController::class, 'updatePassword']);
+        });
+    });
+
+    // 5. Endpoint Terproteksi & Autentikasi Tambahan
     Route::post('/auth/fcm-token', [AuthController::class, 'registerFcmToken']);
     Route::delete('/auth/fcm-token', [AuthController::class, 'deleteFcmToken']);
 
