@@ -17,9 +17,7 @@ class BroadcastSchoolNotification extends Notification implements ShouldQueue
         public readonly string $body,
         public readonly string $targetGroup = 'all',
         public readonly ?string $senderName = 'Admin Sekolah'
-    ) {
-        $this->onQueue('notifications');
-    }
+    ) {}
 
     public function via(mixed $notifiable): array
     {

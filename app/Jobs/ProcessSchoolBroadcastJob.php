@@ -25,9 +25,7 @@ class ProcessSchoolBroadcastJob implements ShouldQueue
 
     public function __construct(
         public readonly string $broadcastId
-    ) {
-        $this->onQueue('notifications');
-    }
+    ) {}
 
     public function handle(FcmPushService $fcmService): void
     {
