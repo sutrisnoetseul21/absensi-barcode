@@ -94,7 +94,7 @@ Menambahkan Tab ke-4 pada [**\`ManajemenNotifikasiWaPage.php\`**](file:///home/s
 
 | Tahap | Komponen | Deskripsi |
 | :--- | :--- | :--- |
-| **Tahap 1** | Filament Admin | Membuat tab baru di \`ManajemenNotifikasiWaPage.php\` & migrasi/setting default. |
+| **Tahap 1** | Filament Admin | ✅ **SELESAI**: Tab baru "Notifikasi Jurnal Mengajar" dibuat via `HasJurnalMengajarWaNotifications.php`, mendukung pemilihan target (Wali Kelas / Ortu untuk WA, Siswa / Wali Kelas untuk Notifikasi Android) & kustomisasi template. |
 | **Tahap 2** | Service & Jobs | Membuat \`JurnalMengajarNotificationService\`, \`SendJurnalTidakMengikutiWaJob\`, dan \`SendJurnalTidakMengikutiFcmJob\`. |
 | **Tahap 3** | Trigger Web & API | Memasang pemicu deteksi di \`JurnalMengajarForm.php\` dan \`GuruJurnalMengajarController.php\`. |
 | **Tahap 4** | Flutter Mobile | Menambahkan routing \`jurnal_tidak_mengikuti\` pada \`notification_router.dart\` dan styling notifikasi. |

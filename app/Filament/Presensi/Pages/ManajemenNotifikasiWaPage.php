@@ -15,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use App\Filament\Traits\HasSimplePageRoleAccess;
 use App\Filament\Traits\HasSpikapDanGuruWaliWaNotifications;
+use App\Filament\Traits\HasJurnalMengajarWaNotifications;
 use Filament\Support\Exceptions\Halt;
 
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -31,6 +32,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 {
     use HasSimplePageRoleAccess;
     use HasSpikapDanGuruWaliWaNotifications;
+    use HasJurnalMengajarWaNotifications;
 
     protected static function getModuleRolePrefix(): string
     {
@@ -175,6 +177,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         $data['school_template_footer']  = $school->template_footer;
 
         $this->loadSpikapDanGuruWaliData($data);
+        $this->loadJurnalMengajarData($data);
 
         $this->form->fill($data);
     }
@@ -597,6 +600,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
 
                         $this->getSpikapWaTab(),
                         $this->getGuruWaliWaTab(),
+                        $this->getJurnalMengajarWaTab(),
                     ])
                     ->columnSpanFull(),
 
@@ -1397,6 +1401,7 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             ]);
 
             $this->saveSpikapDanGuruWaliSettings($data);
+            $this->saveJurnalMengajarSettings($data);
 
             Notification::make()
                 ->title('Pengaturan berhasil disimpan')
