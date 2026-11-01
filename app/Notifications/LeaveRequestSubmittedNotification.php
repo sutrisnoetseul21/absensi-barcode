@@ -15,7 +15,7 @@ class LeaveRequestSubmittedNotification extends Notification implements ShouldQu
     public function __construct(
         public readonly LeaveRequest $leaveRequest
     ) {
-        $this->onQueue('notifications');
+        $this->onQueue(config('queue.connections.database.queue', 'default'));
     }
 
     public function via(mixed $notifiable): array

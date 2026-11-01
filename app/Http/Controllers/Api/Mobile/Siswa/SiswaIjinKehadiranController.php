@@ -494,7 +494,7 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
     }
 
     /**
-     * Broadcast notifikasi WA ke Wali Kelas sesuai pengaturan.
+     * Broadcast notifikasi WA tambahan (selain wali kelas) sesuai pengaturan presensi_notification_settings.
      */
     protected function broadcastNotification(LeaveRequest $record, $student): void
     {
@@ -528,13 +528,22 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
 
             $pesan = strtr($setting->template_pesan, $replacements);
 
-            if (class_exists(\App\Services\WhatsAppGatewayService::class) && !empty($kelasAjaran?->guru?->no_hp)) {
-                app(\App\Services\WhatsAppGatewayService::class)->sendMessage(
-                    $kelasAjaran->guru->no_hp,
+            $resolver = app(\App\Services\RecipientResolverService::class);
+            $resolvedRecipients = $resolver->resolveRecipients($setting->recipients, $student);
+
+            foreach ($resolvedRecipients as $recipient) {
+                // SKIP wali kelas di sini agar WA tidak terkirim dobel,
+                // karena wali kelas sudah menerima WA resmi dengan Link Konfirmasi & Foto Lampiran via SendLeaveRequestWaNotificationJob
+                if ($recipient['type'] === 'wali_kelas') {
+                    continue;
+                }
+
+                \App\Jobs\SendWhatsAppNotificationJob::dispatch(
+                    $recipient['number'],
                     $pesan,
                     'leave_request',
                     (string) $record->id,
-                    'wali_kelas'
+                    $recipient['type']
                 );
             }
         } catch (\Throwable $e) {

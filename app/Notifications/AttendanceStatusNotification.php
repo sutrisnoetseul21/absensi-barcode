@@ -16,7 +16,7 @@ class AttendanceStatusNotification extends Notification implements ShouldQueue
     public function __construct(
         public readonly Presensi $presensi
     ) {
-        $this->onQueue('notifications');
+        $this->onQueue(config('queue.connections.database.queue', 'default'));
     }
 
     /**
