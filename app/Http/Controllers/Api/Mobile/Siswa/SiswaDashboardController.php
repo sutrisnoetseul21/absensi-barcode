@@ -342,8 +342,8 @@ class SiswaDashboardController extends BaseSiswaApiController
                     'attendance_percentage' => $attendancePercentage,
                     'effective_days' => $effectiveDays,
                 ],
-                'attendance_matrix' => $attendanceMatrix,
-                'holidays' => $holidays,
+                'attendance_matrix' => (object) $attendanceMatrix,
+                'holidays' => (object) $holidays,
                 'recent_activity' => $recentActivity,
             ],
         ]);
