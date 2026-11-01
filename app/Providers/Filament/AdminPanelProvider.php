@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 try {
                     $logo = \App\Models\PengaturanSekolah::current()?->school_logo_path;
                     $name = \App\Models\PengaturanSekolah::current()?->school_name ?? 'Nama Sekolah';
-                    
+
                     if ($logo) {
                         return new \Illuminate\Support\HtmlString('
                             <div class="flex items-center gap-2.5">
@@ -132,6 +132,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Presensi\Pages\InputPresensiManual::class,
                 \App\Filament\Presensi\Pages\ManajemenKartuPresensi::class,
                 \App\Filament\Presensi\Pages\ManajemenNotifikasiWaPage::class,
+                \App\Filament\Presensi\Pages\KirimPesanMassalPage::class,
                 \App\Filament\Presensi\Pages\PengaturanPresensiPage::class,
                 \App\Filament\Presensi\Pages\RekapAbsensiKelas::class,
                 \App\Filament\Presensi\Pages\RekapAbsensiSekolah::class,
