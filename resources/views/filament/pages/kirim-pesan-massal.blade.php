@@ -36,7 +36,7 @@
     </div>
 
     {{-- Form Pengiriman Pesan Massal --}}
-    <x-filament-panels::form wire:submit="send">
+    <form wire:submit="send">
         {{ $this->form }}
 
         <div class="flex justify-end mt-4">
@@ -50,5 +50,5 @@
                 <span wire:loading>Sedang Mengirim Notifikasi...</span>
             </x-filament::button>
         </div>
-    </x-filament-panels::form>
+    </form>
 </x-filament-panels::page>
