@@ -485,6 +485,13 @@ class JurnalMengajarForm extends Component
 
             DB::commit();
 
+            // Pemicu Notifikasi Siswa Meninggalkan Kelas (Jurnal Mengajar)
+            try {
+                app(\App\Services\JurnalMengajarNotificationService::class)->processPresensiJurnal($jurnal, $this->studentList);
+            } catch (\Throwable $notifErr) {
+                \Illuminate\Support\Facades\Log::error('JurnalMengajarForm: Gagal memproses notifikasi meninggalkan kelas: ' . $notifErr->getMessage());
+            }
+
             session()->flash('success', 'Jurnal mengajar berhasil disimpan!');
             return redirect()->route('portal-guru.jurnal-mengajar');
 

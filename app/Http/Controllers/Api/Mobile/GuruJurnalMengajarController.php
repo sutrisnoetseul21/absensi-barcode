@@ -988,6 +988,13 @@ class GuruJurnalMengajarController extends Controller
 
             DB::commit();
 
+            // Pemicu Notifikasi Siswa Meninggalkan Kelas (Jurnal Mengajar)
+            try {
+                app(\App\Services\JurnalMengajarNotificationService::class)->processPresensiJurnal($jurnal, $normalizedStudents);
+            } catch (\Throwable $notifErr) {
+                \Illuminate\Support\Facades\Log::error('GuruJurnalMengajarController: Gagal memproses notifikasi meninggalkan kelas: ' . $notifErr->getMessage());
+            }
+
             return response()->json([
                 'status' => true,
                 'success' => true,

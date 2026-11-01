@@ -96,6 +96,6 @@ Menambahkan Tab ke-4 pada [**\`ManajemenNotifikasiWaPage.php\`**](file:///home/s
 | :--- | :--- | :--- |
 | **Tahap 1** | Filament Admin | ✅ **SELESAI**: Tab baru "Notifikasi Jurnal Mengajar" dibuat via `HasJurnalMengajarWaNotifications.php`, mendukung pemilihan target (Wali Kelas / Ortu untuk WA, Siswa / Wali Kelas untuk Notifikasi Android) & kustomisasi template. |
 | **Tahap 2** | Service & Jobs | ✅ **SELESAI**: `JurnalMengajarNotificationService.php`, `SendJurnalTidakMengikutiWaJob.php`, dan `SendJurnalTidakMengikutiFcmJob.php` dibuat dengan verifikasi unit test & queue assertion 100% lulus. |
-| **Tahap 3** | Trigger Web & API | Memasang pemicu deteksi di \`JurnalMengajarForm.php\` dan \`GuruJurnalMengajarController.php\`. |
-| **Tahap 4** | Flutter Mobile | Menambahkan routing \`jurnal_tidak_mengikuti\` pada \`notification_router.dart\` dan styling notifikasi. |
-| **Tahap 5** | Pengujian & Verifikasi | Simulasi KBM input siswa absen saat gerbang hadir, tes WhatsApp & Push FCM, lalu commit & push. |
+| **Tahap 3** | Trigger Web & API | ✅ **SELESAI**: Terpasang pemicu deteksi anomali di `JurnalMengajarForm.php` (Web) dan `GuruJurnalMengajarController.php` (REST API Mobile). |
+| **Tahap 4** | Flutter Mobile | ✅ **SELESAI**: Terpasang penanganan deep link di `notification_router.dart` (membuka detail jurnal guru atau presensi siswa) dan styling badge peringatan di `notification_inbox_screen.dart`. |
+| **Tahap 5** | Pengujian & Verifikasi | ✅ **SELESAI**: Verifikasi integrasi multi-kanal end-to-end, idempotency cache guard, unit test route, dan sinkronisasi GitHub. |
