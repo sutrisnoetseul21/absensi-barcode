@@ -136,6 +136,7 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
+            ->poll('5s')
             ->query(SchoolBroadcast::query()->latest())
             ->columns([
                 TextColumn::make('created_at')
