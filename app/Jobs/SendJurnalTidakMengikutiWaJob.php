@@ -72,7 +72,7 @@ class SendJurnalTidakMengikutiWaJob implements ShouldQueue
             $setting = PresensiNotificationSetting::where("status_presensi", "jurnal_tidak_mengikuti_wa_wali")->first();
             $template = ($setting && !empty($setting->template_pesan))
                 ? $setting->template_pesan
-                : "⚠️ *PEMBERITAHUAN KBM: SISWA MENINGGALKAN KELAS*\n\nYth. Wali Kelas {kelas},\nMenginformasikan bahwa siswa asuh Anda:\n- Nama: *{nama_siswa}*\n- NISN: {nisn}\n- Kelas: {kelas}\n\nTercatat *HADIR* di gerbang sekolah, namun dinyatakan *TIDAK MENGIKUTI* pembelajaran:\n- Mata Pelajaran: *{mata_pelajaran}*\n- Guru Pengajar: {nama_guru}\n- Jam ke: {jam_ke}\n- Tanggal: {tanggal}\n- Catatan Guru: {keterangan}\n\nMohon untuk dapat ditindaklanjuti. Terima kasih.";
+                : "⚠️ *PEMBERITAHUAN KBM: SISWA MENINGGALKAN KELAS*\n\nYth. Wali Kelas {kelas},\nMenginformasikan bahwa siswa asuh Anda:\n- Nama: *{nama_siswa}*\n- NISN: {nisn}\n- Kelas: {kelas}\n\nTercatat *HADIR*, namun dinyatakan *TIDAK MENGIKUTI* pembelajaran:\n- Mata Pelajaran: *{mata_pelajaran}*\n- Guru Pengajar: {nama_guru}\n- Jam ke: {jam_ke}\n- Tanggal: {tanggal}\n- Catatan Guru: {keterangan}\n\nMohon untuk dapat ditindaklanjuti. Terima kasih.";
         } elseif ($this->targetType === "orang_tua") {
             $toNumber = $siswa->no_hp_orang_tua ?: $siswa->no_hp;
             if (!$toNumber) {
@@ -83,7 +83,7 @@ class SendJurnalTidakMengikutiWaJob implements ShouldQueue
             $setting = PresensiNotificationSetting::where("status_presensi", "jurnal_tidak_mengikuti_wa")->first();
             $template = ($setting && !empty($setting->template_pesan))
                 ? $setting->template_pesan
-                : "⚠️ *PEMBERITAHUAN SEKOLAH: INFORMASI KEHADIRAN KELAS*\n\nYth. Bapak/Ibu Orang Tua/Wali dari *{nama_siswa}*,\n\nKami menginformasikan bahwa ananda tercatat telah tiba/hadir di gerbang sekolah pagi ini, namun saat Kegiatan Belajar Mengajar (KBM) berlangsung, ananda tidak berada di kelas / tidak mengikuti pelajaran:\n- Mata Pelajaran: *{mata_pelajaran}*\n- Guru Pengajar: {nama_guru}\n- Jam ke: {jam_ke}\n- Tanggal: {tanggal}\n- Catatan Guru: {keterangan}\n\nPihak sekolah dan wali kelas sedang memastikan kondisi ananda di lingkungan sekolah. Terima kasih.";
+                : "⚠️ *PEMBERITAHUAN SEKOLAH: INFORMASI KEHADIRAN KELAS*\n\nYth. Bapak/Ibu Orang Tua/Wali dari *{nama_siswa}*,\n\nKami menginformasikan bahwa ananda tercatat hadir pagi ini, namun saat Kegiatan Belajar Mengajar (KBM) berlangsung, ananda tidak berada di kelas / tidak mengikuti pelajaran:\n- Mata Pelajaran: *{mata_pelajaran}*\n- Guru Pengajar: {nama_guru}\n- Jam ke: {jam_ke}\n- Tanggal: {tanggal}\n- Catatan Guru: {keterangan}\n\nPihak sekolah dan wali kelas sedang memastikan kondisi ananda di lingkungan sekolah. Terima kasih.";
         }
 
         if (!$template || !$toNumber) {

@@ -68,7 +68,7 @@ class SendJurnalTidakMengikutiFcmJob implements ShouldQueue
             $titleTemplate = $setting?->recipients["title"] ?? "⚠️ Peringatan: Tidak Mengikuti Pelajaran";
             $bodyTemplate = ($setting && !empty($setting->template_pesan))
                 ? $setting->template_pesan
-                : "Anda tercatat hadir di gerbang tetapi tidak mengikuti KBM {mata_pelajaran} (Jam {jam_ke}). Segera temui guru pengajar atau wali kelas.";
+                : "Anda tercatat hadir tetapi tidak mengikuti KBM {mata_pelajaran} (Jam {jam_ke}). Segera temui guru pengajar atau wali kelas.";
 
             $title = strtr($titleTemplate, [
                 "{nama_siswa}"     => $namaSiswa,
@@ -137,7 +137,7 @@ class SendJurnalTidakMengikutiFcmJob implements ShouldQueue
             $titleTemplate = $setting?->recipients["title"] ?? "⚠️ Siswa Meninggalkan Kelas: {nama_siswa}";
             $bodyTemplate = ($setting && !empty($setting->template_pesan))
                 ? $setting->template_pesan
-                : "{nama_siswa} ({kelas}) tercatat hadir di gerbang namun tidak mengikuti KBM {mata_pelajaran} bersama {nama_guru}.";
+                : "{nama_siswa} ({kelas}) tercatat hadir namun tidak mengikuti KBM {mata_pelajaran} bersama {nama_guru}.";
 
             $title = strtr($titleTemplate, [
                 "{nama_siswa}"     => $namaSiswa,
