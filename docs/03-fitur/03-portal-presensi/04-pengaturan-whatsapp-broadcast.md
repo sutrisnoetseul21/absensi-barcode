@@ -91,3 +91,35 @@ Untuk mencegah nomor WhatsApp sekolah diblokir atau di-banned oleh pihak WhatsAp
 - **Pengecekan**: Method `canSendManualToday()` dan `canSendSholatDhuhurManualToday()` memvalidasi tanggal broadcast hari ini.
 - **Reset Otomatis**: Counter kuota otomatis kembali ke `0` saat pergantian hari kalender.
 - **Audit Log**: Setiap pesan yang terkirim maupun yang gagal tersimpan dengan rapi di tabel `whatsapp_notification_logs`.
+
+
+---
+
+## 6. Panel Manajemen Notifikasi WhatsApp Terpusat di Filament Admin (`/admin/manajemen-notifikasi-wa`)
+
+Sebagai pusat kendali komunikasi WhatsApp seluruh sekolah, halaman [`ManajemenNotifikasiWaPage.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Presensi/Pages/ManajemenNotifikasiWaPage.php) di panel Filament Admin (`http://localhost:8001/admin/manajemen-notifikasi-wa`) mengintegrasikan seluruh kanal pesan ke dalam satu dasbor terpadu dengan 4 tab utama:
+
+### 6.1 Tab Presensi Harian & Sholat Dhuhur
+- Mengatur notifikasi kehadiran masuk sekolah, keterlambatan (beserta durasi menit), rekap belum hadir, dan konfirmasi presensi sholat dhuhur / kepulangan.
+
+### 6.2 Tab Notifikasi SPIKAP (Sistem Pengaduan Siswa)
+- **Toggle & Template Pesan**:
+  1. **Laporan Aduan Darurat**: Dikirimkan segera ke Wali Kelas, Guru BK, dan Kepala Sekolah saat siswa menekan tombol SOS/Aduan Darurat.
+  2. **Laporan Aduan Biasa**: Dikirimkan ke Wali Kelas dan Guru BK untuk investigasi lanjutan.
+  3. **Pesan Apresiasi Pengirim (Siswa)**: Mengirimkan ucapan terima kasih dan nomor tiket pelaporan ke WhatsApp siswa.
+  4. **Pesan Apresiasi ke Orang Tua**: Memberitahukan orang tua bahwa sekolah mengapresiasi keberanian siswa dalam melapor.
+  5. **Update Status Kasus (ke Siswa)**: Otomatis terkirim saat status berubah menjadi Diproses, Ditindaklanjuti, atau Selesai.
+  6. **Update Status Kasus (ke Orang Tua)**: Salinan pembaruan status ke WhatsApp orang tua.
+- **Placeholder Dinamis Tersedia**: `{nama_siswa}`, `{nisn}`, `{kelas}`, `{kode_tiket}`, `{kategori}`, `{deskripsi}`, `{status}`, `{catatan_guru}`.
+
+### 6.3 Tab Notifikasi Guru Wali (SI-WALI)
+- **Toggle & Template Pesan**:
+  1. **Pengajuan Bimbingan / Cerita Siswa**: Notifikasi instan ke WhatsApp Guru Wali saat siswa asuhnya mengirimkan pesan curhat/konsultasi baru di aplikasi.
+  2. **Balasan Konsultasi Guru Wali**: Terkirim ke WhatsApp siswa saat Guru Wali merespons pesan bimbingan.
+  3. **Salinan Balasan ke Orang Tua**: Opsi tembusan ke orang tua siswa mengenai progres pendampingan guru wali.
+  4. **Jadwal Temu Bimbingan / Tatap Muka**: Konfirmasi jadwal resmi (tanggal, jam, dan lokasi) ke siswa asuh.
+- **Placeholder Dinamis Tersedia**: `{nama_siswa}`, `{nisn}`, `{kelas}`, `{nama_guru}`, `{kategori}`, `{pesan}`, `{tanggal_temu}`, `{jam_temu}`, `{tempat_temu}`.
+
+### 6.4 Penyimpanan & Sinkronisasi Sistem
+- Seluruh nilai switch dan template teks disimpan ke tabel `presensi_notification_settings` dengan key prefix `spikap_*` dan `guru_wali_*`.
+- Di-sinkronkan otomatis ke model singleton `SpikapNotifSetting` sehingga seluruh modul backend konsisten membaca konfigurasi terbaru.

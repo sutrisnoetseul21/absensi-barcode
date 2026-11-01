@@ -2,20 +2,19 @@
 
 namespace App\Jobs;
 
-use App\Models\FcmDeviceToken;
 use App\Models\KelasAjaran;
 use App\Models\LeaveRequest;
+use App\Services\FcmPushService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Job pengiriman notifikasi Push Notification (FCM) kepada perangkat Android Wali Kelas
+ * Job pengiriman notifikasi Push Notification (FCM HTTP v1) kepada perangkat Android Wali Kelas
  * ketika siswa mengajukan permohonan ijin/sakit baru.
  */
 class SendLeaveRequestFcmNotificationJob implements ShouldQueue
@@ -34,7 +33,7 @@ class SendLeaveRequestFcmNotificationJob implements ShouldQueue
         return [30, 120, 300];
     }
 
-    public function handle(): void
+    public function handle(FcmPushService $fcm): void
     {
         $record = LeaveRequest::with(['student.enrollmentAktif.kelas'])->find($this->leaveRequestId);
         if (!$record) {
@@ -61,19 +60,6 @@ class SendLeaveRequestFcmNotificationJob implements ShouldQueue
             return;
         }
 
-        // Ambil seluruh token FCM milik Wali Kelas
-        $tokens = FcmDeviceToken::where('user_id', $waliUser->id)
-            ->pluck('token')
-            ->filter()
-            ->unique()
-            ->values()
-            ->toArray();
-
-        if (empty($tokens)) {
-            Log::info("SendLeaveRequestFcmNotificationJob: Wali Kelas #{$waliUser->id} ({$waliUser->name}) belum memiliki perangkat Android / FCM token terdaftar.");
-            return;
-        }
-
         $kelasName = $enrollment->kelas->name ?? '-';
         $typeLabel = $record->type === 'sakit' ? 'Sakit' : 'Izin';
         $title = "📋 Permohonan {$typeLabel} Baru: {$student?->name} ({$kelasName})";
@@ -85,39 +71,16 @@ class SendLeaveRequestFcmNotificationJob implements ShouldQueue
             'student_name' => (string) ($student?->name ?? ''),
             'class_name' => (string) $kelasName,
             'duration_days' => (string) $record->duration_days,
+            'title' => $title,
+            'body' => $body,
             'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
         ];
 
-        $serverKey = config('services.firebase.server_key') ?: env('FCM_SERVER_KEY');
-
-        if (!empty($serverKey)) {
-            try {
-                $response = Http::withHeaders([
-                    'Authorization' => 'key=' . $serverKey,
-                    'Content-Type' => 'application/json',
-                ])->post('https://fcm.googleapis.com/fcm/send', [
-                    'registration_ids' => $tokens,
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $body,
-                        'sound' => 'default',
-                    ],
-                    'data' => $payload,
-                    'priority' => 'high',
-                ]);
-
-                if ($response->successful()) {
-                    Log::info("SendLeaveRequestFcmNotificationJob: Push notification terkirim ke " . count($tokens) . " perangkat Wali Kelas {$waliUser->name}.");
-                } else {
-                    Log::warning("SendLeaveRequestFcmNotificationJob: Gagal mengirim FCM. Respons: " . $response->body());
-                }
-            } catch (Throwable $e) {
-                Log::error("SendLeaveRequestFcmNotificationJob error: " . $e->getMessage());
-            }
-        } else {
-            // Mode Simulasi / Logging jika FCM Server Key belum di-set di .env
-            Log::info("SendLeaveRequestFcmNotificationJob (Simulated FCM): Title: [{$title}] Body: [{$body}] Ke " . count($tokens) . " perangkat Wali Kelas #{$waliUser->id}.");
+        try {
+            $res = $fcm->sendToUser($waliUser, $title, $body, $payload);
+            Log::info("SendLeaveRequestFcmNotificationJob: Notifikasi ijin dikirim ke Wali Kelas {$waliUser->name}: " . json_encode($res));
+        } catch (Throwable $e) {
+            Log::error("SendLeaveRequestFcmNotificationJob error: " . $e->getMessage());
         }
     }
 }
-

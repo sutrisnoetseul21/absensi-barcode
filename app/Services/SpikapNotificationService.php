@@ -7,6 +7,7 @@ use App\Models\SpikapNotifSetting;
 use App\Models\SpikapLogStatus;
 use App\Models\WhatsAppNotificationLog;
 use App\Jobs\SendWhatsAppNotificationJob;
+use App\Jobs\SendSpikapFcmNotificationJob;
 use Illuminate\Support\Facades\Log;
 
 class SpikapNotificationService
@@ -67,12 +68,16 @@ class SpikapNotificationService
         $waktu     = $waktuObj->translatedFormat('d F Y, H:i') . ' WIB';
 
         $namaApp   = $setting->getNamaAplikasi();
-        $pesan = "🚨 *LAPORAN DARURAT {$namaApp}*\n"
-               . "Dari: {$namaSiswa}\n"
-               . "Kelas: {$namaKelas}\n"
-               . "Jenis: {$jenis}\n"
-               . "Waktu Lapor: {$waktu}\n\n"
-               . "Silakan buka portal guru untuk detail dan tindak lanjut.";
+        $settingWa = \App\Models\PresensiNotificationSetting::where('status_presensi', 'spikap_darurat')->first();
+        $defaultTemplate = "🚨 *LAPORAN DARURAT {nama_aplikasi}*\nDari: {nama_siswa}\nKelas: {nama_kelas}\nJenis: {jenis}\nWaktu Lapor: {waktu}\n\nSilakan buka Portal Guru untuk detail dan tindak lanjut segera.";
+        $template = ($settingWa && !empty($settingWa->template_pesan)) ? $settingWa->template_pesan : $defaultTemplate;
+        $pesan = strtr($template, [
+            '{nama_aplikasi}' => $namaApp,
+            '{nama_siswa}'    => $namaSiswa,
+            '{nama_kelas}'    => $namaKelas,
+            '{jenis}'         => $jenis,
+            '{waktu}'         => $waktu,
+        ]);
 
         // 5. Dispatch SendWhatsAppNotificationJob per nomor penerima
         $dispatched = [];
@@ -109,6 +114,8 @@ class SpikapNotificationService
                 'log_id' => $log->id,
             ];
         }
+
+        SendSpikapFcmNotificationJob::dispatch($laporan->id, 'laporan_baru');
 
         return [
             'status'     => 'dispatched',
@@ -178,13 +185,17 @@ class SpikapNotificationService
         $waktu       = $waktuObj->translatedFormat('d F Y, H:i') . ' WIB';
 
         $namaApp   = $setting->getNamaAplikasi();
-        $pesan = "📋 *LAPORAN {$namaApp} BARU*\n"
-               . "Tujuan: {$tujuanLabel}\n"
-               . "Dari: {$namaSiswa}\n"
-               . "Kelas: {$namaKelas}\n"
-               . "Jenis: {$jenis}\n"
-               . "Waktu Lapor: {$waktu}\n\n"
-               . "Silakan buka Portal Guru untuk meninjau detail aduan dan melakukan tindak lanjut.";
+        $settingWa = \App\Models\PresensiNotificationSetting::where('status_presensi', 'spikap_biasa')->first();
+        $defaultTemplate = "📋 *LAPORAN {nama_aplikasi} BARU*\nTujuan: {tujuan_guru}\nDari: {nama_siswa}\nKelas: {nama_kelas}\nJenis: {jenis}\nWaktu Lapor: {waktu}\n\nSilakan buka Portal Guru untuk meninjau detail aduan dan melakukan tindak lanjut.";
+        $template = ($settingWa && !empty($settingWa->template_pesan)) ? $settingWa->template_pesan : $defaultTemplate;
+        $pesan = strtr($template, [
+            '{nama_aplikasi}' => $namaApp,
+            '{tujuan_guru}'   => $tujuanLabel,
+            '{nama_siswa}'    => $namaSiswa,
+            '{nama_kelas}'    => $namaKelas,
+            '{jenis}'         => $jenis,
+            '{waktu}'         => $waktu,
+        ]);
 
         $dispatched = [];
         foreach ($recipients as $recipient) {
@@ -213,6 +224,8 @@ class SpikapNotificationService
 
             $dispatched[] = ['number' => $toNumber, 'type' => $recipientType, 'log_id' => $log->id];
         }
+
+        SendSpikapFcmNotificationJob::dispatch($laporan->id, 'laporan_baru');
 
         return ['status' => 'dispatched', 'count' => count($dispatched), 'recipients' => $dispatched];
     }
@@ -250,21 +263,27 @@ class SpikapNotificationService
 
         $namaApp = $setting->getNamaAplikasi();
 
+        $settingSiswa = \App\Models\PresensiNotificationSetting::where('status_presensi', 'spikap_apresiasi_siswa')->first();
+        $templateSiswa = ($settingSiswa && !empty($settingSiswa->template_pesan))
+            ? $settingSiswa->template_pesan
+            : "Halo *{nama_siswa}*,\n\nTerima kasih atas keberanianmu telah melapor di {nama_aplikasi}. Laporanmu (*{jenis}*) telah berhasil kami terima dengan aman dan rahasia.\n\nPihak sekolah ({tujuan_guru}) akan segera meninjau dan menindaklanjuti laporan ini. Tetap tenang dan selalu jaga keselamatan dirimu. Kami ada bersamamu.\n\n_Pesan otomatis Layanan {nama_aplikasi} Sekolah_";
+
+        $settingOrtu = \App\Models\PresensiNotificationSetting::where('status_presensi', 'spikap_apresiasi_ortu')->first();
+        $templateOrtu = ($settingOrtu && !empty($settingOrtu->template_pesan))
+            ? $settingOrtu->template_pesan
+            : "Yth. Orang Tua/Wali dari *{nama_siswa}*,\n\nPemberitahuan bahwa ananda telah menyampaikan aduan melalui layanan {nama_aplikasi} sekolah (*{jenis}*). Laporan telah tercatat dengan aman dan sedang dalam penanganan pihak sekolah ({tujuan_guru}).\n\nSekolah berkomitmen menjaga keselamatan dan kenyamanan setiap siswa.\n\n_Layanan Bimbingan & Konseling {nama_aplikasi} Sekolah_";
+
         foreach ($contacts as $contact) {
             $toNumber = $contact['number'];
             $type     = $contact['type'];
 
-            if ($type === 'siswa') {
-                $pesan = "Halo *{$namaSiswa}*,\n\n"
-                       . "Terima kasih atas keberanianmu telah melapor di {$namaApp}. Laporanmu (*{$jenis}*) telah berhasil kami terima dengan aman dan rahasia.\n\n"
-                       . "Pihak sekolah ({$tujuanLabel}) akan segera meninjau dan menindaklanjuti laporan ini. Tetap tenang dan selalu jaga keselamatan dirimu. Kami ada bersamamu.\n\n"
-                       . "_Pesan otomatis Layanan {$namaApp} Sekolah_";
-            } else {
-                $pesan = "Yth. Orang Tua/Wali dari *{$namaSiswa}*,\n\n"
-                       . "Pemberitahuan bahwa ananda telah menyampaikan aduan melalui layanan {$namaApp} sekolah (*{$jenis}*). Laporan telah tercatat dengan aman dan sedang dalam penanganan pihak sekolah ({$tujuanLabel}).\n\n"
-                       . "Sekolah berkomitmen menjaga keselamatan dan kenyamanan setiap siswa.\n\n"
-                       . "_Layanan Bimbingan & Konseling {$namaApp} Sekolah_";
-            }
+            $rawTemplate = ($type === 'siswa') ? $templateSiswa : $templateOrtu;
+            $pesan = strtr($rawTemplate, [
+                '{nama_aplikasi}' => $namaApp,
+                '{nama_siswa}'    => $namaSiswa,
+                '{jenis}'         => $jenis,
+                '{tujuan_guru}'   => $tujuanLabel,
+            ]);
 
             $log = WhatsAppNotificationLog::create([
                 'module'           => 'spikap',
@@ -328,23 +347,27 @@ class SpikapNotificationService
 
         $namaApp = $setting->getNamaAplikasi();
 
+        $settingStatusSiswa = \App\Models\PresensiNotificationSetting::where('status_presensi', 'spikap_status_siswa')->first();
+        $templateStatusSiswa = ($settingStatusSiswa && !empty($settingStatusSiswa->template_pesan))
+            ? $settingStatusSiswa->template_pesan
+            : "Halo *{nama_siswa}*,\n\nAda perkembangan terbaru mengenai laporan {nama_aplikasi} yang kamu kirimkan:\n\n📌 *Status:* {status_baru}{catatan}\n\nKamu juga dapat melihat riwayat lengkap perkembangan kasusmu di Portal Siswa.\n\n_Layanan {nama_aplikasi} Sekolah_";
+
+        $settingStatusOrtu = \App\Models\PresensiNotificationSetting::where('status_presensi', 'spikap_status_ortu')->first();
+        $templateStatusOrtu = ($settingStatusOrtu && !empty($settingStatusOrtu->template_pesan))
+            ? $settingStatusOrtu->template_pesan
+            : "Yth. Orang Tua/Wali dari *{nama_siswa}*,\n\nKami menginformasikan perkembangan penanganan atas laporan {nama_aplikasi} ananda *{nama_siswa}*:\n\n📌 *Status:* {status_baru}{catatan}\n\nTerima kasih atas perhatian dan kerja samanya dalam mendampingi ananda.\n\n_Layanan Bimbingan & Konseling {nama_aplikasi} Sekolah_";
+
         foreach ($contacts as $contact) {
             $toNumber = $contact['number'];
             $type     = $contact['type'];
 
-            if ($type === 'siswa') {
-                $pesan = "Halo *{$namaSiswa}*,\n\n"
-                       . "Ada perkembangan terbaru mengenai laporan {$namaApp} yang kamu kirimkan:\n\n"
-                       . "📌 *Status:* {$statusLabel}{$catatanText}\n\n"
-                       . "Kamu juga dapat melihat riwayat lengkap perkembangan kasusmu di Portal Siswa.\n\n"
-                       . "_Layanan {$namaApp} Sekolah_";
-            } else {
-                $pesan = "Yth. Orang Tua/Wali dari *{$namaSiswa}*,\n\n"
-                       . "Kami menginformasikan perkembangan penanganan atas laporan {$namaApp} ananda *{$namaSiswa}*:\n\n"
-                       . "📌 *Status:* {$statusLabel}{$catatanText}\n\n"
-                       . "Terima kasih atas perhatian dan kerja samanya dalam mendampingi ananda.\n\n"
-                       . "_Layanan Bimbingan & Konseling {$namaApp} Sekolah_";
-            }
+            $rawTemplate = ($type === 'siswa') ? $templateStatusSiswa : $templateStatusOrtu;
+            $pesan = strtr($rawTemplate, [
+                '{nama_aplikasi}' => $namaApp,
+                '{nama_siswa}'    => $namaSiswa,
+                '{status_baru}'   => $statusLabel,
+                '{catatan}'       => $catatanText,
+            ]);
 
             $log = WhatsAppNotificationLog::create([
                 'module'           => 'spikap',
@@ -368,6 +391,8 @@ class SpikapNotificationService
 
             $dispatched[] = ['number' => $toNumber, 'type' => $type, 'log_id' => $log->id];
         }
+
+        SendSpikapFcmNotificationJob::dispatch($laporan->id, 'update_status', $statusBaru, $catatan, auth()->id());
 
         return ['status' => 'dispatched', 'count' => count($dispatched), 'recipients' => $dispatched];
     }

@@ -208,3 +208,20 @@ Prefix: `/api/v1/guru/spikap`
 - [x] **Tahap 6: Dasbor Analitik Kasus & Finalisasi** (Selesai - `SpikapAnalitikScreen`)
 
 
+
+
+---
+
+## 7. Integrasi Notifikasi Multi-Kanal (FCM HTTP v1 & WhatsApp Gateway)
+
+Per 01 November 2026, modul SPIKAP telah dilengkapi integrasi notifikasi ganda (*dual-channel*):
+1. **Push Notification FCM Langsung (Direct FCM HTTP v1)**:
+   - Mengirim notifikasi berprioritas tinggi via [`SendSpikapFcmNotificationJob.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Jobs/SendSpikapFcmNotificationJob.php).
+   - Saat ada aduan darurat/biasa, push notifikasi dikirimkan ke perangkat HP Wali Kelas, Guru BK, dan Kepala Sekolah.
+   - Dilengkapi `click_action: FLUTTER_NOTIFICATION_CLICK` dan `type: spikap` yang secara otomatis dipetakan oleh `notification_router.dart` di Flutter untuk membuka lembar [`SpikapDetailScreen.dart`](file:///home/sutris-remote/Documents/projek-laravel/apk-android-presensi/lib/features/spikap/screens/spikap_detail_screen.dart).
+2. **Notifikasi WhatsApp Fisik Real-Time**:
+   - `.env` diaktifkan: `SPIKAP_WA_TEST_MODE=false`.
+   - Pesan WhatsApp dikirim langsung ke nomor WhatsApp guru/wali/kepsek, siswa pelapor, dan orang tua melalui [`SpikapNotificationService.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/SpikapNotificationService.php).
+3. **Manajemen Template & Sakelar WA di Admin**:
+   - Dikelola di menu admin Filament `http://localhost:8001/admin/manajemen-notifikasi-wa` pada Tab **Notifikasi SPIKAP**.
+   - Admin dapat mengaktifkan/menonaktifkan masing-masing jenis notifikasi dan mengkustomisasi redaksi pesan dengan placeholder dinamis.

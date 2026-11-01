@@ -248,6 +248,11 @@ class SiswaGuruWaliController extends BaseSiswaApiController
             }
         } catch (\Throwable $e) {}
 
+        // Pemicu Notifikasi WhatsApp ke Guru Wali
+        try {
+            app(\App\Services\GuruWaliNotificationService::class)->sendPengajuanNotificationToGuru($konsul);
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Permohonan konsultasi berhasil dikirimkan ke Guru Wali Anda!',

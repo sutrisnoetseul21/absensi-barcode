@@ -8,7 +8,7 @@
 
         <!-- Modal Panel -->
         <div x-show="showInputModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative z-10 inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full border border-white/20">
-            
+
             <div class="bg-gradient-to-r from-brand-primary to-brand-secondary px-8 py-5 flex items-center justify-between">
                 <h3 class="text-xl font-extrabold text-white flex items-center gap-3">
                     <div class="w-10 h-10 bg-white/20 rounded-xl backdrop-blur-sm flex items-center justify-center shadow-inner">
@@ -94,7 +94,7 @@
                                         <td class="py-3 px-4">
                                             @if(($data['status'] ?? '') === 'telat')
                                                 <div class="relative">
-                                                    <input type="number" wire:model="inputStudents.{{ $index }}.late_minutes" min="1" placeholder="0" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold text-amber-700 bg-amber-50 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 shadow-sm">
+                                                    <input type="number" wire:model.live.debounce.300ms="inputStudents.{{ $index }}.late_minutes" min="1" placeholder="0" class="block w-full pl-3 pr-8 py-1.5 text-sm font-bold text-amber-700 bg-amber-50 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 shadow-sm">
                                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                                         <span class="text-amber-500 text-xs font-bold">mnt</span>
                                                     </div>

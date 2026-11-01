@@ -305,3 +305,24 @@ lib/features/guru/
 4. ✅ **Push Notifikasi FCM**: Saat siswa mengirimkan cerita atau pesan di portal siswa, notifikasi langsung berdering/muncul di notification bar HP Android Guru Wali.
 5. ✅ **Kerahasiaan Terjamin**: Hanya Guru Wali yang bersangkutan yang dapat melihat rekam jejak dan percakapan siswa asuhnya.
 
+
+
+---
+
+## 8. Integrasi Notifikasi Multi-Kanal SI-WALI (FCM HTTP v1 & WhatsApp Gateway)
+
+Per 01 November 2026, fitur Bimbingan Siswa & Guru Wali (SI-WALI) dilengkapi integrasi notifikasi komprehensif:
+1. **Push Notification FCM Langsung (Direct FCM HTTP v1)**:
+   - Mengirim notifikasi via [`SendKonsultasiGuruWaliFcmNotificationJob.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Jobs/SendKonsultasiGuruWaliFcmNotificationJob.php).
+   - Pemicu:
+     - Siswa curhat/mengajukan bimbingan -> HP Guru Wali berdering/notifikasi muncul.
+     - Guru Wali membalas pesan -> HP Siswa berdering/notifikasi pesan baru muncul.
+     - Guru Wali menetapkan jadwal temu -> HP Siswa menerima jadwal bimbingan.
+   - Dilengkapi `click_action: FLUTTER_NOTIFICATION_CLICK` dan `type: guru_wali_konsultasi` yang otomatis diarahkan oleh `notification_router.dart` langsung membuka tab percakapan/layar konsultasi.
+2. **Notifikasi WhatsApp Gateway Terintegrasi**:
+   - Dikelola oleh [`GuruWaliNotificationService.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/GuruWaliNotificationService.php).
+   - Mengirim notifikasi WhatsApp ke Guru Wali saat siswa berkonsultasi.
+   - Mengirim notifikasi WhatsApp ke Siswa (dan opsi salinan ke Orang Tua) saat guru merespons atau membuat jadwal temu tatap muka.
+3. **Manajemen Template & Sakelar WA di Admin**:
+   - Dikelola pada panel Filament Admin `http://localhost:8001/admin/manajemen-notifikasi-wa` pada Tab **Notifikasi Guru Wali**.
+   - Template pesan dan status aktif/nonaktif dapat diubah sewaktu-waktu oleh admin dengan placeholder `{nama_siswa}`, `{nama_guru}`, `{kategori}`, `{pesan}`, `{tanggal_temu}`, `{jam_temu}`, dan `{tempat_temu}`.

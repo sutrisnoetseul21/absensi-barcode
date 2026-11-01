@@ -220,6 +220,14 @@ class GuruWaliKonsultasiController extends GuruWaliBaseController
             ]);
         }
 
+        try {
+            \App\Jobs\SendKonsultasiGuruWaliFcmNotificationJob::dispatch((string) $konsul->id, 'balasan_guru', (string) $pesan->id);
+        } catch (\Throwable $e) {}
+
+        try {
+            app(\App\Services\GuruWaliNotificationService::class)->sendBalasanNotificationToSiswa($konsul, $pesanTeks);
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Pesan berhasil terkirim.',
@@ -270,6 +278,14 @@ class GuruWaliKonsultasiController extends GuruWaliBaseController
             'tanggapan_guru' => $request->input('tanggapan_guru') ?: 'Jadwal tatap muka telah disetujui.',
         ]);
 
+        try {
+            \App\Jobs\SendKonsultasiGuruWaliFcmNotificationJob::dispatch((string) $konsul->id, 'jadwal_bimbingan');
+        } catch (\Throwable $e) {}
+
+        try {
+            app(\App\Services\GuruWaliNotificationService::class)->sendJadwalNotificationToSiswa($konsul);
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Jadwal pertemuan tatap muka berhasil ditetapkan.',
@@ -315,6 +331,14 @@ class GuruWaliKonsultasiController extends GuruWaliBaseController
         }
 
         $konsul->update($updateData);
+
+        try {
+            \App\Jobs\SendKonsultasiGuruWaliFcmNotificationJob::dispatch((string) $konsul->id, 'balasan_guru');
+        } catch (\Throwable $e) {}
+
+        try {
+            app(\App\Services\GuruWaliNotificationService::class)->sendBalasanNotificationToSiswa($konsul, $request->input('tanggapan_pesan'));
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'success' => true,

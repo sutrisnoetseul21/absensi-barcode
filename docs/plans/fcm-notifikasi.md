@@ -375,3 +375,69 @@ Pada tahap ini, kita melakukan pengujian menyeluruh pada seluruh skenario riil b
                     ▼  (Review & Verifikasi User)
 [TAHAP 5: Pengujian Terpadu End-to-End & Validasi Regresi WA]
 ```
+
+
+---
+
+## 🚀 Tahap 6: Standardisasi Direct FCM HTTP v1, WhatsApp Multi-Kanal (SPIKAP & SI-WALI), dan Manajemen Terpusat Notifikasi WA Admin
+
+> **Status Tahap 6: SELESAI & FULLY TESTED**  
+> Diterapkan per 01 November 2026. Mencakup pembaruan backend Laravel (`projek-absensi-barcode`), modul Filament Admin, dan routing aplikasi mobile Flutter (`apk-android-presensi`).
+
+### 6.1 Perbaikan Input Presensi Kelas Manual (Durasi Keterlambatan Menitan)
+- **Masalah Sebelumnya**: Pada modal input presensi kelas manual portal guru (`modal-input.blade.php`) dan aplikasi mobile (`presensi_kelas_screen.dart`), input menit keterlambatan sempat mengalami kendala bouncing/reset saat status diubah ke terlambat.
+- **Solusi & Perbaikan**:
+  - `modal-input.blade.php`: Memperbaiki `wire:model.defer="terlambat_menit"`, tipe input numerik bertahap, dan penanganan default nilai `0` saat status bukan terlambat.
+  - `PresensiKelasController.php` & `presensi_kelas_screen.dart`: Standarisasi parsing data durasi keterlambatan ke tipe integer murni sebelum dikirim ke database.
+
+### 6.2 Standardisasi Direct FCM HTTP v1 (`FcmPushService`) & Deep-Linking
+- **Arsitektur Baru**:
+  - Menggantikan legacy FCM library dengan pemanggilan langsung API resmi Google **Firebase Cloud Messaging HTTP v1** (`https://fcm.googleapis.com/v1/projects/{projectId}/messages:send`).
+  - Autentikasi aman menggunakan token OAuth2 Bearer yang digenerate dari `firebase-service-account.json`.
+- **Jobs Terstandardisasi**:
+  - [`SendLeaveRequestFcmNotificationJob.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Jobs/SendLeaveRequestFcmNotificationJob.php): Notifikasi pengajuan izin siswa ke wali kelas & notifikasi hasil persetujuan ke siswa.
+  - [`SendSpikapFcmNotificationJob.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Jobs/SendSpikapFcmNotificationJob.php): Notifikasi aduan darurat/biasa ke wali kelas, guru BK, dan kepala sekolah, serta notifikasi perubahan status/tindak lanjut ke siswa.
+  - [`SendKonsultasiGuruWaliFcmNotificationJob.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Jobs/SendKonsultasiGuruWaliFcmNotificationJob.php): Notifikasi curhat siswa ke guru wali, balasan guru ke siswa, dan penetapan jadwal temu tatap muka.
+- **Deep Linking Status Bar di Flutter (`notification_router.dart`)**:
+  - Payload notifikasi menyertakan `click_action: FLUTTER_NOTIFICATION_CLICK`, `type`, `id`, dan `action_url`.
+  - Ketika notifikasi di-tap dari sistem Android, aplikasi langsung melompat (*auto-route*) ke:
+    - `type: leave_request` -> `PersetujuanIjinScreen` (Wali Kelas) atau `PengajuanIjinScreen` (Siswa).
+    - `type: spikap` -> `SpikapDetailScreen` (Guru/BK/Kepsek) atau `SpikapDetailSiswaScreen` (Siswa).
+    - `type: guru_wali_konsultasi` -> `GuruWaliScreen` tab konsultasi (Guru Wali) atau `SiWaliSiswaScreen` (Siswa).
+
+### 6.3 Aktivasi Notifikasi WhatsApp Fisik SPIKAP
+- **Konfigurasi Environment**:
+  - `.env`: `SPIKAP_WA_TEST_MODE=false`.
+- **Eksekusi Pengiriman**:
+  - [`SpikapNotificationService.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/SpikapNotificationService.php) terhubung langsung dengan gateway WhatsApp fisik sekolah.
+  - Mendukung pengiriman pesan real-time untuk:
+    1. Aduan Darurat (ke Wali Kelas, Guru BK, dan Kepala Sekolah).
+    2. Aduan Biasa (ke Wali Kelas dan Guru BK).
+    3. Apresiasi Pengirim (ke nomor WhatsApp siswa dan nomor WhatsApp orang tua/wali).
+    4. Pembaruan Status Penanganan Aduan (ke siswa dan orang tua).
+
+### 6.4 Integrasi WhatsApp Gateway untuk SI-WALI (Guru Wali Siswa Bercerita)
+- **Service Baru**:
+  - [`GuruWaliNotificationService.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/GuruWaliNotificationService.php) mengelola notifikasi WhatsApp untuk fitur konsultasi guru-wali.
+- **Pemicu Pengiriman**:
+  - `SiswaGuruWaliController@store`: Mengirim pesan WA ke Guru Wali saat siswa mengajukan cerita/bimbingan baru.
+  - `GuruWaliKonsultasiController@kirimPesan` & `@balas`: Mengirim pesan WA ke nomor siswa (dan opsi salinan ke orang tua) saat guru memberikan tanggapan.
+  - `GuruWaliKonsultasiController@jadwalkan`: Mengirim pesan WA berisi tanggal, jam, dan lokasi tatap muka ke siswa.
+
+### 6.5 Panel Manajemen Notifikasi WhatsApp Terpusat di Filament Admin
+- **Halaman Admin**: `http://localhost:8001/admin/manajemen-notifikasi-wa` (`ManajemenNotifikasiWaPage.php`).
+- **Trait Tambahan**: [`HasSpikapDanGuruWaliWaNotifications.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Traits/HasSpikapDanGuruWaliWaNotifications.php).
+- **Fitur Antarmuka**:
+  - **Tab Notifikasi SPIKAP**: Toggle aktif/nonaktif dan textarea kustomisasi template pesan (Darurat, Biasa, Apresiasi Siswa & Ortu, Update Status Siswa & Ortu) dilengkapi daftar placeholder dinamis (`{nama_siswa}`, `{nisn}`, `{kelas}`, `{kode_tiket}`, `{kategori}`, `{deskripsi}`, dll).
+  - **Tab Notifikasi Guru Wali (SI-WALI)**: Toggle aktif/nonaktif dan textarea kustomisasi template pesan (Pengajuan Cerita Siswa, Balasan Guru, Salinan ke Orang Tua, Jadwal Temu Bimbingan) dilengkapi daftar placeholder dinamis (`{nama_siswa}`, `{nama_guru}`, `{kategori}`, `{pesan}`, `{tanggal_temu}`, dll).
+- **Penyimpanan**:
+  - Data tersimpan persisten di tabel `presensi_notification_settings`.
+  - Tersinkronisasi otomatis dengan model singleton `SpikapNotifSetting` untuk kompatibilitas service eksisting.
+
+### 6.6 Otomasi Antrean (Queue Worker) & Kesiapan Reboot Server/PC
+- **Antrean**: Worker membaca antrean `default` dan `notifications`:
+  ```bash
+  php artisan queue:work --queue=default,notifications --tries=3
+  ```
+- **Cron Scheduler**: Berjalan setiap menit (`* * * * * cd /home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode && php artisan schedule:run >> /dev/null 2>&1`).
+- **Heartbeat Monitoring**: Perintah `php artisan scheduler:heartbeat` dijalankan otomatis oleh scheduler setiap 5 menit untuk mencatat stempel waktu aktif di database.
