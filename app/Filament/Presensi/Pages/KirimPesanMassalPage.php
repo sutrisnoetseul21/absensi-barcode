@@ -2,9 +2,10 @@
 
 namespace App\Filament\Presensi\Pages;
 
+use App\Jobs\ProcessSchoolBroadcastJob;
 use App\Models\Kelas;
+use App\Models\SchoolBroadcast;
 use App\Models\User;
-use App\Notifications\BroadcastSchoolNotification;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -14,12 +15,16 @@ use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\HtmlString;
 
-class KirimPesanMassalPage extends Page implements HasForms
+class KirimPesanMassalPage extends Page implements HasForms, HasTable
 {
-    use InteractsWithForms;
+    use InteractsWithForms, InteractsWithTable;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
 
@@ -75,7 +80,7 @@ class KirimPesanMassalPage extends Page implements HasForms
         return $schema
             ->schema([
                 Section::make('Buat Pesan Pengumuman / Notifikasi')
-                    ->description('Pesan akan dikirim langsung sebagai Push Notification (pop-up & suara di HP) serta masuk ke riwayat Pusat Notifikasi aplikasi mobile.')
+                    ->description('Pesan akan dikirim langsung sebagai Push Notification (pop-up & nada dering di HP) serta otomatis masuk ke Pusat Notifikasi aplikasi siswa & guru.')
                     ->schema([
                         Select::make('target_group')
                             ->label('Target Penerima')
@@ -98,7 +103,7 @@ class KirimPesanMassalPage extends Page implements HasForms
 
                         TextInput::make('title')
                             ->label('Judul Notifikasi')
-                            ->placeholder('Contoh: Pengumuman Upacara Hari Senin / Libur Nasional')
+                            ->placeholder('Contoh: Pengumuman Upacara Hari Senin / Libur Sekolah')
                             ->required()
                             ->maxLength(100),
 
@@ -113,6 +118,79 @@ class KirimPesanMassalPage extends Page implements HasForms
             ->statePath('data');
     }
 
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(SchoolBroadcast::query()->latest())
+            ->columns([
+                TextColumn::make('created_at')
+                    ->label('Waktu Kirim')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable(),
+
+                TextColumn::make('title')
+                    ->label('Judul Notifikasi')
+                    ->weight('bold')
+                    ->searchable()
+                    ->limit(35),
+
+                TextColumn::make('body')
+                    ->label('Isi Pesan')
+                    ->limit(50)
+                    ->tooltip(fn ($record) => $record->body),
+
+                TextColumn::make('target_group')
+                    ->label('Target')
+                    ->badge()
+                    ->formatStateUsing(fn ($record) => $record->target_group_label)
+                    ->color(fn (string $state): string => match ($state) {
+                        'all'   => 'primary',
+                        'siswa' => 'success',
+                        'guru'  => 'info',
+                        'kelas' => 'warning',
+                        default => 'gray',
+                    }),
+
+                TextColumn::make('total_target_users')
+                    ->label('Penerima')
+                    ->formatStateUsing(function ($record) {
+                        $users = number_format($record->total_target_users, 0, ',', '.');
+                        $hp = $record->total_fcm_sent;
+                        return "{$users} Akun" . ($hp > 0 ? " ({$hp} HP)" : "");
+                    }),
+
+                TextColumn::make('sender_name')
+                    ->label('Pengirim')
+                    ->color('gray'),
+
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'sent'       => 'success',
+                        'processing' => 'warning',
+                        'failed'     => 'danger',
+                        default      => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'sent'       => 'Terkirim',
+                        'processing' => 'Diproses',
+                        'failed'     => 'Gagal',
+                        default      => ucfirst($state),
+                    }),
+            ])
+            ->actions([
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Hapus Riwayat Broadcast')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus catatan riwayat broadcast ini dari daftar?')
+                    ->successNotificationTitle('Riwayat broadcast berhasil dihapus.'),
+            ])
+            ->emptyStateHeading('Belum Ada Riwayat Broadcast')
+            ->emptyStateDescription('Pesan massal yang Anda kirimkan ke aplikasi Android akan tercatat di sini.')
+            ->emptyStateIcon('heroicon-o-megaphone');
+    }
+
     public function send(): void
     {
         $data = $this->form->getState();
@@ -122,6 +200,7 @@ class KirimPesanMassalPage extends Page implements HasForms
         $title       = trim($data['title']);
         $body        = trim($data['body']);
         $senderName  = auth()->user()?->name ?? 'Admin Sekolah';
+        $className   = $classId ? Kelas::find($classId)?->name : null;
 
         // 1. Tentukan query penerima sesuai jangkauan sekolah ini
         $query = User::query();
@@ -138,9 +217,9 @@ class KirimPesanMassalPage extends Page implements HasForms
             });
         }
 
-        $recipients = $query->get();
+        $totalRecipients = $query->count();
 
-        if ($recipients->isEmpty()) {
+        if ($totalRecipients === 0) {
             FilamentNotification::make()
                 ->title('Tidak Ada Penerima')
                 ->body('Tidak ditemukan pengguna yang sesuai dengan kriteria target penerima.')
@@ -149,23 +228,25 @@ class KirimPesanMassalPage extends Page implements HasForms
             return;
         }
 
-        // 2. Broadcast notifikasi antrean
-        $notification = new BroadcastSchoolNotification(
-            title: $title,
-            body: $body,
-            targetGroup: $targetGroup,
-            senderName: $senderName
-        );
+        // 2. Buat catatan riwayat broadcast
+        $broadcast = SchoolBroadcast::create([
+            'title'              => $title,
+            'body'               => $body,
+            'target_group'       => $targetGroup,
+            'class_id'           => $classId,
+            'class_name'         => $className,
+            'sender_name'        => $senderName,
+            'total_target_users' => $totalRecipients,
+            'total_fcm_sent'     => 0,
+            'status'             => 'processing',
+        ]);
 
-        $count = 0;
-        foreach ($recipients as $recipient) {
-            $recipient->notify($notification);
-            $count++;
-        }
+        // 3. Dispatch Job di antrean (Sangat cepat < 0.1 detik, tanpa membebani browser)
+        ProcessSchoolBroadcastJob::dispatch($broadcast->id);
 
         $this->refreshStats();
 
-        // 3. Reset form
+        // 4. Reset form
         $this->form->fill([
             'target_group' => 'all',
             'title'        => '',
@@ -174,7 +255,7 @@ class KirimPesanMassalPage extends Page implements HasForms
 
         FilamentNotification::make()
             ->title('Pesan Massal Berhasil Dijadwalkan! 🚀')
-            ->body("Notifikasi sedang diproses antrean untuk {$count} akun pengguna sekolah ini. HP yang aktif akan segera menerima push notification.")
+            ->body("Notifikasi sedang diproses antrean untuk {$totalRecipients} akun sekolah ini. Perangkat Android yang terhubung akan segera menerima push notification.")
             ->success()
             ->send();
     }
