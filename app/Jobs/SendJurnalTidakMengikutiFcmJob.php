@@ -104,6 +104,23 @@ class SendJurnalTidakMengikutiFcmJob implements ShouldQueue
             try {
                 $res = $fcm->sendToUser($targetUser, $title, $body, $payload);
                 Log::info("SendJurnalTidakMengikutiFcmJob: Notifikasi FCM terkirim ke Siswa {$namaSiswa}: " . json_encode($res));
+
+                // Simpan ke database notifications agar tampil di lonceng notifikasi aplikasi
+                $targetUser->notifications()->create([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'type' => 'App\Notifications\JurnalTidakMengikutiNotification',
+                    'data' => [
+                        'title' => $title,
+                        'body' => $body,
+                        'type' => 'jurnal_tidak_mengikuti',
+                        'id' => (string) $jurnal->id,
+                        'jurnal_id' => (string) $jurnal->id,
+                        'student_id' => (string) $siswa->id,
+                        'mata_pelajaran' => (string) $mataPelajaran,
+                        'action_url' => $payload['action_url'],
+                    ],
+                    'read_at' => null,
+                ]);
             } catch (Throwable $e) {
                 Log::error("SendJurnalTidakMengikutiFcmJob: Gagal kirim FCM ke Siswa {$namaSiswa}: " . $e->getMessage());
             }
@@ -157,6 +174,23 @@ class SendJurnalTidakMengikutiFcmJob implements ShouldQueue
             try {
                 $res = $fcm->sendToUser($targetUser, $title, $body, $payload);
                 Log::info("SendJurnalTidakMengikutiFcmJob: Notifikasi FCM terkirim ke Wali Kelas ({$targetUser->name}): " . json_encode($res));
+
+                // Simpan ke database notifications agar tampil di lonceng notifikasi aplikasi
+                $targetUser->notifications()->create([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'type' => 'App\Notifications\JurnalTidakMengikutiNotification',
+                    'data' => [
+                        'title' => $title,
+                        'body' => $body,
+                        'type' => 'jurnal_tidak_mengikuti',
+                        'id' => (string) $jurnal->id,
+                        'jurnal_id' => (string) $jurnal->id,
+                        'student_id' => (string) $siswa->id,
+                        'mata_pelajaran' => (string) $mataPelajaran,
+                        'action_url' => $payload['action_url'],
+                    ],
+                    'read_at' => null,
+                ]);
             } catch (Throwable $e) {
                 Log::error("SendJurnalTidakMengikutiFcmJob: Gagal kirim FCM ke Wali Kelas: " . $e->getMessage());
             }

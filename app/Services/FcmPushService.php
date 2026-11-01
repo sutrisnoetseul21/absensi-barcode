@@ -34,6 +34,15 @@ class FcmPushService
                 $credentials = env('FIREBASE_CREDENTIALS');
             }
 
+            if (!empty($credentials) && is_string($credentials) && !str_starts_with(trim($credentials), '{')) {
+                if (!file_exists($credentials)) {
+                    $basePathCredentials = base_path($credentials);
+                    if (file_exists($basePathCredentials)) {
+                        $credentials = $basePathCredentials;
+                    }
+                }
+            }
+
             if (!empty($credentials) && (file_exists($credentials) || (is_string($credentials) && str_starts_with(trim($credentials), '{')))) {
                 $this->messaging = app('firebase.messaging');
                 $this->isConfigured = true;
