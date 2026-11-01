@@ -63,7 +63,7 @@ class FcmPushService
      * @param array $data Data payload (seluruh value dipastikan bertipe string)
      * @return array Status pengiriman
      */
-    public function sendToToken(string $token, string $title, string $body, array $data = []): array
+    public function sendToToken(string $token, string $title, string $body, array $data = [], int $ttlSeconds = 36000): array
     {
         if (!$this->isConfigured()) {
             Log::info("FcmPushService: Push di-skip (Firebase belum dikonfigurasi). Title: [{$title}] Body: [{$body}]");
@@ -87,6 +87,7 @@ class FcmPushService
                 ->withData($stringData)
                 ->withAndroidConfig(AndroidConfig::fromArray([
                     'priority' => 'HIGH',
+                    'ttl'      => "{$ttlSeconds}s",
                     'notification' => [
                         'channel_id' => 'high_importance_channel',
                         'sound' => 'default',

@@ -59,6 +59,7 @@ class ProcessSchoolBroadcastJob implements ShouldQueue
             // 2. Ambil token perangkat aktif milik user-user target
             $deviceTokens = FcmDeviceToken::whereIn('user_id', $targetUserIds)->get();
             $fcmSentCount = 0;
+            $ttlSeconds = max(3600, ($broadcast->active_hours ?: 10) * 3600);
 
             foreach ($deviceTokens as $deviceToken) {
                 try {
@@ -71,7 +72,9 @@ class ProcessSchoolBroadcastJob implements ShouldQueue
                             'broadcast_id' => (string) $broadcast->id,
                             'target_group' => (string) $broadcast->target_group,
                             'sender_name'  => (string) $broadcast->sender_name,
-                        ]
+                            'expires_at'   => $broadcast->expires_at ? $broadcast->expires_at->toIso8601String() : '',
+                        ],
+                        ttlSeconds: $ttlSeconds
                     );
 
                     $isSuccess = !empty($res['success']);
@@ -118,6 +121,8 @@ class ProcessSchoolBroadcastJob implements ShouldQueue
                         'target_group' => $broadcast->target_group,
                         'class_name'   => $broadcast->class_name,
                         'sender_name'  => $broadcast->sender_name,
+                        'active_hours' => $broadcast->active_hours ?: 10,
+                        'expires_at'   => $broadcast->expires_at ? $broadcast->expires_at->toIso8601String() : null,
                         'sent_at'      => $isoNow,
                     ],
                 ]);

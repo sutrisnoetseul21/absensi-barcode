@@ -6,6 +6,8 @@ use App\Jobs\ProcessSchoolBroadcastJob;
 use App\Models\Kelas;
 use App\Models\SchoolBroadcast;
 use App\Models\User;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,7 +17,6 @@ use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -53,6 +54,7 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
 
         $this->form->fill([
             'target_group' => 'all',
+            'active_hours' => 10,
             'title'        => '',
             'body'         => '',
         ]);
@@ -100,6 +102,19 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
                             ->visible(fn ($get) => $get('target_group') === 'kelas')
                             ->required(fn ($get) => $get('target_group') === 'kelas')
                             ->searchable(),
+
+                        Select::make('active_hours')
+                            ->label('Masa Aktif Pesan di HP (TTL Firebase)')
+                            ->options([
+                                6   => '6 Jam (Pengumuman Singkat / Pagi)',
+                                10  => '10 Jam (Standar Pengumuman Sekolah)',
+                                24  => '24 Jam (1 Hari Penuh)',
+                                48  => '48 Jam (2 Hari)',
+                                168 => '7 Hari (1 Minggu)',
+                            ])
+                            ->default(10)
+                            ->required()
+                            ->helperText('Jika HP penerima offline lebih dari batas masa aktif ini, notifikasi otomatis dibatalkan/dihapus oleh server Firebase.'),
 
                         TextInput::make('title')
                             ->label('Judul Notifikasi')
@@ -159,6 +174,12 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
                         return "{$users} Akun" . ($hp > 0 ? " ({$hp} HP)" : "");
                     }),
 
+                TextColumn::make('sisa_waktu')
+                    ->label('Masa Aktif')
+                    ->badge()
+                    ->color(fn ($record) => $record->status_color)
+                    ->tooltip(fn ($record) => $record->expires_at ? 'Kadaluarsa pada: ' . $record->expires_at->format('d M Y, H:i') : null),
+
                 TextColumn::make('sender_name')
                     ->label('Pengirim')
                     ->color('gray'),
@@ -166,20 +187,32 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'sent'       => 'success',
-                        'processing' => 'warning',
-                        'failed'     => 'danger',
-                        default      => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'sent'       => 'Terkirim',
-                        'processing' => 'Diproses',
-                        'failed'     => 'Gagal',
-                        default      => ucfirst($state),
-                    }),
+                    ->color(fn ($record): string => $record->status_color)
+                    ->formatStateUsing(fn ($record): string => $record->status_label),
             ])
             ->actions([
+                Action::make('stop')
+                    ->label('Hentikan')
+                    ->icon('heroicon-o-stop-circle')
+                    ->color('danger')
+                    ->visible(fn ($record) => $record->status === 'sent' && !$record->is_expired)
+                    ->requiresConfirmation()
+                    ->modalHeading('Hentikan Pesan Broadcast Ini?')
+                    ->modalDescription('Apakah Anda yakin ingin menghentikan pengumuman ini sekarang? Status pesan akan langsung diubah menjadi Dihentikan/Kadaluarsa.')
+                    ->modalSubmitActionLabel('Ya, Hentikan Sekarang')
+                    ->action(function ($record) {
+                        $record->update([
+                            'status'     => 'cancelled',
+                            'expires_at' => now(),
+                        ]);
+
+                        FilamentNotification::make()
+                            ->title('Pesan Berhasil Dihentikan')
+                            ->body('Broadcast pengumuman ini telah dihentikan.')
+                            ->warning()
+                            ->send();
+                    }),
+
                 DeleteAction::make()
                     ->label('Hapus')
                     ->modalHeading('Hapus Riwayat Broadcast')
@@ -197,10 +230,12 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
 
         $targetGroup = $data['target_group'] ?? 'all';
         $classId     = $data['class_id'] ?? null;
+        $activeHours = (int) ($data['active_hours'] ?? 10);
         $title       = trim($data['title']);
         $body        = trim($data['body']);
         $senderName  = auth()->user()?->name ?? 'Admin Sekolah';
         $className   = $classId ? Kelas::find($classId)?->name : null;
+        $expiresAt   = now()->addHours($activeHours);
 
         // 1. Tentukan query penerima sesuai jangkauan sekolah ini
         $query = User::query();
@@ -228,7 +263,7 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
             return;
         }
 
-        // 2. Buat catatan riwayat broadcast
+        // 2. Buat catatan riwayat broadcast dengan masa aktif (TTL)
         $broadcast = SchoolBroadcast::create([
             'title'              => $title,
             'body'               => $body,
@@ -236,6 +271,8 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
             'class_id'           => $classId,
             'class_name'         => $className,
             'sender_name'        => $senderName,
+            'active_hours'       => $activeHours,
+            'expires_at'         => $expiresAt,
             'total_target_users' => $totalRecipients,
             'total_fcm_sent'     => 0,
             'status'             => 'processing',
@@ -249,13 +286,14 @@ class KirimPesanMassalPage extends Page implements HasForms, HasTable
         // 4. Reset form
         $this->form->fill([
             'target_group' => 'all',
+            'active_hours' => 10,
             'title'        => '',
             'body'         => '',
         ]);
 
         FilamentNotification::make()
             ->title('Pesan Massal Berhasil Dijadwalkan! 🚀')
-            ->body("Notifikasi sedang diproses antrean untuk {$totalRecipients} akun sekolah ini. Perangkat Android yang terhubung akan segera menerima push notification.")
+            ->body("Notifikasi aktif selama {$activeHours} jam untuk {$totalRecipients} akun sekolah ini. HP yang online akan langsung menerima push notification.")
             ->success()
             ->send();
     }
