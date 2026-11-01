@@ -87,6 +87,11 @@ class FcmChannel
             return;
         }
 
+        // Pastikan judul dan isi juga masuk ke dalam data payload agar klien Android
+        // tetap dapat menampilkan pop-up notifikasi secara konsisten (Foreground & Background)
+        $data['title'] = $title;
+        $data['body'] = $body;
+
         // Kirim via FcmPushService
         try {
             $hasSuccess = false;
