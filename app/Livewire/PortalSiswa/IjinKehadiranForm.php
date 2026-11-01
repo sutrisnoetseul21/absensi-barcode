@@ -125,10 +125,13 @@ class IjinKehadiranForm extends Component
             'type' => 'required|in:ijin,sakit',
             'duration_days' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'reason' => 'required|string',
+            'reason' => 'required|string|min:3|max:200',
             'attachments' => $hasExistingFiles ? 'nullable|array|max:5' : 'required|array|min:1|max:5',
             'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
         ], [
+            'reason.required' => 'Alasan izin wajib diisi.',
+            'reason.min' => 'Alasan izin minimal 3 karakter.',
+            'reason.max' => 'Alasan izin maksimal 200 karakter.',
             'attachments.required' => 'Lampiran bukti (surat dokter / surat izin orang tua) wajib diunggah.',
             'attachments.min' => 'Lampiran bukti (surat dokter / surat izin orang tua) wajib diunggah minimal 1 berkas.',
             'attachments.*.mimes' => 'Format lampiran harus berupa JPG, PNG, WEBP, atau PDF.',
@@ -228,7 +231,6 @@ class IjinKehadiranForm extends Component
                 $record->generateApprovalToken();
                 DB::afterCommit(function () use ($record) {
                     SendLeaveRequestWaNotificationJob::dispatch($record->id);
-                    SendLeaveRequestFcmNotificationJob::dispatch($record->id);
                 });
             } catch (\Throwable $e) {
                 report($e); // Catat ke log/Sentry tanpa melempar ke UI
@@ -255,7 +257,7 @@ class IjinKehadiranForm extends Component
 
         $enrollment = $this->student->enrollmentAktif;
         if (!$enrollment) return;
-        
+
         $kelas = $enrollment->kelas->name ?? '-';
 
         $kelasAjaran = KelasAjaran::where('class_id', $enrollment->class_id)
@@ -265,7 +267,7 @@ class IjinKehadiranForm extends Component
 
         $namaWaliKelas = $kelasAjaran?->guru?->name ?? 'Wali Kelas';
         $noHpWaliKelas = $kelasAjaran?->guru?->no_hp;
-        
+
         $replacements = [
             '{nama_siswa}' => $this->student->name,
             '{kelas}' => $kelas,
@@ -278,7 +280,7 @@ class IjinKehadiranForm extends Component
         ];
 
         $pesan = strtr($setting->template_pesan, $replacements);
-        
+
         $resolver = app(\App\Services\RecipientResolverService::class);
         $resolvedRecipients = $resolver->resolveRecipients($setting->recipients, $this->student);
 

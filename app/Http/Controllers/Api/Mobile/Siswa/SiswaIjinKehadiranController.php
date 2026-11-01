@@ -163,7 +163,7 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             'type' => 'required|in:ijin,sakit',
             'duration_days' => 'required|integer|min:1|max:30',
             'start_date' => 'required|date',
-            'reason' => 'required|string|min:3|max:1000',
+            'reason' => 'required|string|min:3|max:200',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
         ], [
@@ -175,6 +175,7 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             'start_date.required' => 'Tanggal mulai izin wajib diisi.',
             'reason.required' => 'Alasan izin wajib diisi.',
             'reason.min' => 'Alasan izin minimal 3 karakter.',
+            'reason.max' => 'Alasan izin maksimal 200 karakter.',
             'attachments.max' => 'Lampiran maksimal 5 berkas.',
             'attachments.*.mimes' => 'Format lampiran harus berupa JPG, PNG, WEBP, atau PDF.',
             'attachments.*.max' => 'Ukuran setiap lampiran maksimal 5MB.',
@@ -290,15 +291,13 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             ]);
         } catch (\Throwable $e) {}
 
-        // Integrasi Notifikasi WA & FCM
+        // Integrasi Notifikasi WA (Approval Token)
+        // Catatan: Notifikasi Push FCM & Database ditangani secara terpusat oleh LeaveRequestObserver
         try {
             $record->generateApprovalToken();
             DB::afterCommit(function () use ($record) {
                 if (class_exists(SendLeaveRequestWaNotificationJob::class)) {
                     SendLeaveRequestWaNotificationJob::dispatch($record->id);
-                }
-                if (class_exists(SendLeaveRequestFcmNotificationJob::class)) {
-                    SendLeaveRequestFcmNotificationJob::dispatch($record->id);
                 }
             });
         } catch (\Throwable $e) {
@@ -530,7 +529,13 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             $pesan = strtr($setting->template_pesan, $replacements);
 
             if (class_exists(\App\Services\WhatsAppGatewayService::class) && !empty($kelasAjaran?->guru?->no_hp)) {
-                app(\App\Services\WhatsAppGatewayService::class)->sendMessage($kelasAjaran->guru->no_hp, $pesan);
+                app(\App\Services\WhatsAppGatewayService::class)->sendMessage(
+                    $kelasAjaran->guru->no_hp,
+                    $pesan,
+                    'leave_request',
+                    (string) $record->id,
+                    'wali_kelas'
+                );
             }
         } catch (\Throwable $e) {
             report($e);

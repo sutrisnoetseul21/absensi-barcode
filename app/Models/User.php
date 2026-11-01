@@ -91,7 +91,7 @@ class User extends Authenticatable implements FilamentUser
         ];
 
         $panelId = $panel->getId();
-        
+
         // Panel utama 'admin' (Bisa diakses oleh semua jenis admin dan spikap_admin)
         if ($panelId === 'admin') {
             return $this->roles->contains(function ($role) {
@@ -264,14 +264,20 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(\App\Models\Siswa::class, 'user_id');
     }
 
+    // Relasi ke tabel fcm_device_tokens
+    public function fcmDeviceTokens(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\FcmDeviceToken::class, 'user_id');
+    }
+
     /**
      * Nama Tampilan Dinamis berdasarkan Relasi Guru / Siswa / User Name
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->teacher?->nama 
-            ?? $this->guru?->name 
-            ?? $this->student?->nama 
+        return $this->teacher?->nama
+            ?? $this->guru?->name
+            ?? $this->student?->nama
             ?? $this->name;
     }
 

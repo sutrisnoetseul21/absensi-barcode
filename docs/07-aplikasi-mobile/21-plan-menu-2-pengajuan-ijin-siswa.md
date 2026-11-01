@@ -80,7 +80,7 @@ flowchart TD
   * Card selector tipe: **Sakit** (disertai keterangan wajib surat dokter) vs **Izin**.
   * Pemilih Tanggal Mulai (rentang valid 7 hari lampau s.d. 7 hari kedepan) & Stepper Durasi Hari (1-30).
   * Banner notifikasi deteksi otomatis hari libur sekolah via API backend `checkHolidays`.
-  * Textarea input alasan/keperluan (minimal 3 karakter).
+  * Textarea input alasan/keperluan (minimal 3 karakter, **dibatasi maksimal 200 karakter** dengan counter karakter live `maxLength: 200`).
   * Opsi Ambil Foto Kamera & Pilih Galeri dengan **Kompresi Otomatis Ala WhatsApp**:
     * Muncul snackbar hijau konfirmasi ukuran kompresi: *"Terkonversi 165 KB (Kompresi ala WhatsApp, hemat ~95% kuota)"*.
     * Pratinjau thumbnail gambar terkompresi dengan badge hijau dan tombol hapus.

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class FcmDeviceToken extends Model
 {
@@ -15,9 +16,11 @@ class FcmDeviceToken extends Model
 
     protected $fillable = [
         'user_id',
+        'personal_access_token_id',
         'token',
         'platform',
         'device_name',
+        'app_version',
         'last_used_at',
     ];
 
@@ -29,5 +32,9 @@ class FcmDeviceToken extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-}
 
+    public function personalAccessToken(): BelongsTo
+    {
+        return $this->belongsTo(PersonalAccessToken::class, 'personal_access_token_id');
+    }
+}

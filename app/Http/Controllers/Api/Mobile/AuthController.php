@@ -177,7 +177,7 @@ class AuthController extends Controller
      */
     public function registerFcmToken(Request $request): JsonResponse
     {
-        $user = $request->user() ?: $this->resolveUserFallback($request);
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
@@ -189,7 +189,9 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'token' => 'required|string|max:500',
             'platform' => 'nullable|string|max:50',
+            'device_type' => 'nullable|string|max:50',
             'device_name' => 'nullable|string|max:255',
+            'app_version' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -201,15 +203,26 @@ class AuthController extends Controller
         }
 
         $token = trim((string) $request->input('token'));
-        $platform = (string) $request->input('platform', 'android');
+        $platform = (string) ($request->input('platform') ?: $request->input('device_type') ?: 'android');
         $deviceName = $request->input('device_name');
+        $appVersion = $request->input('app_version');
+
+        $currentToken = $user->currentAccessToken();
+        $personalAccessTokenId = null;
+        if ($currentToken && !empty($currentToken->id) && is_numeric($currentToken->id) && $currentToken->id > 0) {
+            if (\Laravel\Sanctum\PersonalAccessToken::where('id', $currentToken->id)->exists()) {
+                $personalAccessTokenId = (int) $currentToken->id;
+            }
+        }
 
         FcmDeviceToken::updateOrCreate(
             ['token' => $token],
             [
                 'user_id' => $user->id,
+                'personal_access_token_id' => $personalAccessTokenId,
                 'platform' => $platform,
                 'device_name' => $deviceName,
+                'app_version' => $appVersion,
                 'last_used_at' => now(),
             ]
         );
@@ -225,50 +238,38 @@ class AuthController extends Controller
      */
     public function deleteFcmToken(Request $request): JsonResponse
     {
-        $token = $request->input('token');
-        if ($token) {
-            FcmDeviceToken::where('token', $token)->delete();
-        } else {
-            $user = $request->user() ?: $this->resolveUserFallback($request);
-            if ($user) {
-                FcmDeviceToken::where('user_id', $user->id)->delete();
-            }
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak terautentikasi.',
+            ], 401);
         }
+
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $token = trim((string) $request->input('token'));
+
+        $deleted = FcmDeviceToken::where('user_id', $user->id)
+            ->where('token', $token)
+            ->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'FCM Device Token berhasil dihapus.',
+            'deleted' => $deleted > 0,
         ]);
-    }
-
-    /**
-     * Helper fallback resolve user jika Sanctum auth guard belum aktif.
-     */
-    protected function resolveUserFallback(Request $request): ?User
-    {
-        $bearer = $request->bearerToken();
-        if (!empty($bearer) && !str_contains($bearer, '|')) {
-            $decoded = base64_decode($bearer, true);
-            if ($decoded && str_contains($decoded, '|')) {
-                $parts = explode('|', $decoded);
-                $userId = $parts[0] ?? null;
-                if ($userId) {
-                    return User::find($userId);
-                }
-            }
-        }
-
-        $identifier = trim((string) ($request->header('X-User-Identifier') ?: $request->input('identifier', '')));
-        if ($identifier !== '') {
-            $guru = Guru::where('nip', $identifier)->orWhere('name', $identifier)->first();
-            if ($guru && $guru->user_id) {
-                $u = User::find($guru->user_id);
-                if ($u) return $u;
-            }
-            return User::where('email', $identifier)->orWhere('name', $identifier)->first();
-        }
-
-        return null;
     }
 }
 

@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.presensi'    => \App\Http\Middleware\EnsureIsPetugasPresensi::class,
             'auth.web'         => \App\Http\Middleware\EnsureIsAdminWeb::class,
             'maintenance'      => \App\Http\Middleware\CheckPortalMaintenance::class,
+            'auth.mobile'      => \App\Http\Middleware\AuthenticateMobileToken::class,
         ]);
 
         $middleware->redirectUsersTo(function (Request $request) {

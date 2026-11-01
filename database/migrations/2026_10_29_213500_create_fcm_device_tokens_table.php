@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('fcm_device_tokens', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('personal_access_token_id')->nullable()->constrained('personal_access_tokens')->nullOnDelete();
             $table->string('token', 500)->unique();
             $table->string('platform', 50)->default('android');
             $table->string('device_name')->nullable();
+            $table->string('app_version', 50)->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
 

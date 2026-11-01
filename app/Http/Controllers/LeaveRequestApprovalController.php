@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendLeaveRequestResultNotificationJob;
 use App\Models\LeaveRequest;
+use App\Notifications\LeaveRequestResultNotification;
 use App\Services\LeaveRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -153,6 +154,17 @@ class LeaveRequestApprovalController extends Controller
                 // Dispatch notifikasi balik ke siswa/ortu SETELAH commit berhasil
                 DB::afterCommit(function () use ($record) {
                     SendLeaveRequestResultNotificationJob::dispatch($record->id);
+
+                    // Kirim Push FCM & Database notification ke akun siswa (Tahap 3)
+                    try {
+                        $record->loadMissing('student.user');
+                        $studentUser = $record->student?->user;
+                        if ($studentUser) {
+                            $studentUser->notify(new LeaveRequestResultNotification($record));
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("LeaveRequestApproval: Gagal notify student FCM: " . $e->getMessage());
+                    }
                 });
             });
 

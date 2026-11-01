@@ -231,11 +231,19 @@ Route::prefix('v1')->group(function () {
     });
 
     // 5. Endpoint Terproteksi & Autentikasi Tambahan
-    Route::post('/auth/fcm-token', [AuthController::class, 'registerFcmToken']);
-    Route::delete('/auth/fcm-token', [AuthController::class, 'deleteFcmToken']);
-
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+    });
+
+    // 6. Notifikasi & FCM Token (Sanctum + Fallback Token sesi lama, konsisten dengan menu mobile lain)
+    Route::middleware('auth.mobile')->group(function () {
+        Route::post('/auth/fcm-token', [AuthController::class, 'registerFcmToken']);
+        Route::delete('/auth/fcm-token', [AuthController::class, 'deleteFcmToken']);
+
+        // Notifikasi & Inbox
+        Route::get('/notifications', [\App\Http\Controllers\Api\Mobile\NotificationInboxController::class, 'index']);
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\Mobile\NotificationInboxController::class, 'markAsRead']);
+        Route::post('/notifications/read-all', [\App\Http\Controllers\Api\Mobile\NotificationInboxController::class, 'markAllAsRead']);
     });
 });

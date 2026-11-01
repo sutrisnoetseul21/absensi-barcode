@@ -196,10 +196,10 @@ Untuk mengeksekusi fitur ini nanti, diperlukan 2 berkas konfigurasi dari **Fireb
 ---
 
 ## 5. Status Rencana Eksekusi
-- [ ] **Tahap 1: Setup Proyek Firebase & Konfigurasi Android Native**
-- [ ] **Tahap 2: Instalasi Dependencies Flutter & Background Entry Point**
-- [ ] **Tahap 3: Service FCM Mobile & Sinkronisasi Token Otomatis**
-- [ ] **Tahap 4: Handling Interaksi Notifikasi & Deep Linking**
-- [ ] **Tahap 5: Upgrade Backend Laravel ke FCM HTTP v1 & Triggers**
-- [ ] **Tahap 6: Pengujian End-to-End, Troubleshooting HP & Finalisasi**
+- [x] **Tahap 1: Setup Proyek Firebase & Konfigurasi Android Native** (Selesai: `google-services.json`, channel `high_importance_channel`, SDK desugaring JDK 17).
+- [x] **Tahap 2: Instalasi Dependencies Flutter & Background Entry Point** (Selesai: `firebase_core`, `firebase_messaging`, `flutter_local_notifications`).
+- [x] **Tahap 3: Service FCM Mobile & Sinkronisasi Token Otomatis** (Selesai: `FcmService`, registrasi login/refresh & delete saat logout).
+- [x] **Tahap 4: Handling Interaksi Notifikasi & Deep Linking** (Selesai: `NotificationRouter`, auto redirect saat notifikasi di-tap).
+- [x] **Tahap 5: Upgrade Backend Laravel ke FCM HTTP v1 & Triggers** (Selesai: `FcmPushService`, `FcmChannel`, `PresensiObserver`, `LeaveRequestObserver`).
+- [x] **Tahap 6: Pengujian End-to-End, Troubleshooting HP & Finalisasi** (Selesai: Verifikasi HP live Nada Arava `3126336940`, limit 200 karakter alasan izin, APK split-ABI siap rilis).
 

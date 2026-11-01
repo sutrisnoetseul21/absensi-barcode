@@ -32,6 +32,7 @@ class Presensi extends Model
         'manual_input_by_type',
         'scanned_by',
         'source',
+        'leave_request_id',
     ];
 
     protected $casts = [

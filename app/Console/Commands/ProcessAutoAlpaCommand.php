@@ -64,18 +64,19 @@ class ProcessAutoAlpaCommand extends Command
         }
 
         $autoAlpaCarbon = Carbon::createFromTimeString($autoAlpaTimeStr, 'Asia/Jakarta');
-        
+
         // Cek jika sekarang sudah lewat atau sama dengan waktu yang diatur
         if ($now->format('H:i:s') >= $autoAlpaCarbon->format('H:i:s')) {
             Log::info("ProcessAutoAlpaCommand: Memulai proses auto alpa (Threshold tercapai: {$now->format('H:i:s')} >= {$autoAlpaCarbon->format('H:i:s')}).");
-            
-            // Opsional: Set guard di awal sebelum proses berat, mencegah double cron trigger if takes > 1 min
-            // Namun karena already withoutOverlapping di routes/console.php, kita set saja sebelum mulai
-            $settings->last_auto_alpa_run_date = $todayStr;
-            $settings->save();
 
             // Panggil shared service
             $result = AlpaAutomationService::process('cron');
+
+            // Simpan tanggal eksekusi hanya jika berhasil selesai
+            if (($result['status'] ?? '') === 'success') {
+                $settings->last_auto_alpa_run_date = $todayStr;
+                $settings->save();
+            }
 
             $this->info($result['message']);
         }

@@ -8,24 +8,30 @@ use App\Models\WhatsAppNotificationLog;
 use App\Models\PengaturanSekolah;
 use App\Services\RecipientResolverService;
 use App\Jobs\SendWhatsAppNotificationJob;
+use App\Notifications\AttendanceStatusNotification;
 use Carbon\Carbon;
 
 class PresensiObserver
 {
     public function saved(Presensi $presensi): void
     {
-        // 1. Cek perubahan di kolom `status` (saat absen datang)
+        // 1. Cek perubahan di kolom `status` (saat absen datang) - Notifikasi WhatsApp
         if ($presensi->wasRecentlyCreated || $presensi->wasChanged('status')) {
             $this->processNotification($presensi, $presensi->status);
         }
 
-        // 2. Cek perubahan di kolom `status_pulang` (saat absen pulang / update manual)
+        // 2. Cek perubahan di kolom `status_pulang` (saat absen pulang / update manual) - Notifikasi WhatsApp
         if ($presensi->wasChanged('status_pulang')) {
             $settings = PengaturanSekolah::current();
             $enableCheckout = $settings ? ($settings->enable_checkout ?? true) : true;
             if ($enableCheckout) {
                 $this->processNotification($presensi, $presensi->status_pulang);
             }
+        }
+
+        // 3. Push FCM & In-App Database Notification (Tahap 3)
+        if ($presensi->wasRecentlyCreated || $presensi->wasChanged('status')) {
+            $this->processFcmNotification($presensi, $presensi->status);
         }
     }
 
@@ -52,25 +58,25 @@ class PresensiObserver
 
         // Ambil aturan untuk status ini
         $setting = PresensiNotificationSetting::where('status_presensi', $status)->first();
-        
+
         if (!$setting || !$setting->is_active || empty($setting->recipients) || empty($setting->template_pesan)) {
             return;
         }
 
         $presensi->loadMissing(['siswa', 'kelas', 'enrollment']);
         $student = $presensi->siswa;
-        
+
         if (!$student) {
             return;
         }
 
         // --- Dedup Guard ---
         // Cek apakah untuk record presensi ini (related_id) HARI INI, dengan STATUS INI,
-        // sudah pernah di-dispatch (sent/pending). 
+        // sudah pernah di-dispatch (sent/pending).
         // Karena kolom status tidak ada di log, kita pakai JSON payload/related_type.
         // Kita gunakan related_type = "presensi_{$status}" supaya akurat.
         $relatedType = "presensi_{$status}";
-        
+
         $alreadyDispatched = WhatsAppNotificationLog::where('related_type', $relatedType)
             ->where('related_id', $presensi->id)
             ->whereIn('status', ['sent', 'pending', 'failed']) // Kalau failed pun jangan loop dobel, tunggu retry dari Job saja
@@ -94,7 +100,7 @@ class PresensiObserver
         $namaSekolah = $pengaturan ? $pengaturan->school_name : 'Sekolah';
         $namaKelas = $presensi->kelas ? $presensi->kelas->name : '-';
         $tanggal = $presensi->date ? $presensi->date->format('d-m-Y') : Carbon::today()->format('d-m-Y');
-        
+
         // Jam: gunakan scan_time untuk status, scan_out_time untuk status_pulang, default ke waktu sekarang
         $jam = Carbon::now()->format('H:i');
         if ($status === $presensi->status && $presensi->scan_time) {
@@ -145,6 +151,49 @@ class PresensiObserver
                 $recipientType,
                 $log->id
             );
+        }
+    }
+
+    /**
+     * Memproses notifikasi Push FCM & In-App Database ke Akun Siswa (Tahap 3).
+     */
+    private function processFcmNotification(Presensi $presensi, ?string $status): void
+    {
+        if (empty($status)) {
+            return;
+        }
+
+        // 1. Filter Status: hanya status penting yang perlu dikirim notifikasi push
+        //    'hadir' tepat waktu diabaikan agar tidak spamming 2.000 siswa tiap pagi.
+        //    'libur' tidak dikirim notifikasi.
+        if (!in_array($status, ['telat', 'alpa', 'ijin', 'sakit'], true)) {
+            return;
+        }
+
+        // 2. Abaikan presensi yang berasal dari permohonan ijin resmi (leave_request_id),
+        //    karena sudah memiliki jalur notifikasi persetujuan tersendiri (LeaveRequestResultNotification).
+        if (!empty($presensi->leave_request_id)) {
+            return;
+        }
+
+        // 3. Pencegahan Spam Notifikasi Masa Lalu
+        if ($presensi->date && !$presensi->date->isToday()) {
+            return;
+        }
+
+        // 4. Pencegahan Pengiriman Notifikasi di Hari Libur
+        $kalenderService = app(\App\Services\KalenderSekolahService::class);
+        $presensiDate = $presensi->date ? Carbon::parse($presensi->date) : Carbon::today('Asia/Jakarta');
+        if (!$kalenderService->isHariSekolah($presensiDate, $presensi->class_id)) {
+            return;
+        }
+
+        // 5. Muat relasi siswa dan user akun siswa
+        $presensi->loadMissing(['siswa.user']);
+        $studentUser = $presensi->siswa?->user;
+
+        if ($studentUser) {
+            $studentUser->notify(new AttendanceStatusNotification($presensi));
         }
     }
 }

@@ -43,6 +43,27 @@ class AlpaAutomationService
         }
 
         $dateString = $today->toDateString();
+
+        // Kiosk Failure Guard (Tahap 3):
+        // Jika cron dijalankan tetapi belum ada satu pun scan presensi datang yang tercatat hari ini,
+        // kemungkinan terjadi listrik padam, server gerbang mati, atau libur mendadak belum tercatat.
+        // Batalkan proses auto-alpa massal untuk mencegah siswa salah ditandai Alpa secara massal.
+        if ($source === 'cron') {
+            $totalScanDatangHariIni = Presensi::where('date', $dateString)
+                ->whereNotNull('scan_time')
+                ->count();
+
+            if ($totalScanDatangHariIni === 0) {
+                Log::warning("AlpaAutomationService [{$source}]: Kiosk Failure Guard aktif! Tidak ada scan datang gerbang hari ini ({$dateString}). Alpa massal dibatalkan demi keamanan.");
+                return [
+                    'status' => 'warning',
+                    'message' => 'Kiosk Failure Guard: Tidak ada data scan gerbang tercatat hari ini. Alpa otomatis dibatalkan.',
+                    'count' => 0,
+                    'total_processed' => 0
+                ];
+            }
+        }
+
         $count = 0;
         $totalProcessed = 0;
 
@@ -51,12 +72,12 @@ class AlpaAutomationService
             ->where('academic_year_id', $activeYearId)
             ->where('status', 'aktif')
             ->chunkById(100, function ($enrollments) use ($today, $kalenderService, $dateString, $activeYearId, $source, &$count, &$totalProcessed) {
-                
-                // Kumpulkan ID siswa untuk mengecek presensi secara massal jika diperlukan, 
+
+                // Kumpulkan ID siswa untuk mengecek presensi secara massal jika diperlukan,
                 // atau per iterasi seperti aslinya.
                 foreach ($enrollments as $enrollment) {
                     $totalProcessed++;
-                    
+
                     // Cek apakah libur khusus untuk kelas siswa ini
                     if (!$kalenderService->isHariSekolah($today, $enrollment->class_id)) {
                         continue;
@@ -68,8 +89,8 @@ class AlpaAutomationService
                         ->exists();
 
                     if (!$sudahAbsen) {
-                        $note = $source === 'cron' 
-                            ? 'Otomatis Alpa oleh Sistem (Cron)' 
+                        $note = $source === 'cron'
+                            ? 'Otomatis Alpa oleh Sistem (Cron)'
                             : 'Otomatis Alpa oleh Sistem (Manual Trigger)';
 
                         Presensi::create([
