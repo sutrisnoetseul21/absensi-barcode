@@ -166,7 +166,9 @@ class PresensiObserver
         // 1. Filter Status: hanya status penting yang perlu dikirim notifikasi push
         //    'hadir' tepat waktu diabaikan agar tidak spamming 2.000 siswa tiap pagi.
         //    'libur' tidak dikirim notifikasi.
-        if (!in_array($status, ['telat', 'alpa', 'ijin', 'sakit'], true)) {
+        //    Dukung format 'izin' maupun 'ijin'.
+        $normalizedStatus = ($status === 'izin') ? 'ijin' : $status;
+        if (!in_array($normalizedStatus, ['telat', 'alpa', 'ijin', 'sakit'], true)) {
             return;
         }
 
@@ -176,14 +178,19 @@ class PresensiObserver
             return;
         }
 
-        // 3. Pencegahan Spam Notifikasi Masa Lalu
-        if ($presensi->date && !$presensi->date->isToday()) {
+        // 3. Pencegahan Spam Notifikasi Masa Lalu:
+        //    Jika diinput manual hari ini (is_manual_input = true), izinkan notifikasi
+        //    meskipun tanggal presensinya adalah untuk besok / tanggal tertentu.
+        //    Hanya blokir jika tanggal presensi sudah lewat jauh di masa lalu (misal > 3 hari lalu) dan bukan manual hari ini.
+        $presensiDate = $presensi->date ? Carbon::parse($presensi->date)->startOfDay() : Carbon::today('Asia/Jakarta');
+        $today = Carbon::today('Asia/Jakarta');
+
+        if (!$presensi->is_manual_input && $presensiDate->lt($today)) {
             return;
         }
 
         // 4. Pencegahan Pengiriman Notifikasi di Hari Libur
         $kalenderService = app(\App\Services\KalenderSekolahService::class);
-        $presensiDate = $presensi->date ? Carbon::parse($presensi->date) : Carbon::today('Asia/Jakarta');
         if (!$kalenderService->isHariSekolah($presensiDate, $presensi->class_id)) {
             return;
         }

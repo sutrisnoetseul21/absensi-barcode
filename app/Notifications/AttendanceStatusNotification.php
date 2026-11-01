@@ -48,7 +48,7 @@ class AttendanceStatusNotification extends Notification implements ShouldQueue
                 'title' => 'Status Presensi: Alpa',
                 'body'  => "Anda tercatat tidak hadir (Alpa) pada {$dateStr}.",
             ],
-            'ijin' => [
+            'ijin', 'izin' => [
                 'title' => 'Status Presensi: Izin',
                 'body'  => "Status kehadiran Anda pada {$dateStr} tercatat Izin.",
             ],
