@@ -371,9 +371,30 @@ class GuruIjinKehadiranController extends Controller
 
         if (empty($accessInfo['all_class_ids'])) {
             return response()->json([
-                'success' => false,
-                'message' => 'Akses ditolak: Menu permohonan ijin hanya untuk Wali Kelas dan Guru BK yang memiliki kelas binaan aktif.',
-            ], 403);
+                'success' => true,
+                'data' => [
+                    'academic_year' => $activeYear?->name ?? 'Belum Diatur',
+                    'role_summary'  => $accessInfo['role_summary'] ?? 'Guru',
+                    'is_wali_kelas' => false,
+                    'is_bk'         => false,
+                    'classes'       => [],
+                    'counts'        => [
+                        'all'      => 0,
+                        'pending'  => 0,
+                        'approved' => 0,
+                        'rejected' => 0,
+                    ],
+                    'available_months' => [],
+                    'leave_requests'   => [
+                        'data'         => [],
+                        'current_page' => 1,
+                        'last_page'    => 1,
+                        'total'        => 0,
+                        'per_page'     => 15,
+                    ],
+                    'notice' => 'Akun Anda belum ditugaskan sebagai Wali Kelas atau Guru BK pada tahun ajaran aktif.',
+                ],
+            ]);
         }
 
         $filterStatus = $request->input('status', 'all'); // 'all', 'pending', 'approved', 'rejected'
