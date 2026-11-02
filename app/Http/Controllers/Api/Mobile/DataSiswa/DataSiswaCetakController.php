@@ -47,8 +47,8 @@ class DataSiswaCetakController extends DataSiswaBaseController
                     'barcode_code' => $barcodeData,
                     'barcode_active' => (bool) ($student->presensiProfile?->barcode_active ?? false),
                     'photo_url' => $photoUrl,
-                    'school_name' => $settings?->nama_sekolah ?? 'SMP Negeri 3 Kedungreja',
-                    'school_address' => $settings?->alamat_sekolah ?? '-',
+                    'school_name' => $settings?->school_name ?? $settings?->nama_sekolah ?? config('app.name', 'Portal Sekolah'),
+                    'school_address' => $settings?->school_address ?? $settings?->alamat_sekolah ?? '-',
                 ],
             ]);
         }

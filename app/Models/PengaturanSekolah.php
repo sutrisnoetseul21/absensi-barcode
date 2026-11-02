@@ -96,6 +96,22 @@ class PengaturanSekolah extends Model
     }
 
     /**
+     * Accessor alias nama_sekolah -> school_name agar kompatibel di seluruh controller/view
+     */
+    public function getNamaSekolahAttribute(): ?string
+    {
+        return $this->school_name;
+    }
+
+    /**
+     * Accessor alias logo_path -> school_logo_path agar kompatibel di seluruh controller/view
+     */
+    public function getLogoPathAttribute(): ?string
+    {
+        return $this->school_logo_path;
+    }
+
+    /**
      * Ambil pengaturan sekolah (tabel hanya berisi 1 baris).
      */
     public static function current(): ?static

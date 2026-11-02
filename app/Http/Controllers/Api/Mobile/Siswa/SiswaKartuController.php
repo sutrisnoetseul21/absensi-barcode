@@ -87,7 +87,7 @@ class SiswaKartuController extends BaseSiswaApiController
                 'photo_url' => $photoUrl,
                 'barcode_code' => $barcodeData,
                 'barcode_active' => $barcodeActive,
-                'school_name' => $settings?->school_name ?? 'SMP Negeri 3 Kedungreja',
+                'school_name' => $settings?->school_name ?? $settings?->nama_sekolah ?? config('app.name', 'Portal Sekolah'),
                 'school_address' => $settings?->school_address ?? '-',
                 'school_logo_url' => $schoolLogoUrl,
                 'principal_name' => $principalName,

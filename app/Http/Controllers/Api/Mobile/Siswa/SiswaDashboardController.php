@@ -134,8 +134,9 @@ class SiswaDashboardController extends BaseSiswaApiController
 
         // 4. Identitas Sekolah & Logo
         $schoolLogoUrl = null;
-        if (!empty($sekolah?->logo_path)) {
-            $schoolLogoUrl = asset('storage/' . $sekolah->logo_path);
+        $logoPath = $sekolah?->school_logo_path ?? $sekolah?->logo_path;
+        if (!empty($logoPath)) {
+            $schoolLogoUrl = asset('storage/' . $logoPath);
         }
 
         return response()->json([
@@ -156,7 +157,7 @@ class SiswaDashboardController extends BaseSiswaApiController
                     'no_hp' => $student->no_hp,
                 ],
                 'school' => [
-                    'name' => $sekolah?->nama_sekolah ?? 'SMP Negeri 3 Kedungreja',
+                    'name' => $sekolah?->school_name ?? $sekolah?->nama_sekolah ?? config('app.name', 'Portal Siswa'),
                     'logo_url' => $schoolLogoUrl,
                 ],
                 'today_attendance' => $attendanceToday,

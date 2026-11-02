@@ -23,7 +23,7 @@ class SchoolInfoController extends Controller
                     'success' => true,
                     'message' => 'Default school info',
                     'data' => [
-                        'nama_sekolah' => config('app.name', 'SMP Negeri 3 Kedungreja'),
+                        'nama_sekolah' => config('app.name', 'Portal Sekolah'),
                         'npsn' => '',
                         'alamat' => '',
                         'logo_url' => null,
@@ -53,7 +53,7 @@ class SchoolInfoController extends Controller
                 'success' => true,
                 'message' => 'Informasi sekolah berhasil dimuat',
                 'data' => [
-                    'nama_sekolah' => $settings->school_name ?? config('app.name', 'SMP Negeri 3 Kedungreja'),
+                    'nama_sekolah' => $settings->school_name ?? config('app.name', 'Portal Sekolah'),
                     'npsn' => $settings->npsn ?? '',
                     'alamat' => $settings->school_address ?? '',
                     'logo_url' => $logoUrl,
