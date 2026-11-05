@@ -31,6 +31,7 @@ class SiswaSholatDhuhur extends Component
     public $attendanceData = [];
     public $attendancePercentage = 0;
     public $effectiveDays = 0;
+    public $recentActivity = [];
 
     public function mount()
     {
@@ -97,8 +98,8 @@ class SiswaSholatDhuhur extends Component
 
         $startOfMonth = Carbon::createFromDate($year, $month, 1);
         $this->daysInMonth = $startOfMonth->daysInMonth;
-        // Offset: 0 = Minggu, 1 = Senin, dst.
-        $this->startOfMonthOffset = $startOfMonth->dayOfWeek;
+        // Offset (1 = Monday -> offset 0)
+        $this->startOfMonthOffset = $startOfMonth->dayOfWeekIso - 1;
         $this->todayDate = Carbon::now('Asia/Jakarta')->toDateString();
 
         $academicYearId = $this->enrollment->academic_year_id;
@@ -107,12 +108,14 @@ class SiswaSholatDhuhur extends Component
         $sholatService = app(PresensiSholatDhuhurService::class);
 
         // Ambil data sholat dhuhur bulan ini untuk siswa ini
-        $records = PresensiSholatDhuhur::where('student_id', $this->student->id)
+        $recordsList = PresensiSholatDhuhur::where('student_id', $this->student->id)
             ->where('academic_year_id', $academicYearId)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
-            ->get()
-            ->keyBy(fn ($item) => Carbon::parse($item->date)->day);
+            ->orderBy('date', 'desc')
+            ->get();
+
+        $records = $recordsList->keyBy(fn ($item) => Carbon::parse($item->date)->day);
 
         // Ambil data presensi pagi bulan ini untuk sinkronisasi otomatis jika belum ada record sholat
         $morningRecords = Presensi::where('student_id', $this->student->id)
@@ -123,6 +126,7 @@ class SiswaSholatDhuhur extends Component
             ->keyBy(fn ($item) => Carbon::parse($item->date)->day);
 
         $this->attendanceData = [];
+        $this->recentActivity = $recordsList->take(5)->values()->all();
         $stats = [
             'hadir'       => 0,
             'ijin'        => 0,
@@ -189,6 +193,13 @@ class SiswaSholatDhuhur extends Component
 
     public function render()
     {
-        return view('livewire.portal-siswa.siswa-sholat-dhuhur');
+        $pengumuman = \App\Models\Pengumuman::aktifSekarang()
+            ->orderBy('urutan')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return view('livewire.portal-siswa.siswa-sholat-dhuhur', [
+            'pengumuman' => $pengumuman
+        ]);
     }
 }
