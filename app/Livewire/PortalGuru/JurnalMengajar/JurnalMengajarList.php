@@ -495,7 +495,7 @@ class JurnalMengajarList extends Component
     protected function buildAnalyticsData(): array
     {
         $analyticsJurnals = JurnalPembelajaran::query()
-            ->with(['kelas:id,name,grade', 'mataPelajaran:id,nama_mapel', 'presensis.siswa:id,name,nis,nisn'])
+            ->with(['kelas:id,name', 'mataPelajaran:id,nama_mapel', 'presensis.siswa:id,name,nis,nisn'])
             ->when($this->selectedAcademicYearId, fn($q) => $q->where('academic_year_id', $this->selectedAcademicYearId))
             ->when($this->selectedTeacherId, fn($q) => $q->where('teacher_id', $this->selectedTeacherId))
             ->when($this->selectedMapelId, fn($q) => $q->where('mata_pelajaran_id', $this->selectedMapelId))

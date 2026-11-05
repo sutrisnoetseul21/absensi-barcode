@@ -470,7 +470,7 @@ class GuruJurnalMengajarController extends Controller
         array $teachingClasses
     ): array {
         $analyticsJurnals = JurnalPembelajaran::query()
-            ->with(['kelas:id,name,grade', 'mataPelajaran:id,nama_mapel', 'presensis.siswa:id,name,nis,nisn'])
+            ->with(['kelas:id,name', 'mataPelajaran:id,nama_mapel', 'presensis.siswa:id,name,nis,nisn'])
             ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
             ->when($selectedTeacherId, fn($q) => $q->where('teacher_id', $selectedTeacherId))
             ->when($selectedMapelId, fn($q) => $q->where('mata_pelajaran_id', $selectedMapelId))
