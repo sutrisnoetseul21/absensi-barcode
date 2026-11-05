@@ -132,7 +132,6 @@ class GuruJurnalMengajarController extends Controller
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
         ];
 
-        // Semester Ganjil: Juli - Desember (Start Year)
         for ($m = 7; $m <= 12; $m++) {
             $key = sprintf('%02d-%d', $m, $sy);
             $label = $monthNames[$m] . ' ' . $sy;
@@ -140,7 +139,6 @@ class GuruJurnalMengajarController extends Controller
             $monthsList[] = ['key' => $key, 'label' => $label];
         }
 
-        // Semester Genap: Januari - Juni (End Year)
         for ($m = 1; $m <= 6; $m++) {
             $key = sprintf('%02d-%d', $m, $ey);
             $label = $monthNames[$m] . ' ' . $ey;
@@ -185,7 +183,6 @@ class GuruJurnalMengajarController extends Controller
         $autoMapelId = $isSingleMapel ? (int) $mapels[0]['id'] : null;
         $effectiveMapelId = $selectedMapelId ?: $autoMapelId;
 
-        // Daftar semua pasangan kelas + mapel yang diampu guru ini
         $allTeachingClasses = [];
         foreach ($pengajarans as $p) {
             $kelas = $p->kelasAjaran?->kelas;
@@ -201,15 +198,12 @@ class GuruJurnalMengajarController extends Controller
             ];
         }
 
-        // Unikkan per kombinasi id kelas + mata_pelajaran_id
         $allTeachingClasses = collect($allTeachingClasses)
             ->unique(fn($item) => $item['id'] . '_' . $item['mata_pelajaran_id'])
             ->sortBy('name')
             ->values()
             ->toArray();
 
-        // Kelas khusus untuk mapel terpilih
-        $classes = [];
         if ($effectiveMapelId) {
             $classes = collect($allTeachingClasses)
                 ->where('mata_pelajaran_id', (int) $effectiveMapelId)
@@ -218,7 +212,6 @@ class GuruJurnalMengajarController extends Controller
                 ->values()
                 ->toArray();
         } else {
-            // Jika belum pilih mapel (misal di filter list), sediakan juga daftar kelas unik yang diampu
             $classes = collect($allTeachingClasses)
                 ->unique('id')
                 ->sortBy('name')
@@ -270,7 +263,7 @@ class GuruJurnalMengajarController extends Controller
 
     /**
      * GET /api/v1/guru/jurnal-mengajar
-     * Daftar riwayat jurnal mengajar, statistik ringkasan, dan opsi filter.
+     * Daftar riwayat jurnal mengajar, statistik ringkasan, analisa kelas & siswa, dan opsi filter.
      */
     public function index(Request $request): JsonResponse
     {
@@ -316,8 +309,6 @@ class GuruJurnalMengajarController extends Controller
         $monthsData = $this->buildAvailableMonths($activeYear);
         $availableMonthsMap = $monthsData['map'];
 
-        // Default bulan: jika parameter month_year tidak dikirim sama sekali, gunakan bulan berjalan jika ada di TA
-        // Jika dikirim 'all' atau '', tampilkan semua bulan
         $rawMonthYear = $request->input('month_year');
         if ($rawMonthYear === null) {
             $currentMonthYear = date('m-Y');
@@ -333,7 +324,6 @@ class GuruJurnalMengajarController extends Controller
         $reqMapelId = $request->filled('mata_pelajaran_id') ? (int) $request->input('mata_pelajaran_id') : null;
         $teachingData = $this->getTeacherMapelAndClasses($selectedTeacherId, $academicYearId, $reqMapelId);
 
-        // Jika hanya mengajar 1 mapel dan user belum memfilter mapel, otomatis gunakan mapel tersebut
         $selectedMapelId = $reqMapelId ?: $teachingData['auto_mapel_id'];
         $selectedClassId = $request->filled('class_id') ? (string) $request->input('class_id') : null;
         $search = trim((string) $request->input('search', ''));
@@ -367,7 +357,6 @@ class GuruJurnalMengajarController extends Controller
             ->orderBy('tanggal', 'desc')
             ->orderBy('jam_mulai', 'desc');
 
-        // Hitung statistik dari query terfilter
         $statsQuery = clone $query;
         $totalSesi = (int) $statsQuery->count();
         $totalJp = (int) (clone $statsQuery)->sum('durasi_jp');
@@ -377,7 +366,6 @@ class GuruJurnalMengajarController extends Controller
             ? round(($totalSiswaHadir / $totalSiswaTercatat) * 100, 1)
             : 0.0;
 
-        // Hitung jumlah jurnal hari ini untuk guru terpilih
         $todayStr = Carbon::today('Asia/Jakarta')->toDateString();
         $jurnalHariIniCount = JurnalPembelajaran::query()
             ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
@@ -416,6 +404,16 @@ class GuruJurnalMengajarController extends Controller
             ];
         })->values()->toArray();
 
+        $analytics = $this->buildAnalyticsData(
+            $academicYearId,
+            $selectedTeacherId,
+            $selectedMapelId,
+            $selectedMonthYear,
+            $dateFrom,
+            $dateTo,
+            $teachingData['classes']
+        );
+
         return response()->json([
             'status' => true,
             'success' => true,
@@ -447,6 +445,7 @@ class GuruJurnalMengajarController extends Controller
                     'rata_kehadiran' => $rataKehadiran,
                     'jurnal_hari_ini_count' => $jurnalHariIniCount,
                 ],
+                'analytics' => $analytics,
                 'jurnals' => $jurnals,
                 'meta' => [
                     'current_page' => $paginator->currentPage(),
@@ -459,8 +458,218 @@ class GuruJurnalMengajarController extends Controller
     }
 
     /**
+     * Bangun data Analisa Kelas & Kehadiran Siswa untuk Tab 2 Jurnal Mengajar.
+     */
+    protected function buildAnalyticsData(
+        ?string $academicYearId,
+        ?string $selectedTeacherId,
+        ?int $selectedMapelId,
+        string $selectedMonthYear,
+        ?string $dateFrom,
+        ?string $dateTo,
+        array $teachingClasses
+    ): array {
+        $analyticsJurnals = JurnalPembelajaran::query()
+            ->with(['kelas:id,name,grade', 'mataPelajaran:id,nama_mapel', 'presensis.siswa:id,name,nis,nisn'])
+            ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
+            ->when($selectedTeacherId, fn($q) => $q->where('teacher_id', $selectedTeacherId))
+            ->when($selectedMapelId, fn($q) => $q->where('mata_pelajaran_id', $selectedMapelId))
+            ->when($selectedMonthYear !== '', function ($q) use ($selectedMonthYear) {
+                $parts = explode('-', $selectedMonthYear);
+                if (count($parts) === 2) {
+                    $q->whereMonth('tanggal', (int) $parts[0])
+                        ->whereYear('tanggal', (int) $parts[1]);
+                }
+            })
+            ->when($selectedMonthYear === '' && $dateFrom, fn($q) => $q->whereDate('tanggal', '>=', $dateFrom))
+            ->when($selectedMonthYear === '' && $dateTo, fn($q) => $q->whereDate('tanggal', '<=', $dateTo))
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('jam_mulai', 'desc')
+            ->get();
+
+        $overallTotals = [
+            'total_sesi' => 0,
+            'total_jp' => 0,
+            'hadir' => 0,
+            'izin' => 0,
+            'sakit' => 0,
+            'izin_sakit' => 0,
+            'alpa' => 0,
+            'tidak_mengikuti' => 0,
+            'total_absen' => 0,
+        ];
+
+        $classesMap = [];
+        foreach ($teachingClasses as $tc) {
+            $cid = (string) ($tc['id'] ?? '');
+            if ($cid !== '' && !isset($classesMap[$cid])) {
+                $classesMap[$cid] = [
+                    'class_id' => $cid,
+                    'class_name' => $tc['name'] ?? '-',
+                    'total_sesi' => 0,
+                    'total_jp' => 0,
+                    'hadir' => 0,
+                    'izin' => 0,
+                    'sakit' => 0,
+                    'izin_sakit' => 0,
+                    'alpa' => 0,
+                    'tidak_mengikuti' => 0,
+                    'total_absen' => 0,
+                    'siswa_pernah_absen_count' => 0,
+                ];
+            }
+        }
+
+        $studentsMap = [];
+
+        foreach ($analyticsJurnals as $jurnal) {
+            $cid = (string) $jurnal->class_id;
+            $cname = $jurnal->kelas?->name ?? '-';
+            $jp = (int) $jurnal->durasi_jp;
+            $tanggalStr = $jurnal->tanggal ? $jurnal->tanggal->format('Y-m-d') : '-';
+            $tanggalFormatted = $jurnal->tanggal ? $this->formatTanggalIndonesia($jurnal->tanggal) : '-';
+            $jamKeLabel = $jurnal->jam_ke_label ?: "Jam ke {$jurnal->jam_mulai} ({$jp} JP)";
+            $mapelName = $jurnal->mataPelajaran?->nama_mapel ?? '-';
+
+            $overallTotals['total_sesi']++;
+            $overallTotals['total_jp'] += $jp;
+
+            if (!isset($classesMap[$cid])) {
+                $classesMap[$cid] = [
+                    'class_id' => $cid,
+                    'class_name' => $cname,
+                    'total_sesi' => 0,
+                    'total_jp' => 0,
+                    'hadir' => 0,
+                    'izin' => 0,
+                    'sakit' => 0,
+                    'izin_sakit' => 0,
+                    'alpa' => 0,
+                    'tidak_mengikuti' => 0,
+                    'total_absen' => 0,
+                    'siswa_pernah_absen_count' => 0,
+                ];
+            }
+
+            $classesMap[$cid]['total_sesi']++;
+            $classesMap[$cid]['total_jp'] += $jp;
+
+            foreach ($jurnal->presensis as $p) {
+                $siswa = $p->siswa;
+                $sid = (string) $p->student_id;
+                if ($sid === '') {
+                    continue;
+                }
+
+                $statusJurnal = strtolower((string) $p->status_jurnal);
+                $statusGerbang = strtolower((string) ($p->status_gerbang_snapshot ?? ''));
+
+                if ($statusJurnal === 'tidak_mengikuti') {
+                    if ($statusGerbang === 'sakit') {
+                        $normStatus = 'sakit';
+                        $statusLabel = 'Sakit';
+                    } elseif ($statusGerbang === 'izin') {
+                        $normStatus = 'izin';
+                        $statusLabel = 'Izin';
+                    } elseif ($statusGerbang === 'alpa') {
+                        $normStatus = 'alpa';
+                        $statusLabel = 'Alpa';
+                    } else {
+                        $normStatus = 'tidak_mengikuti';
+                        $statusLabel = 'Tidak Mengikuti';
+                    }
+                } else {
+                    $normStatus = 'hadir';
+                    $statusLabel = 'Hadir';
+                }
+
+                $overallTotals[$normStatus]++;
+                $classesMap[$cid][$normStatus]++;
+
+                $studentKey = $cid . '_' . $sid;
+                if (!isset($studentsMap[$studentKey])) {
+                    $studentsMap[$studentKey] = [
+                        'student_id' => $sid,
+                        'student_name' => $siswa?->name ?? 'Siswa',
+                        'nis' => $siswa?->nis ?? $siswa?->nisn ?? '-',
+                        'class_id' => $cid,
+                        'class_name' => $cname,
+                        'total_pertemuan' => 0,
+                        'hadir' => 0,
+                        'izin' => 0,
+                        'sakit' => 0,
+                        'izin_sakit' => 0,
+                        'alpa' => 0,
+                        'tidak_mengikuti' => 0,
+                        'total_absen' => 0,
+                        'absence_logs' => [],
+                    ];
+                }
+
+                $studentsMap[$studentKey]['total_pertemuan']++;
+                $studentsMap[$studentKey][$normStatus]++;
+
+                if ($normStatus !== 'hadir') {
+                    $studentsMap[$studentKey]['absence_logs'][] = [
+                        'jurnal_id' => (string) $jurnal->id,
+                        'tanggal' => $tanggalStr,
+                        'tanggal_formatted' => $tanggalFormatted,
+                        'jam_ke_label' => $jamKeLabel,
+                        'mata_pelajaran_name' => $mapelName,
+                        'materi' => $jurnal->materi ?? '-',
+                        'status' => $normStatus,
+                        'status_label' => $statusLabel,
+                        'status_gerbang' => $statusGerbang ?: 'belum_absen',
+                        'keterangan' => $p->keterangan ?? '',
+                    ];
+                }
+            }
+        }
+
+        $overallTotals['izin_sakit'] = $overallTotals['izin'] + $overallTotals['sakit'];
+        $overallTotals['total_absen'] = $overallTotals['izin_sakit'] + $overallTotals['alpa'] + $overallTotals['tidak_mengikuti'];
+
+        $studentsList = array_values($studentsMap);
+        foreach ($studentsList as &$st) {
+            $st['izin_sakit'] = $st['izin'] + $st['sakit'];
+            $st['total_absen'] = $st['izin_sakit'] + $st['alpa'] + $st['tidak_mengikuti'];
+            if ($st['total_absen'] > 0 && isset($classesMap[$st['class_id']])) {
+                $classesMap[$st['class_id']]['siswa_pernah_absen_count']++;
+            }
+        }
+        unset($st);
+
+        foreach ($classesMap as &$cm) {
+            $cm['izin_sakit'] = $cm['izin'] + $cm['sakit'];
+            $cm['total_absen'] = $cm['izin_sakit'] + $cm['alpa'] + $cm['tidak_mengikuti'];
+        }
+        unset($cm);
+
+        usort($studentsList, function (array $a, array $b) {
+            if ($a['tidak_mengikuti'] !== $b['tidak_mengikuti']) {
+                return $b['tidak_mengikuti'] <=> $a['tidak_mengikuti'];
+            }
+            if ($a['alpa'] !== $b['alpa']) {
+                return $b['alpa'] <=> $a['alpa'];
+            }
+            if ($a['total_absen'] !== $b['total_absen']) {
+                return $b['total_absen'] <=> $a['total_absen'];
+            }
+            return strcasecmp($a['student_name'], $b['student_name']);
+        });
+
+        $classesList = array_values($classesMap);
+        usort($classesList, fn(array $a, array $b) => strnatcasecmp($a['class_name'], $b['class_name']));
+
+        return [
+            'totals' => $overallTotals,
+            'classes_summary' => $classesList,
+            'students_summary' => $studentsList,
+        ];
+    }
+
+    /**
      * GET /api/v1/guru/jurnal-mengajar/form-options
-     * Mengambil parameter form tambah/edit jurnal (Mapel, Kelas Rombel, Bulan, Tahun Ajaran, Guru).
      */
     public function formOptions(Request $request): JsonResponse
     {
@@ -525,7 +734,6 @@ class GuruJurnalMengajarController extends Controller
 
     /**
      * GET /api/v1/guru/jurnal-mengajar/students
-     * Mengambil daftar siswa aktif di kelas rombel beserta status presensi gerbang pagi (Smart Gate Sync).
      */
     public function students(Request $request): JsonResponse
     {
@@ -568,9 +776,6 @@ class GuruJurnalMengajarController extends Controller
         ]);
     }
 
-    /**
-     * Bangun matriks presensi siswa sesi KBM berdasarkan data EnrollmentSiswa + Presensi Gerbang + (Opsional) Jurnal Existing.
-     */
     protected function buildStudentAttendanceList(string $classId, ?string $academicYearId, string $tanggal, ?string $jurnalId = null): array
     {
         $enrollments = EnrollmentSiswa::where('class_id', $classId)
@@ -609,9 +814,6 @@ class GuruJurnalMengajarController extends Controller
                 $statusGerbang = $att ? $att->status : 'belum_absen';
                 $isLocked = in_array($statusGerbang, ['izin', 'sakit', 'alpa'], true);
 
-                // Jika sakit/izin/alpa -> tidak_mengikuti (Terkunci)
-                // Jika belum_absen -> default tidak_mengikuti sampai guru menekan "+ Hadirkan (Wajib Telat)" atau "Tandai Semua Hadir KBM"
-                // Jika hadir/telat -> default hadir
                 if ($isLocked) {
                     $statusJurnal = 'tidak_mengikuti';
                     $keterangan = 'Tercatat ' . ucfirst($statusGerbang) . ' di gerbang pagi';
@@ -638,7 +840,6 @@ class GuruJurnalMengajarController extends Controller
             ];
         }
 
-        // Jika mode edit dan ada presensi tersimpan untuk siswa yang mungkin sudah pindah kelas, tetap tampilkan
         if ($jurnalId && $savedPresensis->isNotEmpty() && empty($rows)) {
             $jurnal = JurnalPembelajaran::with('presensis.siswa')->find($jurnalId);
             if ($jurnal) {
@@ -669,7 +870,6 @@ class GuruJurnalMengajarController extends Controller
 
     /**
      * GET /api/v1/guru/jurnal-mengajar/{id}
-     * Mengambil detail 1 jurnal mengajar beserta daftar presensi siswa untuk Mode Edit / Detail.
      */
     public function show(Request $request, string $id): JsonResponse
     {
@@ -744,27 +944,16 @@ class GuruJurnalMengajarController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/v1/guru/jurnal-mengajar
-     * Menyimpan jurnal mengajar baru beserta sinkronisasi presensi siswa.
-     */
     public function store(Request $request): JsonResponse
     {
         return $this->saveJurnal($request, null);
     }
 
-    /**
-     * PUT /api/v1/guru/jurnal-mengajar/{id}
-     * Memperbarui jurnal mengajar yang sudah ada beserta sinkronisasi presensi siswa.
-     */
     public function update(Request $request, string $id): JsonResponse
     {
         return $this->saveJurnal($request, $id);
     }
 
-    /**
-     * Logika terpusat penyimpanan & update Jurnal Pembelajaran (100% selaras dengan JurnalMengajarForm.php).
-     */
     protected function saveJurnal(Request $request, ?string $jurnalId = null): JsonResponse
     {
         $user = $this->resolveUser($request);
@@ -849,13 +1038,11 @@ class GuruJurnalMengajarController extends Controller
         $tanggal = Carbon::parse($validated['tanggal'])->format('Y-m-d');
         $classId = (string) $validated['class_id'];
 
-        // Apabila array students tidak dikirim, ambil otomatis dari daftar kelas
         $inputStudents = $request->input('students', []);
         if (empty($inputStudents)) {
             $inputStudents = $this->buildStudentAttendanceList($classId, $academicYearId, $tanggal, $jurnalId);
         }
 
-        // Ambil snapshot presensi gerbang terkini untuk validasi keamanan lock
         $studentIds = collect($inputStudents)->pluck('student_id')->filter()->toArray();
         $gateAttendances = Presensi::whereIn('student_id', $studentIds)
             ->whereDate('date', $tanggal)
@@ -864,7 +1051,6 @@ class GuruJurnalMengajarController extends Controller
 
         DB::beginTransaction();
         try {
-            $totalSiswa = count($inputStudents);
             $totalHadir = 0;
             $totalTidakMengikuti = 0;
 
@@ -947,7 +1133,6 @@ class GuruJurnalMengajarController extends Controller
                 $statusJurnal = $item['status_jurnal'];
                 $diabsenkanTelat = $item['diabsenkan_telat'];
 
-                // Jika siswa belum absen di gerbang dan guru mengabsenkannya hadir di jam KBM -> WAJIB TELAT di tabel attendances
                 if ($statusGerbang === 'belum_absen' && ($diabsenkanTelat || $statusJurnal === 'hadir')) {
                     $diabsenkanTelat = true;
 
@@ -988,7 +1173,6 @@ class GuruJurnalMengajarController extends Controller
 
             DB::commit();
 
-            // Pemicu Notifikasi Siswa Meninggalkan Kelas (Jurnal Mengajar)
             try {
                 app(\App\Services\JurnalMengajarNotificationService::class)->processPresensiJurnal($jurnal, $normalizedStudents);
             } catch (\Throwable $notifErr) {
@@ -1021,10 +1205,6 @@ class GuruJurnalMengajarController extends Controller
         }
     }
 
-    /**
-     * DELETE /api/v1/guru/jurnal-mengajar/{id}
-     * Menghapus catatan jurnal mengajar beserta detail presensinya.
-     */
     public function destroy(Request $request, string $id): JsonResponse
     {
         $user = $this->resolveUser($request);
@@ -1064,10 +1244,6 @@ class GuruJurnalMengajarController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/v1/guru/jurnal-mengajar/export
-     * Unduh Rekap Laporan Jurnal Mengajar dalam bentuk PDF (A4 Landscape) atau Excel (.xlsx).
-     */
     public function export(Request $request)
     {
         $user = $this->resolveUser($request);
@@ -1081,10 +1257,10 @@ class GuruJurnalMengajarController extends Controller
         $sy = $ay?->start_year ?: (int) date('Y');
         $ey = $ay?->end_year ?: ($sy + 1);
 
-        $cetakJenis = strtolower((string) $request->input('jenis', 'bulanan')); // bulanan | semester | tahunan | kustom
+        $cetakJenis = strtolower((string) $request->input('jenis', 'bulanan'));
         $cetakBulanYear = (string) $request->input('month_year', date('m-Y'));
         $cetakSemester = strtolower((string) $request->input('semester', (int) date('m') >= 7 ? 'ganjil' : 'genap'));
-        $format = strtolower((string) $request->input('format', 'pdf')); // pdf | excel
+        $format = strtolower((string) $request->input('format', 'pdf'));
 
         $teacherId = $isSupervisor && $request->filled('teacher_id')
             ? (string) $request->input('teacher_id')
@@ -1189,4 +1365,3 @@ class GuruJurnalMengajarController extends Controller
         return $pdf->download($fileName);
     }
 }
-
