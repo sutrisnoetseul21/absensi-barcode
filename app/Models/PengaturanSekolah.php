@@ -51,6 +51,7 @@ class PengaturanSekolah extends Model
         'theme_info',
         'enable_sholat_dhuhur',
         'enable_sholat_jumat',
+        'enable_presensi_kbm',
         // Portal Management
         'maintenance_portal_siswa',
         'maintenance_portal_guru',
@@ -73,6 +74,7 @@ class PengaturanSekolah extends Model
         'enable_checkout'                 => 'boolean',
         'enable_sholat_dhuhur'            => 'boolean',
         'enable_sholat_jumat'             => 'boolean',
+        'enable_presensi_kbm'             => 'boolean',
         'auto_alpa_active'                => 'boolean',
         'auto_alpa_time'                  => 'string',
         'last_auto_alpa_run_date'         => 'date',

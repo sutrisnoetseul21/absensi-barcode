@@ -170,9 +170,11 @@ Route::prefix('v1')->group(function () {
 
     // 4. Modul Portal Siswa (Mendukung Sanctum Token & Fallback Token)
     Route::prefix('siswa')->group(function () {
-        // Menu 1: Dashboard & Presensi / Kalender Akademik
+        // Menu 1: Dashboard & Presensi / Kalender Akademik & Sholat Dhuhur
         Route::get('/dashboard-summary', [SiswaDashboardController::class, 'dashboardSummary']);
         Route::get('/akademik/dashboard', [SiswaDashboardController::class, 'akademikDashboard']);
+        Route::get('/sholat-dhuhur/dashboard', [SiswaDashboardController::class, 'sholatDhuhurDashboard']);
+        Route::get('/presensi-kbm/dashboard', [SiswaDashboardController::class, 'presensiKbmDashboard']);
 
         // Menu 2: Pengajuan Ijin Kehadiran
         Route::prefix('ijin-kehadiran')->group(function () {

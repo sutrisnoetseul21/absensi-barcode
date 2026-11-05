@@ -109,7 +109,7 @@ Route::prefix('portal-presensi')->group(function () {
     Route::get('/', \App\Livewire\PortalPresensiDashboard::class)->middleware('auth.presensi')->name('portal-presensi.dashboard');
 
     Route::redirect('/login', '/login')->name('portal-presensi.login');
-    
+
     Route::middleware('auth.presensi')->group(function () {
         Route::get('/input-manual', \App\Livewire\PortalPresensi\InputPresensiManual::class)->name('portal-presensi.input-manual');
         Route::get('/rekap-kelas', \App\Livewire\PortalPresensi\RekapAbsensiKelas::class)->name('portal-presensi.rekap-kelas');
@@ -179,17 +179,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/perpustakaan/buku/{buku}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcode'])->name('perpustakaan.cetak-barcode');
     Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-barcode', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeEksemplar'])->name('perpustakaan.cetak-barcode-eksemplar');
     Route::get('/admin/perpustakaan/eksemplar/cetak-barcode-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakBarcodeMassal'])->name('perpustakaan.cetak-barcode-massal');
-    
+
     // Cetak Label Spine Buku Routes
     Route::get('/admin/perpustakaan/buku/{buku}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpine'])->name('perpustakaan.cetak-label-spine');
     Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-label-spine', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineEksemplar'])->name('perpustakaan.cetak-label-spine-eksemplar');
     Route::get('/admin/perpustakaan/buku/cetak/label-spine-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelSpineMassal'])->name('perpustakaan.cetak-label-spine-massal');
-    
+
     // Cetak Label Gabungan Buku Routes
     Route::get('/admin/perpustakaan/buku/{buku}/cetak-label-gabungan', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelGabungan'])->name('perpustakaan.cetak-label-gabungan');
     Route::get('/admin/perpustakaan/eksemplar/{eksemplar}/cetak-label-gabungan', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelGabunganEksemplar'])->name('perpustakaan.cetak-label-gabungan-eksemplar');
     Route::get('/admin/perpustakaan/buku/cetak/label-gabungan-massal', [\App\Http\Controllers\EksemplarCetakController::class, 'cetakLabelGabunganMassal'])->name('perpustakaan.cetak-label-gabungan-massal');
-    
+
     // Kiosk Sirkulasi Perpustakaan Routes
     Route::get('/admin/perpustakaan/sirkulasi', \App\Livewire\SirkulasiKiosk::class)->name('perpustakaan.sirkulasi');
     Route::post('/admin/perpustakaan/sirkulasi/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {
@@ -310,7 +310,7 @@ if (empty($spikapSlug)) {
 // Wali Kelas Routes (Portal Guru)
 Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () use ($spikapSlug) {
     Route::redirect('/login', '/login')->name('portal-guru.login');
-    
+
     // Route untuk semua Guru (tidak harus Wali Kelas)
     Route::middleware('auth')->group(function () {
         Route::get('/nilai', \App\Livewire\PortalGuru\DaftarNilai::class)->name('portal-guru.nilai');
@@ -328,7 +328,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/perpustakaan', \App\Livewire\GuruPerpustakaan::class)->name('portal-guru.perpustakaan');
         Route::get('/siswa/{id}', \App\Livewire\WaliKelasStudentDetail::class)->name('portal-guru.student-detail');
         Route::get('/data-siswa', \App\Livewire\PortalGuru\DataSiswaList::class)->name('portal-guru.data-siswa');
-        
+
         Route::get('/ijin-kehadiran', \App\Livewire\PortalGuru\IjinKehadiranList::class)->name('portal-guru.ijin');
         Route::get('/ijin-kehadiran/{id}', \App\Livewire\PortalGuru\IjinKehadiranDetail::class)->name('portal-guru.ijin.detail');
         Route::get('/profil', \App\Livewire\GuruProfil::class)->name('portal-guru.profil');
@@ -349,7 +349,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
             Route::get('/cetak/individual/massal-pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfIndividualMassal'])->name('cetak.individual.massal.pdf');
             Route::get('/cetak/kelompok/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakKelompok'])->name('cetak.kelompok.print');
             Route::get('/cetak/kelompok/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfKelompok'])->name('cetak.kelompok.pdf');
-            
+
             // Dasbor Analitik (Command Center)
             Route::get('/analitik', \App\Livewire\PortalGuru\GuruWali\DashboardAnalitik::class)->name('analitik');
         });
@@ -389,15 +389,16 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
 // Siswa Routes (Portal Siswa)
 Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function () use ($spikapSlug) {
     Route::redirect('/login', '/login')->name('portal-siswa.login');
-    
+
     Route::middleware('auth.siswa')->group(function () use ($spikapSlug) {
         Route::get('/', \App\Livewire\SiswaMainDashboard::class)->name('portal-siswa.dashboard');
         Route::get('/akademik', SiswaDashboard::class)->name('portal-siswa.akademik');
         Route::get('/sholat-dhuhur', \App\Livewire\PortalSiswa\SiswaSholatDhuhur::class)->name('portal-siswa.sholat-dhuhur');
+        Route::get('/jurnal-kbm', \App\Livewire\PortalSiswa\SiswaJurnalKbm::class)->name('portal-siswa.jurnal-kbm');
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
         Route::get('/perpustakaan', \App\Livewire\SiswaPerpustakaan::class)->name('portal-siswa.perpustakaan');
         Route::get('/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMandiri'])->name('portal-siswa.cetak-kartu');
-        
+
         Route::get('/ijin-kehadiran', \App\Livewire\PortalSiswa\IjinKehadiranList::class)->name('portal-siswa.ijin');
         Route::get('/ijin-kehadiran/form/{id?}', \App\Livewire\PortalSiswa\IjinKehadiranForm::class)->name('portal-siswa.ijin.form');
 
@@ -415,7 +416,7 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
             Route::get('/spikap/form', fn() => redirect()->route('portal-siswa.spikap.form'));
         }
 
-        
+
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
             request()->session()->invalidate();
@@ -471,7 +472,7 @@ Route::prefix('portal-web')->group(function () {
 // Petugas Perpustakaan Routes (Portal Perpustakaan)
 Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->group(function () {
     Route::redirect('/login', '/login')->name('portal-perpustakaan.login');
-    
+
     Route::middleware('auth.perpus')->group(function () {
         Route::get('/', \App\Livewire\PetugasPerpusDashboard::class)->name('portal-perpustakaan.dashboard');
         Route::get('/buku', \App\Livewire\PetugasPerpusBuku::class)->name('portal-perpustakaan.buku');
@@ -487,13 +488,13 @@ Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->gr
         Route::get('/kunjungan', \App\Livewire\PetugasPerpusKunjungan::class)->name('portal-perpustakaan.kunjungan');
         Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-perpustakaan.cetak-kartu');
         Route::get('/klasifikasi-ddc', \App\Livewire\PortalPerpustakaan\KlasifikasiDdc::class)->name('portal-perpustakaan.klasifikasi-ddc');
-        
-        // Kiosk Sirkulasi (Mode Layar Penuh) 
+
+        // Kiosk Sirkulasi (Mode Layar Penuh)
         Route::get('/sirkulasi-kiosk', \App\Livewire\SirkulasiKiosk::class)->name('portal-perpustakaan.sirkulasi-kiosk');
         Route::post('/sirkulasi-kiosk/process', function (\Illuminate\Http\Request $request, \App\Actions\ProcessSirkulasiAction $action) {
             return response()->json($action->execute($request->all(), auth()->id()));
         })->name('portal-perpustakaan.sirkulasi-kiosk.process');
-        
+
         Route::post('/logout', function () {
             Auth::guard('web')->logout();
             request()->session()->invalidate();

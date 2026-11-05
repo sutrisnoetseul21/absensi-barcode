@@ -4,7 +4,7 @@
     {{-- KONDISI 1: SISWA BERSTATUS LULUS (ALUMNI / TRACER STUDY)         --}}
     {{-- ═════════════════════════════════════════════════════════════════ --}}
     @if($student && $student->isLulus())
-        
+
         <!-- Header Banner Khusus Alumni -->
         <div class="relative bg-gradient-to-br from-emerald-700 via-teal-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-teal-900/20 overflow-hidden border border-emerald-500/20">
             <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/20 rounded-full filter blur-3xl pointer-events-none"></div>
@@ -59,7 +59,7 @@
 
             <form wire:submit="simpanTracerAlumni" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
+
                     <!-- Nama Lengkap (Readonly) -->
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Nama Lengkap</label>
@@ -185,7 +185,7 @@
 
             <form wire:submit="simpanDataMutasi" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
+
                     <!-- Nama Sekolah Tujuan -->
                     <div class="md:col-span-2">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nama Sekolah / Instansi Tujuan Mutasi <span class="text-red-500">*</span></label>
@@ -275,7 +275,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                
+
                 <!-- Shortcut 1: Presensi & Akademik -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col justify-between group">
                     <div>
@@ -297,6 +297,60 @@
                         <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </a>
                 </div>
+
+                @php
+                    $schoolSettings = \App\Models\PengaturanSekolah::current();
+                    $enableSholatDhuhur = $schoolSettings->enable_sholat_dhuhur ?? true;
+                    $enablePresensiKbm = $schoolSettings->enable_presensi_kbm ?? true;
+                @endphp
+
+                <!-- Shortcut: Sholat Dhuhur -->
+                @if($enableSholatDhuhur)
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-teal-200 transition-all flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-teal-600 group-hover:text-white transition-all shadow-xs">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-xl">
+                                Ibadah
+                            </span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-teal-600 transition-colors">Sholat Dhuhur</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">Rekapitulasi presensi sholat berjamaah harian dan catatan kedisiplinan ibadah.</p>
+                    </div>
+                    <a href="{{ route('portal-siswa.sholat-dhuhur') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-teal-600 hover:text-teal-700 pt-3 border-t border-slate-100">
+                        <span>Buka Sholat Dhuhur</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+                @endif
+
+                <!-- Shortcut: Jurnal KBM -->
+                @if($enablePresensiKbm)
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-xl">
+                                KBM Mapel
+                            </span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Jurnal KBM</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">Pantau kehadiran per mata pelajaran dan materi jurnal pembelajaran guru.</p>
+                    </div>
+                    <a href="{{ route('portal-siswa.jurnal-kbm') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-indigo-600 hover:text-indigo-700 pt-3 border-t border-slate-100">
+                        <span>Buka Jurnal KBM</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+                @endif
 
                 <!-- Shortcut 2: Bimbingan Guru Wali (Permendikdasmen No. 11/2025) -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all flex flex-col justify-between group">

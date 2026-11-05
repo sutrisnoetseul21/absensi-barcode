@@ -57,6 +57,7 @@ class PengaturanPresensiPage extends Page implements HasForms
         $data['enable_checkout'] = $settings ? (bool)($settings->enable_checkout ?? true) : true;
         $data['enable_sholat_dhuhur'] = $settings ? (bool)($settings->enable_sholat_dhuhur ?? true) : true;
         $data['enable_sholat_jumat'] = $settings ? (bool)($settings->enable_sholat_jumat ?? false) : false;
+        $data['enable_presensi_kbm'] = $settings ? (bool)($settings->enable_presensi_kbm ?? true) : true;
 
         // Load data WhatsApp Settings (Koneksi API saja)
         $wa = \App\Models\WhatsAppSetting::current();
@@ -110,7 +111,7 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => (bool) $get('enable_checkout'))
                             ->seconds(false)
                             ->helperText('Mesin scanner akan menganggap tap kartu setelah jam ini sebagai absen pulang.'),
-                            
+
                         Toggle::make('enable_sholat_dhuhur')
                             ->label('Aktifkan Presensi Sholat Dhuhur')
                             ->helperText('Jika dinonaktifkan, menu dan halaman rekap Sholat Dhuhur akan disembunyikan dari portal siswa dan guru.')
@@ -123,6 +124,12 @@ class PengaturanPresensiPage extends Page implements HasForms
                             ->helperText('Jika diaktifkan, presensi sholat tetap berjalan di hari Jumat (bukan hari libur otomatis). Jika dinonaktifkan (default), hari Jumat otomatis ditandai sebagai libur sholat.')
                             ->default(false)
                             ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => (bool) $get('enable_sholat_dhuhur'))
+                            ->columnSpanFull(),
+
+                        Toggle::make('enable_presensi_kbm')
+                            ->label('Aktifkan Rekapitulasi Presensi KBM di Portal Siswa')
+                            ->helperText('Jika diaktifkan, siswa dapat melihat rekapitulasi kehadiran per mata pelajaran dari jurnal mengajar guru di aplikasi mobile. Jika dinonaktifkan, tab KBM disembunyikan.')
+                            ->default(true)
                             ->columnSpanFull(),
 
                         Select::make('barcode_scan_mode')
@@ -196,7 +203,7 @@ class PengaturanPresensiPage extends Page implements HasForms
                                     $baseUrl = $waSetting->base_url;
                                     $apiKey = $waSetting->api_key;
                                     $instanceName = $get('wa_instance_name') ?: $waSetting->instance_name;
-                                    
+
                                     if (!$baseUrl || !$apiKey || !$instanceName) {
                                         Notification::make()
                                             ->title('Harap konfirmasi Base URL/API Key di .env dan Nama Instance terlebih dahulu.')
@@ -214,7 +221,7 @@ class PengaturanPresensiPage extends Page implements HasForms
                                         if ($response->successful()) {
                                             $data = $response->json();
                                             $state = $data['instance']['state'] ?? 'unknown';
-                                            
+
                                             if ($state === 'open') {
                                                 Notification::make()
                                                     ->title('Koneksi Berhasil! WhatsApp siap digunakan.')

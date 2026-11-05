@@ -64,6 +64,7 @@ class SchoolInfoController extends Controller
                         'sholat_dhuhur' => (bool) $settings->enable_sholat_dhuhur,
                         'sholat_jumat' => (bool) $settings->enable_sholat_jumat,
                         'checkout' => (bool) $settings->enable_checkout,
+                        'presensi_kbm' => (bool) ($settings->enable_presensi_kbm ?? true),
                     ],
                 ],
             ]);
