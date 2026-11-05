@@ -123,79 +123,139 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 {{ $isSupervisor ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} gap-3.5">
                 @if($isSupervisor)
                     <div>
-                        <label class="block text-[11px] font-extrabold text-amber-900 uppercase mb-1">Guru Pengampu</label>
-                        <select wire:model.live="selectedTeacherId" class="w-full rounded-xl border border-amber-300 bg-amber-50/50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-semibold cursor-pointer">
-                            @foreach($teachers as $teacher)
-                                <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-[11px] font-extrabold text-amber-900 uppercase tracking-wider mb-1.5">Guru Pengampu</label>
+                        <div class="relative">
+                            <select wire:model.live="selectedTeacherId" class="w-full appearance-none rounded-2xl border border-amber-300 bg-amber-50/50 hover:bg-amber-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                                @foreach($teachers as $teacher)
+                                    <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
                     </div>
                 @endif
 
                 <div>
-                    <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Bulan KBM</label>
-                    <select wire:model.live="selectedMonthYear" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-bold cursor-pointer">
-                        <option value="">Semua Bulan</option>
-                        @foreach($availableMonths as $val => $label)
-                            <option value="{{ $val }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Bulan KBM</label>
+                    <div class="relative">
+                        <select wire:model.live="selectedMonthYear" class="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/80 hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                            <option value="">Semua Bulan</option>
+                            @foreach($availableMonths as $val => $label)
+                                <option value="{{ $val }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Mata Pelajaran</label>
-                    <select wire:model.live="selectedMapelId" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-bold cursor-pointer">
-                        <option value="">Semua Mapel</option>
-                        @foreach($mapels as $mapel)
-                            <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Mata Pelajaran @if(count($mapels) > 1)<span class="text-rose-500">*</span>@endif
+                    </label>
+                    <div class="relative">
+                        <select wire:model.live="selectedMapelId" class="w-full appearance-none rounded-2xl border {{ !$selectedMapelId && count($mapels) > 1 ? 'border-brand-primary/50 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/80' }} hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                            @if(count($mapels) !== 1)
+                                <option value="">-- Pilih Mata Pelajaran --</option>
+                            @endif
+                            @foreach($mapels as $mapel)
+                                <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
+                            @endforeach
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Kelas Rombel</label>
-                    <select wire:model.live="selectedClassId" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-bold cursor-pointer">
-                        <option value="">Semua Kelas Rombel</option>
-                        @foreach($classes as $c)
-                            <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Kelas Rombel</label>
+                    <div class="relative">
+                        @if(!$selectedMapelId)
+                            <select disabled class="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-not-allowed opacity-80">
+                                <option value="">-- Pilih Mapel Terlebih Dahulu --</option>
+                            </select>
+                        @else
+                            <select wire:model.live="selectedClassId" class="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/80 hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                                <option value="">Semua Kelas Rombel</option>
+                                @foreach($classes as $c)
+                                    <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Cari Materi / Refleksi</label>
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Ketik kata kunci materi..."
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs sm:text-sm font-medium">
+                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Cari Materi / Refleksi</label>
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Ketik kata kunci materi..."
+                               class="w-full pl-9 pr-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50/80 hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm font-medium transition-all">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Strip Ringkasan Kompak -->
-            <div class="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-2 text-xs font-extrabold text-slate-700">
-                    <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200/80">
-                        📖 {{ number_format($totalJurnal) }} Sesi KBM
-                    </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-                        ⏱️ {{ number_format($totalJp) }} JP ({{ number_format($totalJp * 40) }} Menit)
-                    </span>
-                    @if(($overallTotals['total_absen'] ?? 0) > 0)
-                        <span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200/80">
-                            ⚠️ {{ $overallTotals['total_absen'] }} Catatan Ketidakhadiran
+            @if($selectedMapelId)
+                <!-- Strip Ringkasan Kompak -->
+                <div class="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-extrabold text-slate-700">
+                        <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200/80">
+                            📖 {{ number_format($totalJurnal) }} Sesi KBM
                         </span>
-                    @endif
-                </div>
+                        <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                            ⏱️ {{ number_format($totalJp) }} JP ({{ number_format($totalJp * 40) }} Menit)
+                        </span>
+                        @if(($overallTotals['total_absen'] ?? 0) > 0)
+                            <span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200/80">
+                                ⚠️ {{ $overallTotals['total_absen'] }} Catatan Ketidakhadiran
+                            </span>
+                        @endif
+                    </div>
 
-                <button type="button" wire:click="setTab('analisa')"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-brand-primary border border-indigo-200 text-xs font-extrabold transition-all cursor-pointer">
-                    <span>Lihat Analisa Siswa</span>
-                    <span>→</span>
-                </button>
-            </div>
+                    <button type="button" wire:click="setTab('analisa')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-brand-primary border border-indigo-200 text-xs font-extrabold transition-all cursor-pointer">
+                        <span>Lihat Analisa Siswa</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            @endif
         </div>
 
-        <!-- JURNAL LIST CARDS -->
-        <div class="space-y-4">
-            @forelse($jurnals as $jurnal)
+        @if(!$selectedMapelId)
+            <div class="bg-white rounded-3xl border border-slate-200/90 p-8 sm:p-10 text-center shadow-sm">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-brand-primary flex items-center justify-center mx-auto mb-3.5 border border-indigo-100">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Pilih Mata Pelajaran Terlebih Dahulu</h3>
+                <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1">
+                    Anda mengampu lebih dari satu mata pelajaran. Silakan pilih mata pelajaran pada filter di atas atau klik salah satu mata pelajaran di bawah ini untuk menampilkan riwayat jurnal.
+                </p>
+                @if(count($mapels) > 0)
+                    <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+                        @foreach($mapels as $mapel)
+                            <button type="button" wire:click="selectMapel({{ $mapel->id }})"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-50 hover:bg-brand-primary text-brand-primary hover:text-white border border-indigo-200 hover:border-brand-primary text-xs sm:text-sm font-extrabold shadow-xs transition-all cursor-pointer">
+                                <span>📖 {{ $mapel->nama_mapel }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @else
+            <!-- JURNAL LIST CARDS -->
+            <div class="space-y-4">
+                @forelse($jurnals as $jurnal)
                 <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all p-5 sm:p-6 group">
                     <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                         <div class="space-y-3 flex-1">
@@ -267,86 +327,134 @@
                         </div>
                     </div>
                 </div>
-            @empty
-                <div class="bg-white rounded-3xl border border-slate-200/90 p-10 text-center shadow-sm">
-                    <h3 class="text-base font-extrabold text-slate-800">Belum Ada Catatan Jurnal Mengajar</h3>
-                    <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1">
-                        Belum ada riwayat pembelajaran yang tercatat pada filter periode atau kelas yang dipilih.
-                    </p>
-                </div>
-            @endforelse
-        </div>
+                @empty
+                    <div class="bg-white rounded-3xl border border-slate-200/90 p-10 text-center shadow-sm">
+                        <h3 class="text-base font-extrabold text-slate-800">Belum Ada Catatan Jurnal Mengajar</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1">
+                            Belum ada riwayat pembelajaran yang tercatat pada filter periode atau kelas yang dipilih.
+                        </p>
+                    </div>
+                @endforelse
+            </div>
 
-        <div class="mt-6">
-            {{ $jurnals->links() }}
-        </div>
+            <div class="mt-6">
+                {{ $jurnals->links() }}
+            </div>
+        @endif
     @else
         <!-- ==================== TAB 2: ANALISA KELAS & SISWA ==================== -->
         <div class="space-y-5">
-            <!-- 1. Filter Periode & Mapel -->
+            <!-- 1. Filter Periode, Mapel & Kelas Rombel (Modern Dropdown Grid) -->
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 {{ $isSupervisor ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }} gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 {{ $isSupervisor ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }} gap-4">
                     @if($isSupervisor)
                         <div>
-                            <label class="block text-[11px] font-extrabold text-amber-900 uppercase mb-1">Guru Pengampu</label>
-                            <select wire:model.live="selectedTeacherId" class="w-full rounded-xl border border-amber-300 bg-amber-50/50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-semibold cursor-pointer">
-                                @foreach($teachers as $teacher)
-                                    <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
-                                @endforeach
-                            </select>
+                            <label class="block text-[11px] font-extrabold text-amber-900 uppercase tracking-wider mb-1.5">Guru Pengampu</label>
+                            <div class="relative">
+                                <select wire:model.live="selectedTeacherId" class="w-full appearance-none rounded-2xl border border-amber-300 bg-amber-50/50 hover:bg-amber-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                                    @foreach($teachers as $teacher)
+                                        <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-700">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
                     <div>
-                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Periode Bulan KBM</label>
-                        <select wire:model.live="selectedMonthYear" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-bold cursor-pointer">
-                            <option value="">Semua Bulan (1 Tahun Ajaran)</option>
-                            @foreach($availableMonths as $val => $label)
-                                <option value="{{ $val }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Periode Bulan KBM</label>
+                        <div class="relative">
+                            <select wire:model.live="selectedMonthYear" class="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/80 hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                                <option value="">Semua Bulan (1 Tahun Ajaran)</option>
+                                @foreach($availableMonths as $val => $label)
+                                    <option value="{{ $val }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Mata Pelajaran</label>
-                        <select wire:model.live="selectedMapelId" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-xs sm:text-sm px-3 py-2.5 font-bold cursor-pointer">
-                            <option value="">Semua Mata Pelajaran</option>
-                            @foreach($mapels as $mapel)
-                                <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">
+                            Mata Pelajaran @if(count($mapels) > 1)<span class="text-rose-500">*</span>@endif
+                        </label>
+                        <div class="relative">
+                            <select wire:model.live="selectedMapelId" class="w-full appearance-none rounded-2xl border {{ !$selectedMapelId && count($mapels) > 1 ? 'border-brand-primary/50 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/80' }} hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                                @if(count($mapels) !== 1)
+                                    <option value="">-- Pilih Mata Pelajaran --</option>
+                                @endif
+                                @foreach($mapels as $mapel)
+                                    <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
+                                @endforeach
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Kelas Rombel</label>
+                        <div class="relative">
+                            @if(!$selectedMapelId)
+                                <select disabled class="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-not-allowed opacity-80">
+                                    <option value="">-- Pilih Mapel Terlebih Dahulu --</option>
+                                </select>
+                            @else
+                                <select wire:model.live="selectedClassId" class="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/80 hover:bg-white focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-slate-900 text-xs sm:text-sm pl-3.5 pr-9 py-2.5 font-bold cursor-pointer transition-all">
+                                    <option value="">Semua Kelas Rombel ({{ $overallTotals['total_sesi'] ?? 0 }} Sesi)</option>
+                                    @if(count($classesSummary) > 0)
+                                        @foreach($classesSummary as $cs)
+                                            @php
+                                                $absCount = (int)($cs['siswa_pernah_absen_count'] ?? 0);
+                                            @endphp
+                                            <option value="{{ $cs['class_id'] }}">
+                                                Kelas {{ $cs['class_name'] }} ({{ $cs['total_sesi'] }} Sesi{{ $absCount > 0 ? " • {$absCount} Absen" : '' }})
+                                            </option>
+                                        @endforeach
+                                    @else
+                                        @foreach($classes as $c)
+                                            <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            @endif
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- 2. Chip Pilihan Kelas Rombel -->
-                @if(count($classesSummary) > 0)
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-4 mt-4 border-t border-slate-100">
-                        <button type="button" wire:click="selectAnalisaClass('')"
-                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-extrabold shrink-0 border transition-all cursor-pointer {{ empty($selectedClassId) ? 'bg-brand-primary text-white border-brand-primary shadow-sm' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50' }}">
-                            <span>Semua Kelas</span>
-                            <span class="px-2 py-0.5 rounded-lg text-[10px] {{ empty($selectedClassId) ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">
-                                {{ $overallTotals['total_sesi'] ?? 0 }} Sesi
-                            </span>
-                        </button>
-
-                        @foreach($classesSummary as $cs)
-                            @php
-                                $isSelectedClass = (string)$selectedClassId === (string)$cs['class_id'];
-                                $absCount = (int)($cs['siswa_pernah_absen_count'] ?? 0);
-                            @endphp
-                            <button type="button" wire:click="selectAnalisaClass('{{ $cs['class_id'] }}')"
-                                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-extrabold shrink-0 border transition-all cursor-pointer {{ $isSelectedClass ? 'bg-brand-primary text-white border-brand-primary shadow-sm' : ($absCount > 0 ? 'bg-white text-slate-800 border-rose-200 hover:bg-rose-50/30' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50') }}">
-                                <span>Kelas {{ $cs['class_name'] }}</span>
-                                <span class="px-2 py-0.5 rounded-lg text-[10px] {{ $isSelectedClass ? 'bg-white/20 text-white' : ($absCount > 0 ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600') }}">
-                                    {{ $cs['total_sesi'] }} Sesi{{ $absCount > 0 ? " • {$absCount} Absen" : '' }}
-                                </span>
-                            </button>
-                        @endforeach
-                    </div>
-                @endif
             </div>
 
-            <!-- 3. Kotak 2x2 Breakdown Kehadiran KBM (Gaya Portal Siswa) -->
+            @if(!$selectedMapelId)
+                <div class="bg-white rounded-3xl border border-slate-200/90 p-8 sm:p-10 text-center shadow-sm">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-brand-primary flex items-center justify-center mx-auto mb-3.5 border border-indigo-100">
+                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Pilih Mata Pelajaran Terlebih Dahulu</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1">
+                        Anda mengampu lebih dari satu mata pelajaran. Silakan pilih satu mata pelajaran terlebih dahulu untuk menampilkan analisa kelas dan kehadiran siswa.
+                    </p>
+                    @if(count($mapels) > 0)
+                        <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+                            @foreach($mapels as $mapel)
+                                <button type="button" wire:click="selectMapel({{ $mapel->id }})"
+                                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-50 hover:bg-brand-primary text-brand-primary hover:text-white border border-indigo-200 hover:border-brand-primary text-xs sm:text-sm font-extrabold shadow-xs transition-all cursor-pointer">
+                                    <span>📖 {{ $mapel->nama_mapel }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @else
+                <!-- 2. Kotak Breakdown Kehadiran KBM -->
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-5">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                     <div>
@@ -357,6 +465,13 @@
                             {{ $activeTotals['total_sesi'] ?? 0 }} Pertemuan Tercatat • Total {{ $activeTotals['total_jp'] ?? 0 }} JP ({{ ($activeTotals['total_jp'] ?? 0) * 40 }} Menit)
                         </p>
                     </div>
+                    @if(!empty($selectedClassId))
+                        <button type="button" wire:click="selectAnalisaClass('')"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                            <span>Lihat Semua Kelas</span>
+                        </button>
+                    @endif
                 </div>
 
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -460,10 +575,13 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
+                <div class="relative mb-4">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                    </span>
                     <input type="text" wire:model.live.debounce.250ms="studentSearch"
                            placeholder="Cari nama siswa atau NIS..."
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs sm:text-sm font-medium">
+                           class="w-full pl-9 pr-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100/70 focus:bg-white text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all">
                 </div>
 
                 @if(count($filteredStudents) === 0)
@@ -534,6 +652,7 @@
                     </div>
                 @endif
             </div>
+            @endif
         </div>
     @endif
 

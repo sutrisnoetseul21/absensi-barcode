@@ -111,6 +111,12 @@ class JurnalMengajarList extends Component
         $this->resetPage();
     }
 
+    public function selectMapel(int $mapelId): void
+    {
+        $this->selectedMapelId = $mapelId;
+        $this->updatedSelectedMapelId();
+    }
+
     public function generateAvailableMonths(): void
     {
         $this->availableMonths = [];
@@ -250,6 +256,7 @@ class JurnalMengajarList extends Component
 
     public function updatedSelectedMapelId()
     {
+        $this->selectedMapelId = $this->selectedMapelId ? (int) $this->selectedMapelId : null;
         $this->reset(['selectedClassId']);
         $this->loadClassesForSelectedMapel();
         $this->resetPage();
@@ -296,27 +303,34 @@ class JurnalMengajarList extends Component
         $this->mapels = $pengajarans->pluck('mataPelajaran')->unique('id')->filter()->values();
 
         if ($this->mapels->count() === 1) {
-            $this->selectedMapelId = $this->mapels->first()->id;
+            $this->selectedMapelId = (int) $this->mapels->first()->id;
             $this->loadClassesForSelectedMapel();
         } else {
-            $this->loadClassesForSelectedMapel();
+            if ($this->selectedMapelId && $this->mapels->contains('id', $this->selectedMapelId)) {
+                $this->loadClassesForSelectedMapel();
+            } else {
+                $this->selectedMapelId = null;
+                $this->classes = [];
+                $this->selectedClassId = null;
+            }
         }
     }
 
     public function loadClassesForSelectedMapel()
     {
-        if (!$this->selectedTeacherId || !$this->selectedAcademicYearId) {
+        if (!$this->selectedTeacherId || !$this->selectedAcademicYearId || !$this->selectedMapelId) {
             $this->classes = [];
             $this->selectedClassId = null;
             return;
         }
 
         $query = Pengajaran::where('teacher_id', $this->selectedTeacherId)
-            ->when($this->selectedMapelId, fn($q) => $q->where('mata_pelajaran_id', $this->selectedMapelId))
+            ->where('mata_pelajaran_id', $this->selectedMapelId)
             ->whereHas('kelasAjaran', fn($q) => $q->where('academic_year_id', $this->selectedAcademicYearId));
 
         $pengajarans = $query->with('kelasAjaran.kelas')->get();
         $this->classes = $pengajarans->pluck('kelasAjaran.kelas')->unique('id')->filter()->sortBy('name')->values();
+        $this->selectedClassId = null;
     }
 
     public function delete(string $id)
@@ -494,11 +508,31 @@ class JurnalMengajarList extends Component
      */
     protected function buildAnalyticsData(): array
     {
+        $overallTotals = [
+            'total_sesi' => 0,
+            'total_jp' => 0,
+            'hadir' => 0,
+            'izin' => 0,
+            'sakit' => 0,
+            'izin_sakit' => 0,
+            'alpa' => 0,
+            'tidak_mengikuti' => 0,
+            'total_absen' => 0,
+        ];
+
+        if (!$this->selectedMapelId) {
+            return [
+                'totals' => $overallTotals,
+                'classes_summary' => [],
+                'students_summary' => [],
+            ];
+        }
+
         $analyticsJurnals = JurnalPembelajaran::query()
             ->with(['kelas:id,name', 'mataPelajaran:id,nama_mapel', 'presensis.siswa:id,name,nis,nisn'])
             ->when($this->selectedAcademicYearId, fn($q) => $q->where('academic_year_id', $this->selectedAcademicYearId))
             ->when($this->selectedTeacherId, fn($q) => $q->where('teacher_id', $this->selectedTeacherId))
-            ->when($this->selectedMapelId, fn($q) => $q->where('mata_pelajaran_id', $this->selectedMapelId))
+            ->where('mata_pelajaran_id', $this->selectedMapelId)
             ->when($this->selectedMonthYear, function ($q) {
                 $parts = explode('-', $this->selectedMonthYear);
                 if (count($parts) === 2) {
@@ -511,18 +545,6 @@ class JurnalMengajarList extends Component
             ->orderBy('tanggal', 'desc')
             ->orderBy('jam_mulai', 'desc')
             ->get();
-
-        $overallTotals = [
-            'total_sesi' => 0,
-            'total_jp' => 0,
-            'hadir' => 0,
-            'izin' => 0,
-            'sakit' => 0,
-            'izin_sakit' => 0,
-            'alpa' => 0,
-            'tidak_mengikuti' => 0,
-            'total_absen' => 0,
-        ];
 
         $classesMap = [];
         foreach ($this->classes as $tc) {
@@ -696,7 +718,11 @@ class JurnalMengajarList extends Component
             ->with(['guru', 'kelas', 'mataPelajaran', 'tahunAjaran'])
             ->when($this->selectedAcademicYearId, fn($q) => $q->where('academic_year_id', $this->selectedAcademicYearId))
             ->when($this->selectedTeacherId, fn($q) => $q->where('teacher_id', $this->selectedTeacherId))
-            ->when($this->selectedMapelId, fn($q) => $q->where('mata_pelajaran_id', $this->selectedMapelId))
+            ->when(
+                $this->selectedMapelId,
+                fn($q) => $q->where('mata_pelajaran_id', $this->selectedMapelId),
+                fn($q) => $q->whereRaw('1 = 0')
+            )
             ->when($this->selectedClassId, fn($q) => $q->where('class_id', $this->selectedClassId))
             ->when($this->selectedMonthYear, function ($q) {
                 $parts = explode('-', $this->selectedMonthYear);
