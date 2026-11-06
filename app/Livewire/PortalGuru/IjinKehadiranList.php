@@ -18,13 +18,13 @@ class IjinKehadiranList extends Component
     public $teacher;
     public $accessibleClassIds = [];
     public $accessibleClasses = [];
-    
-    // Filters
+
+    // Filters: Default langsung ke siswa yang menunggu ('pending') & semua waktu
     public $search = '';
     public $filterClass = '';
-    public $filterStatus = '';
+    public $filterStatus = 'pending';
     public $filterMonth = '';
-    
+
     public $availableMonths = [];
 
     public function mount()
@@ -38,13 +38,13 @@ class IjinKehadiranList extends Component
         }
 
         $this->teacher = $user->teacher;
-        
+
         if ($this->teacher) {
             // Dapatkan kelas Wali Kelas
             $kelasWali = $this->teacher->kelasAjarans()->pluck('class_id')->toArray();
             // Dapatkan kelas Pantau (BK)
             $kelasPantau = $this->teacher->kelasPantau()->pluck('class_id')->toArray();
-            
+
             $this->accessibleClassIds = array_unique(array_merge($kelasWali, $kelasPantau));
             $this->accessibleClasses = Kelas::whereIn('id', $this->accessibleClassIds)->orderBy('name')->get();
         } else {
@@ -52,7 +52,8 @@ class IjinKehadiranList extends Component
             $this->accessibleClasses = collect();
         }
 
-        $this->filterMonth = date('Y-m');
+        $this->filterStatus = 'pending';
+        $this->filterMonth = '';
         $this->generateAvailableMonths();
     }
 
@@ -66,7 +67,34 @@ class IjinKehadiranList extends Component
         $this->availableMonths = $months;
     }
 
+    public function setStatusFilter(string $status): void
+    {
+        $this->filterStatus = $status;
+        if ($status === 'pending') {
+            $this->filterMonth = '';
+        }
+        $this->resetPage();
+    }
+
     public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterClass()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterStatus()
+    {
+        if ($this->filterStatus === 'pending') {
+            $this->filterMonth = '';
+        }
+        $this->resetPage();
+    }
+
+    public function updatedFilterMonth()
     {
         $this->resetPage();
     }
@@ -75,11 +103,20 @@ class IjinKehadiranList extends Component
     {
         // 1. Dapatkan studentIds sesuai kelas yang dipilih (atau semua kelas yang bisa diakses)
         $classIdsToFilter = $this->filterClass ? [$this->filterClass] : $this->accessibleClassIds;
-        
+
+        $allStudentIds = EnrollmentSiswa::whereIn('class_id', $this->accessibleClassIds)
+            ->where('status', 'aktif')
+            ->pluck('student_id')
+            ->toArray();
+
         $studentIds = EnrollmentSiswa::whereIn('class_id', $classIdsToFilter)
             ->where('status', 'aktif')
             ->pluck('student_id')
             ->toArray();
+
+        $pendingCount = LeaveRequest::whereIn('student_id', $allStudentIds)->where('status', 'pending')->count();
+        $approvedCount = LeaveRequest::whereIn('student_id', $allStudentIds)->where('status', 'approved')->count();
+        $rejectedCount = LeaveRequest::whereIn('student_id', $allStudentIds)->where('status', 'rejected')->count();
 
         // 2. Query LeaveRequest
         $requests = LeaveRequest::whereIn('student_id', $studentIds)
@@ -90,7 +127,7 @@ class IjinKehadiranList extends Component
                       ->orWhere('nisn', 'like', '%' . $this->search . '%');
                 });
             })
-            ->when($this->filterStatus, function($query) {
+            ->when($this->filterStatus !== '', function($query) {
                 $query->where('status', $this->filterStatus);
             })
             ->when($this->filterMonth, function($query) {
@@ -105,7 +142,13 @@ class IjinKehadiranList extends Component
             ->paginate(15);
 
         return view('livewire.portal-guru.ijin-kehadiran-list', [
-            'requests' => $requests
+            'requests' => $requests,
+            'counts' => [
+                'pending' => $pendingCount,
+                'approved' => $approvedCount,
+                'rejected' => $rejectedCount,
+                'all' => $pendingCount + $approvedCount + $rejectedCount,
+            ],
         ]);
     }
 }

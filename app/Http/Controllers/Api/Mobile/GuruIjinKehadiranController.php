@@ -397,9 +397,9 @@ class GuruIjinKehadiranController extends Controller
             ]);
         }
 
-        $filterStatus = $request->input('status', 'all'); // 'all', 'pending', 'approved', 'rejected'
+        $filterStatus = $request->input('status', 'pending'); // 'pending', 'all', 'approved', 'rejected'
         $filterClass = $request->input('class_id');
-        $filterMonth = $request->input('month', date('Y-m'));
+        $filterMonth = $request->input('month', 'all');
         $search = trim((string) $request->input('search', ''));
         $perPage = (int) $request->input('per_page', 15);
 
@@ -441,6 +441,7 @@ class GuruIjinKehadiranController extends Controller
 
         // 4. Query Data Permohonan
         $query = LeaveRequest::whereIn('student_id', $targetStudentIds)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->with([
                 'student.enrollmentAktif.kelas',
                 'student.user',
@@ -456,7 +457,7 @@ class GuruIjinKehadiranController extends Controller
             ->when($filterStatus && $filterStatus !== 'all', function ($q) use ($filterStatus) {
                 $q->where('status', $filterStatus);
             })
-            ->when($filterMonth && str_contains($filterMonth, '-'), function ($q) use ($filterMonth) {
+            ->when($filterMonth && $filterMonth !== 'all' && str_contains($filterMonth, '-'), function ($q) use ($filterMonth) {
                 $parts = explode('-', $filterMonth);
                 if (count($parts) === 2) {
                     $q->whereYear('start_date', $parts[0])
@@ -530,8 +531,13 @@ class GuruIjinKehadiranController extends Controller
             ];
         });
 
-        // 6. Daftar Bulan Tersedia (6 bulan terakhir)
-        $availableMonths = [];
+        // 6. Daftar Bulan Tersedia (Semua Bulan + 6 bulan terakhir)
+        $availableMonths = [
+            [
+                'key' => 'all',
+                'label' => 'Semua Bulan',
+            ],
+        ];
         for ($i = 0; $i < 6; $i++) {
             $d = now()->subMonths($i);
             $availableMonths[] = [

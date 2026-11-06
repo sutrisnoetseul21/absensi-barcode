@@ -6,6 +6,29 @@
         </div>
     </div>
 
+    {{-- Tab Status Segmented (Menunggu di urutan pertama) --}}
+    <div class="mb-4 flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200/70">
+        <button type="button" wire:click="setStatusFilter('pending')"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $filterStatus === 'pending' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+            <span>Menunggu Review</span>
+            @if(($counts['pending'] ?? 0) > 0)
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-600 text-white">{{ $counts['pending'] }}</span>
+            @endif
+        </button>
+        <button type="button" wire:click="setStatusFilter('')"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $filterStatus === '' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+            <span>Semua ({{ $counts['all'] ?? 0 }})</span>
+        </button>
+        <button type="button" wire:click="setStatusFilter('approved')"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $filterStatus === 'approved' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+            <span>Disetujui ({{ $counts['approved'] ?? 0 }})</span>
+        </button>
+        <button type="button" wire:click="setStatusFilter('rejected')"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $filterStatus === 'rejected' ? 'bg-white text-rose-700 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+            <span>Ditolak ({{ $counts['rejected'] ?? 0 }})</span>
+        </button>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
         <div class="p-4 border-b border-slate-200/60 bg-slate-50/50 flex flex-col md:flex-row gap-4 items-center justify-between">
             <div class="w-full md:w-1/3">
@@ -19,13 +42,13 @@
                     @endforeach
                 </select>
                 <select wire:model.live="filterStatus" class="rounded-xl border-slate-200 shadow-sm focus:border-brand-primary focus:ring-brand-primary text-sm">
+                    <option value="pending">Menunggu Review</option>
                     <option value="">Semua Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="approved">Disetujui</option>
+                    <option value="rejected">Ditolak</option>
                 </select>
                 <select wire:model.live="filterMonth" class="rounded-xl border-slate-200 shadow-sm focus:border-brand-primary focus:ring-brand-primary text-sm">
-                    <option value="">Semua Waktu</option>
+                    <option value="">Semua Bulan</option>
                     @foreach($availableMonths as $val => $label)
                         <option value="{{ $val }}">{{ $label }}</option>
                     @endforeach
@@ -56,7 +79,7 @@
                             <div class="text-xs text-slate-500 mt-1 max-w-xs truncate" title="{{ $request->reason }}">{{ $request->reason }}</div>
                         </td>
                         <td class="px-6 py-4 text-xs">
-                            {{ $request->start_date->format('d/m/Y') }} 
+                            {{ $request->start_date->format('d/m/Y') }}
                             @if($request->start_date->ne($request->end_date))
                                 - {{ $request->end_date->format('d/m/Y') }}
                             @endif
