@@ -7,6 +7,10 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Forms\Components\DatePicker;
+use Illuminate\Database\Eloquent\Builder;
 
 class InventarisBukusTable
 {
@@ -17,12 +21,24 @@ class InventarisBukusTable
                 TextColumn::make('tanggal_masuk')
                     ->label('Tanggal')
                     ->date('d/m/Y')
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction) {
+                        return $query->orderBy('tanggal_masuk', $direction)
+                            ->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) {$direction}");
+                    })
                     ->searchable(),
                 TextColumn::make('no_inventaris')
                     ->label('No Inventaris')
                     ->fontFamily('mono')
                     ->weight('bold')
+                    ->sortable(query: function (Builder $query, string $direction) {
+                        return $query->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) {$direction}");
+                    })
+                    ->description(function ($record) {
+                        $firstEks = $record->eksemplarBukus->first()?->kode_eksemplar;
+                        $lastEks = $record->eksemplarBukus->last()?->kode_eksemplar;
+                        if (!$firstEks) return null;
+                        return $firstEks === $lastEks ? "Barcode: {$firstEks}" : "Barcode: {$firstEks} s/d {$lastEks}";
+                    })
                     ->searchable(query: function ($query, string $search) {
                         return $query->where('no_inventaris', 'like', "%{$search}%")
                             ->orWhereHas('eksemplarBukus', fn ($q) => $q->where('kode_eksemplar', $search));
@@ -71,13 +87,33 @@ class InventarisBukusTable
                     }),
             ])
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('status')
+                Filter::make('tanggal_masuk')
+                    ->label('Rentang Tanggal Masuk')
+                    ->form([
+                        DatePicker::make('dari_tanggal')->label('Dari Tanggal'),
+                        DatePicker::make('sampai_tanggal')->label('Sampai Tanggal'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['dari_tanggal'] ?? null, fn ($q, $date) => $q->whereDate('tanggal_masuk', '>=', $date))
+                            ->when($data['sampai_tanggal'] ?? null, fn ($q, $date) => $q->whereDate('tanggal_masuk', '<=', $date));
+                    }),
+                SelectFilter::make('asal')
+                    ->label('Asal Perolehan')
+                    ->options([
+                        'Pembelian' => 'Pembelian',
+                        'Hibah' => 'Hibah',
+                        'Tukar' => 'Tukar',
+                        'Terbitan Sendiri' => 'Terbitan Sendiri',
+                    ]),
+                SelectFilter::make('status')
                     ->options([
                         'aktif' => 'Aktif',
                         'dibatalkan' => 'Dibatalkan',
                     ])
-                    ->label('Filter Status'),
+                    ->label('Status Inventaris'),
             ])
+            ->defaultSort('tanggal_masuk', 'desc')
             ->recordActions([
                 Action::make('batalkan_entri')
                     ->label('Batalkan Entri')

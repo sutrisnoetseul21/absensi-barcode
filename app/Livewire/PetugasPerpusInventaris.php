@@ -14,6 +14,7 @@ class PetugasPerpusInventaris extends Component
 
     public $search = '';
     public $filterStatus = '';
+    public $sortBy = 'no_inv_desc';
 
     // Modal Unduh
     public bool $showUnduhModal = false;
@@ -26,6 +27,11 @@ class PetugasPerpusInventaris extends Component
     }
 
     public function updatedFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSortBy()
     {
         $this->resetPage();
     }
@@ -54,7 +60,7 @@ class PetugasPerpusInventaris extends Component
 
     public function render()
     {
-        $query = InventarisBuku::with(['buku.kategoriBuku', 'buku.klasifikasiDdc'])
+        $query = InventarisBuku::with(['buku.kategoriBuku', 'buku.klasifikasiDdc', 'eksemplarBukus'])
             ->when($this->search, function ($q) {
                 $q->where(function ($subQ) {
                     $subQ->where('no_inventaris', 'like', "%{$this->search}%")
@@ -67,8 +73,38 @@ class PetugasPerpusInventaris extends Component
             })
             ->when($this->filterStatus, function ($q) {
                 $q->where('status', $this->filterStatus);
-            })
-            ->orderBy('created_at', 'desc');
+            });
+
+        switch ($this->sortBy) {
+            case 'no_inv_asc':
+                $query->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) ASC");
+                break;
+            case 'tanggal_desc':
+                $query->orderBy('tanggal_masuk', 'desc')
+                      ->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) DESC");
+                break;
+            case 'tanggal_asc':
+                $query->orderBy('tanggal_masuk', 'asc')
+                      ->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) ASC");
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'judul_asc':
+                $query->join('bukus', 'inventaris_bukus.buku_id', '=', 'bukus.id')
+                      ->orderBy('bukus.judul', 'asc')
+                      ->select('inventaris_bukus.*');
+                break;
+            case 'judul_desc':
+                $query->join('bukus', 'inventaris_bukus.buku_id', '=', 'bukus.id')
+                      ->orderBy('bukus.judul', 'desc')
+                      ->select('inventaris_bukus.*');
+                break;
+            case 'no_inv_desc':
+            default:
+                $query->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) DESC");
+                break;
+        }
 
         $inventaris = $query->paginate(12);
 

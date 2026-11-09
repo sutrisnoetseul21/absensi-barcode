@@ -53,6 +53,11 @@ class InventarisBukuResource extends Resource
         return false;
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['eksemplarBukus', 'buku']);
+    }
+
     public static function getRelations(): array
     {
         return [

@@ -19,8 +19,19 @@
             <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari No. Inventaris, judul, ISBN..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
         </div>
 
-        <div class="flex items-center gap-3 w-full md:w-auto">
-            <select wire:model.live="filterStatus" class="w-full md:w-48 py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <!-- Filter Urutan Data -->
+            <select wire:model.live="sortBy" class="py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
+                <option value="no_inv_desc">Urutkan: No. Inventaris (Terbesar / Terakhir)</option>
+                <option value="no_inv_asc">Urutkan: No. Inventaris (Terkecil / Awal)</option>
+                <option value="tanggal_desc">Urutkan: Tanggal Masuk (Terbaru)</option>
+                <option value="tanggal_asc">Urutkan: Tanggal Masuk (Terlama)</option>
+                <option value="created_desc">Urutkan: Input Terbaru Sistem</option>
+                <option value="judul_asc">Urutkan: Judul Buku (A - Z)</option>
+                <option value="judul_desc">Urutkan: Judul Buku (Z - A)</option>
+            </select>
+
+            <select wire:model.live="filterStatus" class="w-full md:w-36 py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary">
                 <option value="">Semua Status</option>
                 <option value="aktif">Aktif</option>
                 <option value="dibatalkan">Dibatalkan</option>
@@ -57,7 +68,16 @@
                                 {{ \Carbon\Carbon::parse($inv->tanggal_masuk)->format('d/m/Y') }}
                             </td>
                             <td class="p-4 font-mono font-bold text-slate-900 whitespace-nowrap">
-                                {{ $inv->no_inventaris }}
+                                <div>{{ $inv->no_inventaris }}</div>
+                                @php
+                                    $firstEks = $inv->eksemplarBukus->first()?->kode_eksemplar;
+                                    $lastEks = $inv->eksemplarBukus->last()?->kode_eksemplar;
+                                @endphp
+                                @if($firstEks)
+                                    <div class="text-[10px] text-brand-primary font-sans font-semibold mt-0.5">
+                                        Barcode: {{ $firstEks === $lastEks ? $firstEks : "{$firstEks} s/d {$lastEks}" }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="p-4 font-bold text-slate-800 text-[11px] min-w-[200px]">
                                 {{ $inv->buku?->judul ?? '-' }}
