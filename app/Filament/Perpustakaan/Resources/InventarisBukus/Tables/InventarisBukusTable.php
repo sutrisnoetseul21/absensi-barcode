@@ -34,8 +34,9 @@ class InventarisBukusTable
                         return $query->orderByRaw("CAST(REGEXP_SUBSTR(no_inventaris, '[0-9]+') AS UNSIGNED) {$direction}");
                     })
                     ->description(function ($record) {
-                        $firstEks = $record->eksemplarBukus->first()?->kode_eksemplar;
-                        $lastEks = $record->eksemplarBukus->last()?->kode_eksemplar;
+                        $codes = $record->eksemplarBukus->pluck('kode_eksemplar')->sort(SORT_NATURAL);
+                        $firstEks = $codes->first();
+                        $lastEks = $codes->last();
                         if (!$firstEks) return null;
                         return $firstEks === $lastEks ? "Barcode: {$firstEks}" : "Barcode: {$firstEks} s/d {$lastEks}";
                     })

@@ -70,8 +70,9 @@
                             <td class="p-4 font-mono font-bold text-slate-900 whitespace-nowrap">
                                 <div>{{ $inv->no_inventaris }}</div>
                                 @php
-                                    $firstEks = $inv->eksemplarBukus->first()?->kode_eksemplar;
-                                    $lastEks = $inv->eksemplarBukus->last()?->kode_eksemplar;
+                                    $codes = $inv->eksemplarBukus->pluck('kode_eksemplar')->sort(SORT_NATURAL);
+                                    $firstEks = $codes->first();
+                                    $lastEks = $codes->last();
                                 @endphp
                                 @if($firstEks)
                                     <div class="text-[10px] text-brand-primary font-sans font-semibold mt-0.5">
