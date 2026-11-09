@@ -48,10 +48,12 @@ class CreateBuku extends CreateRecord
                     default => 'P'
                 };
                 
-                $noInventaris = "{$startNum}/{$kodeAsal}/{$tahun} - {$endNum}/{$kodeAsal}/{$tahun}";
-                if ($startNum === $endNum) {
-                    $noInventaris = "{$startNum}/{$kodeAsal}/{$tahun}";
-                }
+                $prefixUpper = strtoupper(trim($prefix));
+                $startFormatted = "{$prefixUpper}{$startNum}/{$kodeAsal}/{$tahun}";
+                $endFormatted = "{$prefixUpper}{$endNum}/{$kodeAsal}/{$tahun}";
+                $noInventaris = ($startNum === $endNum)
+                    ? $startFormatted
+                    : "{$startFormatted} - {$endFormatted}";
 
                 $now = now();
                 

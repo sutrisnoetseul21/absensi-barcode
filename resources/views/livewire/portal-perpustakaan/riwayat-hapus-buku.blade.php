@@ -11,7 +11,13 @@
     @if (session()->has('message'))
         <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-semibold flex items-center justify-between">
             <span>{{ session('message') }}</span>
-            <button type="button" @click="show = false" class="text-emerald-600 hover:text-emerald-900">&times;</button>
+        </div>
+    @endif
+
+    <!-- Alert Error Flash -->
+    @if (session()->has('error'))
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-semibold flex items-center justify-between">
+            <span>{{ session('error') }}</span>
         </div>
     @endif
 

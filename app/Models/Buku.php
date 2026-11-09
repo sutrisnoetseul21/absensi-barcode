@@ -13,6 +13,21 @@ class Buku extends Model
 {
     use HasUuids, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::forceDeleting(function ($buku) {
+            $eksemplarIds = $buku->eksemplarBukus()->withTrashed()->pluck('id');
+            if ($eksemplarIds->isNotEmpty()) {
+                \App\Models\Peminjaman::whereIn('eksemplar_id', $eksemplarIds)->delete();
+                $buku->eksemplarBukus()->withTrashed()->forceDelete();
+            }
+            \App\Models\InventarisBuku::where('buku_id', $buku->id)->delete();
+            if ($buku->sampul_buku && \Illuminate\Support\Facades\Storage::disk('public')->exists($buku->sampul_buku)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($buku->sampul_buku);
+            }
+        });
+    }
+
     protected $fillable = [
         'klasifikasi_ddc_id',
         'kategori_id',

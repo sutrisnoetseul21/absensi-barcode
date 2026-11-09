@@ -137,21 +137,14 @@ class PengaturanPerpustakaan extends Page implements HasForms
                         TextInput::make('last_barcode_number')
                             ->label('Nomor Urut Terakhir')
                             ->numeric()
+                            ->minValue(0)
                             ->required()
                             ->disabled(function () {
                                 $settings = PengaturanSekolah::current();
                                 return $settings && $settings->is_barcode_setup_completed && !$this->isUnlocked;
                             })
                             ->hidden(fn (Get $get) => $get('tipe_penomoran') === 'auto')
-                            ->helperText(fn () => 'Nomor tertinggi di seluruh database saat ini: ' . BarcodeService::getRealMaxBarcodeNumber())
-                            ->rules([
-                                fn () => function (string $attribute, $value, Closure $fail) {
-                                    $realMax = BarcodeService::getRealMaxBarcodeNumber();
-                                    if ((int) $value < $realMax) {
-                                        $fail("Tidak bisa diset ke {$value} karena sudah ada buku dengan nomor sampai {$realMax}. Nomor terendah yang aman adalah {$realMax}.");
-                                    }
-                                },
-                            ]),
+                            ->helperText(fn () => 'Nomor acuan lanjutan untuk barcode baru. Terdeteksi angka barcode aktif di database: ' . BarcodeService::getRealMaxBarcodeNumber()),
                     ])->columns(1),
             ])
             ->statePath('data');
@@ -163,10 +156,14 @@ class PengaturanPerpustakaan extends Page implements HasForms
         $settings = PengaturanSekolah::current();
 
         if ($settings) {
+            $lastBarcode = (isset($data['last_barcode_number']) && $data['last_barcode_number'] !== null && $data['last_barcode_number'] !== '')
+                ? (int) $data['last_barcode_number']
+                : (int) $settings->last_barcode_number;
+
             $settings->update([
                 'nama_perpustakaan' => $data['nama_perpustakaan'] ?? null,
                 'lama_pinjam_buku_hari' => $data['lama_pinjam_buku_hari'],
-                'last_barcode_number' => $data['last_barcode_number'] ?? 0,
+                'last_barcode_number' => $lastBarcode,
             ]);
 
             \Illuminate\Support\Facades\Cache::forget('public_pengaturan_sekolah');

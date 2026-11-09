@@ -56,11 +56,30 @@ class RiwayatHapusBuku extends Component
     // Action: Force Delete
     public function forceDeleteBuku($id)
     {
-        $buku = Buku::onlyTrashed()->find($id);
-        if($buku) {
+        $buku = Buku::onlyTrashed()->with(['eksemplarBukus' => fn($q) => $q->withTrashed()])->find($id);
+        if ($buku) {
             $judul = $buku->judul;
-            $buku->forceDelete();
-            session()->flash('message', 'Buku "' . $judul . '" berhasil dihapus permanen.');
+
+            // Periksa apakah masih ada eksemplar yang sedang berstatus dipinjam
+            $hasActiveLoans = \App\Models\Peminjaman::whereIn('eksemplar_id', $buku->eksemplarBukus->pluck('id'))
+                ->where('status', 'dipinjam')
+                ->exists();
+
+            if ($hasActiveLoans) {
+                session()->flash('error', 'Buku "' . $judul . '" tidak dapat dihapus permanen karena masih ada eksemplar yang sedang dipinjam.');
+                return;
+            }
+
+            try {
+                \Illuminate\Support\Facades\DB::transaction(function () use ($buku) {
+                    $buku->forceDelete();
+                });
+
+                \App\Services\BarcodeService::autoSyncBarcodeNumber();
+                session()->flash('message', 'Buku "' . $judul . '" berhasil dihapus permanen.');
+            } catch (\Throwable $e) {
+                session()->flash('error', 'Gagal menghapus permanen: ' . $e->getMessage());
+            }
         }
     }
 

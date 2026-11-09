@@ -243,21 +243,40 @@ class PetugasPerpusBuku extends Component
                 'sampul_buku' => $sampulPath,
             ]);
 
-            // 2. Buat Record Inventaris Buku Batch
+            // 2. Generate Eksemplar Fisik & Nomor Inventaris Standar
+            $jumlah = (int)$this->jumlah_eksemplar;
+            $prefixUpper = strtoupper(trim($this->prefix_kode));
+            $generateResult = EksemplarBuku::generateKodeEksemplar($prefixUpper, $jumlah);
+
+            $startNum = $generateResult['start_num'];
+            $endNum = $generateResult['end_num'];
+            $tahun = now()->format('Y');
+            $kodeAsal = match ($this->asal_buku) {
+                'Pembelian' => 'P',
+                'Hibah' => 'H',
+                'Tukar' => 'T',
+                'Terbitan Sendiri' => 'TS',
+                default => 'P'
+            };
+
+            $startFormatted = "{$prefixUpper}{$startNum}/{$kodeAsal}/{$tahun}";
+            $endFormatted = "{$prefixUpper}{$endNum}/{$kodeAsal}/{$tahun}";
+            $noInventaris = ($startNum === $endNum)
+                ? $startFormatted
+                : "{$startFormatted} - {$endFormatted}";
+
+            // 3. Buat Record Inventaris Buku Batch
             $inventaris = InventarisBuku::create([
                 'buku_id' => $buku->id,
-                'no_inventaris' => 'INV-' . date('Ymd-His'),
+                'no_inventaris' => $noInventaris,
                 'tanggal_masuk' => now()->toDateString(),
                 'asal' => $this->asal_buku,
                 'harga' => $this->harga_buku ? (int)$this->harga_buku : 0,
-                'jumlah_eksemplar' => (int)$this->jumlah_eksemplar,
+                'jumlah_eksemplar' => $jumlah,
                 'status' => 'aktif',
             ]);
 
-            // 3. Generate Eksemplar Fisik
-            $jumlah = (int)$this->jumlah_eksemplar;
-            $prefixUpper = strtoupper($this->prefix_kode);
-            $generateResult = EksemplarBuku::generateKodeEksemplar($prefixUpper, $jumlah);
+            // 4. Simpan Eksemplar Fisik
             foreach ($generateResult['codes'] as $kodeBarcode) {
                 EksemplarBuku::create([
                     'buku_id' => $buku->id,

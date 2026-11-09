@@ -19,6 +19,7 @@ class BarcodeService
         // Attempt to use fast SQL native regex extraction (MySQL 8.0+ / MariaDB 10.0.5+)
         try {
             $maxNum = DB::table('eksemplar_bukus')
+                ->whereNull('deleted_at')
                 ->max(DB::raw("CAST(REGEXP_SUBSTR(kode_eksemplar, '[0-9]+$') AS UNSIGNED)"));
             
             return (int) $maxNum;
@@ -27,7 +28,11 @@ class BarcodeService
             $maxNum = 0;
             
             // Use chunking to prevent memory exhaustion when scanning 100k+ rows
-            DB::table('eksemplar_bukus')->select('kode_eksemplar')->chunk(5000, function ($rows) use (&$maxNum) {
+            DB::table('eksemplar_bukus')
+                ->whereNull('deleted_at')
+                ->select(['id', 'kode_eksemplar'])
+                ->orderBy('id')
+                ->chunk(5000, function ($rows) use (&$maxNum) {
                 foreach ($rows as $row) {
                     if (preg_match('/[0-9]+$/', $row->kode_eksemplar, $matches)) {
                         $num = (int) $matches[0];
