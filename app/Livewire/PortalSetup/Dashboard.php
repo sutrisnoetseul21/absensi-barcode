@@ -4,6 +4,7 @@ namespace App\Livewire\PortalSetup;
 
 use App\Models\Jabatan;
 use App\Models\Kelas;
+use App\Models\MataPelajaran;
 use App\Models\PengaturanSekolah;
 use App\Models\TahunAjaran;
 use Livewire\Attributes\Layout;
@@ -19,6 +20,7 @@ class Dashboard extends Component
         $activeYear = TahunAjaran::where('status', 'aktif')->first();
         $totalClasses = Kelas::count();
         $totalJabatans = Jabatan::count();
+        $totalMapels = MataPelajaran::count();
 
         $schoolReady = $school && filled($school->school_name) && filled($school->school_address);
         $yearReady = $activeYear !== null;
@@ -27,9 +29,10 @@ class Dashboard extends Component
 
         $wajibJabatans = Jabatan::wajibByJenjang($schoolLevel);
         $jabatanReady = $dasarReady && Jabatan::whereIn('nama_jabatan', $wajibJabatans)->count() === count($wajibJabatans);
+        $mapelReady = $dasarReady && $totalMapels > 0;
 
-        $completedSteps = collect([$schoolReady, $yearReady, $classReady, $jabatanReady])->filter()->count();
-        $totalSteps = 4;
+        $completedSteps = collect([$schoolReady, $yearReady, $classReady, $jabatanReady, $mapelReady])->filter()->count();
+        $totalSteps = 5;
         $progressPercent = (int) round(($completedSteps / $totalSteps) * 100);
         $allReady = $completedSteps === $totalSteps;
 
@@ -39,12 +42,14 @@ class Dashboard extends Component
             'activeYear'      => $activeYear,
             'totalClasses'    => $totalClasses,
             'totalJabatans'   => $totalJabatans,
+            'totalMapels'     => $totalMapels,
             'wajibJabatans'   => $wajibJabatans,
             'schoolReady'     => $schoolReady,
             'yearReady'       => $yearReady,
             'classReady'      => $classReady,
             'dasarReady'      => $dasarReady,
             'jabatanReady'    => $jabatanReady,
+            'mapelReady'      => $mapelReady,
             'completedSteps'  => $completedSteps,
             'totalSteps'      => $totalSteps,
             'progressPercent' => $progressPercent,

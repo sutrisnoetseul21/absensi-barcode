@@ -121,6 +121,8 @@ class GuruForm
                 Repeater::make('teacherJabatans')
                     ->label('Jabatan Tambahan')
                     ->relationship('teacherJabatans')
+                    ->defaultItems(0)
+                    ->addActionLabel('Tambah Jabatan')
                     ->schema([
                         Select::make('jabatan_id')
                             ->label('Jabatan')

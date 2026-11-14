@@ -24,7 +24,7 @@ class ListGurus extends ListRecords
                 ->label('Sync Guru ke ZenCBT')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
-                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor'))
+                ->visible(fn () => \Filament\Facades\Filament::getCurrentPanel()?->getId() !== 'akademik' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor')))
                 ->requiresConfirmation()
                 ->modalHeading('Sinkronisasi Guru ke ZenCBT')
                 ->modalDescription(fn () => implode("\n", [

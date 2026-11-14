@@ -31,9 +31,12 @@ class SetupDasar extends Component
     public string $school_phone = '';
     public string $principal_name = '';
     public string $principal_nip = '';
-    public string $active_semester = 'ganjil';
     public ?string $existing_logo_path = null;
     public $logo_upload = null;
+    public ?string $existing_district_logo_path = null;
+    public $district_logo_upload = null;
+    public ?string $existing_signature_path = null;
+    public $signature_upload = null;
 
     // Tab 2: Tahun Ajaran
     public int $start_year;
@@ -95,8 +98,9 @@ class SetupDasar extends Component
             $this->school_phone = $school->school_phone ?? '';
             $this->principal_name = $school->principal_name ?? '';
             $this->principal_nip = $school->principal_nip ?? '';
-            $this->active_semester = $school->active_semester ?: 'ganjil';
             $this->existing_logo_path = $school->school_logo_path;
+            $this->existing_district_logo_path = $school->district_logo_path;
+            $this->existing_signature_path = $school->principal_signature_path;
         }
     }
 
@@ -258,32 +262,48 @@ class SetupDasar extends Component
         }
 
         $this->validate([
-            'school_level'   => 'required|in:SD,SMP,SMA,SMK',
-            'school_status'  => 'required|in:negeri,swasta',
-            'school_name'    => 'required|string|max:255',
-            'school_address' => 'required|string|max:500',
-            'kota'           => 'nullable|string|max:100',
-            'school_email'   => 'nullable|email|max:255',
-            'school_phone'   => 'nullable|string|max:50',
-            'principal_name' => 'nullable|string|max:255',
-            'principal_nip'  => 'nullable|string|max:50',
-            'logo_upload'    => 'nullable|image|max:2048',
+            'school_level'         => 'required|in:SD,SMP,SMA,SMK',
+            'school_status'        => 'required|in:negeri,swasta',
+            'school_name'          => 'required|string|max:255',
+            'school_address'       => 'required|string|max:500',
+            'kota'                 => 'nullable|string|max:100',
+            'school_email'         => 'nullable|email|max:255',
+            'school_phone'         => 'nullable|string|max:50',
+            'principal_name'       => 'nullable|string|max:255',
+            'principal_nip'        => 'nullable|string|max:50',
+            'logo_upload'          => 'nullable|image|max:2048',
+            'district_logo_upload' => 'nullable|image|max:2048',
+            'signature_upload'     => 'nullable|image|mimes:png|max:2048',
         ], [
-            'school_name.required'    => 'Nama sekolah wajib diisi.',
-            'school_address.required' => 'Alamat sekolah wajib diisi.',
-            'logo_upload.image'       => 'File logo harus berupa gambar (PNG/JPG/WebP).',
-            'logo_upload.max'         => 'Ukuran logo maksimal 2 MB.',
+            'school_name.required'       => 'Nama sekolah wajib diisi.',
+            'school_address.required'    => 'Alamat sekolah wajib diisi.',
+            'logo_upload.image'          => 'File logo sekolah harus berupa gambar (PNG/JPG/WebP).',
+            'logo_upload.max'            => 'Ukuran logo sekolah maksimal 2 MB.',
+            'district_logo_upload.image' => 'File logo pemda/yayasan harus berupa gambar (PNG/JPG/WebP).',
+            'district_logo_upload.max'   => 'Ukuran logo pemda/yayasan maksimal 2 MB.',
+            'signature_upload.image'     => 'File tanda tangan harus berupa gambar.',
+            'signature_upload.mimes'     => 'Tanda tangan kepala sekolah disarankan format PNG.',
+            'signature_upload.max'       => 'Ukuran file tanda tangan maksimal 2 MB.',
         ]);
 
         $school = PengaturanSekolah::current() ?? new PengaturanSekolah();
 
         if ($this->logo_upload) {
-            if ($school->school_logo_path && Storage::disk('public')->exists($school->school_logo_path)) {
-                Storage::disk('public')->delete($school->school_logo_path);
-            }
-            $school->school_logo_path = $this->logo_upload->store('school-assets', 'public');
+            $school->school_logo_path = $this->replacePublicAsset($this->logo_upload, $school->school_logo_path);
             $this->existing_logo_path = $school->school_logo_path;
             $this->logo_upload = null;
+        }
+
+        if ($this->district_logo_upload) {
+            $school->district_logo_path = $this->replacePublicAsset($this->district_logo_upload, $school->district_logo_path);
+            $this->existing_district_logo_path = $school->district_logo_path;
+            $this->district_logo_upload = null;
+        }
+
+        if ($this->signature_upload) {
+            $school->principal_signature_path = $this->replacePublicAsset($this->signature_upload, $school->principal_signature_path);
+            $this->existing_signature_path = $school->principal_signature_path;
+            $this->signature_upload = null;
         }
 
         $school->fill([
@@ -296,6 +316,7 @@ class SetupDasar extends Component
             'school_phone'    => trim($this->school_phone) ?: null,
             'principal_name'  => trim($this->principal_name) ?: null,
             'principal_nip'   => trim($this->principal_nip) ?: null,
+            'active_semester' => now()->month >= 7 ? 'ganjil' : 'genap',
         ]);
         $school->save();
 
@@ -306,25 +327,36 @@ class SetupDasar extends Component
         session()->flash('setup_success', 'Identitas & jenjang sekolah berhasil disimpan dan dikunci kembali.');
     }
 
+    /**
+     * Hapus aset lama di disk public (jika ada) lalu simpan file upload baru.
+     */
+    protected function replacePublicAsset($uploadedFile, ?string $currentPath): string
+    {
+        if ($currentPath && Storage::disk('public')->exists($currentPath)) {
+            Storage::disk('public')->delete($currentPath);
+        }
+
+        return $uploadedFile->store('school-assets', 'public');
+    }
+
     // ==================== TAB 2: TAHUN AJARAN ====================
 
-    public function saveActiveSemester(): void
+    /**
+     * Set active_semester secara otomatis (hidden) berdasarkan bulan kalender:
+     * Juli - Desember = ganjil, Januari - Juni = genap.
+     */
+    protected function syncAutoActiveSemester(): void
     {
-        $hasActiveYear = TahunAjaran::where('status', 'aktif')->exists();
-        if (!$this->ensureUnlockedIfRequired($hasActiveYear)) {
+        $school = PengaturanSekolah::current();
+        if (!$school) {
             return;
         }
 
-        $this->validate([
-            'active_semester' => 'required|in:ganjil,genap',
-        ]);
-
-        $school = PengaturanSekolah::current() ?? new PengaturanSekolah();
-        $school->active_semester = $this->active_semester;
-        $school->save();
-
-        Cache::forget('public_pengaturan_sekolah');
-        session()->flash('setup_success', 'Semester aktif berhasil diubah menjadi Semester ' . ucfirst($this->active_semester) . '.');
+        $autoSemester = now()->month >= 7 ? 'ganjil' : 'genap';
+        if ($school->active_semester !== $autoSemester) {
+            $school->active_semester = $autoSemester;
+            $school->save();
+        }
     }
 
     public function createTahunAjaran(): void
@@ -356,6 +388,11 @@ class SetupDasar extends Component
             'status'     => $this->set_active ? 'aktif' : 'arsip',
         ]);
 
+        if ($this->set_active) {
+            $this->syncAutoActiveSemester();
+            Cache::forget('public_pengaturan_sekolah');
+        }
+
         session()->flash('setup_success', "Tahun Ajaran {$this->start_year}/{$this->end_year} berhasil ditambahkan.");
     }
 
@@ -370,6 +407,7 @@ class SetupDasar extends Component
         $year->status = 'aktif';
         $year->save();
 
+        $this->syncAutoActiveSemester();
         Cache::forget('public_pengaturan_sekolah');
         session()->flash('setup_success', "Tahun Ajaran {$year->name} sekarang aktif.");
     }

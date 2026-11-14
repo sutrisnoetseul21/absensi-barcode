@@ -134,10 +134,6 @@ class MasterJabatan extends Component
 
     public function createJabatan(): void
     {
-        if (!$this->ensureUnlockedIfLocked()) {
-            return;
-        }
-
         $this->validate([
             'nama_jabatan' => 'required|string|max:100',
         ], [

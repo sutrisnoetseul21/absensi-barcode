@@ -115,11 +115,12 @@ class UnifiedLogin extends Component
         $input = trim($this->username);
         $schoolDomain = config('school.email_domain');
 
-        // Cari user berdasarkan email langsung, email sekolah, nama, atau username prefix
+        // Cari user berdasarkan email langsung, email sekolah, nama, username prefix, atau NIP guru
         $targetUser = \App\Models\User::where('email', $input)
             ->orWhere('email', str_contains($input, '@') ? $input : $input . '@' . $schoolDomain)
             ->orWhere('name', $input)
             ->orWhere('email', 'like', $input . '@%')
+            ->orWhereHas('teacher', fn ($q) => $q->where('nip', $input))
             ->first();
 
         $loginSuccess = false;

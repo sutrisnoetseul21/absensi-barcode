@@ -187,6 +187,7 @@
                         $isSetupDashboard = request()->routeIs('portal-setup.dashboard');
                         $isSetupDasar     = request()->routeIs('portal-setup.dasar');
                         $isSetupJabatan   = request()->routeIs('portal-setup.jabatan');
+                        $isSetupMapel     = request()->routeIs('portal-setup.mapel');
                         $activeClass      = 'bg-rose-50 text-rose-700 font-bold border-r-2 border-rose-600';
                         $inactiveClass    = 'text-slate-600 hover:bg-rose-50 hover:text-rose-700 font-semibold';
 
@@ -198,6 +199,7 @@
 
                         $wajibJabatan = \App\Models\Jabatan::wajibByJenjang($setupSchool?->school_level ?? 'SMP');
                         $setupJabatanOk = \App\Models\Jabatan::whereIn('nama_jabatan', $wajibJabatan)->count() === count($wajibJabatan);
+                        $setupMapelOk   = \App\Models\MataPelajaran::exists();
                     @endphp
 
                     {{-- SIDEBAR PORTAL SETUP & INSTALASI --}}
@@ -248,6 +250,30 @@
                             <div class="flex items-center gap-3 min-w-0">
                                 <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                 <span x-show="!isCollapsed" x-transition.opacity class="truncate">Master Jabatan</span>
+                            </div>
+                            <span x-show="!isCollapsed" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500">Terkunci</span>
+                        </div>
+                    @endif
+
+                    @if($setupDasarOk)
+                        <a href="{{ route('portal-setup.mapel') }}" :title="isCollapsed ? 'Master Mata Pelajaran' : ''"
+                           class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isSetupMapel ? $activeClass : $inactiveClass }}">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                <span x-show="!isCollapsed" x-transition.opacity class="truncate">Master Mata Pelajaran</span>
+                            </div>
+                            @if($setupMapelOk)
+                                <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700">OK</span>
+                            @else
+                                <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-700">Wajib</span>
+                            @endif
+                        </a>
+                    @else
+                        <div title="Selesaikan 3 Setup Dasar dulu untuk membuka Master Mata Pelajaran"
+                             class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm text-slate-400 bg-slate-50/70 cursor-not-allowed">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span x-show="!isCollapsed" x-transition.opacity class="truncate">Master Mata Pelajaran</span>
                             </div>
                             <span x-show="!isCollapsed" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500">Terkunci</span>
                         </div>

@@ -1,6 +1,6 @@
 <div class="p-4 lg:p-8 max-w-7xl mx-auto space-y-8 pb-16">
-    <!-- Hero Banner (Senada dengan Portal Guru & Perpustakaan) -->
-    <div class="relative bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
+    <!-- Hero Banner (Senada dengan Theme Settings) -->
+    <div class="relative bg-gradient-to-r from-brand-primary to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full filter blur-2xl pointer-events-none"></div>
 
@@ -13,7 +13,7 @@
                     Checklist Kesiapan Awal Sistem
                 </h1>
                 <p class="text-white/85 text-sm sm:text-base mt-1 max-w-2xl leading-relaxed">
-                    Pastikan 4 fondasi utama (Identitas &amp; Jenjang Sekolah, Tahun Ajaran Aktif, Master Kelas, dan Master Jabatan) berstatus <strong>OK</strong> sebelum melakukan upload data Guru &amp; Siswa.
+                    Pastikan 5 fondasi utama (Identitas &amp; Jenjang Sekolah, Tahun Ajaran Aktif, Master Kelas, Master Jabatan, dan Master Mata Pelajaran) berstatus <strong>OK</strong> sebelum melakukan upload data Guru &amp; Siswa.
                 </p>
             </div>
 
@@ -48,8 +48,8 @@
         </div>
     @endif
 
-    <!-- 4 Kartu Checklist Status -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+    <!-- 5 Kartu Checklist Status -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         <!-- 1. Identitas Sekolah -->
         <div class="bg-white rounded-3xl p-6 border {{ $schoolReady ? 'border-emerald-200/80' : 'border-amber-200/80' }} shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
             <div>
@@ -201,6 +201,55 @@
                 <a href="{{ route('portal-setup.jabatan') }}"
                    class="mt-6 inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-brand-primary hover:text-white text-slate-700 transition-colors">
                     {{ $jabatanReady ? 'Kelola Master Jabatan' : 'Sinkron Jabatan Standar' }} &rarr;
+                </a>
+            @else
+                <span class="mt-6 inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 text-slate-400 cursor-not-allowed">
+                    Terkunci (Lengkapi Langkah 1–3)
+                </span>
+            @endif
+        </div>
+
+        <!-- 5. Master Mata Pelajaran -->
+        <div class="bg-white rounded-3xl p-6 border {{ $mapelReady ? 'border-emerald-200/80' : ($dasarReady ? 'border-amber-200/80' : 'border-slate-200/80 opacity-85') }} shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between mb-5">
+                    <div class="w-12 h-12 rounded-2xl {{ $mapelReady ? 'bg-cyan-50 text-cyan-600' : ($dasarReady ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400') }} flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    @if(!$dasarReady)
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
+                            Terkunci
+                        </span>
+                    @elseif($mapelReady)
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            OK
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                            Belum Ada
+                        </span>
+                    @endif
+                </div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Langkah 5</p>
+                <h2 class="text-lg font-extrabold text-slate-900 mt-0.5 mb-2">Master Mata Pelajaran ({{ $schoolLevel }})</h2>
+                @if(!$dasarReady)
+                    <p class="text-xs text-slate-500 leading-relaxed">Selesaikan Langkah 1–3 terlebih dahulu agar daftar mapel standar sesuai jenjang sekolah.</p>
+                @elseif($mapelReady)
+                    <p class="text-2xl font-extrabold text-cyan-700">{{ $totalMapels }} Mapel</p>
+                    <p class="text-xs text-slate-500 mt-1">
+                        {{ $schoolLevel === 'SMK' ? 'Mapel umum siap; Anda bisa tambah mapel jurusan kapan saja.' : 'Daftar mata pelajaran siap digunakan di Pembelajaran & Ujian.' }}
+                    </p>
+                @else
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        {{ $schoolLevel === 'SMK' ? 'Sinkronkan mapel umum lalu tambahkan mapel kejuruan sesuai jurusan sekolah.' : 'Sinkronkan mapel standar sesuai jenjang atau tambah manual.' }}
+                    </p>
+                @endif
+            </div>
+            @if($dasarReady)
+                <a href="{{ route('portal-setup.mapel') }}"
+                   class="mt-6 inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-brand-primary hover:text-white text-slate-700 transition-colors">
+                    {{ $mapelReady ? 'Kelola Mata Pelajaran' : 'Sinkron Mapel Standar' }} &rarr;
                 </a>
             @else
                 <span class="mt-6 inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 text-slate-400 cursor-not-allowed">

@@ -477,6 +477,7 @@ Route::prefix('portal-setup')->group(function () {
         Route::get('/', \App\Livewire\PortalSetup\Dashboard::class)->name('portal-setup.dashboard');
         Route::get('/dasar', \App\Livewire\PortalSetup\SetupDasar::class)->name('portal-setup.dasar');
         Route::get('/jabatan', \App\Livewire\PortalSetup\MasterJabatan::class)->name('portal-setup.jabatan');
+        Route::get('/mapel', \App\Livewire\PortalSetup\MasterMapel::class)->name('portal-setup.mapel');
 
         Route::post('/logout', function () {
             Auth::guard('web')->logout();

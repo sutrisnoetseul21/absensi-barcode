@@ -445,6 +445,22 @@ class User extends Authenticatable implements FilamentUser
             ];
         }
 
+        // 8. Portal Akademik (/portal-akademik)
+        if ($isSuper || $this->hasRole('admin_portal_akademik') || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_akademik'))) {
+            $portals[] = [
+                'id'    => 'portal_akademik',
+                'name'  => 'Portal Akademik',
+                'url'   => url('/portal-akademik'),
+                'desc'  => 'Manajemen data guru, siswa, rombongan belajar, enrollment kelas, dan operasional kurikulum.',
+                'badge' => 'Akademik & TU',
+                'badge_color' => 'bg-blue-500/20 text-blue-200 border-blue-400/30',
+                'gradient' => 'from-blue-600 to-indigo-700',
+                'icon_bg'  => 'bg-blue-500/20 text-blue-300 group-hover:bg-blue-500 group-hover:text-white',
+                'border_hover' => 'hover:border-blue-400/50 hover:shadow-blue-500/20',
+                'icon'  => 'academic-cap',
+            ];
+        }
+
         return $portals;
     }
 

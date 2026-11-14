@@ -501,7 +501,7 @@ class GuruTable
                         '• Punya NIP  : NIP@03 (contoh: ' . ($record->nip ? trim($record->nip) . '@03' : 'NIP@03') . ')',
                         '• Tanpa NIP  : Nama tanpa spasi (contoh: ' . str_replace(' ', '', $record->name) . ')',
                     ]))
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor'))
+                    ->visible(fn () => \Filament\Facades\Filament::getCurrentPanel()?->getId() !== 'akademik' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor')))
                     ->action(function (Guru $record): void {
                         try {
                             $result = app(CbtServiceInterface::class)->resetTeacherPassword($record->id);
@@ -542,7 +542,7 @@ class GuruTable
                             ->required()
                             ->same('password'),
                     ])
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor'))
+                    ->visible(fn () => \Filament\Facades\Filament::getCurrentPanel()?->getId() !== 'akademik' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor')))
                     ->action(function (Guru $record, array $data): void {
                         try {
                             app(CbtServiceInterface::class)->updateTeacherPassword($record->id, $data['password']);

@@ -9,7 +9,7 @@
 
 <div class="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 pb-16">
     <!-- Hero Header Banner (Senada dengan Portal Guru & Perpustakaan) -->
-    <div class="relative bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
+    <div class="relative bg-gradient-to-r from-brand-primary to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full filter blur-2xl pointer-events-none"></div>
 
@@ -238,7 +238,7 @@
                            class="{{ $inputClass }}" @disabled($schoolLocked)>
                 </div>
 
-                <div class="md:col-span-2">
+                <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">Logo Sekolah (PNG/JPG, Maks. 2MB)</label>
                     <div class="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-300">
                         @if($logo_upload)
@@ -250,6 +250,38 @@
                                class="text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     </div>
                     @error('logo_upload') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        {{ $school_status === 'swasta' ? 'Logo Yayasan (Opsional, PNG/JPG)' : 'Logo Kabupaten / Pemda (Opsional, PNG/JPG)' }}
+                    </label>
+                    <div class="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-300">
+                        @if($district_logo_upload)
+                            <img src="{{ $district_logo_upload->temporaryUrl() }}" class="w-16 h-16 rounded-xl object-contain border border-slate-200 p-1 bg-white">
+                        @elseif($existing_district_logo_path)
+                            <img src="{{ asset('storage/' . $existing_district_logo_path) }}" class="w-16 h-16 rounded-xl object-contain border border-slate-200 p-1 bg-white">
+                        @endif
+                        <input type="file" wire:model="district_logo_upload" accept="image/*" @disabled($schoolLocked)
+                               class="text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Ditampilkan di sisi kiri Kartu OSIS &amp; Kop Surat.</p>
+                    @error('district_logo_upload') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Tanda Tangan Kepala Sekolah (Opsional, PNG Transparan)</label>
+                    <div class="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-300">
+                        @if($signature_upload)
+                            <img src="{{ $signature_upload->temporaryUrl() }}" class="w-24 h-16 rounded-xl object-contain border border-slate-200 p-1 bg-white">
+                        @elseif($existing_signature_path)
+                            <img src="{{ asset('storage/' . $existing_signature_path) }}" class="w-24 h-16 rounded-xl object-contain border border-slate-200 p-1 bg-white">
+                        @endif
+                        <input type="file" wire:model="signature_upload" accept="image/png" @disabled($schoolLocked)
+                               class="text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Gunakan format PNG background transparan untuk hasil terbaik di Kartu OSIS &amp; Rapor.</p>
+                    @error('signature_upload') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -330,30 +362,8 @@
                 @endif
             </form>
 
-            <!-- Daftar Tahun Ajaran & Semester Aktif -->
+            <!-- Daftar Tahun Ajaran -->
             <div class="lg:col-span-7 space-y-6">
-                <!-- Pengaturan Semester Aktif -->
-                <form wire:submit="saveActiveSemester" class="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                    <div class="flex-1">
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Semester Aktif Berjalan</label>
-                        <select wire:model="active_semester" @disabled($yearLocked) class="{{ $inputClass }}">
-                            <option value="ganjil">Semester Ganjil</option>
-                            <option value="genap">Semester Genap</option>
-                        </select>
-                    </div>
-                    @if($yearLocked)
-                        <button type="button" wire:click="openUnlockModal"
-                                class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs transition-all shrink-0">
-                            Buka Kunci Ubah Semester
-                        </button>
-                    @else
-                        <button type="submit"
-                                class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-xs transition-all shrink-0">
-                            Simpan Semester
-                        </button>
-                    @endif
-                </form>
-
                 <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-5">
                     <div>

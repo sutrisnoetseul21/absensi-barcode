@@ -5,7 +5,7 @@
 
 <div class="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 pb-16">
     <!-- Hero Header Banner -->
-    <div class="relative bg-gradient-to-r from-brand-primary via-indigo-900 to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
+    <div class="relative bg-gradient-to-r from-brand-primary to-brand-secondary rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-primary/20 overflow-hidden border border-brand-primary/30">
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full filter blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full filter blur-2xl pointer-events-none"></div>
 
@@ -135,21 +135,14 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Jabatan</label>
-                    <input type="text" wire:model="nama_jabatan" @disabled($isLocked) placeholder="Contoh: Bendahara BOS, Kaprog TKJ" class="{{ $inputClass }}">
+                    <input type="text" wire:model="nama_jabatan" placeholder="Contoh: Bendahara BOS, Kaprog TKJ" class="{{ $inputClass }}">
                     @error('nama_jabatan') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                @if($isLocked)
-                    <button type="button" wire:click="openUnlockModal"
-                            class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold shadow-sm transition-all">
-                        Buka Gembok untuk Tambah Jabatan
-                    </button>
-                @else
-                    <button type="submit"
-                            class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold shadow-sm transition-all">
-                        + Tambah Jabatan
-                    </button>
-                @endif
+                <button type="submit"
+                        class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold shadow-sm transition-all">
+                    + Tambah Jabatan
+                </button>
             </form>
         </div>
 
