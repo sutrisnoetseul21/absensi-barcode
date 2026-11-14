@@ -18,6 +18,7 @@ class Kelas extends Model
     protected $fillable = [
         'name',
         'grade_level',
+        'major',
     ];
 
     protected $casts = [

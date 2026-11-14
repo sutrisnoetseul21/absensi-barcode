@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.perpus'      => \App\Http\Middleware\EnsureIsPetugasPerpustakaan::class,
             'auth.presensi'    => \App\Http\Middleware\EnsureIsPetugasPresensi::class,
             'auth.web'         => \App\Http\Middleware\EnsureIsAdminWeb::class,
+            'auth.setup'       => \App\Http\Middleware\EnsureCanAccessSetup::class,
             'maintenance'      => \App\Http\Middleware\CheckPortalMaintenance::class,
             'auth.mobile'      => \App\Http\Middleware\AuthenticateMobileToken::class,
         ]);

@@ -61,13 +61,16 @@
             $isPerpusRoute = request()->is('portal-perpustakaan*');
             $isPresensiRoute = request()->is('portal-presensi*') && !request()->is('portal-presensi/scan*');
             $isWebRoute = request()->is('portal-web*');
+            $isSetupRoute = request()->is('portal-setup*');
             $isGuruRoute = request()->is('portal-guru*');
             $isSiswaRoute = request()->is('portal-siswa*');
 
             $isSuper = $user && ($user->isSuperAdmin() || $user->hasRole('super_admin'));
 
             // Tentukan Judul Portal yang sedang aktif
-            if ($isWebRoute) {
+            if ($isSetupRoute) {
+                $currentPortalTitle = 'Portal Setup & Instalasi';
+            } elseif ($isWebRoute) {
                 $currentPortalTitle = 'Portal Web';
             } elseif ($isPerpusRoute) {
                 $currentPortalTitle = 'Portal Perpustakaan';
@@ -90,8 +93,13 @@
             } elseif ($isSuper) {
                 $userRole = 'Super Admin';
                 $userName = $user?->name ?? 'Admin';
-                $logoutRoute = $isWebRoute ? route('portal-web.logout') : ($isPerpusRoute ? route('portal-perpustakaan.logout') : ($isPresensiRoute ? route('portal-presensi.logout') : ($isGuruRoute ? route('portal-guru.logout') : '/')));
-                $activeDashboard = $isWebRoute ? route('portal-web.dashboard') : ($isPerpusRoute ? route('portal-perpustakaan.dashboard') : ($isPresensiRoute ? route('portal-presensi.dashboard') : ($isGuruRoute ? route('portal-guru.dashboard') : '/admin')));
+                $logoutRoute = $isSetupRoute ? route('portal-setup.logout') : ($isWebRoute ? route('portal-web.logout') : ($isPerpusRoute ? route('portal-perpustakaan.logout') : ($isPresensiRoute ? route('portal-presensi.logout') : ($isGuruRoute ? route('portal-guru.logout') : '/'))));
+                $activeDashboard = $isSetupRoute ? route('portal-setup.dashboard') : ($isWebRoute ? route('portal-web.dashboard') : ($isPerpusRoute ? route('portal-perpustakaan.dashboard') : ($isPresensiRoute ? route('portal-presensi.dashboard') : ($isGuruRoute ? route('portal-guru.dashboard') : '/admin'))));
+            } elseif ($user && $user->hasRole('admin_portal_setup')) {
+                $userRole = 'Admin Setup';
+                $userName = $user?->name ?? 'Admin';
+                $logoutRoute = route('portal-setup.logout');
+                $activeDashboard = route('portal-setup.dashboard');
             } elseif ($user && $user->hasRole('admin_portal_web')) {
                 $userRole = 'Admin Web';
                 $userName = $user?->name ?? 'Admin';
@@ -174,7 +182,91 @@
             <!-- Sidebar Navigation -->
             <div class="flex-1 overflow-y-auto py-6 space-y-1.5 bg-white transition-all duration-300" :class="isCollapsed ? 'px-2' : 'px-4'">
 
-                @if($isWebRoute)
+                @if($isSetupRoute)
+                    @php
+                        $isSetupDashboard = request()->routeIs('portal-setup.dashboard');
+                        $isSetupDasar     = request()->routeIs('portal-setup.dasar');
+                        $isSetupJabatan   = request()->routeIs('portal-setup.jabatan');
+                        $activeClass      = 'bg-rose-50 text-rose-700 font-bold border-r-2 border-rose-600';
+                        $inactiveClass    = 'text-slate-600 hover:bg-rose-50 hover:text-rose-700 font-semibold';
+
+                        $setupSchool = \App\Models\PengaturanSekolah::current();
+                        $setupSchoolOk = $setupSchool && filled($setupSchool->school_name) && filled($setupSchool->school_address);
+                        $setupYearOk   = \App\Models\TahunAjaran::where('status', 'aktif')->exists();
+                        $setupClassOk  = \App\Models\Kelas::exists();
+                        $setupDasarOk  = $setupSchoolOk && $setupYearOk && $setupClassOk;
+
+                        $wajibJabatan = \App\Models\Jabatan::wajibByJenjang($setupSchool?->school_level ?? 'SMP');
+                        $setupJabatanOk = \App\Models\Jabatan::whereIn('nama_jabatan', $wajibJabatan)->count() === count($wajibJabatan);
+                    @endphp
+
+                    {{-- SIDEBAR PORTAL SETUP & INSTALASI --}}
+                    <div x-show="!isCollapsed" class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Tahap 1 — Fondasi Sistem
+                    </div>
+
+                    <a href="{{ route('portal-setup.dashboard') }}" :title="isCollapsed ? 'Ringkasan Setup' : ''"
+                       class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isSetupDashboard ? $activeClass : $inactiveClass }}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <span x-show="!isCollapsed" x-transition.opacity class="truncate">Ringkasan &amp; Ceklist</span>
+                        </div>
+                        @if($setupDasarOk)
+                            <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700">OK</span>
+                        @endif
+                    </a>
+
+                    <a href="{{ route('portal-setup.dasar') }}" :title="isCollapsed ? 'Sekolah, Tahun & Kelas' : ''"
+                       class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isSetupDasar ? $activeClass : $inactiveClass }}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span x-show="!isCollapsed" x-transition.opacity class="truncate">Sekolah, Tahun &amp; Kelas</span>
+                        </div>
+                        @if($setupDasarOk)
+                            <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700">OK</span>
+                        @else
+                            <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-700">Wajib</span>
+                        @endif
+                    </a>
+
+                    @if($setupDasarOk)
+                        <a href="{{ route('portal-setup.jabatan') }}" :title="isCollapsed ? 'Master Jabatan' : ''"
+                           class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm transition-all {{ $isSetupJabatan ? $activeClass : $inactiveClass }}">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <span x-show="!isCollapsed" x-transition.opacity class="truncate">Master Jabatan</span>
+                            </div>
+                            @if($setupJabatanOk)
+                                <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700">OK</span>
+                            @else
+                                <span x-show="!isCollapsed" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-700">Wajib</span>
+                            @endif
+                        </a>
+                    @else
+                        <div title="Selesaikan 3 Setup Dasar dulu untuk membuka Master Jabatan"
+                             class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm text-slate-400 bg-slate-50/70 cursor-not-allowed">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span x-show="!isCollapsed" x-transition.opacity class="truncate">Master Jabatan</span>
+                            </div>
+                            <span x-show="!isCollapsed" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500">Terkunci</span>
+                        </div>
+                    @endif
+
+                    <div x-show="!isCollapsed" class="pt-4 px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Tahap Berikutnya
+                    </div>
+
+                    <div :title="isCollapsed ? 'Upload Guru & Siswa (Segera)' : ''"
+                         class="flex items-center justify-between gap-2 py-2.5 px-3 rounded-xl text-sm text-slate-400 bg-slate-50/70 cursor-not-allowed">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <svg class="w-5 h-5 min-w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            <span x-show="!isCollapsed" x-transition.opacity class="truncate">Upload Guru &amp; Siswa</span>
+                        </div>
+                        <span x-show="!isCollapsed" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500">Nanti</span>
+                    </div>
+
+                @elseif($isWebRoute)
                     @php
                         $isDashboard  = request()->routeIs('portal-web.dashboard');
                         $isArtikel    = request()->routeIs('portal-web.artikel');

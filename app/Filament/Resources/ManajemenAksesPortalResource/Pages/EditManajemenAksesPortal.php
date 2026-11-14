@@ -22,6 +22,7 @@ class EditManajemenAksesPortal extends EditRecord
         $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
         $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
         $data['akses_portal_web'] = $user->hasRole('admin_portal_web');
+        $data['akses_portal_setup'] = $user->hasRole('admin_portal_setup');
         $data['bypass_semua_kelas'] = $user->can('portal_guru:akses_semua_kelas');
         $data['supervisi_jurnal_guru'] = $user->can('portal_guru:supervisi_jurnal');
 
@@ -136,6 +137,16 @@ class EditManajemenAksesPortal extends EditRecord
             if (!$user->hasRole('admin_portal_web')) $user->assignRole('admin_portal_web');
         } else {
             if ($user->hasRole('admin_portal_web')) $user->removeRole('admin_portal_web');
+        }
+
+        // 6. Kelola Portal Setup & Instalasi
+        $hasAksesSetup = !empty($formData['akses_portal_setup']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_setup', 'guard_name' => 'web']);
+
+        if ($hasAksesSetup) {
+            if (!$user->hasRole('admin_portal_setup')) $user->assignRole('admin_portal_setup');
+        } else {
+            if ($user->hasRole('admin_portal_setup')) $user->removeRole('admin_portal_setup');
         }
 
     }

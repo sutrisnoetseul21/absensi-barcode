@@ -14,6 +14,7 @@ Dokumen ini memuat skema tabel pencatatan kehadiran gerbang sekolah, log scan, p
 | `leave_request_logs` | Audit trail verifikasi dan persetujuan izin | `App\Models\LeaveRequestLog` |
 | `presensi_sholat_dhuhur` | Transaksi presensi sholat dhuhur & jumat | `App\Models\PresensiSholatDhuhur` |
 | `holidays` | Kalender libur nasional & cuti sekolah | `App\Models\Holiday` |
+| `school_settings` | Konfigurasi global, identitas, jenjang, & jam batas | `App\Models\PengaturanSekolah` |
 
 ---
 
@@ -54,6 +55,15 @@ Dokumen ini memuat skema tabel pencatatan kehadiran gerbang sekolah, log scan, p
 - `reason` (text): Alasan izin/sakit.
 - `attachment_path` (varchar(255), nullable): Foto surat dokter/surat orang tua.
 - `status` (enum('pending','approved','rejected')): Status persetujuan wali kelas.
+
+### D. Tabel `school_settings` (Konfigurasi Singleton Sekolah)
+- `id` (char(36), PK): UUID pengaturan sekolah (hanya 1 baris singleton).
+- `school_name` (varchar(255)): Nama resmi sekolah.
+- `school_level` (varchar(10), nullable, default `'SMP'`): Jenjang pendidikan sekolah (`SD`, `SMP`, `SMA`, `SMK`) untuk menentukan opsi tingkat kelas.
+- `school_status` (varchar(10), nullable, default `'negeri'`): Status kepemilikan sekolah (`negeri` memakai NIP, `swasta` memakai NIY/NUPTK).
+- `school_address` (text): Alamat lengkap sekolah.
+- `academic_year_id_active` (char(36), FK, nullable): Relasi ke `academic_years.id` yang sedang aktif.
+- `active_semester` (varchar(20)): Semester aktif (`ganjil` / `genap`).
 
 ---
 

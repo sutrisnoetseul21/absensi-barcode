@@ -139,6 +139,14 @@ class ManajemenAksesPortalResource extends Resource
                             ->label('Izinkan Akses Portal Web Sekolah')
                             ->helperText('Jika diaktifkan, pengguna mendapat role Admin Portal Web dan dapat mengakses command center konten web sekolah.'),
                     ])->columns(1),
+
+                Section::make('Akses Portal Setup & Instalasi (/portal-setup)')
+                    ->description('Atur izin pengguna untuk mengakses Portal Setup & Instalasi awal (pengaturan sekolah, tahun ajaran, dan kelas).')
+                    ->schema([
+                        Toggle::make('akses_portal_setup')
+                            ->label('Izinkan Akses Portal Setup & Instalasi')
+                            ->helperText('Jika diaktifkan, pengguna mendapat role Admin Portal Setup dan dapat mengakses /portal-setup.'),
+                    ])->columns(1),
             ])
             ->statePath('data');
     }

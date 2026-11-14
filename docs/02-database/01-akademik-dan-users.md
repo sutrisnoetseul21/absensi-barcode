@@ -63,8 +63,9 @@ Dokumen ini memuat skema tabel yang mengatur akun pengguna, guru, siswa, kelas, 
 
 ### D. Tabel `classes`
 - `id` (char(36), PK): UUID kelas fisik.
-- `name` (varchar(255)): Nama rombel fisik (contoh: `VII-A`, `VIII-B`, `IX-C`).
-- `grade_level` (tinyint): Tingkat jenjang kelas (7, 8, atau 9).
+- `name` (varchar(255)): Nama rombel fisik (contoh: `1A`, `7A`, `X-1`, `X TKJ 1`).
+- `grade_level` (tinyint): Tingkat jenjang kelas (`1–6` SD, `7–9` SMP, `10–12` SMA, `10–13` SMK).
+- `major` (varchar(100), nullable): Jurusan atau Kompetensi Keahlian (khusus SMA/SMK, contoh: `TKJ`, `RPL`, `AKL`, `MIPA`).
 - `deleted_at`: Soft delete timestamp.
 
 ### E. Tabel `student_enrollments`

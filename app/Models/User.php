@@ -429,6 +429,22 @@ class User extends Authenticatable implements FilamentUser
             ];
         }
 
+        // 7. Portal Setup & Instalasi (/portal-setup)
+        if ($isSuper || $this->hasRole('admin_portal_setup')) {
+            $portals[] = [
+                'id'    => 'portal_setup',
+                'name'  => 'Portal Setup & Instalasi',
+                'url'   => url('/portal-setup'),
+                'desc'  => 'Konfigurasi awal identitas sekolah, tahun ajaran aktif, dan struktur kelas sebelum operasional.',
+                'badge' => 'Setup Awal',
+                'badge_color' => 'bg-rose-500/20 text-rose-200 border-rose-400/30',
+                'gradient' => 'from-rose-600 to-pink-700',
+                'icon_bg'  => 'bg-rose-500/20 text-rose-300 group-hover:bg-rose-500 group-hover:text-white',
+                'border_hover' => 'hover:border-rose-400/50 hover:shadow-rose-500/20',
+                'icon'  => 'cog',
+            ];
+        }
+
         return $portals;
     }
 

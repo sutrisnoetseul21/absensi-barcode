@@ -469,6 +469,24 @@ Route::prefix('portal-web')->group(function () {
     });
 });
 
+// Portal Setup & Instalasi Routes
+Route::prefix('portal-setup')->group(function () {
+    Route::redirect('/login', '/login')->name('portal-setup.login');
+
+    Route::middleware('auth.setup')->group(function () {
+        Route::get('/', \App\Livewire\PortalSetup\Dashboard::class)->name('portal-setup.dashboard');
+        Route::get('/dasar', \App\Livewire\PortalSetup\SetupDasar::class)->name('portal-setup.dasar');
+        Route::get('/jabatan', \App\Livewire\PortalSetup\MasterJabatan::class)->name('portal-setup.jabatan');
+
+        Route::post('/logout', function () {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/');
+        })->name('portal-setup.logout');
+    });
+});
+
 // Petugas Perpustakaan Routes (Portal Perpustakaan)
 Route::prefix('portal-perpustakaan')->middleware('maintenance:perpustakaan')->group(function () {
     Route::redirect('/login', '/login')->name('portal-perpustakaan.login');
