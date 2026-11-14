@@ -37,7 +37,9 @@ docs/
 │   ├── 06-cbt-dan-akademik/            # 📝 Integrasi ZenCBT, asesmen, sinkron nilai, & kartu
 │   ├── 07-portal-admin/                # ⚙️ Pusat kendali admin Filament, setting sekolah, & branding
 │   ├── 08-master-data-siswa-dan-guru/  # 👥 Core ERP: Siswa, GTK, skema DB, import massal, & integrasi
-│   └── 09-portal-setup/                # 🛠️ Portal Setup & Instalasi awal (Sekolah, Tahun Ajaran, Kelas)
+│   ├── 09-portal-setup/                # 🛠️ Portal Setup & Instalasi awal (Sekolah, Tahun Ajaran, Kelas)
+│   ├── 11-portal-sistem/               # ⚙️ Portal Sistem: Akses RBAC, Gateway WA, Notif Modular, Maintenance & Tema
+│   └── 12-portal-akademik/             # 🎓 Portal Akademik: GTK, Siswa, Rombel, Jurnal KBM & Guru Wali
 ├── 04-operasional/                     # DevOps, pemeliharaan server, & SOP
 │   ├── README.md                       # Peta navigasi operasional, topologi server, & SOP harian
 │   ├── 01-deployment-dan-lingkungan-server.md # Setup Nginx (50M), SSL, izin Linux, & deploy.sh

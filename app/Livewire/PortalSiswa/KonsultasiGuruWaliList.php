@@ -135,6 +135,15 @@ class KonsultasiGuruWaliList extends Component
             \Illuminate\Support\Facades\Log::warning('Gagal dispatch FCM Guru Wali: ' . $e->getMessage());
         }
 
+        // Pemicu WhatsApp ke Guru Wali khusus jika mode pengajuan adalah Janjian Tatap Muka
+        if ($this->mode === 'Tatap Muka') {
+            try {
+                app(\App\Services\GuruWaliNotificationService::class)->sendPengajuanNotificationToGuru($konsul);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gagal dispatch WA Guru Wali: ' . $e->getMessage());
+            }
+        }
+
         $this->closeModal();
         session()->flash('success', 'Permohonan konsultasi berhasil dikirimkan ke Guru Wali Anda!');
     }

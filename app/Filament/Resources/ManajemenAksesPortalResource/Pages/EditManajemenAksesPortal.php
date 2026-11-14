@@ -14,17 +14,25 @@ class EditManajemenAksesPortal extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $user = $this->record;
+        $isSuperAdmin = $user->isSuperAdmin();
         $activeYear = TahunAjaran::where('status', 'aktif')->first();
         $activeYearId = $activeYear?->id;
 
-        $data['akses_portal_guru'] = $user->hasRole('wali_kelas');
-        $data['akses_portal_perpustakaan'] = $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
-        $data['akses_portal_presensi'] = $user->hasRole('petugas_presensi');
-        $data['akses_dashboard_presensi'] = $user->hasRole('admin_portal_presensi');
-        $data['akses_portal_web'] = $user->hasRole('admin_portal_web');
-        $data['akses_portal_setup'] = $user->hasRole('admin_portal_setup');
-        $data['bypass_semua_kelas'] = $user->can('portal_guru:akses_semua_kelas');
-        $data['supervisi_jurnal_guru'] = $user->can('portal_guru:supervisi_jurnal');
+        $data['akses_portal_guru'] = $isSuperAdmin || $user->hasRole('wali_kelas');
+        $data['akses_portal_perpustakaan'] = $isSuperAdmin || $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
+        $data['akses_portal_presensi'] = $isSuperAdmin || $user->hasRole('petugas_presensi');
+        $data['akses_dashboard_presensi'] = $isSuperAdmin || $user->hasRole('admin_portal_presensi');
+        $data['akses_portal_web'] = $isSuperAdmin || $user->hasRole('admin_portal_web');
+        $data['akses_portal_setup'] = $isSuperAdmin || $user->hasRole('admin_portal_setup');
+        $data['akses_portal_akademik'] = $isSuperAdmin
+            || $user->hasRole('admin_portal_akademik')
+            || $user->hasAnyRole(['admin_akademik_editor', 'admin_akademik_viewer']);
+        $data['hak_akses_akademik'] = (!$isSuperAdmin && $user->hasRole('admin_akademik_viewer') && !$user->hasRole('admin_akademik_editor'))
+            ? 'viewer'
+            : 'editor';
+        $data['akses_portal_sistem'] = $isSuperAdmin || $user->hasRole('admin_portal_sistem');
+        $data['bypass_semua_kelas'] = $isSuperAdmin || $user->can('portal_guru:akses_semua_kelas');
+        $data['supervisi_jurnal_guru'] = $isSuperAdmin || $user->can('portal_guru:supervisi_jurnal');
 
         $pantauClassIds = [];
         if ($user->teacher && $activeYearId) {
@@ -41,6 +49,12 @@ class EditManajemenAksesPortal extends EditRecord
     protected function afterSave(): void
     {
         $user = $this->record;
+
+        // Super Admin otomatis memiliki semua akses portal & bypass, tidak perlu dimodifikasi per-role
+        if ($user->isSuperAdmin()) {
+            return;
+        }
+
         $formData = $this->form->getState();
         $activeYear = TahunAjaran::where('status', 'aktif')->first();
         $activeYearId = $activeYear?->id;
@@ -147,6 +161,43 @@ class EditManajemenAksesPortal extends EditRecord
             if (!$user->hasRole('admin_portal_setup')) $user->assignRole('admin_portal_setup');
         } else {
             if ($user->hasRole('admin_portal_setup')) $user->removeRole('admin_portal_setup');
+        }
+
+        // 7. Kelola Portal Akademik
+        $hasAksesAkademik = !empty($formData['akses_portal_akademik']);
+        $levelAkademik = $formData['hak_akses_akademik'] ?? 'editor';
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_akademik', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_akademik_editor', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_akademik_viewer', 'guard_name' => 'web']);
+
+        if ($hasAksesAkademik) {
+            if (!$user->hasRole('admin_portal_akademik')) {
+                $user->assignRole('admin_portal_akademik');
+            }
+            if ($levelAkademik === 'viewer') {
+                if (!$user->hasRole('admin_akademik_viewer')) $user->assignRole('admin_akademik_viewer');
+                if ($user->hasRole('admin_akademik_editor')) $user->removeRole('admin_akademik_editor');
+            } else {
+                if (!$user->hasRole('admin_akademik_editor')) $user->assignRole('admin_akademik_editor');
+                if (!$user->hasRole('admin_akademik_viewer')) $user->assignRole('admin_akademik_viewer');
+            }
+        } else {
+            if ($user->hasRole('admin_portal_akademik')) $user->removeRole('admin_portal_akademik');
+            if ($user->hasRole('admin_akademik_editor')) $user->removeRole('admin_akademik_editor');
+            if ($user->hasRole('admin_akademik_viewer')) $user->removeRole('admin_akademik_viewer');
+        }
+
+        // 8. Kelola Portal Sistem
+        $hasAksesSistem = !empty($formData['akses_portal_sistem']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_portal_sistem', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_akses_editor', 'guard_name' => 'web']);
+
+        if ($hasAksesSistem) {
+            if (!$user->hasRole('admin_portal_sistem')) $user->assignRole('admin_portal_sistem');
+            if (!$user->hasRole('admin_akses_editor')) $user->assignRole('admin_akses_editor');
+        } else {
+            if ($user->hasRole('admin_portal_sistem')) $user->removeRole('admin_portal_sistem');
+            if ($user->hasRole('admin_akses_editor')) $user->removeRole('admin_akses_editor');
         }
 
     }

@@ -34,10 +34,20 @@ class PengaduanData extends Component
     {
         if ($this->selectedPengaduan) {
             $this->validate(['updateStatus' => 'required|in:menunggu,diproses,selesai']);
+            $oldStatus = $this->selectedPengaduan->status;
             
             $this->selectedPengaduan->update([
                 'status' => $this->updateStatus
             ]);
+
+            if ($oldStatus !== $this->updateStatus && in_array($this->updateStatus, ['diproses', 'selesai'], true)) {
+                try {
+                    app(\App\Services\PengaduanNotificationService::class)
+                        ->sendStatusUpdateToPelapor($this->selectedPengaduan->fresh());
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Gagal kirim WA Update Status Pengaduan: ' . $e->getMessage());
+                }
+            }
 
             $this->showModal = false;
             session()->flash('success', 'Status pengaduan berhasil diperbarui.');

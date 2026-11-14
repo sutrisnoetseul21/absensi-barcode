@@ -15,8 +15,8 @@ class CheckPortalMaintenance
      */
     public function handle(Request $request, Closure $next, string $portal): Response
     {
-        // 1. Bypass untuk super_admin
-        if (auth()->check() && auth()->user()->hasRole('super_admin')) {
+        // 1. Bypass untuk Super Admin
+        if (auth()->check() && auth()->user()->isSuperAdmin()) {
             return $next($request);
         }
 

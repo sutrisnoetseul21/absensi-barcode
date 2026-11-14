@@ -17,10 +17,15 @@ class GuruWaliNotificationService
     ) {}
 
     /**
-     * Kirim notifikasi WA ke Guru Wali saat siswa mengajukan bimbingan / bercerita baru.
+     * Kirim notifikasi WA ke Guru Wali saat siswa mengajukan janjian tatap muka baru.
+     * (Untuk bimbingan biasa / curhat online via Pesan Portal hanya menggunakan notifikasi di aplikasi).
      */
     public function sendPengajuanNotificationToGuru(KonsultasiGuruWali $konsultasi): array
     {
+        if (($konsultasi->mode_konsultasi ?? '') !== 'Tatap Muka') {
+            return ['status' => 'skipped', 'reason' => 'Bimbingan online cukup melalui aplikasi'];
+        }
+
         $setting = PresensiNotificationSetting::where('status_presensi', 'guru_wali_pengajuan')->first();
         if ($setting && !$setting->is_active) {
             return ['status' => 'skipped', 'reason' => 'Notifikasi WA pengajuan guru wali dinonaktifkan'];
@@ -90,80 +95,11 @@ class GuruWaliNotificationService
 
     /**
      * Kirim notifikasi WA balasan / tanggapan guru wali ke siswa dan/atau orang tua.
+     * Dinonaktifkan karena obrolan / curhat online sudah ditangani melalui notifikasi aplikasi.
      */
     public function sendBalasanNotificationToSiswa(KonsultasiGuruWali $konsultasi, string $balasanGuru): array
     {
-        $setting = PresensiNotificationSetting::where('status_presensi', 'guru_wali_balasan')->first();
-        if ($setting && !$setting->is_active) {
-            return ['status' => 'skipped', 'reason' => 'Notifikasi WA balasan guru wali dinonaktifkan'];
-        }
-
-        $konsultasi->loadMissing(['siswa.enrollmentAktif.kelas', 'guru']);
-        $siswa = $konsultasi->siswa;
-        $guru  = $konsultasi->guru;
-
-        if (!$siswa) {
-            return ['status' => 'failed', 'reason' => 'Siswa tidak ditemukan'];
-        }
-
-        $targetTypes = ($setting && !empty($setting->recipients)) ? $setting->recipients : ['siswa'];
-        $contacts    = $this->resolver->resolveKontakSiswa($siswa, $targetTypes);
-
-        if (empty($contacts)) {
-            return ['status' => 'skipped', 'reason' => 'Kontak siswa/orang tua tidak ditemukan'];
-        }
-
-        $namaSiswa    = $siswa->name;
-        $namaGuruWali = $guru?->name ?? 'Guru Wali';
-        $topik        = $konsultasi->topik_konsultasi ?? '-';
-
-        $templateSiswa = ($setting && !empty($setting->template_pesan))
-            ? $setting->template_pesan
-            : "Halo *{nama_siswa}*,\n\nBapak/Ibu Guru Wali (*{nama_guru_wali}*) telah merespons cerita / konsultasi kamu mengenai *{topik}*:\n\n💬 *Pesan Guru Wali:*\n\"{balasan_guru}\"\n\nBuka aplikasi presensi mobile (menu SI-WALI) untuk melihat dan melanjutkan obrolan.";
-
-        $settingOrtu = PresensiNotificationSetting::where('status_presensi', 'guru_wali_balasan_ortu')->first();
-        $templateOrtu = ($settingOrtu && !empty($settingOrtu->template_pesan))
-            ? $settingOrtu->template_pesan
-            : "Yth. Orang Tua/Wali dari *{nama_siswa}*,\n\nKami informasikan bahwa Guru Wali ananda (*{nama_guru_wali}*) telah memberikan tanggapan terkait pendampingan/bimbingan ananda mengenai topik *{topik}*.\n\nTerima kasih atas kerja samanya dalam mendukung perkembangan ananda.";
-
-        $dispatched = [];
-
-        foreach ($contacts as $contact) {
-            $toNumber = $contact['number'];
-            $type     = $contact['type'];
-
-            $rawTemplate = ($type === 'siswa') ? $templateSiswa : $templateOrtu;
-            $pesan = strtr($rawTemplate, [
-                '{nama_siswa}'     => $namaSiswa,
-                '{nama_guru_wali}' => $namaGuruWali,
-                '{topik}'          => $topik,
-                '{balasan_guru}'   => $balasanGuru,
-            ]);
-
-            $log = WhatsAppNotificationLog::create([
-                'module'           => 'guru_wali',
-                'recipient_type'   => $type,
-                'recipient_number' => $toNumber,
-                'message'          => $pesan,
-                'status'           => 'pending',
-                'response_payload' => json_encode(['info' => 'Guru Wali Balasan Notification Queued']),
-                'related_type'     => 'konsultasi_guru_wali',
-                'related_id'       => (string) $konsultasi->id,
-            ]);
-
-            SendWhatsAppNotificationJob::dispatch(
-                $toNumber,
-                $pesan,
-                'konsultasi_guru_wali',
-                (string) $konsultasi->id,
-                $type,
-                $log->id
-            );
-
-            $dispatched[] = ['number' => $toNumber, 'type' => $type, 'log_id' => $log->id];
-        }
-
-        return ['status' => 'dispatched', 'count' => count($dispatched), 'recipients' => $dispatched];
+        return ['status' => 'skipped', 'reason' => 'Balasan obrolan online cukup melalui aplikasi'];
     }
 
     /**

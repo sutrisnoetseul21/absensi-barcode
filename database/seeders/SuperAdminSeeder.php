@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class SuperAdminSeeder extends Seeder
 {
@@ -19,7 +21,9 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $superAdmin = User::updateOrCreate(
             ['email' => 'superadmin@haflaitsolution.id'],
             [
                 'name'           => 'Super Admin',
@@ -28,6 +32,17 @@ class SuperAdminSeeder extends Seeder
             ]
         );
 
-        $this->command->info('Super Admin seeded: superadmin@haflaitsolution.id / SuperAdmin123!');
+        $superAdminRole = Role::firstOrCreate([
+            'name'       => 'super_admin',
+            'guard_name' => 'web',
+        ]);
+
+        if (!$superAdmin->hasRole('super_admin')) {
+            $superAdmin->assignRole($superAdminRole);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->command?->info('Super Admin seeded: superadmin@haflaitsolution.id / SuperAdmin123!');
     }
 }

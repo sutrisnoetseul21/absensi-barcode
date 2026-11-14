@@ -99,6 +99,16 @@ class User extends Authenticatable implements FilamentUser
             });
         }
 
+        if ($panelId === 'sistem') {
+            return $this->hasRole('admin_portal_sistem')
+                || $this->roles->contains(fn ($role) => str_starts_with($role->name, 'admin_akses'));
+        }
+
+        if ($panelId === 'akademik') {
+            return $this->hasRole('admin_portal_akademik')
+                || $this->roles->contains(fn ($role) => str_starts_with($role->name, 'admin_akademik'));
+        }
+
         if (isset($panelRolePrefixes[$panelId])) {
             $prefix = $panelRolePrefixes[$panelId];
             // Cek apakah user punya role yang berawalan dengan prefix tersebut
@@ -468,6 +478,23 @@ class User extends Authenticatable implements FilamentUser
                 'icon_bg'  => 'bg-blue-500/20 text-blue-300 group-hover:bg-blue-500 group-hover:text-white',
                 'border_hover' => 'hover:border-blue-400/50 hover:shadow-blue-500/20',
                 'icon'  => 'academic-cap',
+            ];
+        }
+
+        // 9. Portal Sistem (/portal-sistem)
+        if ($isSuper || $this->hasRole('admin_portal_sistem') || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_akses'))) {
+            $portals[] = [
+                'id'     => 'portal_sistem',
+                'locked' => false,
+                'name'   => 'Portal Sistem',
+                'url'    => url('/portal-sistem'),
+                'desc'   => 'Manajemen akun admin, hak akses portal, gateway WhatsApp, serta broadcast notifikasi Android.',
+                'badge'  => 'Sistem & Akses',
+                'badge_color' => 'bg-violet-500/20 text-violet-200 border-violet-400/30',
+                'gradient' => 'from-violet-600 to-purple-700',
+                'icon_bg'  => 'bg-violet-500/20 text-violet-300 group-hover:bg-violet-500 group-hover:text-white',
+                'border_hover' => 'hover:border-violet-400/50 hover:shadow-violet-500/20',
+                'icon'   => 'shield',
             ];
         }
 

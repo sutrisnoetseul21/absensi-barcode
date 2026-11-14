@@ -16,23 +16,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            CoreSystemSeeder::class,
             KelasSeeder::class,
             JabatanSeeder::class,
             SuperAdminSeeder::class,
-            KategoriBukuSeeder::class,
-            KlasifikasiDdcSeeder::class,
-            RoleAdminSeeder::class,
-            RoleAkademikSeeder::class,
-            RolePresensiSeeder::class,
-            RolePerpustakaanSeeder::class,
-            GuruAksesSemuaKelasSeeder::class,
             WebSarpraSeeder::class,
             WebPillarSeeder::class,
             WebFaqSeeder::class,
-            SpikapRoleSeeder::class,
-            PresensiDailyReportSettingSeeder::class,
-            PresensiNotificationSettingSeeder::class,
-            PresensiSchoolSummarySettingSeeder::class,
         ]);
 
         // Akun Admin Filament

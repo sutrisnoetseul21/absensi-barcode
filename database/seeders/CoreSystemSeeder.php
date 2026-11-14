@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -36,6 +37,9 @@ class CoreSystemSeeder extends Seeder
             'admin_portal_akademik',
             'admin_portal_web',
             'admin_portal_presensi',
+            'admin_portal_sistem',
+            'admin_akses_editor',
+            'admin_akses_viewer',
             'petugas_presensi',
             'petugas_perpustakaan',
         ];
@@ -43,6 +47,12 @@ class CoreSystemSeeder extends Seeder
         foreach ($portalRoles as $roleName) {
             Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
         }
+
+        // Pastikan permission tambahan portal tersedia
+        Permission::firstOrCreate([
+            'name'       => 'portal_guru:supervisi_jurnal',
+            'guard_name' => 'web',
+        ]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }

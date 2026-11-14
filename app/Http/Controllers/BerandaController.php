@@ -233,6 +233,10 @@ class BerandaController extends Controller
 
     public function pengaduanStore(\Illuminate\Http\Request $request): \Illuminate\Http\RedirectResponse
     {
+        if (! \App\Models\PengaduanSetting::instance()->is_active) {
+            return redirect()->back()->withErrors(['isi_pengaduan' => 'Mohon maaf, layanan formulir pengaduan saat ini sedang ditutup sementara.']);
+        }
+
         // Honeypot anti-spam
         if ($request->filled('website')) {
             return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim.');
@@ -252,7 +256,7 @@ class BerandaController extends Controller
             'isi_pengaduan.required'         => 'Isi pesan / pengaduan wajib diisi.',
         ]);
 
-        \App\Models\Pengaduan::create([
+        $pengaduan = \App\Models\Pengaduan::create([
             'nama'                  => strip_tags($request->nama),
             'email'                 => strip_tags($request->email),
             'no_hp'                 => strip_tags($request->no_hp),
@@ -260,6 +264,13 @@ class BerandaController extends Controller
             'isi_pengaduan'         => strip_tags($request->isi_pengaduan),
             'status'                => 'menunggu',
         ]);
+
+        try {
+            app(\App\Services\PengaduanNotificationService::class)
+                ->sendPengaduanBaruNotifications($pengaduan);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim WA Pengaduan Publik: ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Terima kasih! Pesan dan aspirasi Anda telah kami terima dan akan segera ditindaklanjuti.');
     }

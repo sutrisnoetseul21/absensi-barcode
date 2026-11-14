@@ -167,6 +167,13 @@ class KonsultasiList extends Component
                 'tanggapan_guru'   => $this->tanggapan_jadwal ?: null,
             ]);
 
+            try {
+                app(\App\Services\GuruWaliNotificationService::class)
+                    ->sendJadwalNotificationToSiswa($this->consultationToSchedule->fresh());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Gagal dispatch WA Jadwal Guru Wali: ' . $e->getMessage());
+            }
+
             session()->flash('success', 'Jadwal konsultasi berhasil dikonfirmasi dan ditetapkan.');
             $this->showScheduleModal = false;
             $this->consultationToSchedule = null;
