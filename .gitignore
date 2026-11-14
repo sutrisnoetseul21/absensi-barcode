@@ -33,6 +33,8 @@ Thumbs.db
 *.gz
 docs/**/*.pdf
 docs/*.pdf
+docs/**/*.xlsx
+docs/*.xlsx
 
 # Temporary, backup, lock, and ad-hoc debug files
 *.bak
