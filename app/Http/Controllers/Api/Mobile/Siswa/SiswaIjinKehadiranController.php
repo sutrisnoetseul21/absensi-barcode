@@ -164,7 +164,7 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             'duration_days' => 'required|integer|min:1|max:30',
             'start_date' => 'required|date',
             'reason' => 'required|string|min:3|max:200',
-            'attachments' => 'nullable|array|max:5',
+            'attachments' => 'required|array|min:1|max:1',
             'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
         ], [
             'type.required' => 'Pilihan tipe permohonan (Ijin / Sakit) wajib dipilih.',
@@ -176,9 +176,11 @@ class SiswaIjinKehadiranController extends BaseSiswaApiController
             'reason.required' => 'Alasan izin wajib diisi.',
             'reason.min' => 'Alasan izin minimal 3 karakter.',
             'reason.max' => 'Alasan izin maksimal 200 karakter.',
-            'attachments.max' => 'Lampiran maksimal 5 berkas.',
+            'attachments.required' => 'Bukti foto / surat lampiran wajib diunggah (1 foto).',
+            'attachments.min' => 'Bukti foto / surat lampiran wajib diunggah (1 foto).',
+            'attachments.max' => 'Lampiran hanya diperbolehkan 1 foto.',
             'attachments.*.mimes' => 'Format lampiran harus berupa JPG, PNG, WEBP, atau PDF.',
-            'attachments.*.max' => 'Ukuran setiap lampiran maksimal 5MB.',
+            'attachments.*.max' => 'Ukuran lampiran maksimal 5MB.',
         ]);
 
         if ($validator->fails()) {
