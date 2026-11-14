@@ -3,7 +3,17 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Akademik\Pages\AkademikDashboard;
+use App\Filament\Akademik\Pages\AnalisaPresensiKbmSiswaPage;
+use App\Filament\Akademik\Pages\MonitoringGuruKelasJurnalPage;
+use App\Filament\Akademik\Resources\Enrollment\EnrollmentResource;
 use App\Filament\Akademik\Resources\Guru\GuruResource;
+use App\Filament\Akademik\Resources\GuruWali\KelompokGuruWaliResource;
+use App\Filament\Akademik\Resources\JurnalPembelajaranResource;
+use App\Filament\Akademik\Resources\Kelas\KelasResource;
+use App\Filament\Akademik\Resources\PindahKelasResource;
+use App\Filament\Akademik\Resources\Siswa\SiswaResource;
+use App\Filament\Akademik\Resources\SiswaLulusResource;
+use App\Filament\Akademik\Resources\SiswaMutasiResource;
 use App\Filament\Akademik\Widgets\AkademikStatsWidget;
 use App\Http\Middleware\EnsureCanAccessAkademik;
 use App\Http\Middleware\FilamentAuthenticate;
@@ -92,6 +102,7 @@ class AkademikPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Data Master',
                 'Akademik',
+                'Jurnal Mengajar',
                 'Guru Wali',
                 'Akses Portal & Web',
             ])
@@ -128,9 +139,19 @@ class AkademikPanelProvider extends PanelProvider
             ->profile()
             ->resources([
                 GuruResource::class,
+                SiswaResource::class,
+                KelasResource::class,
+                EnrollmentResource::class,
+                PindahKelasResource::class,
+                SiswaLulusResource::class,
+                SiswaMutasiResource::class,
+                KelompokGuruWaliResource::class,
+                JurnalPembelajaranResource::class,
             ])
             ->pages([
                 AkademikDashboard::class,
+                MonitoringGuruKelasJurnalPage::class,
+                AnalisaPresensiKbmSiswaPage::class,
             ])
             ->widgets([
                 AkademikStatsWidget::class,

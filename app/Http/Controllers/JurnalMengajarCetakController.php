@@ -30,11 +30,13 @@ class JurnalMengajarCetakController extends Controller
         $isSupervisor = $user->isSuperAdmin() 
             || $user->hasRole('super_admin') 
             || $user->can('portal_guru:supervisi_jurnal')
-            || $user->hasAnyRole(['admin_akademik_viewer', 'admin_akademik_editor', 'admin_presensi_viewer', 'admin_presensi_editor']);
+            || $user->hasAnyRole(['admin_akademik_viewer', 'admin_akademik_editor', 'admin_master_viewer', 'admin_master_editor', 'admin_presensi_viewer', 'admin_presensi_editor']);
 
         $teacherId = $request->query('teacher_id');
-        if (!$isSupervisor || empty($teacherId)) {
+        if (!$isSupervisor) {
             $teacherId = $user->teacher?->id;
+        } elseif (empty($teacherId)) {
+            $teacherId = null;
         }
 
         $academicYearId = $request->query('academic_year_id') 

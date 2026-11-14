@@ -6,6 +6,7 @@ use App\Models\Kelas;
 use App\Models\PengaturanSekolah;
 use App\Models\TahunAjaran;
 use App\Models\User;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Spatie\Permission\Models\Role;
 
 class SetupDasar extends Component
 {
@@ -319,6 +321,14 @@ class SetupDasar extends Component
             'active_semester' => now()->month >= 7 ? 'ganjil' : 'genap',
         ]);
         $school->save();
+
+        // Otomatis inisialisasi role & setting inti sistem jika belum terpasang
+        if (!Role::where('name', 'siswa')->exists() || !Role::where('name', 'admin_portal_akademik')->exists()) {
+            Artisan::call('db:seed', [
+                '--class' => \Database\Seeders\CoreSystemSeeder::class,
+                '--force' => true,
+            ]);
+        }
 
         Cache::forget('public_pengaturan_sekolah');
         $this->syncDefaultGradeLevels();

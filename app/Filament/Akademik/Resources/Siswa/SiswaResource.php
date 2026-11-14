@@ -36,9 +36,9 @@ class SiswaResource extends Resource
 
     protected static ?string $navigationLabel = 'Siswa';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $recordTitleAttribute = 'name';
 

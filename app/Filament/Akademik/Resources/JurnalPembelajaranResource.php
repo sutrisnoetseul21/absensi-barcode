@@ -32,17 +32,17 @@ class JurnalPembelajaranResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
-    protected static ?string $navigationLabel = 'Jurnal Mengajar';
+    protected static ?string $navigationLabel = 'Data & Cetak Jurnal';
 
     protected static ?string $modelLabel = 'Jurnal Mengajar';
 
-    protected static ?string $pluralModelLabel = 'Jurnal Mengajar';
+    protected static ?string $pluralModelLabel = 'Data & Cetak Jurnal';
 
     protected static ?string $slug = 'jurnal-mengajar';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
+    protected static string|\UnitEnum|null $navigationGroup = 'Jurnal Mengajar';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 1;
 
     public static function canViewAny(): bool
     {
@@ -62,6 +62,8 @@ class JurnalPembelajaranResource extends Resource
         return $user->hasAnyRole([
             'admin_akademik_viewer',
             'admin_akademik_editor',
+            'admin_master_viewer',
+            'admin_master_editor',
             'admin_presensi_viewer',
             'admin_presensi_editor',
         ]);
@@ -112,7 +114,7 @@ class JurnalPembelajaranResource extends Resource
 
                         Placeholder::make('mata_pelajaran')
                             ->label('Mata Pelajaran')
-                            ->content(fn ($record) => $record?->mataPelajaran?->nama ?? '-'),
+                            ->content(fn ($record) => $record?->mataPelajaran?->nama_mapel ?? $record?->mataPelajaran?->nama ?? '-'),
 
                         Placeholder::make('kelas_nama')
                             ->label('Kelas / Rombel')
@@ -216,6 +218,12 @@ class JurnalPembelajaranResource extends Resource
                     ->state(fn ($record) => "{$record->total_hadir}/{$record->total_siswa} ({$record->persentase_kehadiran}%)")
                     ->badge()
                     ->color(fn ($record) => $record->persentase_kehadiran >= 90 ? 'success' : 'warning'),
+
+                TextColumn::make('total_tidak_mengikuti')
+                    ->label('Tidak Ikut / Bolos')
+                    ->formatStateUsing(fn ($state) => ((int) $state) > 0 ? "{$state} Siswa" : 'Nihil')
+                    ->badge()
+                    ->color(fn ($state) => ((int) $state) > 0 ? 'danger' : 'gray'),
             ])
             ->defaultSort('tanggal', 'desc')
             ->filters([

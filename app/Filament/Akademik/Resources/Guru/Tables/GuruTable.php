@@ -25,66 +25,10 @@ use Illuminate\Support\Str;
 
 class GuruTable
 {
-    public static function configure(Table $table): Table
+    public static function getPageHeaderActions(): array
     {
-        return $table
-            ->columns([
-                ImageColumn::make('photo_path')
-                    ->label('Foto')
-                    ->circular()
-                    ->disk('public')
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=6366f1&color=ffffff'),
-
-                TextColumn::make('name')
-                    ->label('Nama Guru')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('nip')
-                    ->label('NIP')
-                    ->searchable()
-                    ->default('—'),
-
-                TextColumn::make('no_hp')
-                    ->label('No. HP')
-                    ->searchable()
-                    ->copyable(),
-
-                TextColumn::make('presensiProfile.barcode_code')
-                    ->label('Barcode')
-                    ->searchable()
-                    ->default('—'),
-
-                TextColumn::make('user.email')
-                    ->label('Email Login')
-                    ->searchable()
-                    ->copyable()
-                    ->copyMessage('Email disalin'),
-
-                TextColumn::make('microsite_url')
-                    ->label('Microsite')
-                    ->icon('heroicon-o-globe-alt')
-                    ->url(fn ($record) => $record->microsite_url, shouldOpenInNewTab: true)
-                    ->formatStateUsing(fn ($state) => $state ? 'Buka Link' : '—')
-                    ->color(fn ($state) => $state ? 'primary' : 'gray')
-                    ->toggleable(),
-
-                IconColumn::make('user.must_change_password')
-                    ->label('Ganti Password?')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-exclamation-triangle')
-                    ->falseIcon('heroicon-o-check-circle')
-                    ->trueColor('warning')
-                    ->falseColor('success'),
-
-                TextColumn::make('created_at')
-                    ->label('Dibuat')
-                    ->dateTime('d M Y, H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->headerActions([
-                Action::make('generate_barcode_masal')
+        return [
+            Action::make('generate_barcode_masal')
                     ->label('Generate Barcode Masal')
                     ->icon('heroicon-o-qr-code')
                     ->color('info')
@@ -119,19 +63,21 @@ class GuruTable
                             ->send();
                     }),
 
-                Action::make('download_template')
-                    ->label('Download Template')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->url(route('admin.guru.download-template'))
-                    ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-
                 Action::make('import_guru')
                     ->label('Import Excel')
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('success')
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->form([
+                        \Filament\Forms\Components\Placeholder::make('template_info')
+                            ->label('Template Excel')
+                            ->content(fn () => new \Illuminate\Support\HtmlString(
+                                '<div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs">' .
+                                '<span class="text-slate-700 dark:text-slate-300">Belum punya formatnya? Unduh template Excel resmi terlebih dahulu.</span>' .
+                                '<a href="' . e(route('admin.guru.download-template')) . '" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-xs transition-colors">Download Template (.xlsx)</a>' .
+                                '</div>'
+                            )),
+
                         \Filament\Forms\Components\FileUpload::make('file')
                             ->label('Pilih file Excel (.xlsx)')
                             ->disk('local')
@@ -391,6 +337,66 @@ class GuruTable
                             ->success()
                             ->send();
                     }),
+        ];
+    }
+
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                ImageColumn::make('photo_path')
+                    ->label('Foto')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=6366f1&color=ffffff'),
+
+                TextColumn::make('name')
+                    ->label('Nama Guru')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('nip')
+                    ->label('NIP')
+                    ->searchable()
+                    ->default('—'),
+
+                TextColumn::make('no_hp')
+                    ->label('No. HP')
+                    ->searchable()
+                    ->copyable(),
+
+                TextColumn::make('presensiProfile.barcode_code')
+                    ->label('Barcode')
+                    ->searchable()
+                    ->default('—'),
+
+                TextColumn::make('user.email')
+                    ->label('Email Login')
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Email disalin'),
+
+                TextColumn::make('microsite_url')
+                    ->label('Microsite')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url(fn ($record) => $record->microsite_url, shouldOpenInNewTab: true)
+                    ->formatStateUsing(fn ($state) => $state ? 'Buka Link' : '—')
+                    ->color(fn ($state) => $state ? 'primary' : 'gray')
+                    ->toggleable(),
+
+                IconColumn::make('user.must_change_password')
+                    ->label('Ganti Password?')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-exclamation-triangle')
+                    ->falseIcon('heroicon-o-check-circle')
+                    ->trueColor('warning')
+                    ->falseColor('success'),
+
+                TextColumn::make('created_at')
+                    ->label('Dibuat')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TrashedFilter::make(),

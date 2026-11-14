@@ -6,6 +6,9 @@ use App\Filament\Akademik\Resources\Siswa\SiswaResource;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class CreateSiswa extends CreateRecord
 {
@@ -22,13 +25,38 @@ class CreateSiswa extends CreateRecord
         $password = empty($data['password']) ? $data['nisn'] : $data['password'];
         $email = $data['email'] ?? $data['nisn'] . '@' . config('school.email_domain');
 
-        $user = User::create([
-            'name'                 => $data['name'],
-            'email'                => $email,
-            'password'             => $password,
-            'must_change_password' => false,
-        ]);
-        $user->assignRole('siswa');
+        $user = DB::transaction(function () use ($email, $data, $password) {
+            $existing = User::firstWhere('email', $email);
+
+            if ($existing) {
+                if ($existing->student()->exists()) {
+                    throw ValidationException::withMessages([
+                        'data.email' => "Email {$email} sudah digunakan oleh siswa lain.",
+                    ]);
+                }
+
+                $existing->update([
+                    'name'                 => $data['name'],
+                    'password'             => $password,
+                    'must_change_password' => false,
+                ]);
+                $user = $existing;
+            } else {
+                $user = User::create([
+                    'name'                 => $data['name'],
+                    'email'                => $email,
+                    'password'             => $password,
+                    'must_change_password' => false,
+                ]);
+            }
+
+            Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
+            if (!$user->hasRole('siswa')) {
+                $user->assignRole('siswa');
+            }
+
+            return $user;
+        });
 
         $data['user_id'] = $user->id;
 

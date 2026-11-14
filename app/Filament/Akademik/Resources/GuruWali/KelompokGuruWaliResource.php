@@ -35,9 +35,9 @@ class KelompokGuruWaliResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
     protected static string|\UnitEnum|null $navigationGroup = 'Guru Wali';
-    protected static ?string $navigationLabel = 'Kelompok Dampingan';
-    protected static ?string $modelLabel = 'Kelompok';
-    protected static ?string $pluralModelLabel = 'Kelompok Dampingan';
+    protected static ?string $navigationLabel = 'Kelompok Guru Wali';
+    protected static ?string $modelLabel = 'Kelompok Guru Wali';
+    protected static ?string $pluralModelLabel = 'Kelompok Guru Wali';
     protected static ?string $slug = 'guru-wali/kelompok';
     protected static ?int $navigationSort = 1;
 

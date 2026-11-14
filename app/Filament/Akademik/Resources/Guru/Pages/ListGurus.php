@@ -15,10 +15,10 @@ class ListGurus extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
+        return array_merge([
             CreateAction::make()
                 ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-
+        ], \App\Filament\Akademik\Resources\Guru\Tables\GuruTable::getPageHeaderActions(), [
             // ─── Sync Guru ke ZenCBT ──────────────────────────────────────
             Action::make('sync_teachers_to_cbt')
                 ->label('Sync Guru ke ZenCBT')
@@ -61,6 +61,6 @@ class ListGurus extends ListRecords
                             ->send();
                     }
                 }),
-        ];
+        ]);
     }
 }

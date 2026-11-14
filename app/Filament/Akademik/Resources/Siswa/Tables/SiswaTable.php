@@ -30,6 +30,85 @@ use Illuminate\Support\Str;
 
 class SiswaTable
 {
+    public static function getPageHeaderActions(): array
+    {
+        $canEdit = fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor');
+
+        return [
+            \App\Filament\Akademik\Resources\Siswa\Actions\ImportSiswaBaruAction::make()
+                ->visible($canEdit),
+
+            \Filament\Actions\Action::make('cetakBiodataPerKelas')
+                ->label('Cetak Biodata Kelas')
+                ->icon('heroicon-o-printer')
+                ->color('info')
+                ->form([
+                    \Filament\Forms\Components\Select::make('class_id')
+                        ->label('Pilih Kelas')
+                        ->options(\App\Models\Kelas::pluck('name', 'id'))
+                        ->searchable()
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $classId = $data['class_id'];
+                    $academicYearId = \App\Models\PengaturanSekolah::first()?->academic_year_id_active;
+
+                    $siswas = \App\Models\Siswa::where('status', 'aktif')
+                        ->whereHas('enrollments', function ($query) use ($classId, $academicYearId) {
+                            $query->where('class_id', $classId);
+                            if ($academicYearId) {
+                                $query->where('academic_year_id', $academicYearId);
+                            }
+                        })->get();
+
+                    if ($siswas->isEmpty()) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Tidak ada siswa aktif di kelas ini')
+                            ->warning()
+                            ->send();
+                        return;
+                    }
+
+                    $settings = \App\Models\PengaturanSekolah::first();
+                    $kepsek = \App\Models\Guru::whereHas('jabatans', function ($q) {
+                        $q->where('nama_jabatan', 'like', '%Kepala Sekolah%')
+                          ->where(function ($q2) {
+                              $q2->whereNull('teacher_jabatan.tanggal_selesai')
+                                 ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
+                          });
+                    })->first();
+
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.biodata-siswa-batch', [
+                        'siswas' => $siswas,
+                        'namaKepsek' => $kepsek ? $kepsek->name : ($settings?->principal_name ?? config('school.kepala_sekolah_nama')),
+                        'nipKepsek' => $kepsek ? $kepsek->nip : ($settings?->principal_nip ?? config('school.kepala_sekolah_nip')),
+                        'namaKota' => $settings?->tempat_rapor ?? ($settings?->kota ?? config('school.kota')),
+                        'tanggalRapor' => $settings?->tanggal_rapor ? $settings->tanggal_rapor->format('Y-m-d') : now()->format('Y-m-d'),
+                    ]);
+
+                    $kelasName = \App\Models\Kelas::find($classId)?->name;
+                    return response()->streamDownload(
+                        fn () => print($pdf->output()),
+                        'Biodata-Kelas-' . \Illuminate\Support\Str::slug($kelasName) . '.pdf'
+                    );
+                }),
+
+            \Filament\Actions\ActionGroup::make([
+                \App\Filament\Akademik\Resources\Siswa\Actions\ImportFotoMassalAction::make()
+                    ->visible($canEdit),
+                \App\Filament\Akademik\Resources\Siswa\Actions\UpdateDataSiswaAction::make()
+                    ->visible($canEdit),
+                \App\Filament\Akademik\Resources\Siswa\Actions\UpdateNoHpSiswaAction::make()
+                    ->visible($canEdit),
+            ])
+                ->label('Aksi Massal')
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->color('gray')
+                ->button()
+                ->visible($canEdit),
+        ];
+    }
+
     public static function configure(Table $table): Table
     {
         // Ambil tahun ajaran aktif dari pengaturan sekolah
@@ -115,74 +194,6 @@ class SiswaTable
                     ->dateTime('d M Y, H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->headerActions([
-                \App\Filament\Akademik\Resources\Siswa\Actions\ImportFotoMassalAction::make()
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-
-                \App\Filament\Akademik\Resources\Siswa\Actions\ImportSiswaBaruAction::make()
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-
-                \App\Filament\Akademik\Resources\Siswa\Actions\UpdateDataSiswaAction::make()
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-
-                \App\Filament\Akademik\Resources\Siswa\Actions\UpdateNoHpSiswaAction::make()
-                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-                    
-                \Filament\Actions\Action::make('cetakBiodataPerKelas')
-                    ->label('Cetak Biodata Kelas')
-                    ->icon('heroicon-o-printer')
-                    ->color('info')
-                    ->form([
-                        \Filament\Forms\Components\Select::make('class_id')
-                            ->label('Pilih Kelas')
-                            ->options(\App\Models\Kelas::pluck('name', 'id'))
-                            ->searchable()
-                            ->required(),
-                    ])
-                    ->action(function (array $data) {
-                        $classId = $data['class_id'];
-                        $academicYearId = \App\Models\PengaturanSekolah::first()?->academic_year_id_active;
-                        
-                        $siswas = \App\Models\Siswa::where('status', 'aktif')
-                            ->whereHas('enrollments', function ($query) use ($classId, $academicYearId) {
-                                $query->where('class_id', $classId);
-                                if ($academicYearId) {
-                                    $query->where('academic_year_id', $academicYearId);
-                                }
-                            })->get();
-                            
-                        if ($siswas->isEmpty()) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Tidak ada siswa aktif di kelas ini')
-                                ->warning()
-                                ->send();
-                            return;
-                        }
-                
-                        $settings = \App\Models\PengaturanSekolah::first();
-                        $kepsek = \App\Models\Guru::whereHas('jabatans', function ($q) {
-                            $q->where('nama_jabatan', 'like', '%Kepala Sekolah%')
-                              ->where(function ($q2) {
-                                  $q2->whereNull('teacher_jabatan.tanggal_selesai')
-                                     ->orWhere('teacher_jabatan.tanggal_selesai', '>=', now()->toDateString());
-                              });
-                        })->first();
-                
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.biodata-siswa-batch', [
-                            'siswas' => $siswas,
-                            'namaKepsek' => $kepsek ? $kepsek->name : ($settings?->principal_name ?? config('school.kepala_sekolah_nama')),
-                            'nipKepsek' => $kepsek ? $kepsek->nip : ($settings?->principal_nip ?? config('school.kepala_sekolah_nip')),
-                            'namaKota' => $settings?->tempat_rapor ?? ($settings?->kota ?? config('school.kota')),
-                            'tanggalRapor' => $settings?->tanggal_rapor ? $settings->tanggal_rapor->format('Y-m-d') : now()->format('Y-m-d'),
-                        ]);
-                        
-                        $kelasName = \App\Models\Kelas::find($classId)?->name;
-                        return response()->streamDownload(
-                            fn () => print($pdf->output()),
-                            'Biodata-Kelas-' . \Illuminate\Support\Str::slug($kelasName) . '.pdf'
-                        );
-                    }),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'aktif'))
             ->filters([

@@ -86,6 +86,26 @@
             </a>
 
             @forelse($accessiblePortals as $portal)
+                @php $isLocked = !empty($portal['locked']); @endphp
+                @if($isLocked)
+                    <div title="Simpan Identitas Sekolah di Portal Setup terlebih dahulu"
+                         class="relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-white/5 border border-white/10 opacity-65 cursor-not-allowed overflow-hidden">
+                        <div>
+                            <div class="flex items-center justify-between mb-5">
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-slate-800/80 text-slate-400">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border bg-amber-500/15 text-amber-300 border-amber-400/30">
+                                    Terkunci
+                                </span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-300 mb-2">{{ $portal['name'] }}</h3>
+                            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                                Selesaikan <strong>Simpan Identitas Sekolah</strong> di Portal Setup untuk membuka portal ini.
+                            </p>
+                        </div>
+                    </div>
+                @else
                 <a href="{{ $portal['url'] }}" 
                    class="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 hover:border-blue-400/50 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-1.5 overflow-hidden">
                     
@@ -126,6 +146,7 @@
                         </p>
                     </div>
                 </a>
+                @endif
             @empty
                 <div class="col-span-full p-8 text-center bg-white/5 rounded-3xl border border-white/10 text-slate-400">
                     <p class="font-medium text-sm">Tidak ada portal aktif yang terhubung dengan akun Anda.</p>

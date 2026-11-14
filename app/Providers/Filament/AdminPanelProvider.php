@@ -108,6 +108,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Data Master',
                 'Akademik',
+                'Jurnal Mengajar',
                 'Guru Wali',
                 'Presensi',
                 'Perpustakaan',
@@ -124,7 +125,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
                 // Akademik Pages (exclude AkademikDashboard — rute konflik dengan /admin)
-                \App\Filament\Akademik\Pages\AkademikSettingsPage::class,
+                \App\Filament\Akademik\Pages\MonitoringGuruKelasJurnalPage::class,
+                \App\Filament\Akademik\Pages\AnalisaPresensiKbmSiswaPage::class,
                 // Presensi Pages (exclude Presensi Dashboard — rute konflik dengan /admin)
                 \App\Filament\Presensi\Pages\LaporanPresensi::class,
                 \App\Filament\Presensi\Pages\CetakLaporanPresensi::class,

@@ -24,6 +24,8 @@ class RombonganBelajarResource extends Resource
 
     protected static ?string $slug = 'rombongan-belajar';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $modelLabel = 'Rombongan Belajar';
     protected static ?string $pluralModelLabel = 'Rombongan Belajar';
 

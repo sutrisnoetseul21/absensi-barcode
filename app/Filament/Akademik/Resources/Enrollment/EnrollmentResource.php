@@ -28,11 +28,11 @@ class EnrollmentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static ?string $navigationLabel = 'Pendaftaran Kelas';
+    protected static ?string $navigationLabel = 'Penempatan & Naik Kelas';
 
-    protected static ?string $pluralLabel = 'Pendaftaran Kelas';
+    protected static ?string $pluralLabel = 'Penempatan & Naik Kelas';
 
-    protected static ?string $modelLabel = 'Pendaftaran Kelas';
+    protected static ?string $modelLabel = 'Penempatan & Naik Kelas';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 

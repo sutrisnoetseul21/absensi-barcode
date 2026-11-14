@@ -15,10 +15,10 @@ class ListSiswas extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
+        return array_merge([
             CreateAction::make()
                 ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-
+        ], \App\Filament\Akademik\Resources\Siswa\Tables\SiswaTable::getPageHeaderActions(), [
             Action::make('sync_students_zencbt')
                 ->label('Sinkronkan Siswa ke ZenCBT')
                 ->icon('heroicon-o-users')
@@ -57,7 +57,7 @@ class ListSiswas extends ListRecords
                             ->send();
                     }
                 })
-                ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
-        ];
+                ->visible(fn () => \Filament\Facades\Filament::getCurrentPanel()?->getId() !== 'akademik' && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))),
+        ]);
     }
 }

@@ -17,7 +17,7 @@ class BatalkanKelulusanMassalAction extends Action
     {
         parent::setUp();
 
-        $this->visible(fn () => (PengaturanSekolah::current()?->enable_promotion_features ?? false) && (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')))
+        $this->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
             ->label('Batalkan Kelulusan')
             ->icon('heroicon-o-arrow-path')
             ->color('gray')
@@ -42,6 +42,9 @@ class BatalkanKelulusanMassalAction extends Action
                 $count = 0;
                 foreach ($enrollments as $enrollment) {
                     $enrollment->update(['status' => 'aktif']);
+                    if ($enrollment->siswa && $enrollment->siswa->status === 'lulus') {
+                        $enrollment->siswa->update(['status' => 'aktif']);
+                    }
                     $count++;
                 }
 

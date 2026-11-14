@@ -20,8 +20,7 @@ class ImportNaikKelasAction extends Action
     {
         parent::setUp();
 
-        $this->visible(fn () => PengaturanSekolah::current()?->enable_promotion_features ?? false)
-            ->label('Naik Kelas Massal')
+        $this->label('Naik Kelas Massal')
             ->icon('heroicon-o-arrow-up-tray')
             ->color('warning')
             ->modalHeading('Naik Kelas Massal')
@@ -302,16 +301,17 @@ class ImportNaikKelasAction extends Action
                     return;
                 }
 
-                // Guard: kelas 9 di TP asal harus sudah semua lulus
+                // Guard: kelas akhir di TP asal harus sudah semua lulus
+                [, $maxGrade] = \App\Filament\Akademik\Resources\Enrollment\Tables\EnrollmentTable::getGradeBounds();
                 $belumLulus = \App\Models\EnrollmentSiswa::where('academic_year_id', $sourceId)
                     ->where('status', 'aktif')
-                    ->whereHas('kelas', fn($q) => $q->where('grade_level', 9))
+                    ->whereHas('kelas', fn($q) => $q->where('grade_level', $maxGrade))
                     ->count();
 
                 if ($belumLulus > 0) {
                     Notification::make()
-                        ->title('Kelas 9 Belum Diluluskan')
-                        ->body("Masih ada **{$belumLulus}** siswa kelas 9 yang belum diluluskan di Tahun Ajaran **{$source->name}**. Harap luluskan mereka terlebih dahulu.")
+                        ->title("Kelas {$maxGrade} Belum Diluluskan")
+                        ->body("Masih ada **{$belumLulus}** siswa kelas {$maxGrade} yang belum diluluskan di Tahun Ajaran **{$source->name}**. Harap luluskan mereka terlebih dahulu.")
                         ->danger()
                         ->persistent()
                         ->send();

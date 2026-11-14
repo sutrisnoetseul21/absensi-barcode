@@ -331,11 +331,15 @@ class User extends Authenticatable implements FilamentUser
 
         $isSuper = $this->isSuperAdmin() || $this->hasRole('super_admin');
         $hasAdminRole = $isSuper || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_'));
+        $school = \App\Models\PengaturanSekolah::current();
+        $isSchoolConfigured = $school && filled($school->school_name) && filled($school->school_address);
+        $portalLocked = !$isSchoolConfigured;
 
         // 1. Portal Admin (/admin)
         if ($hasAdminRole) {
             $portals[] = [
-                'id'    => 'admin',
+                'id'     => 'admin',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Admin',
                 'url'   => url('/admin'),
                 'desc'  => 'Pusat administrasi master data akademik, presensi, perpustakaan & pengaturan sistem.',
@@ -351,7 +355,8 @@ class User extends Authenticatable implements FilamentUser
         // 2. Portal Guru (/portal-guru)
         if ($isSuper || $this->hasRole('wali_kelas') || $this->hasRole('guru') || $this->teacher_id !== null || $this->teacher !== null) {
             $portals[] = [
-                'id'    => 'portal_guru',
+                'id'     => 'portal_guru',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Guru',
                 'url'   => url('/portal-guru'),
                 'desc'  => 'Monitoring absensi kelas binaan, permohonan ijin siswa, dan profil guru.',
@@ -367,7 +372,8 @@ class User extends Authenticatable implements FilamentUser
         // 3. Portal Presensi & Kiosk (/portal-presensi)
         if ($isSuper || $this->hasRole('admin_portal_presensi') || $this->hasRole('petugas_presensi') || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_presensi'))) {
             $portals[] = [
-                'id'    => 'portal_presensi',
+                'id'     => 'portal_presensi',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Presensi',
                 'url'   => url('/portal-presensi'),
                 'desc'  => 'Dashboard rekap absensi, input presensi manual, cetak laporan & kartu presensi.',
@@ -383,7 +389,8 @@ class User extends Authenticatable implements FilamentUser
         // 4. Portal Perpustakaan (/portal-perpustakaan)
         if ($isSuper || $this->hasRole('petugas_perpustakaan') || $this->roles->contains(fn($r) => str_contains($r->name, 'admin_perpustakaan'))) {
             $portals[] = [
-                'id'    => 'portal_perpustakaan',
+                'id'     => 'portal_perpustakaan',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Perpustakaan',
                 'url'   => url('/portal-perpustakaan'),
                 'desc'  => 'Katalog buku, sirkulasi peminjaman, buku tamu pengunjung & barcode buku.',
@@ -400,7 +407,8 @@ class User extends Authenticatable implements FilamentUser
         $isPureStudent = ($this->hasRole('siswa') || $this->student !== null) && !$isSuper && $this->teacher === null;
         if ($isPureStudent) {
             $portals[] = [
-                'id'    => 'portal_siswa',
+                'id'     => 'portal_siswa',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Siswa',
                 'url'   => url('/portal-siswa'),
                 'desc'  => 'Riwayat kehadiran harian, kartu pelajar digital, dan riwayat peminjaman buku.',
@@ -416,7 +424,8 @@ class User extends Authenticatable implements FilamentUser
         // 6. Portal Web Sekolah (/portal-web)
         if ($isSuper || $this->hasRole('admin_portal_web')) {
             $portals[] = [
-                'id'    => 'portal_web',
+                'id'     => 'portal_web',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Web',
                 'url'   => url('/portal-web'),
                 'desc'  => 'Command center untuk mengelola artikel, berita, pengumuman, prestasi, dan halaman depan sekolah.',
@@ -448,7 +457,8 @@ class User extends Authenticatable implements FilamentUser
         // 8. Portal Akademik (/portal-akademik)
         if ($isSuper || $this->hasRole('admin_portal_akademik') || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_akademik'))) {
             $portals[] = [
-                'id'    => 'portal_akademik',
+                'id'     => 'portal_akademik',
+                'locked' => $portalLocked,
                 'name'  => 'Portal Akademik',
                 'url'   => url('/portal-akademik'),
                 'desc'  => 'Manajemen data guru, siswa, rombongan belajar, enrollment kelas, dan operasional kurikulum.',
