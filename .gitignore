@@ -33,3 +33,10 @@ Thumbs.db
 *.gz
 docs/**/*.pdf
 docs/*.pdf
+
+# Temporary, backup, lock, and ad-hoc debug files
+*.bak
+.~lock.*
+/public/clear-cache-temp.php
+/db-result.txt
+/pm2_list.json
