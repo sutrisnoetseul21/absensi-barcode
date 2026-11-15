@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\PengaturanSekolah;
+use App\Services\PrincipalAccountSyncService;
 use App\Models\TahunAjaran;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -243,8 +244,13 @@ class SchoolSettingsPage extends Page implements HasForms
             if ($settings) {
                 $settings->update($data);
             } else {
-                PengaturanSekolah::create($data);
+                $settings = PengaturanSekolah::create($data);
             }
+
+            app(PrincipalAccountSyncService::class)->syncFromSchoolSettings(
+                $settings->principal_name,
+                $settings->principal_nip
+            );
 
             \Illuminate\Support\Facades\Cache::forget('public_pengaturan_sekolah');
 

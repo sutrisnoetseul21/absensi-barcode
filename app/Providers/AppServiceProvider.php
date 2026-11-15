@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->is_super_admin ? true : null;
+            return $user->isSuperAdmin() ? true : null;
         });
 
         // Observers

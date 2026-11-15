@@ -105,39 +105,6 @@
                 </div>
             </x-filament::section>
         @else
-            {{-- ===== KPI SUMMARY CARDS ===== --}}
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Mapel Kelas {{ $selectedClassObj?->name }}</div>
-                    <div class="mt-1 text-2xl font-extrabold text-gray-900 dark:text-white">{{ $kpiTotalPenugasan }}</div>
-                    <div class="text-xs text-gray-500 mt-0.5">Penugasan Guru – Mapel</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Sudah Isi Jurnal</div>
-                    <div class="mt-1 text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{{ $kpiSudahIsi }}</div>
-                    <div class="text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Mapel aktif tercatat</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Belum Isi Jurnal</div>
-                    <div class="mt-1 text-2xl font-extrabold text-rose-700 dark:text-rose-300">{{ $kpiBelumIsi }}</div>
-                    <div class="text-xs text-rose-600/80 dark:text-rose-400/80 mt-0.5">0 sesi pada periode ini</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Total Pertemuan</div>
-                    <div class="mt-1 text-2xl font-extrabold text-blue-700 dark:text-blue-300">{{ $kpiTotalSesi }}</div>
-                    <div class="text-xs text-blue-600/80 dark:text-blue-400/80 mt-0.5">Sesi tatap muka kelas ini</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Total Jam Pelajaran</div>
-                    <div class="mt-1 text-2xl font-extrabold text-amber-700 dark:text-amber-300">{{ $kpiTotalJp }} <span class="text-sm font-semibold">JP</span></div>
-                    <div class="text-xs text-amber-600/80 dark:text-amber-400/80 mt-0.5">Akumulasi durasi mengajar</div>
-                </div>
-            </div>
-
             @if($activeTab === 'guru')
                 {{-- ===== TAB 1: KEAKTIFAN GURU & REALISASI JP ===== --}}
                 <x-filament::section>

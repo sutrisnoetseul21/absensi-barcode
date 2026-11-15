@@ -43,6 +43,7 @@ class MasterMapel extends Component
 
     public function syncStandarMapel(): void
     {
+        $wasReady = MataPelajaran::exists();
         $standar = MataPelajaran::standardByJenjang($this->school_level);
         $added = 0;
 
@@ -66,6 +67,10 @@ class MasterMapel extends Component
         } else {
             session()->flash('setup_success', "Semua mata pelajaran standar jenjang {$this->school_level} sudah tersedia.");
         }
+
+        if ($wasReady !== MataPelajaran::exists()) {
+            $this->redirect(route('portal-setup.mapel'), navigate: false);
+        }
     }
 
     public function createMapel(): void
@@ -86,6 +91,8 @@ class MasterMapel extends Component
             return;
         }
 
+        $wasReady = MataPelajaran::exists();
+
         MataPelajaran::create([
             'nama_mapel'  => $cleanName,
             'kode_mapel'  => $cleanCode,
@@ -96,6 +103,10 @@ class MasterMapel extends Component
         $this->nama_mapel = '';
         $this->kode_mapel = '';
         session()->flash('setup_success', "Mata pelajaran \"{$cleanName}\" berhasil ditambahkan.");
+
+        if ($wasReady !== MataPelajaran::exists()) {
+            $this->redirect(route('portal-setup.mapel'), navigate: false);
+        }
     }
 
     public function startEdit(int $id): void
@@ -158,9 +169,14 @@ class MasterMapel extends Component
             return;
         }
 
+        $wasReady = MataPelajaran::exists();
         $name = $mapel->nama_mapel;
         $mapel->delete();
         session()->flash('setup_success', "Mata pelajaran \"{$name}\" berhasil dihapus.");
+
+        if ($wasReady !== MataPelajaran::exists()) {
+            $this->redirect(route('portal-setup.mapel'), navigate: false);
+        }
     }
 
     #[Layout('components.layouts.portal')]

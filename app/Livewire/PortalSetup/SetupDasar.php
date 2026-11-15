@@ -3,9 +3,17 @@
 namespace App\Livewire\PortalSetup;
 
 use App\Models\Kelas;
+use App\Models\PengaduanKategori;
+use App\Models\PengaduanSetting;
 use App\Models\PengaturanSekolah;
+use App\Models\SpikapNotifSetting;
 use App\Models\TahunAjaran;
 use App\Models\User;
+use App\Models\WebFaq;
+use App\Models\WebPillar;
+use App\Models\WebSarpra;
+use App\Models\WebSetting;
+use App\Services\PrincipalAccountSyncService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -85,6 +93,11 @@ class SetupDasar extends Component
         $this->end_year = $currentYear + 1;
 
         $this->syncDefaultGradeLevels();
+
+        // Pertahankan status terbuka satu kali setelah redirect auto-refresh sidebar pada pengisian awal (Opsi A)
+        if (session()->pull('setup_dasar_keep_unlocked') === true) {
+            $this->isUnlocked = true;
+        }
     }
 
     protected function loadSchoolData(): void
@@ -131,6 +144,11 @@ class SetupDasar extends Component
     public function updatedSchoolLevel(): void
     {
         $this->syncDefaultGradeLevels();
+
+        // Pertahankan status terbuka satu kali setelah redirect auto-refresh sidebar pada pengisian awal (Opsi A)
+        if (session()->pull('setup_dasar_keep_unlocked') === true) {
+            $this->isUnlocked = true;
+        }
     }
 
     public function switchTab(string $tab): void
@@ -244,6 +262,26 @@ class SetupDasar extends Component
         return $school && filled($school->school_name) && filled($school->school_address);
     }
 
+    protected function isDasarReady(): bool
+    {
+        return $this->isSchoolConfigured()
+            && TahunAjaran::where('status', 'aktif')->exists()
+            && Kelas::exists();
+    }
+
+    protected function refreshSidebarIfDasarStatusChanged(bool $wasDasarReady, bool $keepUnlocked = false): void
+    {
+        if ($wasDasarReady === $this->isDasarReady()) {
+            return;
+        }
+
+        if ($keepUnlocked) {
+            session()->put('setup_dasar_keep_unlocked', true);
+        }
+
+        $this->redirect(route('portal-setup.dasar', ['tab' => $this->activeTab]), navigate: false);
+    }
+
     protected function ensureUnlockedIfRequired(bool $requiresUnlock): bool
     {
         if ($requiresUnlock && !$this->isUnlocked) {
@@ -322,19 +360,72 @@ class SetupDasar extends Component
         ]);
         $school->save();
 
-        // Otomatis inisialisasi role & setting inti sistem jika belum terpasang
-        if (!Role::where('name', 'siswa')->exists() || !Role::where('name', 'admin_portal_akademik')->exists()) {
+        $this->ensureInitialSystemAndWebDefaults();
+        $principalSync = app(PrincipalAccountSyncService::class)->syncFromSchoolSettings(
+            $school->principal_name,
+            $school->principal_nip
+        );
+
+        Cache::forget('public_pengaturan_sekolah');
+        $this->syncDefaultGradeLevels();
+        $this->isUnlocked = false;
+
+        $msg = 'Identitas & jenjang sekolah berhasil disimpan dan dikunci kembali.';
+        if ($principalSync && ! empty($principalSync['email'])) {
+            $msg .= $principalSync['created']
+                ? " Akun Kepala Sekolah otomatis dibuat di Data Guru/User (Email: {$principalSync['email']}, Password awal: password, Jabatan: Kepala Sekolah)."
+                : " Data Kepala Sekolah ({$principalSync['email']}) ikut disinkronkan tanpa duplikat.";
+        }
+
+        session()->flash('setup_success', $msg);
+        $this->redirect(route('portal-setup.dasar', ['tab' => $this->activeTab]), navigate: false);
+    }
+
+    /**
+     * Lengkapi role inti sistem, role super_admin, singleton pengaturan,
+     * serta seeder konten web publik hanya jika tabelnya masih kosong.
+     */
+    protected function ensureInitialSystemAndWebDefaults(): void
+    {
+        if (
+            ! Role::where('name', 'siswa')->exists()
+            || ! Role::where('name', 'admin_portal_akademik')->exists()
+            || ! Role::where('name', 'admin_portal_sistem')->exists()
+        ) {
             Artisan::call('db:seed', [
                 '--class' => \Database\Seeders\CoreSystemSeeder::class,
                 '--force' => true,
             ]);
         }
 
-        Cache::forget('public_pengaturan_sekolah');
-        $this->syncDefaultGradeLevels();
-        $this->isUnlocked = false;
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        User::where('is_super_admin', true)->each(function (User $superUser) use ($superAdminRole): void {
+            if (! $superUser->hasRole('super_admin')) {
+                $superUser->assignRole($superAdminRole);
+            }
+        });
 
-        session()->flash('setup_success', 'Identitas & jenjang sekolah berhasil disimpan dan dikunci kembali.');
+        // Pastikan baris singleton konfigurasi tersedia agar portal publik & SPIKAP siap pakai
+        WebSetting::instance();
+        PengaduanSetting::instance();
+        SpikapNotifSetting::instance();
+
+        // Seed konten web & kategori pengaduan standar hanya jika masih kosong
+        $emptySeeders = [
+            [WebSarpra::class, \Database\Seeders\WebSarpraSeeder::class],
+            [WebPillar::class, \Database\Seeders\WebPillarSeeder::class],
+            [WebFaq::class, \Database\Seeders\WebFaqSeeder::class],
+            [PengaduanKategori::class, \Database\Seeders\PengaduanKategoriSeeder::class],
+        ];
+
+        foreach ($emptySeeders as [$modelClass, $seederClass]) {
+            if ($modelClass::count() === 0) {
+                Artisan::call('db:seed', [
+                    '--class' => $seederClass,
+                    '--force' => true,
+                ]);
+            }
+        }
     }
 
     /**
@@ -392,6 +483,8 @@ class SetupDasar extends Component
             return;
         }
 
+        $wasDasarReady = $this->isDasarReady();
+
         TahunAjaran::create([
             'start_year' => $this->start_year,
             'end_year'   => $this->end_year,
@@ -404,6 +497,7 @@ class SetupDasar extends Component
         }
 
         session()->flash('setup_success', "Tahun Ajaran {$this->start_year}/{$this->end_year} berhasil ditambahkan.");
+        $this->refreshSidebarIfDasarStatusChanged($wasDasarReady, $this->isUnlocked);
     }
 
     public function activateTahunAjaran(string $id): void
@@ -413,6 +507,8 @@ class SetupDasar extends Component
             return;
         }
 
+        $wasDasarReady = $this->isDasarReady();
+
         $year = TahunAjaran::findOrFail($id);
         $year->status = 'aktif';
         $year->save();
@@ -420,6 +516,7 @@ class SetupDasar extends Component
         $this->syncAutoActiveSemester();
         Cache::forget('public_pengaturan_sekolah');
         session()->flash('setup_success', "Tahun Ajaran {$year->name} sekarang aktif.");
+        $this->refreshSidebarIfDasarStatusChanged($wasDasarReady, $this->isUnlocked);
     }
 
     public function deleteTahunAjaran(string $id): void
@@ -440,16 +537,19 @@ class SetupDasar extends Component
             return;
         }
 
+        $wasDasarReady = $this->isDasarReady();
         $name = $year->name;
         $year->delete();
         session()->flash('setup_success', "Tahun Ajaran {$name} berhasil dihapus.");
+        $this->refreshSidebarIfDasarStatusChanged($wasDasarReady, $this->isUnlocked);
     }
 
     // ==================== TAB 3: MASTER KELAS ====================
 
     public function createSingleClass(): void
     {
-        if (!$this->ensureUnlockedIfRequired(Kelas::exists())) {
+        $wasClassExists = Kelas::exists();
+        if (!$this->ensureUnlockedIfRequired($wasClassExists)) {
             return;
         }
 
@@ -470,14 +570,22 @@ class SetupDasar extends Component
             return;
         }
 
+        $wasDasarReady = $this->isDasarReady();
+
         Kelas::create([
             'grade_level' => $this->class_grade_level,
             'major'       => trim($this->class_major) ?: null,
             'name'        => $cleanName,
         ]);
 
+        // Opsi A: saat pengisian pertama dari kondisi kosong, tetap buka sesi agar bisa lanjut tambah kelas berikutnya
+        if (!$wasClassExists) {
+            $this->isUnlocked = true;
+        }
+
         $this->class_name = '';
         session()->flash('setup_success', "Kelas \"{$cleanName}\" berhasil ditambahkan.");
+        $this->refreshSidebarIfDasarStatusChanged($wasDasarReady, $this->isUnlocked);
     }
 
     public function getBulkPreviewNames(): array
@@ -513,7 +621,8 @@ class SetupDasar extends Component
 
     public function generateBulkClasses(): void
     {
-        if (!$this->ensureUnlockedIfRequired(Kelas::exists())) {
+        $wasClassExists = Kelas::exists();
+        if (!$this->ensureUnlockedIfRequired($wasClassExists)) {
             return;
         }
 
@@ -525,6 +634,7 @@ class SetupDasar extends Component
             'bulk_major'       => 'nullable|string|max:100',
         ]);
 
+        $wasDasarReady = $this->isDasarReady();
         $names = $this->getBulkPreviewNames();
         $major = trim($this->bulk_major) ?: null;
         $created = 0;
@@ -544,12 +654,18 @@ class SetupDasar extends Component
             $created++;
         }
 
+        // Opsi A: tetap terbuka setelah generate batch pertama agar bisa langsung generate tingkat berikutnya
+        if (!$wasClassExists && $created > 0) {
+            $this->isUnlocked = true;
+        }
+
         $msg = "{$created} kelas berhasil dibuat.";
         if ($skipped > 0) {
             $msg .= " ({$skipped} dilewati karena sudah ada)";
         }
 
         session()->flash('setup_success', $msg);
+        $this->refreshSidebarIfDasarStatusChanged($wasDasarReady, $this->isUnlocked);
     }
 
     public function startEditClass(string $id): void
@@ -620,9 +736,11 @@ class SetupDasar extends Component
             return;
         }
 
+        $wasDasarReady = $this->isDasarReady();
         $name = $kelas->name;
         $kelas->delete();
         session()->flash('setup_success', "Kelas \"{$name}\" berhasil dihapus.");
+        $this->refreshSidebarIfDasarStatusChanged($wasDasarReady, $this->isUnlocked);
     }
 
     protected function toRoman(int $number): string

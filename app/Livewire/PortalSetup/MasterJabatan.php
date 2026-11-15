@@ -115,6 +115,7 @@ class MasterJabatan extends Component
             return;
         }
 
+        $wasReady = $this->isWajibReady();
         $standar = Jabatan::standarByJenjang($this->school_level);
         $added = 0;
 
@@ -129,6 +130,10 @@ class MasterJabatan extends Component
             session()->flash('setup_success', "{$added} jabatan standar jenjang {$this->school_level} berhasil disinkronkan.");
         } else {
             session()->flash('setup_success', "Semua jabatan standar jenjang {$this->school_level} sudah tersedia.");
+        }
+
+        if ($wasReady !== $this->isWajibReady()) {
+            $this->redirect(route('portal-setup.jabatan'), navigate: false);
         }
     }
 
@@ -146,9 +151,14 @@ class MasterJabatan extends Component
             return;
         }
 
+        $wasReady = $this->isWajibReady();
         Jabatan::create(['nama_jabatan' => $clean]);
         $this->nama_jabatan = '';
         session()->flash('setup_success', "Jabatan \"{$clean}\" berhasil ditambahkan.");
+
+        if ($wasReady !== $this->isWajibReady()) {
+            $this->redirect(route('portal-setup.jabatan'), navigate: false);
+        }
     }
 
     public function startEdit(int $id): void
@@ -225,9 +235,14 @@ class MasterJabatan extends Component
             return;
         }
 
+        $wasReady = $this->isWajibReady();
         $name = $jabatan->nama_jabatan;
         $jabatan->delete();
         session()->flash('setup_success', "Jabatan \"{$name}\" berhasil dihapus.");
+
+        if ($wasReady !== $this->isWajibReady()) {
+            $this->redirect(route('portal-setup.jabatan'), navigate: false);
+        }
     }
 
     #[Layout('components.layouts.portal')]

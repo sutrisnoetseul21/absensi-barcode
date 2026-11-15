@@ -63,3 +63,4 @@ Portal khusus Administrator Sistem & Keamanan ERP berbasis **Filament Panel** (`
 5. **Notifikasi WA Pelayanan Publik** (`/portal-sistem/wa-pelayanan-publik` — [`SistemWaPelayananPublikPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemWaPelayananPublikPage.php))
    - Pengaturan nomor WA petugas penerima laporan baru (Admin/Petugas PPID/Waka Humas), konfirmasi ke pelapor saat pengaduan dikirim via `/pengaduan`, serta notifikasi perubahan status/tanggapan pengaduan dari Portal Web.
    - Dikelola oleh [`PengaduanNotificationService`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Services/PengaduanNotificationService.php).
+

@@ -116,7 +116,7 @@ class SpikapLaporan extends Model
         }
 
         // Super Admin & SPIKAP Admin punya akses penuh ke semua laporan
-        if ($user->hasAnyRole(['super_admin', 'spikap_admin'])) {
+        if ($user->isSuperAdmin() || $user->hasAnyRole(['super_admin', 'spikap_admin'])) {
             return $query;
         }
 
@@ -243,7 +243,7 @@ class SpikapLaporan extends Model
             return false;
         }
 
-        if ($user->hasAnyRole(['super_admin', 'spikap_admin'])) {
+        if ($user->isSuperAdmin() || $user->hasAnyRole(['super_admin', 'spikap_admin'])) {
             return true;
         }
 

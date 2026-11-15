@@ -87,7 +87,7 @@ class GuruMainDashboard extends Component
         }
 
         // Check Multi-Portal Permissions
-        $this->isSuperAdmin = $user->hasRole('super_admin');
+        $this->isSuperAdmin = $user->isSuperAdmin();
         $this->hasPresensiAccess = $this->isSuperAdmin || $user->hasRole(['admin_portal_presensi', 'petugas_presensi']);
         $this->hasPerpusAccess = $this->isSuperAdmin || $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
         $this->hasWebAccess = $this->isSuperAdmin || $user->hasRole('admin_portal_web');

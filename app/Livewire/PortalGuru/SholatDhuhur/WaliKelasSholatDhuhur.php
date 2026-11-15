@@ -64,7 +64,7 @@ class WaliKelasSholatDhuhur extends Component
         abort_if(!(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true), 403, 'Fitur Sholat Dhuhur sedang dinonaktifkan.');
 
         $user = Auth::user();
-        if (! $user || (! $user->isWaliKelasAktif() && ! $user->hasAnyRole(['super_admin', 'admin_presensi']))) {
+        if (! $user || (! $user->isSuperAdmin() && ! $user->isWaliKelasAktif() && ! $user->hasAnyRole(['super_admin', 'admin_presensi']))) {
             abort(403, 'Akses ditolak: Menu ini khusus Wali Kelas dan Administrator.');
         }
 
@@ -165,7 +165,7 @@ class WaliKelasSholatDhuhur extends Component
         }
 
         $user = Auth::user();
-        $isAdminMode = $user->hasAnyRole(['super_admin', 'admin_presensi']);
+        $isAdminMode = $user->isSuperAdmin() || $user->hasAnyRole(['super_admin', 'admin_presensi']);
         $hasBypass   = $user->can('portal_guru:akses_semua_kelas');
 
         if (! $isAdminMode && ! $hasBypass) {

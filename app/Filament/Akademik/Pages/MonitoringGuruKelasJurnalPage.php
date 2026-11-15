@@ -198,11 +198,6 @@ class MonitoringGuruKelasJurnalPage extends Page
                 'availableTeachers' => $availableTeachers,
                 'availableMapels'   => $availableMapels,
                 'periodOptions'     => $this->periodOptions,
-                'kpiTotalPenugasan' => 0,
-                'kpiSudahIsi'       => 0,
-                'kpiBelumIsi'       => 0,
-                'kpiTotalSesi'      => 0,
-                'kpiTotalJp'        => 0,
                 'filteredGuruRows'  => collect(),
                 'selectedClassObj'  => null,
                 'waliKelasName'     => '-',
@@ -338,12 +333,6 @@ class MonitoringGuruKelasJurnalPage extends Page
             ];
         }
 
-        $kpiTotalPenugasan = count($monitoringRows);
-        $kpiSudahIsi = collect($monitoringRows)->where('total_sesi', '>', 0)->count();
-        $kpiBelumIsi = $kpiTotalPenugasan - $kpiSudahIsi;
-        $kpiTotalSesi = collect($monitoringRows)->sum('total_sesi');
-        $kpiTotalJp = collect($monitoringRows)->sum('total_jp');
-
         $filteredGuruRows = collect($monitoringRows)
             ->when($this->selectedTeacherId, fn ($c) => $c->where('teacher_id', $this->selectedTeacherId))
             ->when($this->selectedMapelId, fn ($c) => $c->where('mata_pelajaran_id', (int) $this->selectedMapelId))
@@ -374,11 +363,6 @@ class MonitoringGuruKelasJurnalPage extends Page
             'availableTeachers' => $availableTeachers,
             'availableMapels'   => $availableMapels,
             'periodOptions'     => $this->periodOptions,
-            'kpiTotalPenugasan' => $kpiTotalPenugasan,
-            'kpiSudahIsi'       => $kpiSudahIsi,
-            'kpiBelumIsi'       => $kpiBelumIsi,
-            'kpiTotalSesi'      => $kpiTotalSesi,
-            'kpiTotalJp'        => $kpiTotalJp,
             'filteredGuruRows'  => $filteredGuruRows,
             'selectedClassObj'  => $selectedClassObj,
             'waliKelasName'     => $waliKelasName,

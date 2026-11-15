@@ -42,7 +42,7 @@ class EnsureIsPetugasPresensi
             }
         } else {
             // Jika mengakses dashboard atau halaman manajemen presensi lainnya
-            if (!$user->hasRole(['admin_portal_presensi', 'super_admin'])) {
+            if (!$user->isSuperAdmin() && !$user->hasRole(['admin_portal_presensi', 'super_admin'])) {
                 // Jika dia hanya petugas presensi (scanner), alihkan ke Kiosk
                 if ($user->hasRole('petugas_presensi')) {
                     $scanMode = \App\Models\PengaturanSekolah::current()?->barcode_scan_mode === 'nis' ? 'kiosk.scan-nis' : 'kiosk.scan';

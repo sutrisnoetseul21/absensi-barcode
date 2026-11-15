@@ -7,7 +7,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
                     <div>
                         <h3 class="text-sm font-bold text-gray-900 dark:text-white">Filter Analisa Presensi KBM & Deteksi Siswa Bolos Jam</h3>
-                        <p class="text-xs text-gray-500">Pilih Periode Waktu dan Kelas terlebih dahulu, lalu klik <strong>Proses Analisa</strong>.</p>
+                        <p class="text-xs text-gray-500">Pilih Periode Waktu, Kelas, Mata Pelajaran, dan Fokus Tampilan secara berurutan, lalu klik <strong>Proses Analisa</strong>.</p>
                     </div>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary-50 text-primary-700 dark:bg-primary-950/40 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
                         <x-filament::icon icon="heroicon-o-calendar" class="w-3.5 h-3.5" />
@@ -20,6 +20,7 @@
                         <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">1. Periode Waktu <span class="text-rose-500">*</span></label>
                         <select wire:model.live="selectedPeriod"
                             class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100">
+                            <option value="">— Pilih Periode Waktu —</option>
                             @foreach($periodOptions as $val => $label)
                                 <option value="{{ $val }}">{{ $label }}</option>
                             @endforeach
@@ -29,7 +30,8 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">2. Pilih Kelas <span class="text-rose-500">*</span></label>
                         <select wire:model.live="selectedClassId"
-                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100">
+                            @disabled(empty($selectedPeriod))
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
                             <option value="">— Pilih Kelas —</option>
                             @foreach($classes as $c)
                                 <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
@@ -38,11 +40,11 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">3. Mata Pelajaran (Opsional)</label>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">3. Mata Pelajaran <span class="text-rose-500">*</span></label>
                         <select wire:model.live="selectedMapelId"
-                            @disabled(empty($selectedClassId))
-                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100 disabled:opacity-50">
-                            <option value="">Semua Mata Pelajaran</option>
+                            @disabled(empty($selectedPeriod) || empty($selectedClassId))
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <option value="">— Pilih Mata Pelajaran —</option>
                             @foreach($availableMapels as $m)
                                 <option value="{{ $m->id }}">{{ $m->nama_mapel }}</option>
                             @endforeach
@@ -50,25 +52,31 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">4. Fokus Tampilan</label>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">4. Fokus Tampilan <span class="text-rose-500">*</span></label>
                         <select wire:model.live="focusFilter"
-                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100">
+                            @disabled(empty($selectedPeriod) || empty($selectedClassId) || empty($selectedMapelId))
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm px-3 py-2 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <option value="">— Pilih Fokus Tampilan —</option>
+                            <option value="all">Seluruh Siswa Kelas Ini</option>
                             <option value="bolos_only">Pernah Tidak Ikut / Bolos Jam</option>
                             <option value="absent_only">Semua Pernah Absen (S/I/A/Bolos)</option>
-                            <option value="all">Seluruh Siswa Kelas Ini</option>
                         </select>
                     </div>
 
                     {{-- Searchable Dropdown Siswa / NISN --}}
+                    @php
+                        $canSearchStudent = !empty($selectedPeriod) && !empty($selectedClassId) && !empty($selectedMapelId) && !empty($focusFilter);
+                    @endphp
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                         <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">5. Cari Siswa / NISN (Opsional)</label>
                         <div class="relative">
                             <input type="text"
                                 wire:model.live.debounce.250ms="search"
-                                @focus="open = true"
-                                @click="open = true"
+                                @disabled(!$canSearchStudent)
+                                @focus="if ({{ $canSearchStudent ? 'true' : 'false' }}) open = true"
+                                @click="if ({{ $canSearchStudent ? 'true' : 'false' }}) open = true"
                                 placeholder="Klik atau ketik Nama / NISN..."
-                                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm pl-3 pr-8 py-2 text-gray-900 dark:text-gray-100" />
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm pl-3 pr-8 py-2 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" />
                             @if(!empty($search) || !empty($selectedStudentId))
                                 <button type="button"
                                     wire:click="clearStudentSelection"
@@ -113,7 +121,12 @@
                     </div>
 
                     <div>
-                        <x-filament::button wire:click="prosesAnalisa" icon="heroicon-o-play" color="primary" class="w-full justify-center">
+                        <x-filament::button
+                            wire:click="prosesAnalisa"
+                            :disabled="!$canSearchStudent"
+                            icon="heroicon-o-play"
+                            color="primary"
+                            class="w-full justify-center">
                             Proses Analisa
                         </x-filament::button>
                     </div>
@@ -121,52 +134,19 @@
             </div>
         </x-filament::section>
 
-        @if(!$isProcessed || empty($selectedClassId))
+        @if(!$isProcessed || empty($selectedPeriod) || empty($selectedClassId) || empty($selectedMapelId) || empty($focusFilter))
             <x-filament::section>
                 <div class="py-12 text-center space-y-2">
                     <div class="mx-auto w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/50 flex items-center justify-center text-rose-600 dark:text-rose-400">
                         <x-filament::icon icon="heroicon-o-shield-exclamation" class="w-6 h-6" />
                     </div>
-                    <h3 class="text-base font-bold text-gray-900 dark:text-white">Pilih Kelas & Klik "Proses Analisa"</h3>
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white">Lengkapi Filter &amp; Klik "Proses Analisa"</h3>
                     <p class="text-sm text-gray-500 max-w-md mx-auto">
-                        Pilih <strong>Periode Waktu</strong>, <strong>Kelas</strong>, dan <strong>Mata Pelajaran</strong> (opsional), lalu klik tombol <strong>Proses Analisa</strong> untuk menampilkan hasil deteksi kehadiran KBM siswa.
+                        Pilih <strong>Periode Waktu</strong>, <strong>Kelas</strong>, <strong>Mata Pelajaran</strong>, dan <strong>Fokus Tampilan</strong> secara berurutan, lalu klik tombol <strong>Proses Analisa</strong> untuk menampilkan hasil deteksi kehadiran KBM siswa.
                     </p>
                 </div>
             </x-filament::section>
         @else
-            {{-- ===== KPI SUMMARY CARDS ===== --}}
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Sesi KBM (Kelas {{ $selectedKelas?->name }})</div>
-                    <div class="mt-1 text-2xl font-extrabold text-gray-900 dark:text-white">{{ $kpi['total_sesi'] }}</div>
-                    <div class="text-xs text-gray-500 mt-0.5">{{ $kpi['total_jp'] }} Jam Pelajaran (JP)</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Kejadian Bolos Jam</div>
-                    <div class="mt-1 text-2xl font-extrabold text-rose-700 dark:text-rose-300">{{ $kpi['tidak_mengikuti'] }}</div>
-                    <div class="text-xs text-rose-600/80 dark:text-rose-400/80 mt-0.5">Hadir di gerbang, absen di kelas</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Siswa Pernah Bolos</div>
-                    <div class="mt-1 text-2xl font-extrabold text-amber-700 dark:text-amber-300">{{ $kpi['siswa_bolos_count'] }} <span class="text-sm font-semibold">Siswa</span></div>
-                    <div class="text-xs text-amber-600/80 dark:text-amber-400/80 mt-0.5">Di Kelas {{ $selectedKelas?->name }}</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Sakit & Izin (KBM)</div>
-                    <div class="mt-1 text-2xl font-extrabold text-blue-700 dark:text-blue-300">{{ $kpi['sakit_izin'] }}</div>
-                    <div class="text-xs text-blue-600/80 dark:text-blue-400/80 mt-0.5">Sesi KBM tidak diikuti (S/I)</div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-gray-100/80 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 shadow-xs">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Alpa (KBM)</div>
-                    <div class="mt-1 text-2xl font-extrabold text-gray-900 dark:text-white">{{ $kpi['alpa'] }}</div>
-                    <div class="text-xs text-gray-500 mt-0.5">Tanpa keterangan sejak gerbang</div>
-                </div>
-            </div>
-
             {{-- ===== TABEL ANALISA PRESENSI KBM SISWA ===== --}}
             <x-filament::section>
                 <div class="overflow-x-auto">
@@ -214,9 +194,13 @@
                                         @endif
                                     </td>
                                     <td class="py-3 px-4 text-center">
-                                        <span class="px-2 py-0.5 rounded text-xs font-bold {{ $row['persentase_hadir'] >= 90 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : ($row['persentase_hadir'] >= 75 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300') }}">
-                                            {{ $row['persentase_hadir'] }}%
-                                        </span>
+                                        @if($row['total_pertemuan'] > 0)
+                                            <span class="px-2 py-0.5 rounded text-xs font-bold {{ $row['persentase_hadir'] >= 90 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : ($row['persentase_hadir'] >= 75 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300') }}">
+                                                {{ $row['persentase_hadir'] }}%
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-400">—</span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-4">
                                         @if(count($row['incidents']) > 0)
@@ -238,6 +222,8 @@
                                                     </div>
                                                 @endforeach
                                             </div>
+                                        @elseif($row['total_pertemuan'] === 0)
+                                            <span class="text-xs text-gray-400 italic">Belum ada sesi KBM</span>
                                         @else
                                             <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">100% Mengikuti KBM</span>
                                         @endif

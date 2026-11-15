@@ -37,7 +37,7 @@ class Login extends Component
 
         $user = Auth::user();
 
-        if (!$user->hasRole(['admin_portal_web', 'super_admin'])) {
+        if (!$user->isSuperAdmin() && !$user->hasRole(['admin_portal_web', 'super_admin'])) {
             Auth::guard('web')->logout();
             $this->errorMessage = 'Akun Anda tidak memiliki akses ke Portal Web Sekolah.';
             return;

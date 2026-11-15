@@ -22,7 +22,8 @@ class SpikapDetail extends Component
         $user = Auth::user();
 
         // Otorisasi: cek permission view atau role SPIKAP / Wali Kelas (via role atau jabatan)
-        $hasAccess = $user->can('spikap.view') ||
+        $hasAccess = $user->isSuperAdmin() ||
+            $user->can('spikap.view') ||
             $user->can('spikap.view_any') ||
             $user->hasAnyRole(['spikap_guru_bk', 'spikap_wali_kelas', 'spikap_kepala_sekolah', 'spikap_admin', 'super_admin']) ||
             $user->isGuruBk() ||

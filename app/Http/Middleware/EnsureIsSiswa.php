@@ -22,7 +22,7 @@ class EnsureIsSiswa
 
         $user = Auth::user();
 
-        if (!$user->hasRole('super_admin')) {
+        if (!$user->isSuperAdmin() && !$user->hasRole('super_admin')) {
             if (!$user->hasRole('siswa') || $user->student === null) {
                 // Jika user adalah wali kelas
                 if ($user->hasRole('wali_kelas')) {

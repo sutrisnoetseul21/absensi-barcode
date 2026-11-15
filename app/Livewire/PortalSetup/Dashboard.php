@@ -7,6 +7,7 @@ use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\PengaturanSekolah;
 use App\Models\TahunAjaran;
+use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -20,6 +21,14 @@ class Dashboard extends Component
             '--class' => \Database\Seeders\CoreSystemSeeder::class,
             '--force' => true,
         ]);
+
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        User::where('is_super_admin', true)->each(function (User $superUser) use ($superAdminRole): void {
+            if (! $superUser->hasRole('super_admin')) {
+                $superUser->assignRole($superAdminRole);
+            }
+        });
+
         session()->flash('setup_success', 'Role & pengaturan inti sistem berhasil diinisialisasi.');
     }
 
@@ -46,7 +55,9 @@ class Dashboard extends Component
         $totalSteps = 5;
         $progressPercent = (int) round(($completedSteps / $totalSteps) * 100);
         $allReady = $completedSteps === $totalSteps;
-        $coreSeeded = Role::where('name', 'siswa')->exists() && Role::where('name', 'admin_portal_akademik')->exists();
+        $coreSeeded = Role::where('name', 'siswa')->exists()
+            && Role::where('name', 'admin_portal_akademik')->exists()
+            && Role::where('name', 'admin_portal_sistem')->exists();
 
         return view('livewire.portal-setup.dashboard', [
             'school'          => $school,

@@ -42,7 +42,7 @@ class IjinKehadiranDetail extends Component
         $user = Auth::user();
         if (!$user) return false;
 
-        if ($user->hasRole(['super_admin', 'admin_presensi'])) {
+        if ($user->isSuperAdmin() || $user->hasRole(['super_admin', 'admin_presensi'])) {
             return true;
         }
 

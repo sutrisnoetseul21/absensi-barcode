@@ -22,7 +22,7 @@ class EnsureIsPetugasPerpustakaan
 
         $user = Auth::user();
 
-        if (!$user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin'])) {
+        if (!$user->isSuperAdmin() && !$user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan', 'super_admin'])) {
             // Jika user adalah siswa atau wali kelas, arahkan ke dashboard masing-masing
             if ($user->hasRole('siswa')) {
                 return redirect('/portal-siswa');

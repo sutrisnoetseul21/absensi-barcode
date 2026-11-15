@@ -20,7 +20,8 @@ class SpikapAnalitik extends Component
             abort(401);
         }
 
-        $allowed = $user->hasAnyRole(['spikap_kepala_sekolah', 'spikap_guru_bk', 'super_admin', 'spikap_admin'])
+        $allowed = $user->isSuperAdmin()
+            || $user->hasAnyRole(['spikap_kepala_sekolah', 'spikap_guru_bk', 'super_admin', 'spikap_admin'])
             || $user->can('spikap.view_analytics')
             || $user->isGuruBk()
             || $user->isKepalaSekolah();

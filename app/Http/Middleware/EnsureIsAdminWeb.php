@@ -22,7 +22,7 @@ class EnsureIsAdminWeb
 
         $user = Auth::user();
 
-        if (!$user->hasRole(['admin_portal_web', 'super_admin'])) {
+        if (!$user->isSuperAdmin() && !$user->hasRole(['admin_portal_web', 'super_admin'])) {
             // Redirect ke portal yang sesuai role-nya
             if ($user->hasRole('siswa')) {
                 return redirect('/portal-siswa');

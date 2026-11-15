@@ -51,3 +51,4 @@ Portal khusus pengelolaan operasional akademik, master data GTK & kesiswaan, rom
 ### 4. Grup `Guru Wali`
 1. **Kelompok Guru Wali** (`/portal-akademik/guru-wali/kelompok` — [`KelompokGuruWaliResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/GuruWali/KelompokGuruWaliResource.php))
    - Pengaturan pembagian kelompok bimbingan **Guru Wali** dan daftar anggota siswa binaan (`AnggotaSiswaRelationManager`) sesuai implementasi program pembinaan karakter.
+

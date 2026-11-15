@@ -33,7 +33,8 @@ class SpikapInbox extends Component
         $user = Auth::user();
 
         // Otorisasi: cek permission spikap.view_any atau role terkait SPIKAP / Wali Kelas (via role atau jabatan)
-        $hasAccess = $user->can('spikap.view_any') ||
+        $hasAccess = $user->isSuperAdmin() ||
+            $user->can('spikap.view_any') ||
             $user->hasAnyRole(['spikap_guru_bk', 'spikap_wali_kelas', 'spikap_kepala_sekolah', 'spikap_admin', 'super_admin']) ||
             $user->isGuruBk() ||
             $user->isKepalaSekolah() ||

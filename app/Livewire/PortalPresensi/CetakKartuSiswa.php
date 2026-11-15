@@ -48,13 +48,13 @@ class CetakKartuSiswa extends Component
         
         if (request()->routeIs('portal-guru.*')) {
             $user = Auth::user();
-            if (!$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            if (!$user->isSuperAdmin() && !$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
                 if ($user->hasRole('wali_kelas') && $user->teacher === null) {
                     abort(403, 'Akses Ditolak: Data profil guru Anda belum ditautkan oleh Admin.');
                 }
             }
 
-            $isAdminMode = $user->hasAnyRole(['super_admin', 'admin_presensi']);
+            $isAdminMode = $user->isSuperAdmin() || $user->hasAnyRole(['super_admin', 'admin_presensi']);
             $hasBypass   = $user->can('portal_guru:akses_semua_kelas');
 
             if (!$isAdminMode && !$hasBypass) {
@@ -91,13 +91,13 @@ class CetakKartuSiswa extends Component
     {
         if (request()->routeIs('portal-guru.*')) {
             $user = Auth::user();
-            if (!$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
+            if (!$user->isSuperAdmin() && !$user->hasAnyRole(['super_admin', 'admin_presensi'])) {
                 if ($user->hasRole('wali_kelas') && $user->teacher === null) {
                     abort(403, 'Akses Ditolak: Data profil guru tidak lengkap.');
                 }
             }
 
-            $isAdminMode = $user->hasAnyRole(['super_admin', 'admin_presensi']);
+            $isAdminMode = $user->isSuperAdmin() || $user->hasAnyRole(['super_admin', 'admin_presensi']);
             $hasBypass   = $user->can('portal_guru:akses_semua_kelas');
             
             if (!$isAdminMode && !$hasBypass) {

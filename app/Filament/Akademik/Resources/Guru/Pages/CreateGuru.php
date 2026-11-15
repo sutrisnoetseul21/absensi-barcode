@@ -101,4 +101,9 @@ class CreateGuru extends CreateRecord
             ->persistent()
             ->send();
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

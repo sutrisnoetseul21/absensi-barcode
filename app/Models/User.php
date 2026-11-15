@@ -143,7 +143,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function canAccessPortalBk(): bool
     {
-        if ($this->hasAnyRole(['super_admin', 'admin_presensi'])) {
+        if ($this->isSuperAdmin() || $this->hasAnyRole(['super_admin', 'admin_presensi'])) {
             return true;
         }
 
@@ -233,7 +233,8 @@ class User extends Authenticatable implements FilamentUser
      */
     public function canAccessSpikapGuru(): bool
     {
-        if ($this->hasAnyRole(['super_admin', 'spikap_admin', 'spikap_guru_bk', 'spikap_kepala_sekolah'])
+        if ($this->isSuperAdmin()
+            || $this->hasAnyRole(['super_admin', 'spikap_admin', 'spikap_guru_bk', 'spikap_kepala_sekolah'])
             || $this->isGuruBk()
             || $this->isKepalaSekolah()
             || $this->isWaliKelasMurni()) {

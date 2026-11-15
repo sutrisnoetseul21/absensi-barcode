@@ -39,10 +39,10 @@ class AnalisaPresensiKbmSiswaPage extends Page
     protected string $view = 'filament.akademik.pages.analisa-presensi-kbm-siswa';
 
     public ?string $selectedAcademicYearId = null;
-    public string $selectedPeriod = 'semester_ganjil';
+    public string $selectedPeriod = '';
     public ?string $selectedClassId = '';
     public ?string $selectedMapelId = '';
-    public string $focusFilter = 'bolos_only'; // 'bolos_only' | 'absent_only' | 'all'
+    public string $focusFilter = ''; // '' | 'all' | 'bolos_only' | 'absent_only'
     public ?string $selectedStudentId = '';
     public string $search = '';
     public bool $isProcessed = false;
@@ -52,16 +52,44 @@ class AnalisaPresensiKbmSiswaPage extends Page
         $this->selectedAcademicYearId = PengaturanSekolah::current()?->academic_year_id_active
             ?? TahunAjaran::where('status', 'aktif')->first()?->id
             ?? TahunAjaran::orderBy('start_year', 'desc')->value('id');
-
-        $this->selectedPeriod = (int) date('n') >= 7 ? 'semester_ganjil' : 'semester_genap';
     }
 
     public function prosesAnalisa(): void
     {
+        if (empty($this->selectedPeriod)) {
+            Notification::make()
+                ->title('Pilih Periode Waktu Terlebih Dahulu')
+                ->body('Silakan pilih Periode Waktu terlebih dahulu sebelum memproses analisa KBM.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
         if (empty($this->selectedClassId)) {
             Notification::make()
                 ->title('Pilih Kelas Terlebih Dahulu')
                 ->body('Silakan pilih 1 Kelas terlebih dahulu sebelum memproses analisa KBM.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        if (empty($this->selectedMapelId)) {
+            Notification::make()
+                ->title('Pilih Mata Pelajaran Terlebih Dahulu')
+                ->body('Silakan pilih 1 Mata Pelajaran terlebih dahulu sebelum memproses analisa KBM.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        if (empty($this->focusFilter)) {
+            Notification::make()
+                ->title('Pilih Fokus Tampilan Terlebih Dahulu')
+                ->body('Silakan pilih Fokus Tampilan terlebih dahulu sebelum memproses analisa KBM.')
                 ->warning()
                 ->send();
 
@@ -90,12 +118,21 @@ class AnalisaPresensiKbmSiswaPage extends Page
 
     public function updatedSelectedPeriod(): void
     {
+        if (empty($this->selectedPeriod)) {
+            $this->selectedClassId = '';
+            $this->selectedMapelId = '';
+            $this->focusFilter = '';
+            $this->selectedStudentId = '';
+            $this->search = '';
+        }
+
         $this->isProcessed = false;
     }
 
     public function updatedSelectedClassId(): void
     {
         $this->selectedMapelId = '';
+        $this->focusFilter = '';
         $this->selectedStudentId = '';
         $this->search = '';
         $this->isProcessed = false;
@@ -103,6 +140,22 @@ class AnalisaPresensiKbmSiswaPage extends Page
 
     public function updatedSelectedMapelId(): void
     {
+        if (empty($this->selectedMapelId)) {
+            $this->focusFilter = '';
+            $this->selectedStudentId = '';
+            $this->search = '';
+        }
+
+        $this->isProcessed = false;
+    }
+
+    public function updatedFocusFilter(): void
+    {
+        if (empty($this->focusFilter)) {
+            $this->selectedStudentId = '';
+            $this->search = '';
+        }
+
         $this->isProcessed = false;
     }
 
@@ -237,23 +290,13 @@ class AnalisaPresensiKbmSiswaPage extends Page
             }
         }
 
-        $kpi = [
-            'total_sesi'        => 0,
-            'total_jp'          => 0,
-            'tidak_mengikuti'   => 0,
-            'siswa_bolos_count' => 0,
-            'sakit_izin'        => 0,
-            'alpa'              => 0,
-        ];
-
-        if (!$this->isProcessed || empty($this->selectedClassId)) {
+        if (!$this->isProcessed || empty($this->selectedPeriod) || empty($this->selectedClassId) || empty($this->selectedMapelId) || empty($this->focusFilter)) {
             return [
                 'activeYearName'  => $activeYearObj?->name ?? 'Aktif',
                 'classes'         => $classes,
                 'availableMapels' => $availableMapels,
                 'studentOptions'  => $studentOptions,
                 'periodOptions'   => $this->periodOptions,
-                'kpi'             => $kpi,
                 'studentRows'     => collect(),
                 'selectedKelas'   => null,
             ];
@@ -263,20 +306,7 @@ class AnalisaPresensiKbmSiswaPage extends Page
         $selectedKelas = $classes->firstWhere('id', $this->selectedClassId);
         $className = $selectedKelas?->name ?? '-';
 
-        // 1. Hitung total sesi & JP di kelas ini via SQL agregat
-        $sessionStat = DB::table('jurnal_pembelajarans')
-            ->selectRaw('COUNT(*) as total_sesi, COALESCE(SUM(durasi_jp), 0) as total_jp')
-            ->when($this->selectedAcademicYearId, fn ($q) => $q->where('academic_year_id', $this->selectedAcademicYearId))
-            ->where('class_id', $this->selectedClassId)
-            ->when($this->selectedMapelId, fn ($q) => $q->where('mata_pelajaran_id', $this->selectedMapelId))
-            ->when($dateFrom, fn ($q) => $q->whereDate('tanggal', '>=', $dateFrom))
-            ->when($dateTo, fn ($q) => $q->whereDate('tanggal', '<=', $dateTo))
-            ->first();
-
-        $kpi['total_sesi'] = (int) ($sessionStat->total_sesi ?? 0);
-        $kpi['total_jp'] = (int) ($sessionStat->total_jp ?? 0);
-
-        // 2. Agregasi SQL GROUP BY per student_id di kelas ini (sangat ringan di database)
+        // 1. Agregasi SQL GROUP BY per student_id dari jurnal KBM kelas ini pada periode terpilih
         $studentStats = DB::table('jurnal_pembelajaran_presensis as jpp')
             ->join('jurnal_pembelajarans as jp', 'jp.id', '=', 'jpp.jurnal_pembelajaran_id')
             ->selectRaw("
@@ -297,18 +327,26 @@ class AnalisaPresensiKbmSiswaPage extends Page
             ->groupBy('jpp.student_id')
             ->get();
 
-        foreach ($studentStats as $st) {
-            $kpi['tidak_mengikuti'] += (int) $st->tidak_mengikuti;
-            $kpi['sakit_izin'] += (int) $st->sakit + (int) $st->izin;
-            $kpi['alpa'] += (int) $st->alpa;
-            if ((int) $st->tidak_mengikuti > 0) {
-                $kpi['siswa_bolos_count']++;
-            }
-        }
+        $statsByStudent = $studentStats->keyBy(fn ($st) => (string) $st->student_id);
 
-        // Ambil profil siswa untuk student_id di kelas ini
-        $studentIds = $studentStats->pluck('student_id')->filter()->unique()->values();
-        $siswaMap = Siswa::whereIn('id', $studentIds)->get(['id', 'name', 'nis', 'nisn'])->keyBy('id');
+        // 2. Ambil daftar siswa aktif di kelas ini agar tetap muncul meski belum ada jurnal KBM
+        $enrolledStudents = EnrollmentSiswa::query()
+            ->join('students', 'students.id', '=', 'student_enrollments.student_id')
+            ->where('student_enrollments.class_id', $this->selectedClassId)
+            ->when($this->selectedAcademicYearId, fn ($q) => $q->where('student_enrollments.academic_year_id', $this->selectedAcademicYearId))
+            ->where('student_enrollments.status', 'aktif')
+            ->where('students.status', 'aktif')
+            ->when(!empty($this->selectedStudentId), fn ($q) => $q->where('students.id', $this->selectedStudentId))
+            ->orderBy('students.name')
+            ->get(['students.id', 'students.name', 'students.nis', 'students.nisn']);
+
+        $allStudentIds = $enrolledStudents->pluck('id')
+            ->merge($studentStats->pluck('student_id'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $siswaMap = Siswa::whereIn('id', $allStudentIds)->get(['id', 'name', 'nis', 'nisn'])->keyBy('id');
 
         // 3. Ambil rincian insiden HANYA untuk baris yang status_jurnal = 'tidak_mengikuti' di kelas ini
         $incidentRecords = DB::table('jurnal_pembelajaran_presensis as jpp')
@@ -364,31 +402,32 @@ class AnalisaPresensiKbmSiswaPage extends Page
 
         $hasSpecificStudent = !empty($this->selectedStudentId);
 
-        $studentRows = $studentStats->map(function ($st) use ($siswaMap, $className, $incidentsByStudent) {
-            $sid = (string) $st->student_id;
+        $studentRows = $allStudentIds->map(function ($rawId) use ($statsByStudent, $siswaMap, $className, $incidentsByStudent) {
+            $sid = (string) $rawId;
+            $st = $statsByStudent[$sid] ?? null;
             $siswa = $siswaMap[$sid] ?? null;
-            $totalPertemuan = (int) $st->total_pertemuan;
-            $hadir = (int) $st->hadir;
-            $sakit = (int) $st->sakit;
-            $izin = (int) $st->izin;
-            $alpa = (int) $st->alpa;
-            $bolos = (int) $st->tidak_mengikuti;
+            $totalPertemuan = (int) ($st->total_pertemuan ?? 0);
+            $hadir = (int) ($st->hadir ?? 0);
+            $sakit = (int) ($st->sakit ?? 0);
+            $izin = (int) ($st->izin ?? 0);
+            $alpa = (int) ($st->alpa ?? 0);
+            $bolos = (int) ($st->tidak_mengikuti ?? 0);
             $totalAbsen = $sakit + $izin + $alpa + $bolos;
 
             return [
-                'student_id'      => $sid,
-                'student_name'    => $siswa?->name ?? 'Siswa',
-                'nisn'            => $siswa?->nisn ?: ($siswa?->nis ?: '-'),
-                'class_name'      => $className,
-                'total_pertemuan' => $totalPertemuan,
-                'hadir'           => $hadir,
-                'sakit'           => $sakit,
-                'izin'            => $izin,
-                'alpa'            => $alpa,
-                'tidak_mengikuti' => $bolos,
-                'total_absen'     => $totalAbsen,
-                'persentase_hadir'=> $totalPertemuan > 0 ? round(($hadir / $totalPertemuan) * 100, 1) : 100.0,
-                'incidents'       => $incidentsByStudent[$sid] ?? [],
+                'student_id'       => $sid,
+                'student_name'     => $siswa?->name ?? 'Siswa',
+                'nisn'             => $siswa?->nisn ?: ($siswa?->nis ?: '-'),
+                'class_name'       => $className,
+                'total_pertemuan'  => $totalPertemuan,
+                'hadir'            => $hadir,
+                'sakit'            => $sakit,
+                'izin'             => $izin,
+                'alpa'             => $alpa,
+                'tidak_mengikuti'  => $bolos,
+                'total_absen'      => $totalAbsen,
+                'persentase_hadir' => $totalPertemuan > 0 ? round(($hadir / $totalPertemuan) * 100, 1) : 0.0,
+                'incidents'        => $incidentsByStudent[$sid] ?? [],
             ];
         })
         ->when(!$hasSpecificStudent && $this->focusFilter === 'bolos_only', fn ($c) => $c->where('tidak_mengikuti', '>', 0))
@@ -412,7 +451,6 @@ class AnalisaPresensiKbmSiswaPage extends Page
             'availableMapels' => $availableMapels,
             'studentOptions'  => $studentOptions,
             'periodOptions'   => $this->periodOptions,
-            'kpi'             => $kpi,
             'studentRows'     => $studentRows,
             'selectedKelas'   => $selectedKelas,
         ];

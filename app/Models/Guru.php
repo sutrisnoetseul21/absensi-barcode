@@ -233,7 +233,8 @@ class Guru extends Authenticatable
             return false;
         }
 
-        return $this->user->hasRole('super_admin')
+        return $this->user->isSuperAdmin()
+            || $this->user->hasRole('super_admin')
             || $this->user->can('portal_guru:akses_semua_kelas');
     }
 

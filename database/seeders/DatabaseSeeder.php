@@ -17,12 +17,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CoreSystemSeeder::class,
-            KelasSeeder::class,
-            JabatanSeeder::class,
             SuperAdminSeeder::class,
             WebSarpraSeeder::class,
             WebPillarSeeder::class,
             WebFaqSeeder::class,
+            PengaduanKategoriSeeder::class,
         ]);
 
         // Akun Admin Filament
