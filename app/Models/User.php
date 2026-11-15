@@ -269,6 +269,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(\App\Models\Guru::class, 'user_id');
     }
 
+    /**
+     * Cek apakah user ini terhubung ke data Guru (baik via user_id maupun teacher_id).
+     */
+    public function isGuruUser(): bool
+    {
+        return ! empty($this->teacher_id)
+            || $this->teacher !== null
+            || $this->guru !== null;
+    }
+
     // Relasi Single-Auth ke tabel students
     public function student(): \Illuminate\Database\Eloquent\Relations\HasOne
     {

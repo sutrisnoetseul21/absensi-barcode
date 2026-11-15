@@ -3,13 +3,35 @@
 namespace App\Filament\Resources\ManajemenAksesPortalResource\Pages;
 
 use App\Filament\Resources\ManajemenAksesPortalResource;
+use App\Filament\Resources\UserResource;
 use App\Models\KelasAjaran;
 use App\Models\TahunAjaran;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use Spatie\Permission\Models\Role;
 
 class EditManajemenAksesPortal extends EditRecord
 {
     protected static string $resource = ManajemenAksesPortalResource::class;
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            UserResource::getUrl('index') => 'Manajemen User dan Akses',
+            $this->getRecordTitle(),
+        ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return UserResource::getUrl('index');
+    }
+
+    protected function getCancelFormAction(): Action
+    {
+        return parent::getCancelFormAction()
+            ->url(UserResource::getUrl('index'));
+    }
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
@@ -18,7 +40,9 @@ class EditManajemenAksesPortal extends EditRecord
         $activeYear = TahunAjaran::where('status', 'aktif')->first();
         $activeYearId = $activeYear?->id;
 
-        $data['akses_portal_guru'] = $isSuperAdmin || $user->hasRole('wali_kelas');
+        $data['is_super_admin_toggle'] = $isSuperAdmin;
+
+        $data['akses_portal_guru'] = $isSuperAdmin || $user->isGuruUser() || $user->hasRole('wali_kelas');
         $data['akses_portal_perpustakaan'] = $isSuperAdmin || $user->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']);
         $data['akses_portal_presensi'] = $isSuperAdmin || $user->hasRole('petugas_presensi');
         $data['akses_dashboard_presensi'] = $isSuperAdmin || $user->hasRole('admin_portal_presensi');
@@ -31,16 +55,22 @@ class EditManajemenAksesPortal extends EditRecord
             ? 'viewer'
             : 'editor';
         $data['akses_portal_sistem'] = $isSuperAdmin || $user->hasRole('admin_portal_sistem');
-        $data['bypass_semua_kelas'] = $isSuperAdmin || $user->can('portal_guru:akses_semua_kelas');
-        $data['supervisi_jurnal_guru'] = $isSuperAdmin || $user->can('portal_guru:supervisi_jurnal');
+        $guru = $user->teacher ?? $user->guru;
+        $isBk = $user->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
 
         $pantauClassIds = [];
-        if ($user->teacher && $activeYearId) {
-            $pantauClassIds = $user->teacher->kelasPantau()
+        if ($guru && $activeYearId) {
+            $pantauClassIds = $guru->kelasPantau()
                 ->where('academic_year_id', $activeYearId)
                 ->pluck('class_id')
                 ->toArray();
         }
+
+        $data['bypass_semua_kelas'] = $isSuperAdmin
+            || (! $isBk && ! empty($pantauClassIds))
+            || (! $user->isGuruUser() && $user->can('portal_guru:akses_semua_kelas'));
+        $data['supervisi_jurnal_guru'] = $isSuperAdmin || $user->can('portal_guru:supervisi_jurnal');
+        $data['bypass_class_ids'] = $pantauClassIds;
         $data['kelas_binaan_bk_ids'] = $pantauClassIds;
 
         return $data;
@@ -49,18 +79,40 @@ class EditManajemenAksesPortal extends EditRecord
     protected function afterSave(): void
     {
         $user = $this->record;
+        $formData = $this->form->getState();
 
-        // Super Admin otomatis memiliki semua akses portal & bypass, tidak perlu dimodifikasi per-role
-        if ($user->isSuperAdmin()) {
+        // Akun yang sedang login tidak boleh mencabut status Super Admin dirinya sendiri
+        if ($user->id === auth()->id() && $user->isSuperAdmin()) {
             return;
         }
 
-        $formData = $this->form->getState();
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $wantsSuperAdmin = ! empty($formData['is_super_admin_toggle']);
+
+        if ($wantsSuperAdmin) {
+            if (! $user->hasRole('super_admin')) {
+                $user->assignRole('super_admin');
+            }
+            if (! $user->is_super_admin) {
+                $user->forceFill(['is_super_admin' => true])->saveQuietly();
+            }
+
+            return;
+        }
+
+        if ($user->hasRole('super_admin')) {
+            $user->removeRole('super_admin');
+        }
+        if ($user->is_super_admin) {
+            $user->forceFill(['is_super_admin' => false])->saveQuietly();
+        }
+
         $activeYear = TahunAjaran::where('status', 'aktif')->first();
         $activeYearId = $activeYear?->id;
 
-        // 1. Kelola Portal Guru
-        $hasAksesGuru = !empty($formData['akses_portal_guru']);
+        // 1. Kelola Portal Guru (akun Guru selalu otomatis memiliki akses Portal Guru / role wali_kelas)
+        Role::firstOrCreate(['name' => 'wali_kelas', 'guard_name' => 'web']);
+        $hasAksesGuru = $user->isGuruUser() || ! empty($formData['akses_portal_guru']);
         if ($hasAksesGuru) {
             if (!$user->hasRole('wali_kelas')) {
                 $user->assignRole('wali_kelas');
@@ -71,9 +123,12 @@ class EditManajemenAksesPortal extends EditRecord
             }
         }
 
-        // Bypass Semua Kelas
+        $guru = $user->teacher ?? $user->guru;
+        $isBk = $user->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
+
+        // Akses Kelas Tambahan: untuk akun Guru dibatasi pada kelas pilihan (tanpa permission bypass semua kelas)
         $bypassSemua = !empty($formData['bypass_semua_kelas']);
-        if ($bypassSemua) {
+        if (! $user->isGuruUser() && $bypassSemua) {
             \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'portal_guru:akses_semua_kelas', 'guard_name' => 'web']);
             $user->givePermissionTo('portal_guru:akses_semua_kelas');
         } else {
@@ -93,26 +148,23 @@ class EditManajemenAksesPortal extends EditRecord
             }
         }
 
-        // Sync kelas binaan BK (jika user adalah Guru BK)
-        if ($user->teacher && $activeYearId) {
-            $isBk = $user->isGuruBk() || $user->teacher->hasJabatan(['Guru BK', 'BK']);
+        // Sync kelas pantau (untuk Guru BK dari kelas_binaan_bk_ids, untuk Guru non-BK dari bypass_class_ids)
+        if ($guru && $activeYearId) {
+            $selectedClassIds = [];
             if ($hasAksesGuru && $isBk) {
                 $selectedClassIds = $formData['kelas_binaan_bk_ids'] ?? [];
+            } elseif ($hasAksesGuru && ! $isBk && $bypassSemua) {
+                $selectedClassIds = $formData['bypass_class_ids'] ?? [];
+            }
 
-                // Hapus yang lama di tahun ini
-                $user->teacher->kelasPantau()->where('academic_year_id', $activeYearId)->delete();
+            $guru->kelasPantau()->where('academic_year_id', $activeYearId)->delete();
 
-                // Insert yang baru
-                foreach ($selectedClassIds as $classId) {
-                    \App\Models\TeacherClassAccess::create([
-                        'teacher_id' => $user->teacher->id,
-                        'class_id' => $classId,
-                        'academic_year_id' => $activeYearId,
-                    ]);
-                }
-            } elseif (!$isBk) {
-                // Jika bukan Guru BK, bersihkan data kelas pantau jika ada
-                $user->teacher->kelasPantau()->where('academic_year_id', $activeYearId)->delete();
+            foreach (array_unique($selectedClassIds) as $classId) {
+                \App\Models\TeacherClassAccess::create([
+                    'teacher_id' => $guru->id,
+                    'class_id' => $classId,
+                    'academic_year_id' => $activeYearId,
+                ]);
             }
         }
 

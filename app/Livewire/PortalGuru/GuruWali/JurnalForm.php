@@ -159,12 +159,13 @@ class JurnalForm extends Component
     {
         $this->validate();
 
-        $academic_year_id = null;
+        $academic_year_id = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+            ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
         $class_id = null;
         if ($this->student_id) {
             $student = Siswa::with('enrollmentAktif')->find($this->student_id);
             if ($student && $student->enrollmentAktif) {
-                $academic_year_id = $student->enrollmentAktif->academic_year_id;
+                $academic_year_id = $student->enrollmentAktif->academic_year_id ?? $academic_year_id;
                 $class_id = $student->enrollmentAktif->class_id;
             }
         }

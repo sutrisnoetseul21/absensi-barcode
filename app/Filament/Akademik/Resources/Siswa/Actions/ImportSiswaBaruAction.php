@@ -122,15 +122,11 @@ class ImportSiswaBaruAction extends Action
                             $headers = $sheet[0] ?? [];
                             $allRows = array_slice($sheet, 1);
 
-                            // Validasi header (8 kolom, cek NISN dan NIS dan Nama Siswa)
-                            if (
-                                strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' ||
-                                strtolower(trim((string)($headers[1] ?? ''))) !== 'nis'  ||
-                                strtolower(trim((string)($headers[2] ?? ''))) !== 'nama siswa'
-                            ) {
+                            // Validasi header (pastikan urutan: NISN, NIS, Nama Siswa, Kelas)
+                            if (!$this->isValidTemplateHeaders($headers)) {
                                 return new \Illuminate\Support\HtmlString(
                                     '<div style="color: #B91C1C; font-weight: 600; padding: 12px; background-color: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 6px;">'
-                                    . '⚠️ Berkas yang diunggah bukan template Siswa Baru yang valid. Silakan gunakan tombol <strong>Template Siswa Baru</strong> untuk mengunduh template yang benar.'
+                                    . '⚠️ Berkas yang diunggah bukan template Siswa Baru terbaru yang valid (kolom ke-4 harus Kelas). Silakan gunakan tombol <strong>Download Template Siswa Baru</strong> di atas.'
                                     . '</div>'
                                 );
                             }
@@ -138,7 +134,9 @@ class ImportSiswaBaruAction extends Action
                             // Kumpulkan data referensi untuk preview
                             $existingNisns   = Siswa::withTrashed()->pluck('nisn')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
                             $existingNises   = Siswa::withTrashed()->whereNotNull('nis')->pluck('nis')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
-                            $validKelasNames = Kelas::pluck('name')->toArray();
+                            $validKelasMap   = Kelas::pluck('name')
+                                ->mapWithKeys(fn ($n) => [mb_strtolower(trim((string) $n)) => (string) $n])
+                                ->toArray();
                             $activeYear      = PengaturanSekolah::current()?->tahunAjaranAktif;
 
                             // Hitung NISN kembar dalam file
@@ -149,51 +147,85 @@ class ImportSiswaBaruAction extends Action
                             }
                             $dupNisns = array_keys(array_filter($nisnCount, fn($c) => $c > 1));
 
-                            // Filter baris tidak kosong
+                            // Filter baris tidak kosong sambil mempertahankan nomor baris Excel
                             $rows = array_filter($allRows, fn($row) => trim((string)($row[0] ?? '')) !== '' || trim((string)($row[2] ?? '')) !== '');
 
                             if (empty($rows)) {
                                 return new \Illuminate\Support\HtmlString('<p class="text-sm text-gray-500">Tidak ada baris data siswa yang terisi.</p>');
                             }
 
-                            // Hitung statistik preview
+                            // Hitung statistik preview & kumpulkan item agar yang error/warning tampil paling depan
                             $countBerhasil   = 0;
                             $countTanpaKelas = 0;
                             $countWarning    = 0;
                             $countSkip       = 0;
+                            $previewItems    = [];
+
+                            foreach ($rows as $origIdx => $row) {
+                                $excelRowNo = (int) $origIdx + 2;
+                                $nisn       = trim((string)($row[0] ?? ''));
+                                $nis        = trim((string)($row[1] ?? ''));
+                                $name       = trim((string)($row[2] ?? ''));
+                                $kelas      = trim((string)($row[3] ?? ''));
+                                $kelasKey   = mb_strtolower($kelas);
+                                $kelasDisplay = $kelas !== '' ? ($validKelasMap[$kelasKey] ?? $kelas) : '';
+
+                                // Tentukan status preview (case-insensitive untuk kelas)
+                                [$statusHtml, $statusType] = $this->determinePreviewStatus(
+                                    $nisn, $nis, $name, $kelas,
+                                    $existingNisns, $existingNises,
+                                    $dupNisns, $validKelasMap, $activeYear
+                                );
+
+                                match ($statusType) {
+                                    'berhasil'             => $countBerhasil++,
+                                    'berhasil_tanpa_kelas' => $countTanpaKelas++,
+                                    'warning'              => $countWarning++,
+                                    'skip'                 => $countSkip++,
+                                    default                => null,
+                                };
+
+                                $priority = match ($statusType) {
+                                    'skip'                 => 0,
+                                    'warning'              => 1,
+                                    'berhasil_tanpa_kelas' => 2,
+                                    default                => 3,
+                                };
+
+                                $previewItems[] = [
+                                    'priority'      => $priority,
+                                    'row_no'        => $excelRowNo,
+                                    'nisn'          => $nisn,
+                                    'nis'           => $nis,
+                                    'name'          => $name,
+                                    'kelas_display' => $kelasDisplay,
+                                    'status_html'   => $statusHtml,
+                                    'status_type'   => $statusType,
+                                ];
+                            }
+
+                            usort($previewItems, fn (array $a, array $b): int => [$a['priority'], $a['row_no']] <=> [$b['priority'], $b['row_no']]);
 
                             // Build HTML tabel
                             $html  = '<div style="margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap;">';
 
-                            // Ringkasan statistik akan dihitung di dalam loop
                             $tableRows = '';
-                            foreach ($rows as $row) {
-                                $nisn     = trim((string)($row[0] ?? ''));
-                                $nis      = trim((string)($row[1] ?? ''));
-                                $name     = trim((string)($row[2] ?? ''));
-                                $kelas    = trim((string)($row[22] ?? ''));
-
-                                // Tentukan status preview
-                                [$statusHtml, $statusType] = $this->determinePreviewStatus(
-                                    $nisn, $nis, $name, $kelas,
-                                    $existingNisns, $existingNises,
-                                    $dupNisns, $validKelasNames, $activeYear
-                                );
-
-                                match ($statusType) {
-                                    'berhasil'           => $countBerhasil++,
-                                    'berhasil_tanpa_kelas' => $countTanpaKelas++,
-                                    'warning'            => $countWarning++,
-                                    'skip'               => $countSkip++,
-                                    default              => null,
+                            foreach ($previewItems as $item) {
+                                $rowBg = match ($item['status_type']) {
+                                    'skip'    => 'background-color: #FEF2F2;',
+                                    'warning' => 'background-color: #FFFBEB;',
+                                    default   => '',
                                 };
 
-                                $tableRows .= '<tr style="border-bottom: 1px solid #E5E7EB;">';
-                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB; white-space: nowrap;">' . htmlspecialchars($nisn) . '</td>';
-                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB; white-space: nowrap;">' . htmlspecialchars($nis) . '</td>';
-                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB;">' . htmlspecialchars($name) . '</td>';
-                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB; text-align: center;">' . ($kelas !== '' ? htmlspecialchars($kelas) : '<span style="color:#9CA3AF">—</span>') . '</td>';
-                                $tableRows .= '<td style="padding: 8px 12px;">' . $statusHtml . '</td>';
+                                $tableRows .= '<tr style="border-bottom: 1px solid #E5E7EB; ' . $rowBg . '">';
+                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB; white-space: nowrap;">'
+                                    . htmlspecialchars($item['nisn'])
+                                    . '<div style="font-size: 10px; color: #9CA3AF;">Baris #' . $item['row_no'] . '</div>'
+                                    . '</td>';
+                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB; white-space: nowrap;">' . htmlspecialchars($item['nis']) . '</td>';
+                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB;">' . htmlspecialchars($item['name']) . '</td>';
+                                $tableRows .= '<td style="padding: 8px 12px; color: #374151; border-right: 1px solid #E5E7EB; text-align: center;">' . ($item['kelas_display'] !== '' ? htmlspecialchars($item['kelas_display']) : '<span style="color:#9CA3AF">—</span>') . '</td>';
+                                $tableRows .= '<td style="padding: 8px 12px;">' . $item['status_html'] . '</td>';
                                 $tableRows .= '</tr>';
                             }
 
@@ -242,14 +274,10 @@ class ImportSiswaBaruAction extends Action
                     $parsed  = Excel::toArray(new \stdClass, $filePath);
                     $headers = $parsed[0][0] ?? [];
 
-                    if (
-                        strtolower(trim((string)($headers[0] ?? ''))) !== 'nisn' ||
-                        strtolower(trim((string)($headers[1] ?? ''))) !== 'nis'  ||
-                        strtolower(trim((string)($headers[2] ?? ''))) !== 'nama siswa'
-                    ) {
+                    if (!$this->isValidTemplateHeaders($headers)) {
                         Notification::make()
                             ->title('Import Gagal')
-                            ->body('Format berkas salah. Gunakan template Import Siswa + Kelas.')
+                            ->body('Format berkas salah atau menggunakan template versi lama. Download ulang template Import Siswa + Kelas.')
                             ->danger()
                             ->send();
                         return;
@@ -322,7 +350,7 @@ class ImportSiswaBaruAction extends Action
         array  $existingNisns,
         array  $existingNises,
         array  $dupNisns,
-        array  $validKelasNames,
+        array  $validKelasMap,
         mixed  $activeYear,
     ): array {
         if ($nisn === '') {
@@ -345,12 +373,12 @@ class ImportSiswaBaruAction extends Action
             return [$this->statusBadge('❌ Skip — NIS sudah ada di DB', '#B91C1C', '#FEE2E2'), 'skip'];
         }
 
-        // Siswa baru — cek kelas
+        // Siswa baru — cek kelas (case-insensitive)
         if ($kelas === '') {
             return [$this->statusBadge('✅ Berhasil (tanpa kelas)', '#1D4ED8', '#DBEAFE'), 'berhasil_tanpa_kelas'];
         }
 
-        if (!in_array($kelas, $validKelasNames)) {
+        if (!isset($validKelasMap[mb_strtolower($kelas)])) {
             return [$this->statusBadge('⚠️ Siswa disimpan — kelas tidak valid', '#92400E', '#FEF3C7'), 'warning'];
         }
 
@@ -364,6 +392,16 @@ class ImportSiswaBaruAction extends Action
     private function statusBadge(string $label, string $textColor, string $bgColor): string
     {
         return '<span style="display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; color: ' . $textColor . '; background-color: ' . $bgColor . ';">' . $label . '</span>';
+    }
+
+    private function isValidTemplateHeaders(array $headers): bool
+    {
+        $normalize = static fn (mixed $value): string => trim(str_replace('*', '', strtolower((string) ($value ?? ''))));
+
+        return $normalize($headers[0] ?? '') === 'nisn'
+            && $normalize($headers[1] ?? '') === 'nis'
+            && $normalize($headers[2] ?? '') === 'nama siswa'
+            && str_starts_with($normalize($headers[3] ?? ''), 'kelas');
     }
 
     private function badgeHtml(string $label, string $textColor, string $bgColor): string

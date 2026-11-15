@@ -53,16 +53,28 @@ class IjinKehadiranDetail extends Component
         if (!$studentClassId) return false;
 
         $kelasWaliIds = $teacher->kelasAjarans()->pluck('class_id')->toArray();
-        return in_array($studentClassId, $kelasWaliIds);
+        if (in_array($studentClassId, $kelasWaliIds)) {
+            return true;
+        }
+
+        if ($user->isGuruBk()) {
+            $kelasPantauIds = $teacher->kelasPantau()->pluck('class_id')->toArray();
+            return in_array($studentClassId, $kelasPantauIds);
+        }
+
+        return false;
     }
 
     protected function loadRequest()
     {
-        $teacher = Auth::user()->teacher;
+        $user = Auth::user();
+        $teacher = $user->teacher;
         
-        // Verify access by checking if student is in accessible classes
+        // Verify access by checking if student is in accessible classes (kelasPantau hanya berlaku untuk Guru BK)
         $kelasWali = $teacher->kelasAjarans()->pluck('class_id')->toArray();
-        $kelasPantau = $teacher->kelasPantau()->pluck('class_id')->toArray();
+        $kelasPantau = $user->isGuruBk()
+            ? $teacher->kelasPantau()->pluck('class_id')->toArray()
+            : [];
         $accessibleClassIds = array_unique(array_merge($kelasWali, $kelasPantau));
 
         $studentIds = EnrollmentSiswa::whereIn('class_id', $accessibleClassIds)
@@ -78,7 +90,7 @@ class IjinKehadiranDetail extends Component
     public function approve(LeaveRequestService $service)
     {
         if (!$this->canApproveOrReject()) {
-            abort(403, 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak menyetujui permohonan ijin.');
+            abort(403, 'Akses ditolak: Hanya Wali Kelas atau Guru BK binaan dari siswa bersangkutan yang berhak menyetujui permohonan ijin.');
         }
 
         if ($this->request->status === 'approved') return;
@@ -120,7 +132,7 @@ class IjinKehadiranDetail extends Component
     public function reject(LeaveRequestService $service)
     {
         if (!$this->canApproveOrReject()) {
-            abort(403, 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak menolak permohonan ijin.');
+            abort(403, 'Akses ditolak: Hanya Wali Kelas atau Guru BK binaan dari siswa bersangkutan yang berhak menolak permohonan ijin.');
         }
 
         $this->validate([
@@ -172,7 +184,7 @@ class IjinKehadiranDetail extends Component
     public function resetToPending(LeaveRequestService $service)
     {
         if (!$this->canApproveOrReject()) {
-            abort(403, 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak mengubah status permohonan ijin.');
+            abort(403, 'Akses ditolak: Hanya Wali Kelas atau Guru BK binaan dari siswa bersangkutan yang berhak mengubah status permohonan ijin.');
         }
 
         $this->validate([

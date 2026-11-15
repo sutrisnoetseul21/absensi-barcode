@@ -59,6 +59,11 @@ class WaliKelasStudentDetail extends Component
                 ->where('teacher_id', $actor->id)
                 ->exists();
 
+            $isKelasPantau = \App\Models\TeacherClassAccess::where('class_id', $this->enrollment->class_id)
+                ->where('academic_year_id', $this->enrollment->academic_year_id)
+                ->where('teacher_id', $actor->id)
+                ->exists();
+
             $isGuruWali = \App\Models\KelompokGuruWaliSiswa::where('student_id', $this->student->id)
                 ->whereHas('kelompok', function ($q) use ($actor) {
                     $q->where('teacher_id', $actor->id)
@@ -66,7 +71,7 @@ class WaliKelasStudentDetail extends Component
                 })
                 ->exists();
                 
-            if (!$isWaliKelas && !$isGuruWali) {
+            if (!$isWaliKelas && !$isKelasPantau && !$isGuruWali) {
                 abort(403, 'Akses Ditolak. Siswa ini bukan anggota dari kelas binaan maupun kelompok perwalian Anda saat ini.');
             }
         }

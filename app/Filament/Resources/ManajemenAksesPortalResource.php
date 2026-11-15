@@ -32,15 +32,17 @@ class ManajemenAksesPortalResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-key';
 
-    protected static ?string $navigationLabel = 'Manajemen Akses Portal';
+    protected static ?string $navigationLabel = 'Manajemen User dan Akses';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Akses';
 
     protected static ?string $modelLabel = 'Akses Portal Pengguna';
 
-    protected static ?string $pluralModelLabel = 'Manajemen Akses Portal';
+    protected static ?string $pluralModelLabel = 'Manajemen User dan Akses';
 
     protected static ?int $navigationSort = 2;
+
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $slug = 'manajemen-akses-portal';
 
@@ -57,13 +59,47 @@ class ManajemenAksesPortalResource extends Resource
         return $schema
             ->components([
                 Section::make('Status Super Admin (Akses Otomatis Penuh)')
-                    ->description('Akun ini berstatus Super Admin sehingga secara otomatis memiliki akses penuh ke seluruh portal tanpa perlu dicentang satu per satu.')
+                    ->description('Jika diaktifkan, akun ini memiliki akses penuh ke seluruh portal tanpa perlu mengaktifkan satu per satu.')
                     ->schema([
-                        Placeholder::make('super_admin_notice')
-                            ->hiddenLabel()
-                            ->content(new HtmlString('<div class="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-sm text-purple-800 dark:text-purple-200 font-medium">👑 Seluruh akses portal aktif otomatis untuk Super Admin. Untuk mencabut status Super Admin, kelola melalui menu <strong>Manajemen Admin</strong>.</div>')),
+                        Toggle::make('is_super_admin_toggle')
+                            ->label('Jadikan Super Admin')
+                            ->helperText(fn ($record) => $record && $record->id === auth()->id()
+                                ? '👑 Status Super Admin akun yang sedang login tidak dapat dicabut dari halaman ini.'
+                                : '👑 Aktifkan untuk memberikan akses penuh ke seluruh portal & modul sistem.')
+                            ->disabled(fn ($record) => $record !== null && $record->id === auth()->id())
+                            ->live()
+                            ->afterStateUpdated(function (bool $state, $set, $record) {
+                                if ($state) {
+                                    $set('akses_portal_guru', true);
+                                    $set('bypass_semua_kelas', true);
+                                    $set('supervisi_jurnal_guru', true);
+                                    $set('akses_portal_perpustakaan', true);
+                                    $set('akses_dashboard_presensi', true);
+                                    $set('akses_portal_web', true);
+                                    $set('akses_portal_setup', true);
+                                    $set('akses_portal_akademik', true);
+                                    $set('akses_portal_sistem', true);
+
+                                    return;
+                                }
+
+                                if ($record) {
+                                    $guru = $record->teacher ?? $record->guru;
+                                    $isBk = $record->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
+                                    $hasPantau = $guru ? $guru->kelasPantau()->exists() : false;
+
+                                    $set('akses_portal_guru', $record->isGuruUser() || $record->hasRole('wali_kelas'));
+                                    $set('bypass_semua_kelas', (! $isBk && $hasPantau) || $record->permissions->contains('name', 'portal_guru:akses_semua_kelas'));
+                                    $set('supervisi_jurnal_guru', $record->permissions->contains('name', 'portal_guru:supervisi_jurnal'));
+                                    $set('akses_portal_perpustakaan', $record->hasRole(['petugas_perpustakaan', 'admin_perpustakaan']));
+                                    $set('akses_dashboard_presensi', $record->hasRole('admin_portal_presensi'));
+                                    $set('akses_portal_web', $record->hasRole('admin_portal_web'));
+                                    $set('akses_portal_setup', $record->hasRole('admin_portal_setup'));
+                                    $set('akses_portal_akademik', $record->hasRole('admin_portal_akademik') || $record->hasAnyRole(['admin_akademik_editor', 'admin_akademik_viewer']));
+                                    $set('akses_portal_sistem', $record->hasRole('admin_portal_sistem'));
+                                }
+                            }),
                     ])
-                    ->visible(fn ($record) => (bool) $record?->isSuperAdmin())
                     ->columnSpanFull(),
 
                 Section::make('Informasi Pengguna')
@@ -74,7 +110,9 @@ class ManajemenAksesPortalResource extends Resource
 
                         Placeholder::make('teacher_info')
                             ->label('Profil Guru Terkait')
-                            ->content(fn ($record) => $record && $record->teacher ? $record->teacher->name : 'Non-Guru (Hanya Staf / Admin)'),
+                            ->content(fn ($record) => $record && ($record->teacher || $record->guru)
+                                ? ($record->teacher?->name ?? $record->guru?->name)
+                                : 'Non-Guru (Hanya Staf / Admin)'),
                     ])->columns(2),
 
                 Section::make('Akses Portal Guru (/portal-guru)')
@@ -82,32 +120,75 @@ class ManajemenAksesPortalResource extends Resource
                     ->schema([
                         Toggle::make('akses_portal_guru')
                             ->label('Izinkan Akses Portal Guru')
-                            ->helperText('Jika diaktifkan, pengguna akan diberikan role Wali Kelas.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin())
+                            ->helperText(fn (?User $record) => $record?->isGuruUser()
+                                ? 'Akun Guru otomatis mendapatkan akses Portal Guru (role Wali Kelas).'
+                                : 'Jika diaktifkan, pengguna akan diberikan role Wali Kelas.')
+                            ->disabled(fn ($get, ?User $record) => (bool) $get('is_super_admin_toggle') || ($record?->isGuruUser() ?? false))
+                            ->dehydrated(true)
                             ->live(),
 
                         Placeholder::make('wali_kelas_utama')
                             ->label('Wali Kelas Utama (Sesuai Data Induk)')
                             ->content(function ($record) {
-                                if (!$record || !$record->teacher) return '-';
+                                $guru = $record?->teacher ?? $record?->guru;
+                                if (!$guru) return '-';
                                 $activeYear = \App\Models\TahunAjaran::where('status', 'aktif')->first();
                                 if (!$activeYear) return '-';
-                                $kelas = $record->teacher->kelasAjarans()->where('academic_year_id', $activeYear->id)->with('kelas')->get();
+                                $kelas = $guru->kelasAjarans()->where('academic_year_id', $activeYear->id)->with('kelas')->get();
                                 if ($kelas->isEmpty()) return 'Tidak ada (Bukan wali kelas utama di tahun aktif)';
                                 return $kelas->map(fn($k) => $k->kelas->name ?? 'Unknown')->implode(', ');
                             })
                             ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
 
                         Toggle::make('bypass_semua_kelas')
-                            ->label('Akses Semua Kelas (Bypass Mode)')
-                            ->helperText('Hanya aktifkan jika guru ini diberi hak khusus untuk memantau presensi seluruh kelas di sekolah.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin())
-                            ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
+                            ->label('Akses Kelas Tambahan (Pilih Kelas)')
+                            ->helperText('Aktifkan jika guru ini diberi hak khusus memantau presensi (Akademik, Sholat Dhuhur, & Data Siswa) pada kelas tertentu di luar kelas walinya.')
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle'))
+                            ->visible(fn ($get) => (bool) $get('akses_portal_guru'))
+                            ->live(),
+
+                        Select::make('bypass_class_ids')
+                            ->label('Pilih Kelas Tambahan (Tahun Ajaran Aktif)')
+                            ->options($kelasOptions)
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->required(function ($get, ?User $record) {
+                                if ($get('is_super_admin_toggle') || ! $get('bypass_semua_kelas') || ! $record?->isGuruUser()) {
+                                    return false;
+                                }
+                                $guru = $record->teacher ?? $record->guru;
+                                $isBk = $record->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
+
+                                return ! $isBk;
+                            })
+                            ->visible(function ($get, ?User $record) {
+                                if (! $get('akses_portal_guru') || ! $get('bypass_semua_kelas') || $get('is_super_admin_toggle') || ! $record?->isGuruUser()) {
+                                    return false;
+                                }
+                                $guru = $record->teacher ?? $record->guru;
+                                $isBk = $record->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
+
+                                return ! $isBk;
+                            })
+                            ->helperText('Pilih rombel/kelas tambahan yang boleh dipantau (hanya Presensi Akademik, Sholat Dhuhur, & Data Siswa; tidak termasuk persetujuan ijin).'),
+
+                        Placeholder::make('bypass_bk_notice')
+                            ->hiddenLabel()
+                            ->content('Akun ini terdaftar sebagai Guru BK; daftar kelas pantau dikelola langsung pada bagian Akses Kelas Binaan BK di bawah.')
+                            ->visible(function ($get, ?User $record) {
+                                if (! $get('akses_portal_guru') || ! $get('bypass_semua_kelas') || $get('is_super_admin_toggle') || ! $record) {
+                                    return false;
+                                }
+                                $guru = $record->teacher ?? $record->guru;
+
+                                return $record->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
+                            }),
 
                         Toggle::make('supervisi_jurnal_guru')
                             ->label('Supervisi Jurnal Mengajar (Akses Seluruh Guru)')
                             ->helperText('Aktifkan jika pengguna ini (misal Kepala Sekolah / Waka Kurikulum) berwenang memantau, memeriksa riwayat KBM, dan mencetak rekap jurnal seluruh guru.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin())
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle'))
                             ->visible(fn ($get) => (bool) $get('akses_portal_guru')),
                     ])->columns(1),
 
@@ -125,7 +206,8 @@ class ManajemenAksesPortalResource extends Resource
                     ->visible(function ($record, $get) {
                         if (!$get('akses_portal_guru')) return false;
                         if (!$record) return false;
-                        return $record->isGuruBk() || ($record->teacher !== null && $record->teacher->hasJabatan(['Guru BK', 'BK']));
+                        $guru = $record->teacher ?? $record->guru;
+                        return $record->isGuruBk() || ($guru !== null && $guru->hasJabatan(['Guru BK', 'BK']));
                     })
                     ->columns(1),
 
@@ -135,7 +217,7 @@ class ManajemenAksesPortalResource extends Resource
                         Toggle::make('akses_portal_perpustakaan')
                             ->label('Izinkan Akses Portal Perpustakaan')
                             ->helperText('Jika diaktifkan, pengguna akan diberikan role Petugas Perpustakaan.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin()),
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle')),
                     ])->columns(1),
 
                 Section::make('Akses Manajemen Presensi (/portal-presensi)')
@@ -144,7 +226,7 @@ class ManajemenAksesPortalResource extends Resource
                         Toggle::make('akses_dashboard_presensi')
                             ->label('Izinkan Akses Portal Presensi')
                             ->helperText('Jika diaktifkan, pengguna akan menjadi Admin Presensi yang dapat mengelola rekapitulasi (otomatis mendapatkan akses Kiosk).')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin()),
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle')),
                     ])->columns(1),
 
                 Section::make('Akses Portal Web Sekolah (/portal-web)')
@@ -153,7 +235,7 @@ class ManajemenAksesPortalResource extends Resource
                         Toggle::make('akses_portal_web')
                             ->label('Izinkan Akses Portal Web Sekolah')
                             ->helperText('Jika diaktifkan, pengguna mendapat role Admin Portal Web dan dapat mengakses command center konten web sekolah.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin()),
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle')),
                     ])->columns(1),
 
                 Section::make('Akses Portal Setup & Instalasi (/portal-setup)')
@@ -162,7 +244,7 @@ class ManajemenAksesPortalResource extends Resource
                         Toggle::make('akses_portal_setup')
                             ->label('Izinkan Akses Portal Setup & Instalasi')
                             ->helperText('Jika diaktifkan, pengguna mendapat role Admin Portal Setup dan dapat mengakses /portal-setup.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin()),
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle')),
                     ])->columns(1),
 
                 Section::make('Akses Portal Akademik (/portal-akademik)')
@@ -171,7 +253,7 @@ class ManajemenAksesPortalResource extends Resource
                         Toggle::make('akses_portal_akademik')
                             ->label('Izinkan Akses Portal Akademik')
                             ->helperText('Jika diaktifkan, pengguna dapat mengakses /portal-akademik sesuai level hak akses yang dipilih.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin())
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle'))
                             ->live(),
 
                         Select::make('hak_akses_akademik')
@@ -182,7 +264,7 @@ class ManajemenAksesPortalResource extends Resource
                             ])
                             ->default('editor')
                             ->required()
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin())
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle'))
                             ->visible(fn ($get) => (bool) $get('akses_portal_akademik'))
                             ->helperText('Menentukan apakah pengguna hanya dapat memantau/melihat data atau juga mengelola data di Portal Akademik.'),
                     ])->columns(1),
@@ -193,7 +275,7 @@ class ManajemenAksesPortalResource extends Resource
                         Toggle::make('akses_portal_sistem')
                             ->label('Izinkan Akses Portal Sistem')
                             ->helperText('Jika diaktifkan, pengguna mendapat akses Portal Sistem (/portal-sistem) beserta pengelolaan admin dan akses portal.')
-                            ->disabled(fn ($record) => (bool) $record?->isSuperAdmin()),
+                            ->disabled(fn ($get) => (bool) $get('is_super_admin_toggle')),
                     ])->columns(1),
             ])
             ->statePath('data');

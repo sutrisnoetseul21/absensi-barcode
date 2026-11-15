@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\Resources\ManajemenAksesPortalResource;
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -9,6 +10,16 @@ use Filament\Resources\Pages\EditRecord;
 class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;
+
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+
+        $this->redirect(
+            ManajemenAksesPortalResource::getUrl('edit', ['record' => $this->record]),
+            navigate: false
+        );
+    }
 
     protected function getHeaderActions(): array
     {

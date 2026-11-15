@@ -101,4 +101,20 @@ class JurnalGuruWali extends Model
     {
         return $this->morphOne(BadgeKarakterSiswa::class, 'source');
     }
+
+    /**
+     * Kelas siswa saat sesi dicatat.
+     */
+    public function kelas(): BelongsTo
+    {
+        return $this->belongsTo(Kelas::class, 'class_id');
+    }
+
+    /**
+     * Tahun ajaran saat sesi dicatat.
+     */
+    public function tahunAjaran(): BelongsTo
+    {
+        return $this->belongsTo(TahunAjaran::class, 'academic_year_id');
+    }
 }

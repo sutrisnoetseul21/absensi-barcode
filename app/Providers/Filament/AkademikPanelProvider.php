@@ -3,10 +3,13 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Akademik\Pages\AkademikDashboard;
+use App\Filament\Akademik\Pages\AnalisaGuruWaliSiswaPage;
 use App\Filament\Akademik\Pages\AnalisaPresensiKbmSiswaPage;
 use App\Filament\Akademik\Pages\MonitoringGuruKelasJurnalPage;
+use App\Filament\Akademik\Pages\MonitoringGuruWaliPage;
 use App\Filament\Akademik\Resources\Enrollment\EnrollmentResource;
 use App\Filament\Akademik\Resources\Guru\GuruResource;
+use App\Filament\Akademik\Resources\GuruWali\JurnalGuruWaliResource;
 use App\Filament\Akademik\Resources\GuruWali\KelompokGuruWaliResource;
 use App\Filament\Akademik\Resources\JurnalPembelajaranResource;
 use App\Filament\Akademik\Resources\Kelas\KelasResource;
@@ -146,12 +149,15 @@ class AkademikPanelProvider extends PanelProvider
                 SiswaLulusResource::class,
                 SiswaMutasiResource::class,
                 KelompokGuruWaliResource::class,
+                JurnalGuruWaliResource::class,
                 JurnalPembelajaranResource::class,
             ])
             ->pages([
                 AkademikDashboard::class,
                 MonitoringGuruKelasJurnalPage::class,
                 AnalisaPresensiKbmSiswaPage::class,
+                MonitoringGuruWaliPage::class,
+                AnalisaGuruWaliSiswaPage::class,
             ])
             ->widgets([
                 AkademikStatsWidget::class,

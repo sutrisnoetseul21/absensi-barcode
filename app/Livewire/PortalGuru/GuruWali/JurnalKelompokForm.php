@@ -4,6 +4,9 @@ namespace App\Livewire\PortalGuru\GuruWali;
 
 use App\Models\JurnalGuruWali;
 use App\Models\KelompokGuruWali;
+use App\Models\PengaturanSekolah;
+use App\Models\Siswa;
+use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -137,7 +140,15 @@ class JurnalKelompokForm extends Component
             return;
         }
 
-        DB::transaction(function () use ($selectedStudents) {
+        $activeAcademicYearId = PengaturanSekolah::current()?->academic_year_id_active
+            ?? TahunAjaran::where('status', 'aktif')->value('id');
+
+        $studentsById = Siswa::with('enrollmentAktif')
+            ->whereIn('id', $selectedStudents->pluck('student_id')->filter())
+            ->get()
+            ->keyBy('id');
+
+        DB::transaction(function () use ($selectedStudents, $studentsById, $activeAcademicYearId) {
             foreach ($selectedStudents as $item) {
                 $catatan = trim($item['catatan_khusus'] ?? '');
                 $finalUraian = $this->uraian_pembahasan;
@@ -147,6 +158,7 @@ class JurnalKelompokForm extends Component
 
                 $rtl = trim($item['rtl_khusus'] ?? '');
                 $finalRtl = !empty($rtl) ? $rtl : ($this->rencana_tindak_lanjut ?: null);
+                $siswa = $studentsById->get($item['student_id']);
 
                 JurnalGuruWali::create([
                     'teacher_id'            => $this->teacher->id,
@@ -160,6 +172,8 @@ class JurnalKelompokForm extends Component
                     'rujukan_kolaborasi'    => $this->rujukan_kolaborasi,
                     'rencana_tindak_lanjut' => $finalRtl,
                     'is_public_note'        => $this->is_public_note,
+                    'academic_year_id'      => $siswa?->enrollmentAktif?->academic_year_id ?? $activeAcademicYearId,
+                    'class_id'              => $siswa?->enrollmentAktif?->class_id,
                 ]);
             }
         });

@@ -142,7 +142,7 @@
                         </svg>
                         <div class="text-sm">
                             <strong class="font-semibold block mb-1">Akses Mode Pantau (Read-Only)</strong>
-                            Persetujuan atau penolakan permohonan ijin siswa hanya dapat diproses oleh <strong>Wali Kelas Utama</strong> dari siswa yang bersangkutan.
+                            Persetujuan atau penolakan permohonan ijin siswa hanya dapat diproses oleh <strong>Wali Kelas Utama</strong> atau <strong>Guru BK binaan</strong> dari siswa yang bersangkutan.
                         </div>
                     </div>
                 @elseif($request->status === 'pending')

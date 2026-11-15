@@ -839,7 +839,7 @@
                         }
 
                         // Guru BK group
-                        $canAccessBk = $user?->canAccessPortalBk() || ($user?->teacher && $user->teacher->kelasPantau()->exists());
+                        $canAccessBk = $user?->canAccessPortalBk();
                         $isBkRujukan = request()->routeIs('portal-guru.bk.rujukan*');
                         $isBkKonseling = request()->routeIs('portal-guru.bk.konseling*');
                         $isBkSiswaBinaan = request()->routeIs('portal-guru.bk.siswa-binaan*');

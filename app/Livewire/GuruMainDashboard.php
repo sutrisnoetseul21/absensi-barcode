@@ -133,8 +133,10 @@ class GuruMainDashboard extends Component
                 ->where('status', 'aktif')
                 ->count();
 
-            // Hitung permohonan ijin pending dari siswa di kelas yang diakses guru
-            $accessibleClassIds = array_unique(array_merge($kelasWali, $kelasPantau));
+            // Hitung permohonan ijin pending hanya dari kelas Wali Kelas atau kelas Binaan BK (bukan kelas tambahan non-BK)
+            $accessibleClassIds = $user->isGuruBk()
+                ? array_unique(array_merge($kelasWali, $kelasPantau))
+                : $kelasWali;
             if (!empty($accessibleClassIds)) {
                 $this->pendingLeaveRequestsCount = LeaveRequest::where('status', 'pending')
                     ->where('academic_year_id', $activeYear->id)

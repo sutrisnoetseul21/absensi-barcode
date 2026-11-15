@@ -198,15 +198,18 @@ class GuruIjinKehadiranController extends Controller
             $waliClassIds = $actor->kelasAjarans()->pluck('class_id')->filter()->map(fn($id) => (string) $id)->toArray();
         }
 
-        // 2. Kelas Pantau (Binaan BK)
-        $pantauClassIds = $actor->kelasPantau()
-            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
-            ->pluck('class_id')
-            ->filter()
-            ->map(fn($id) => (string) $id)
-            ->toArray();
-        if (empty($pantauClassIds) && $activeYearId) {
-            $pantauClassIds = $actor->kelasPantau()->pluck('class_id')->filter()->map(fn($id) => (string) $id)->toArray();
+        // 2. Kelas Pantau Binaan BK (hanya diberikan untuk Guru BK, bukan kelas tambahan non-BK)
+        $pantauClassIds = [];
+        if ($isGuruBk) {
+            $pantauClassIds = $actor->kelasPantau()
+                ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+                ->pluck('class_id')
+                ->filter()
+                ->map(fn($id) => (string) $id)
+                ->toArray();
+            if (empty($pantauClassIds) && $activeYearId) {
+                $pantauClassIds = $actor->kelasPantau()->pluck('class_id')->filter()->map(fn($id) => (string) $id)->toArray();
+            }
         }
 
         $allClassIds = array_values(array_unique(array_merge($waliClassIds, $pantauClassIds)));
@@ -277,8 +280,17 @@ class GuruIjinKehadiranController extends Controller
 
         if (!$studentClassId) return false;
 
-        // Hanya Wali Kelas dari rombel tersebut yang berhak memutuskan
-        return in_array((string) $studentClassId, $accessInfo['wali_class_ids'], true);
+        // Wali Kelas dan Guru BK binaan dari rombel tersebut berhak memutuskan
+        $sid = (string) $studentClassId;
+        if (in_array($sid, $accessInfo['wali_class_ids'], true)) {
+            return true;
+        }
+
+        if ($user->isGuruBk() && in_array($sid, $accessInfo['pantau_class_ids'], true)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -675,7 +687,7 @@ class GuruIjinKehadiranController extends Controller
                     $waliName = $kelasAjaran->guru->name;
                 }
             }
-            $restrictionNotice = "Anda login sebagai Guru BK dengan hak pantau. Wewenang persetujuan atau penolakan berada pada Wali Kelas ({$waliName}).";
+            $restrictionNotice = "Anda tidak memiliki wewenang memproses permohonan ijin kelas ini. Wewenang berada pada Wali Kelas ({$waliName}) atau Guru BK binaan.";
         }
 
         $statusLabel = match ($record->status) {
@@ -762,7 +774,7 @@ class GuruIjinKehadiranController extends Controller
         if (!$this->canApproveOrReject($user, $record, $accessInfo)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak menyetujui permohonan ijin.',
+                'message' => 'Akses ditolak: Hanya Wali Kelas atau Guru BK binaan dari siswa bersangkutan yang berhak menyetujui permohonan ijin.',
             ], 403);
         }
 
@@ -851,7 +863,7 @@ class GuruIjinKehadiranController extends Controller
         if (!$this->canApproveOrReject($user, $record, $accessInfo)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak menolak permohonan ijin.',
+                'message' => 'Akses ditolak: Hanya Wali Kelas atau Guru BK binaan dari siswa bersangkutan yang berhak menolak permohonan ijin.',
             ], 403);
         }
 
@@ -925,7 +937,7 @@ class GuruIjinKehadiranController extends Controller
         if (!$this->canApproveOrReject($user, $record, $accessInfo)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Akses ditolak: Hanya Wali Kelas dari siswa bersangkutan yang berhak mengubah status permohonan ijin.',
+                'message' => 'Akses ditolak: Hanya Wali Kelas atau Guru BK binaan dari siswa bersangkutan yang berhak mengubah status permohonan ijin.',
             ], 403);
         }
 

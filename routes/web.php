@@ -307,6 +307,20 @@ if (empty($spikapSlug)) {
     $spikapSlug = 'spikap';
 }
 
+// Cetak & Export Supervisi Guru Wali untuk Portal Akademik (tidak terikat middleware maintenance:guru / auth.wali)
+Route::prefix('portal-akademik/guru-wali-supervisi')
+    ->middleware('auth')
+    ->name('akademik.guru-wali.')
+    ->group(function () {
+        Route::get('/cetak/individual/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakIndividual'])->name('cetak.individual.print');
+        Route::get('/cetak/individual/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfIndividual'])->name('cetak.individual.pdf');
+        Route::get('/cetak/individual/massal-print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakIndividualMassal'])->name('cetak.individual.massal.print');
+        Route::get('/cetak/individual/massal-pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfIndividualMassal'])->name('cetak.individual.massal.pdf');
+        Route::get('/cetak/kelompok/print', [\App\Http\Controllers\GuruWaliCetakController::class, 'cetakKelompok'])->name('cetak.kelompok.print');
+        Route::get('/cetak/kelompok/pdf', [\App\Http\Controllers\GuruWaliCetakController::class, 'pdfKelompok'])->name('cetak.kelompok.pdf');
+        Route::get('/export/excel', [\App\Http\Controllers\GuruWaliCetakController::class, 'excelRekap'])->name('export.excel');
+    });
+
 // Wali Kelas Routes (Portal Guru)
 Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () use ($spikapSlug) {
     Route::redirect('/login', '/login')->name('portal-guru.login');

@@ -23,18 +23,21 @@ Portal khusus Administrator Sistem & Keamanan ERP berbasis **Filament Panel** (`
 ## 📋 Peta Menu Portal Sistem
 
 ### 1. Grup `Manajemen Akses`
-1. **Manajemen Admin** (`/portal-sistem/users` — `UserResource`)
-   - Pengelolaan akun pengguna/admin sistem dan penetapan role Spatie (`super_admin`, `admin_portal_sistem`, `admin_portal_akademik`, `admin_portal_presensi`, `admin_portal_setup`, `admin_portal_web`, dll.).
-2. **Manajemen Akses Portal** (`/portal-sistem/manajemen-akses-portal` — `ManajemenAksesPortalResource`)
-   - Mengatur izin login dan batasan akses per portal:
-     - **Portal Guru** (`/portal-guru`) + batasan kelas & supervisi jurnal
-     - **Portal Perpustakaan** (`/portal-perpustakaan`)
-     - **Portal Presensi** (`/portal-presensi`)
-     - **Portal Web Sekolah** (`/portal-web`)
-     - **Portal Setup & Instalasi** (`/portal-setup`)
-     - **Portal Akademik** (`/portal-akademik`) + level hak akses (`Editor` / `Viewer`)
-     - **Portal Sistem** (`/portal-sistem`)
-   - **Otomasi Super Admin**: Akun dengan status `isSuperAdmin()` otomatis menampilkan seluruh toggle akses dalam kondisi aktif & terkunci (`disabled`) dengan badge penanda, serta disinkronkan melalui `SuperAdminSeeder`, `CoreSystemSeeder`, dan `DatabaseSeeder`.
+1. **Manajemen User dan Akses** (`/portal-sistem/users` — [`UserResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Resources/UserResource.php) & [`ManajemenAksesPortalResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Resources/ManajemenAksesPortalResource.php))
+   - Daftar terpadu akun pengguna (Guru & Staf/Admin non-siswa), dilengkapi:
+     - **Klik Baris / Aksi `Atur Akses`**: langsung membuka halaman pengaturan akses portal (`/portal-sistem/manajemen-akses-portal/{id}/edit`).
+     - **Kolom / Aksi `Password` (Pop-up Modal)**: ubah/reset password untuk semua akun langsung dari modal pop-up tanpa pindah halaman.
+     - **Aksi `Edit` (Pop-up Modal — Khusus Non-Guru)**: edit Nama Lengkap, Email, dan Nomor WhatsApp khusus akun non-guru yang dibuat di `/portal-sistem/users` (akun Guru dikelola dari Data Guru Portal Akademik).
+     - **Pengaturan Akses Portal & Super Admin** (`/portal-sistem/manajemen-akses-portal/{id}/edit`):
+       - Toggle status **Super Admin** (dengan proteksi agar akun aktif tidak mencabut status dirinya sendiri)
+       - **Portal Guru** (`/portal-guru`) + batasan kelas & supervisi jurnal
+       - **Portal Perpustakaan** (`/portal-perpustakaan`)
+       - **Portal Presensi** (`/portal-presensi`)
+       - **Portal Web Sekolah** (`/portal-web`)
+       - **Portal Setup & Instalasi** (`/portal-setup`)
+       - **Portal Akademik** (`/portal-akademik`) + level hak akses (`Editor` / `Viewer`)
+       - **Portal Sistem** (`/portal-sistem`)
+   - **Otomasi Super Admin**: Akun dengan toggle `Super Admin` aktif otomatis menampilkan seluruh toggle akses dalam kondisi aktif & terkunci (`disabled`), serta disinkronkan melalui `SuperAdminSeeder`, `CoreSystemSeeder`, dan `DatabaseSeeder`.
 
 ### 2. Grup `Gateway & Pengaturan Modul`
 1. **Pengaturan Koneksi WA** (`/portal-sistem/koneksi-wa` — [`SistemKoneksiWaPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemKoneksiWaPage.php))

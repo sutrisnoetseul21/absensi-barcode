@@ -42,8 +42,10 @@ class IjinKehadiranList extends Component
         if ($this->teacher) {
             // Dapatkan kelas Wali Kelas
             $kelasWali = $this->teacher->kelasAjarans()->pluck('class_id')->toArray();
-            // Dapatkan kelas Pantau (BK)
-            $kelasPantau = $this->teacher->kelasPantau()->pluck('class_id')->toArray();
+            // Kelas Pantau hanya dipakai untuk wewenang Guru BK (read-only), bukan akses kelas tambahan non-BK
+            $kelasPantau = $user->isGuruBk()
+                ? $this->teacher->kelasPantau()->pluck('class_id')->toArray()
+                : [];
 
             $this->accessibleClassIds = array_unique(array_merge($kelasWali, $kelasPantau));
             $this->accessibleClasses = Kelas::whereIn('id', $this->accessibleClassIds)->orderBy('name')->get();

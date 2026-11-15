@@ -22,12 +22,16 @@ class UserResource extends Resource
 
     protected static ?string $model = User::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
-    
-    protected static ?string $navigationLabel = 'Manajemen Admin';
-    
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
+    protected static ?string $navigationLabel = 'Manajemen User dan Akses';
+
+    protected static ?string $modelLabel = 'User dan Akses';
+
+    protected static ?string $pluralModelLabel = 'Manajemen User dan Akses';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Akses';
-    
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
@@ -56,8 +60,20 @@ class UserResource extends Resource
         ];
     }
 
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        if (! parent::canDelete($record) || ! $record instanceof User) {
+            return false;
+        }
+
+        return $record->id !== auth()->id()
+            && ! $record->isGuruUser();
+    }
+
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->whereDoesntHave('student');
+        return parent::getEloquentQuery()
+            ->with(['teacher', 'guru', 'roles'])
+            ->whereDoesntHave('student');
     }
 }

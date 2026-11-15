@@ -13,11 +13,11 @@ use Maatwebsite\Excel\Concerns\ToCollection;
  * Import Siswa Baru (PPDB) — mengisi tabel students + opsional student_enrollments.
  *
  * Kolom template (23 kolom):
- *   A: NISN  |  B: NIS  |  C: Nama Siswa  |  D: Tempat Lahir  |  E: Tanggal Lahir
- *   F: Alamat  |  G: No. HP Siswa  | H: Password  |  I: Jenis Kelamin  | J: Agama
- *   K: Asal Sekolah  | L: Tanggal Masuk  | M: Kelas Masuk  | N: Status Keluarga
- *   O: Anak Ke-  | P: Nama Ayah  | Q: Pekerjaan Ayah  | R: Nama Ibu  | S: Pekerjaan Ibu
- *   T: Nama Wali  | U: Pekerjaan Wali  | V: No HP Ortu  | W: Kelas (Opsional)
+ *   A: NISN  |  B: NIS  |  C: Nama Siswa  |  D: Kelas (Opsional)  |  E: Tempat Lahir
+ *   F: Tanggal Lahir  |  G: Alamat  |  H: No. HP Siswa  |  I: Password  |  J: Jenis Kelamin
+ *   K: Agama  |  L: Asal Sekolah  |  M: Tanggal Masuk  |  N: Kelas Masuk (Hidden; default SD:1, SMP:7, SMA/SMK:10)
+ *   O: Status Keluarga  |  P: Anak Ke-  |  Q: Nama Ayah  |  R: Pekerjaan Ayah
+ *   S: Nama Ibu  |  T: Pekerjaan Ibu  |  U: Nama Wali  |  V: Pekerjaan Wali  |  W: No HP Ortu
  *
  * Aturan:
  *   - NISN atau NIS sudah ada di DB                  → SKIP + catat di laporan (status: skip)
@@ -44,8 +44,16 @@ class SiswaBaruImport implements ToCollection
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
         $existingNisns  = Siswa::withTrashed()->pluck('nisn')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
         $existingNises  = Siswa::withTrashed()->whereNotNull('nis')->pluck('nis')->filter()->map(fn($v) => (string)$v)->flip()->toArray();
-        $validKelasMap  = Kelas::pluck('id', 'name')->toArray(); // ['7A' => uuid, ...]
-        $activeYearId   = PengaturanSekolah::current()?->academic_year_id_active;
+        $validKelasMap = Kelas::all(['id', 'name'])
+            ->mapWithKeys(fn (Kelas $k) => [mb_strtolower(trim($k->name)) => ['id' => $k->id, 'name' => $k->name]])
+            ->toArray(); // ['7a' => ['id' => uuid, 'name' => '7A'], ...]
+        $schoolSetting  = PengaturanSekolah::current();
+        $activeYearId   = $schoolSetting?->academic_year_id_active;
+        $defaultAdmissionClass = match (strtoupper((string) ($schoolSetting?->school_level ?? 'SMP'))) {
+            'SD'         => '1',
+            'SMA', 'SMK' => '10',
+            default      => '7',
+        };
 
         // ─── Deteksi NISN kembar dalam file ───────────────────────────────────
         $nisnCountInFile = [];
@@ -66,32 +74,31 @@ class SiswaBaruImport implements ToCollection
             $nisn            = preg_replace('/\D/', '', $rawNisn);
             $nis             = trim((string)($row[1] ?? ''), " '\"\t\n\r\0\x0B");
             $name            = trim((string)($row[2] ?? ''));
-            $birth_place     = trim((string)($row[3] ?? ''));
-            $birth_date      = $this->parseBirthDate(trim((string)($row[4] ?? '')));
-            $address         = trim((string)($row[5] ?? ''));
-            $no_hp           = trim((string)($row[6] ?? ''));
-            $passwordVal     = trim((string)($row[7] ?? ''));
-            
+            $kelasName       = trim((string)($row[3] ?? ''));
+            $birth_place     = trim((string)($row[4] ?? ''));
+            $birth_date      = $this->parseBirthDate(trim((string)($row[5] ?? '')));
+            $address         = trim((string)($row[6] ?? ''));
+            $no_hp           = trim((string)($row[7] ?? ''));
+            $passwordVal     = trim((string)($row[8] ?? ''));
+
             // Biodata Tambahan
-            $gender          = strtoupper(trim((string)($row[8] ?? '')));
-            $religion        = trim((string)($row[9] ?? ''));
-            $previous_school = trim((string)($row[10] ?? ''));
-            $admission_date  = $this->parseBirthDate(trim((string)($row[11] ?? '')));
-            $admission_class = trim((string)($row[12] ?? ''));
-            $family_status   = trim((string)($row[13] ?? ''));
-            $child_order_raw = trim((string)($row[14] ?? ''));
+            $gender          = strtoupper(trim((string)($row[9] ?? '')));
+            $religion        = trim((string)($row[10] ?? ''));
+            $previous_school = trim((string)($row[11] ?? ''));
+            $admission_date  = $this->parseBirthDate(trim((string)($row[12] ?? '')));
+            $admission_class = trim((string)($row[13] ?? '')) ?: $defaultAdmissionClass;
+            $family_status   = trim((string)($row[14] ?? ''));
+            $child_order_raw = trim((string)($row[15] ?? ''));
             $child_order     = is_numeric($child_order_raw) ? (int)$child_order_raw : null;
-            
+
             // Data Orang Tua / Wali
-            $nama_ayah       = trim((string)($row[15] ?? ''));
-            $pekerjaan_ayah  = trim((string)($row[16] ?? ''));
-            $nama_ibu        = trim((string)($row[17] ?? ''));
-            $pekerjaan_ibu   = trim((string)($row[18] ?? ''));
-            $nama_wali       = trim((string)($row[19] ?? ''));
-            $pekerjaan_wali  = trim((string)($row[20] ?? ''));
-            $no_hp_orang_tua = trim((string)($row[21] ?? ''));
-            
-            $kelasName       = trim((string)($row[22] ?? ''));
+            $nama_ayah       = trim((string)($row[16] ?? ''));
+            $pekerjaan_ayah  = trim((string)($row[17] ?? ''));
+            $nama_ibu        = trim((string)($row[18] ?? ''));
+            $pekerjaan_ibu   = trim((string)($row[19] ?? ''));
+            $nama_wali       = trim((string)($row[20] ?? ''));
+            $pekerjaan_wali  = trim((string)($row[21] ?? ''));
+            $no_hp_orang_tua = trim((string)($row[22] ?? ''));
 
             // Baris kosong (NISN dan Nama kosong) → lewati tanpa laporan
             if ($nisn === '' && $name === '') {
@@ -207,8 +214,9 @@ class SiswaBaruImport implements ToCollection
                 continue;
             }
 
-            // Kelas diisi — cek validitas nama kelas
-            if (!isset($validKelasMap[$kelasName])) {
+            // Kelas diisi — cek validitas nama kelas (case-insensitive)
+            $kelasKey = mb_strtolower($kelasName);
+            if (!isset($validKelasMap[$kelasKey])) {
                 $this->results[] = array_merge($baseRow, [
                     'status'       => 'warning',
                     'status_label' => '⚠️ Berhasil (kelas tidak valid)',
@@ -229,7 +237,9 @@ class SiswaBaruImport implements ToCollection
 
             // Cek apakah kelas sudah terdaftar di class_academic_year untuk TA aktif
             // (opsional guard — kelas mungkin ada tapi belum di-assign ke TA ini)
-            $classId = $validKelasMap[$kelasName];
+            $matchedKelas = $validKelasMap[$kelasKey];
+            $classId = $matchedKelas['id'];
+            $canonicalKelasName = $matchedKelas['name'];
 
             // Buat enrollment
             EnrollmentSiswa::create([
@@ -240,9 +250,10 @@ class SiswaBaruImport implements ToCollection
             ]);
 
             $this->results[] = array_merge($baseRow, [
+                'kelas'        => $canonicalKelasName,
                 'status'       => 'berhasil',
                 'status_label' => '✅ Berhasil + Kelas',
-                'keterangan'   => "Siswa berhasil disimpan dan didaftarkan ke kelas {$kelasName}.",
+                'keterangan'   => "Siswa berhasil disimpan dan didaftarkan ke kelas {$canonicalKelasName}.",
             ]);
         }
     }

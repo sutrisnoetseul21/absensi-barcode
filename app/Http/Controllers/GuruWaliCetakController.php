@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\JurnalGuruWaliExport;
 use App\Models\Guru;
 use App\Models\JurnalGuruWali;
 use App\Models\KelompokGuruWali;
@@ -13,17 +14,53 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class GuruWaliCetakController extends Controller
 {
     /**
-     * Memverifikasi penugasan guru wali dan mengambil entitas terkait
+     * Cek apakah user memiliki hak supervisi Portal Akademik atas data Guru Wali.
      */
-    protected function getTeacherAndKelompok()
+    protected function canSuperviseGuruWali($user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isSuperAdmin()
+            || $user->hasRole(['super_admin', 'admin_portal_akademik'])
+            || $user->can('portal_guru:supervisi_jurnal')
+            || $user->roles->contains(fn ($r) => str_starts_with($r->name, 'admin_akademik'));
+    }
+
+    /**
+     * Memverifikasi penugasan guru wali (atau supervisor Portal Akademik) dan mengambil entitas terkait
+     */
+    protected function getTeacherAndKelompok(?Request $request = null)
     {
         $user = Auth::user();
-        if (! $user || ! $user->teacher) {
-            abort(403, 'Akses ditolak. Hanya guru yang dapat mengakses modul ini.');
+        if (! $user) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request ??= request();
+        $kelompokId = $request->query('kelompok_id');
+        $teacherId = $request->query('teacher_id');
+
+        if ($this->canSuperviseGuruWali($user) && ($kelompokId || $teacherId)) {
+            $kelompok = $kelompokId
+                ? KelompokGuruWali::with('guru')->findOrFail($kelompokId)
+                : KelompokGuruWali::with('guru')->where('teacher_id', $teacherId)->firstOrFail();
+
+            if (! $kelompok->guru) {
+                abort(404, 'Data Guru Wali pada kelompok ini tidak ditemukan.');
+            }
+
+            return [$kelompok->guru, $kelompok];
+        }
+
+        if (! $user->teacher) {
+            abort(403, 'Akses ditolak. Hanya guru atau admin Portal Akademik yang dapat mengakses modul ini.');
         }
 
         $teacher = $user->teacher;
@@ -83,12 +120,20 @@ class GuruWaliCetakController extends Controller
     /**
      * Menghitung rentang tanggal berdasarkan periode dan tahun ajaran
      */
-    protected function resolveDateRange($periode, TahunAjaran $tahunAjaran)
+    protected function resolveDateRange($periode, $tahunAjaran)
     {
+        if ($periode === 'lintas_tahun') {
+            return [
+                'startDate'   => Carbon::createFromDate(2000, 1, 1)->startOfDay(),
+                'endDate'     => Carbon::createFromDate(2099, 12, 31)->endOfDay(),
+                'labelPeriode'=> 'Semua Tahun Ajaran (Lintas Tahun)',
+            ];
+        }
+
         $startYear = $tahunAjaran->start_year ?? Carbon::now()->year;
         $endYear = $tahunAjaran->end_year ?? ($startYear + 1);
 
-        if ($periode === 'semester_1') {
+        if (in_array($periode, ['semester_1', 'semester_ganjil'], true)) {
             return [
                 'startDate'   => Carbon::createFromDate($startYear, 7, 1)->startOfDay(),
                 'endDate'     => Carbon::createFromDate($startYear, 12, 31)->endOfDay(),
@@ -96,11 +141,24 @@ class GuruWaliCetakController extends Controller
             ];
         }
 
-        if ($periode === 'semester_2') {
+        if (in_array($periode, ['semester_2', 'semester_genap'], true)) {
             return [
                 'startDate'   => Carbon::createFromDate($endYear, 1, 1)->startOfDay(),
                 'endDate'     => Carbon::createFromDate($endYear, 6, 30)->endOfDay(),
                 'labelPeriode'=> 'Semester 2 (Genap)',
+            ];
+        }
+
+        if (preg_match('/^(\d{2})-(\d{4})$/', (string) $periode, $m)) {
+            $month = (int) $m[1];
+            $year = (int) $m[2];
+            $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+
+            return [
+                'startDate'   => $start,
+                'endDate'     => $end,
+                'labelPeriode'=> 'Bulan ' . $start->translatedFormat('F Y'),
             ];
         }
 
@@ -117,7 +175,7 @@ class GuruWaliCetakController extends Controller
      */
     protected function prepareIndividualData(Request $request)
     {
-        [$teacher, $kelompok] = $this->getTeacherAndKelompok();
+        [$teacher, $kelompok] = $this->getTeacherAndKelompok($request);
         $schoolData = $this->getSchoolAndPrincipalData();
 
         $studentId = $request->query('student_id');
@@ -126,12 +184,14 @@ class GuruWaliCetakController extends Controller
         }
 
         // Pastikan siswa terdaftar di kelompok guru wali ini
-        $anggotaSiswa = $kelompok->anggotaAktif()
-            ->where('student_id', $studentId)
-            ->first();
+        $anggotaQuery = $this->canSuperviseGuruWali(Auth::user())
+            ? $kelompok->anggota()
+            : $kelompok->anggotaAktif();
+
+        $anggotaSiswa = $anggotaQuery->where('student_id', $studentId)->first();
 
         if (! $anggotaSiswa) {
-            abort(403, 'Peserta didik tidak terdaftar dalam kelompok Guru Wali Anda.');
+            abort(403, 'Peserta didik tidak terdaftar dalam kelompok Guru Wali ini.');
         }
 
         $siswa = Siswa::with(['enrollmentAktif.kelas', 'enrollmentAktif.tahunAjaran'])->findOrFail($studentId);
@@ -221,7 +281,7 @@ class GuruWaliCetakController extends Controller
      */
     protected function prepareKelompokData(Request $request)
     {
-        [$teacher, $kelompok] = $this->getTeacherAndKelompok();
+        [$teacher, $kelompok] = $this->getTeacherAndKelompok($request);
         $schoolData = $this->getSchoolAndPrincipalData();
 
         // Prioritaskan Tahun Ajaran dari parameter jika ada, fallback ke Tahun Ajaran Aktif
@@ -416,7 +476,7 @@ class GuruWaliCetakController extends Controller
      */
     protected function prepareIndividualMassalData(Request $request)
     {
-        [$teacher, $kelompok] = $this->getTeacherAndKelompok();
+        [$teacher, $kelompok] = $this->getTeacherAndKelompok($request);
         $schoolData = $this->getSchoolAndPrincipalData();
 
         // Prioritaskan Tahun Ajaran dari parameter jika ada, fallback ke Tahun Ajaran Aktif
@@ -547,5 +607,77 @@ class GuruWaliCetakController extends Controller
         $filename = "Laporan-Individual-Massal-{$safeKelompok}-{$safeTahun}.pdf";
 
         return $pdf->download($filename);
+    }
+
+    /**
+     * Unduh Excel: Rekapitulasi Jurnal Pendampingan Guru Wali
+     */
+    public function excelRekap(Request $request)
+    {
+        $user = Auth::user();
+        $isSupervisor = $this->canSuperviseGuruWali($user);
+
+        $kelompok = null;
+        $guru = null;
+
+        if ($isSupervisor) {
+            if ($request->filled('kelompok_id')) {
+                $kelompok = KelompokGuruWali::with('guru')->findOrFail($request->query('kelompok_id'));
+                $guru = $kelompok->guru;
+            }
+        } else {
+            [$guru, $kelompok] = $this->getTeacherAndKelompok($request);
+        }
+
+        $academicYearId = $request->query('academic_year_id');
+        $tahunAjaran = $academicYearId ? TahunAjaran::find($academicYearId) : null;
+        if (! $tahunAjaran) {
+            $tahunAjaran = PengaturanSekolah::current()?->tahunAjaranAktif
+                ?? TahunAjaran::where('status', 'aktif')->first()
+                ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+        }
+
+        if (! $tahunAjaran) {
+            $tahunAjaran = (object) [
+                'id'         => null,
+                'name'       => Carbon::now()->year . '/' . (Carbon::now()->year + 1),
+                'start_year' => Carbon::now()->year,
+                'end_year'   => Carbon::now()->year + 1,
+            ];
+        }
+
+        $periode = $request->query('periode', 'tahunan');
+        $dateRange = $this->resolveDateRange($periode, $tahunAjaran);
+
+        $query = JurnalGuruWali::with(['guru', 'kelompok', 'siswa.enrollmentAktif.kelas', 'kelas'])
+            ->whereBetween('tanggal_waktu', [$dateRange['startDate'], $dateRange['endDate']]);
+
+        if ($kelompok) {
+            $query->where('kelompok_id', $kelompok->id);
+        }
+        if ($request->filled('student_id')) {
+            $query->where('student_id', $request->query('student_id'));
+        }
+        if ($request->filled('class_id')) {
+            $query->where('class_id', $request->query('class_id'));
+        }
+        if ($request->filled('kategori_pendampingan')) {
+            $query->where('kategori_pendampingan', $request->query('kategori_pendampingan'));
+        }
+        if ($request->filled('status_sesi')) {
+            $query->where('status_sesi', $request->query('status_sesi'));
+        }
+
+        $jurnals = $query->orderBy('tanggal_waktu', 'asc')->get();
+        $sekolah = PengaturanSekolah::first();
+
+        $scopeLabel = $kelompok ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $kelompok->nama_kelompok) : 'Semua-Kelompok';
+        $safeTahun = preg_replace('/[^A-Za-z0-9_\-]/', '_', $tahunAjaran->name ?? 'TA');
+        $filename = "Rekap-Jurnal-Guru-Wali-{$scopeLabel}-{$safeTahun}.xlsx";
+
+        return Excel::download(
+            new JurnalGuruWaliExport($jurnals, $guru, $kelompok, $tahunAjaran, $sekolah, $dateRange['labelPeriode']),
+            $filename
+        );
     }
 }

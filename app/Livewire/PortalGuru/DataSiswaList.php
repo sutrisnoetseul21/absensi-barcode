@@ -133,10 +133,15 @@ class DataSiswaList extends Component
         $hasBypass   = $user->can('portal_guru:akses_semua_kelas');
 
         if (!$isAdminMode && !$hasBypass) {
-            $actor = $user->teacher;
-            $this->classes = Kelas::whereHas('kelasAjarans', function ($query) use ($actor) {
-                $query->where('academic_year_id', $this->selectedAcademicYearId)
-                        ->where('teacher_id', $actor->id);
+            $actor = $user->teacher ?? $user->guru;
+            $this->classes = Kelas::where(function ($q) use ($actor) {
+                $q->whereHas('kelasAjarans', function ($query) use ($actor) {
+                    $query->where('academic_year_id', $this->selectedAcademicYearId)
+                        ->where('teacher_id', $actor?->id);
+                })->orWhereHas('guruKelasPantau', function ($query) use ($actor) {
+                    $query->where('academic_year_id', $this->selectedAcademicYearId)
+                        ->where('teacher_id', $actor?->id);
+                });
             })->orderBy('name', 'asc')->get();
         } else {
             $this->classes = Kelas::whereHas('kelasAjarans', function ($query) {

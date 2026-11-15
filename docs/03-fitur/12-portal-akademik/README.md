@@ -51,4 +51,10 @@ Portal khusus pengelolaan operasional akademik, master data GTK & kesiswaan, rom
 ### 4. Grup `Guru Wali`
 1. **Kelompok Guru Wali** (`/portal-akademik/guru-wali/kelompok` — [`KelompokGuruWaliResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/GuruWali/KelompokGuruWaliResource.php))
    - Pengaturan pembagian kelompok bimbingan **Guru Wali** dan daftar anggota siswa binaan (`AnggotaSiswaRelationManager`) sesuai implementasi program pembinaan karakter.
+2. **Monitoring Guru Wali** (`/portal-akademik/guru-wali/monitoring` — [`MonitoringGuruWaliPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Pages/MonitoringGuruWaliPage.php))
+   - Pemantauan kepatuhan pendampingan minimal 1x/bulan per kelompok Guru Wali, daftar siswa belum dibimbing, serta rincian status per anggota kelompok.
+3. **Analisa Bimbingan Siswa** (`/portal-akademik/guru-wali/analisa` — [`AnalisaGuruWaliSiswaPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Pages/AnalisaGuruWaliSiswaPage.php))
+   - Analisa cascading per kelas atau kelompok Guru Wali beserta peta isu 4 Pilar, sentimen catatan, efektivitas konsultasi Portal Siswa, dan modal linimasa pendampingan siswa.
+4. **Log Guru Wali** (`/portal-akademik/guru-wali/jurnal` — [`JurnalGuruWaliResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/GuruWali/JurnalGuruWaliResource.php))
+   - Supervisi seluruh catatan jurnal pendampingan Guru Wali (penuh termasuk catatan privat), detail integrasi konsultasi siswa/badge/rujukan BK, serta cetak PDF/Print resmi SI-WALI dan Export Excel (`.xlsx`).
 
