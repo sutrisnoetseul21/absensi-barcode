@@ -15,7 +15,8 @@ class RekapPresensiHarianExport implements WithMultipleSheets
         protected array $stats,
         protected array $classesSummary,
         protected array $unattendedStudents,
-        protected array $allStudents
+        protected array $allStudents,
+        protected bool $includeCheckout = false
     ) {}
 
     public function sheets(): array
@@ -35,7 +36,8 @@ class RekapPresensiHarianExport implements WithMultipleSheets
             new RekapPresensiHarianDetailSheet(
                 $this->selectedDate,
                 $this->academicYearId,
-                $this->allStudents
+                $this->allStudents,
+                $this->includeCheckout
             ),
         ];
     }

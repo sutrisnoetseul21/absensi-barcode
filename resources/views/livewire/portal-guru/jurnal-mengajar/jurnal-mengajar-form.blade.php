@@ -103,24 +103,13 @@
                             Format Indonesia
                         </span>
                     </label>
-                    <div class="relative group">
-                        <!-- Visual Display Input (Format: Kamis, 29 Oktober 2026) -->
-                        <div class="w-full px-3.5 py-2.5 pl-9 pr-9 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-bold shadow-xs flex items-center justify-between group-hover:border-slate-400 group-focus-within:ring-4 group-focus-within:ring-brand-primary/15 group-focus-within:border-brand-primary transition-all">
-                            <span class="truncate">
-                                {{ hari_tanggal_indonesia($tanggal) }}
-                            </span>
-                        </div>
-                        <svg class="w-4 h-4 text-brand-primary absolute left-3 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none group-hover:text-brand-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                        <!-- Native Date Input (Transparent Overlaid for Seamless Date Picker) -->
-                        <input type="date" wire:model.live="tanggal" 
-                               title="Klik untuk memilih tanggal KBM"
-                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                    </div>
+                    <x-portal-presensi.date-indo
+                        model="tanggal"
+                        :value="$tanggal"
+                        :live="true"
+                        placeholder="Pilih tanggal KBM"
+                        buttonClass="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-bold shadow-xs flex items-center justify-between gap-2 hover:border-slate-400 focus:outline-none focus:ring-4 focus:ring-brand-primary/15 focus:border-brand-primary transition-all text-left cursor-pointer"
+                    />
                     @error('tanggal') <span class="text-xs text-rose-500 mt-1 block font-semibold">{{ $message }}</span> @enderror
                 </div>
 

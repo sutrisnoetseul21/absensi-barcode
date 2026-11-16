@@ -56,7 +56,7 @@ class SistemWaJurnalMengajarPage extends Page implements HasForms
         $tab = $this->getJurnalMengajarWaTab();
 
         return $schema
-            ->components($tab->getComponents(withActions: true, withHidden: true))
+            ->components($tab->getDefaultChildComponents())
             ->statePath('data');
     }
 

@@ -23,10 +23,10 @@
              x-transition:leave="ease-in duration-200" 
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
              x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-             class="relative z-10 inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full border border-white/20">
+             class="relative z-10 inline-block align-bottom bg-white rounded-3xl text-left shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full border border-white/20">
             
             <!-- Modal Header -->
-            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 sm:px-8 py-5 flex items-center justify-between">
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 sm:px-8 py-5 flex items-center justify-between rounded-t-3xl">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-white/20 rounded-xl backdrop-blur-sm flex items-center justify-center text-white shadow-inner">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -43,29 +43,38 @@
                 </button>
             </div>
 
-            <!-- Modal Body -->
-            <div class="px-4 sm:px-6 py-6 max-h-[65vh] overflow-y-auto [-webkit-overflow-scrolling:touch]">
-                <!-- Date Picker & Sync -->
-                <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
+            <!-- Date Picker & Sync (Pinned above scrollable list so calendar popover never clips) -->
+            <div class="px-4 sm:px-6 pt-5 pb-3 relative z-30">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                         <label class="font-bold text-slate-800 whitespace-nowrap text-sm">Pilih Tanggal:</label>
-                        <input type="date" wire:model.live="inputDate" class="block w-full sm:w-auto px-3 py-2 text-slate-800 border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 sm:text-sm rounded-xl shadow-xs font-semibold bg-white">
+                        <x-portal-presensi.date-indo
+                            model="inputDate"
+                            :value="$inputDate"
+                            :live="true"
+                            placeholder="Pilih tanggal"
+                            buttonClass="w-full sm:min-w-[235px] flex items-center justify-between gap-2 px-3 py-2 text-slate-800 border border-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs sm:text-sm rounded-xl shadow-xs font-bold bg-white text-left cursor-pointer transition-all"
+                        />
                     </div>
 
                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                         @if($isInputDateHoliday)
                             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
-                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                                 <span>Hari Libur: {{ $inputDateHolidayDesc ?: 'Libur Sholat' }}</span>
                             </div>
                         @else
                             <button type="button" wire:click="tarikDariPresensiPagi" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs" title="Ambil status siswa dari presensi pagi: Sakit/Izin jadi Ijin, Alpa jadi Tidak Hadir">
-                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                                 Sinkron Presensi Pagi
                             </button>
                         @endif
                     </div>
                 </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-4 sm:px-6 pb-6 pt-2 max-h-[55vh] overflow-y-auto [-webkit-overflow-scrolling:touch]">
 
                 <!-- Students List Table (Mirip format portal-guru/akademik) -->
                 @if(count($inputStudents) > 0)
@@ -187,7 +196,7 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-b-3xl">
                 <div class="flex-1 w-full text-left">
                     @if($isInputDateHoliday)
                         <span class="inline-flex items-center text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5 w-full sm:w-auto">

@@ -563,7 +563,7 @@ class WaliKelasSholatDhuhur extends Component
 
         $this->dispatch('notify', [
             'type'    => 'success',
-            'message' => 'Presensi Sholat Dhuhur tanggal ' . Carbon::parse($this->inputDate)->translatedFormat('d F Y') . ' berhasil disimpan!',
+            'message' => 'Presensi Sholat Dhuhur tanggal ' . Carbon::parse($this->inputDate)->locale('id')->translatedFormat('l, d F Y') . ' berhasil disimpan!',
         ]);
     }
 

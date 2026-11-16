@@ -55,14 +55,20 @@
     </div>
 
     <!-- Action Bar for Rekap Harian (Cetak Rekap Kelas, Export Excel, Rekap Harian) -->
-    <div x-show="rekapMode === 'harian'" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs">
+    <div x-show="rekapMode === 'harian'" class="relative z-40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs">
         <div class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     Tanggal:
                 </span>
-                <input type="date" wire:model.live="selectedDailyDate" class="py-1.5 px-3 text-xs bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-2xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all cursor-pointer">
+                <x-portal-presensi.date-indo
+                    model="selectedDailyDate"
+                    :value="$selectedDailyDate"
+                    :live="true"
+                    placeholder="Pilih tanggal"
+                    buttonClass="min-w-[210px] flex items-center justify-between gap-2 py-1.5 px-3 text-xs bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition-all text-left cursor-pointer"
+                />
             </div>
 
             <div class="flex items-center gap-2">

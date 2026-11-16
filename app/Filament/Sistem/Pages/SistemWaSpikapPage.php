@@ -58,7 +58,7 @@ class SistemWaSpikapPage extends Page implements HasForms
         $tab = $this->getSpikapWaTab();
 
         return $schema
-            ->components($tab->getComponents(withActions: true, withHidden: true))
+            ->components($tab->getDefaultChildComponents())
             ->statePath('data');
     }
 

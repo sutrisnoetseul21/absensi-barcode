@@ -45,7 +45,7 @@ class SistemWaPresensiPage extends ManajemenNotifikasiWaPage
 
         foreach ($parentComponents as $component) {
             if ($component instanceof Tabs) {
-                $allTabs = $component->getComponents(withActions: true, withHidden: true);
+                $allTabs = $component->getDefaultChildComponents();
                 // Hanya ambil 6 Tab Presensi (tanpa SPIKAP, Guru Wali, dan Jurnal Mengajar)
                 $component->tabs(array_slice($allTabs, 0, 6));
             }

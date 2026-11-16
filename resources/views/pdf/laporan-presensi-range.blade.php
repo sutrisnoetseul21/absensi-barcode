@@ -141,7 +141,7 @@
                 @foreach($monthsList as $m)
                     <th colspan="4" style="text-align:center;">{{ $m['label'] }}</th>
                 @endforeach
-                <th colspan="6" style="text-align:center;">TOTAL {{ strtoupper($jenisLaporan ?? '') }}</th>
+                <th colspan="{{ !empty($includeCheckout) ? 7 : 6 }}" style="text-align:center;">TOTAL {{ strtoupper($jenisLaporan ?? '') }}</th>
             </tr>
             <tr>
                 @foreach($monthsList as $m)
@@ -156,6 +156,9 @@
                 <th style="width:14px;">S</th>
                 <th style="width:14px;">I</th>
                 <th style="width:14px;">A</th>
+                @if(!empty($includeCheckout))
+                    <th style="width:14px;">P</th>
+                @endif
                 <th style="width:20px;">Telat(m)</th>
             </tr>
         </thead>
@@ -182,11 +185,14 @@
                 <td class="center bg-total text-sakit">{{ $row['total']['sakit'] ?: '-' }}</td>
                 <td class="center bg-total text-izin">{{ $row['total']['izin'] ?: '-' }}</td>
                 <td class="center bg-total text-alpa">{{ $row['total']['alpa'] ?: '-' }}</td>
+                @if(!empty($includeCheckout))
+                    <td class="center bg-total" style="color: #0f766e; font-weight: bold;">{{ ($row['total']['pulang'] ?? 0) ?: '-' }}</td>
+                @endif
                 <td class="center bg-total" style="font-size:7px; color:#555;">{{ $row['total']['late_minutes'] ?: '-' }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="{{ 3 + (count($monthsList) * 4) + 6 }}" style="text-align:center; padding: 15px; color: #888;">
+                <td colspan="{{ 3 + (count($monthsList) * 4) + (!empty($includeCheckout) ? 7 : 6) }}" style="text-align:center; padding: 15px; color: #888;">
                     Tidak ada data siswa terdaftar di kelas ini.
                 </td>
             </tr>
@@ -198,7 +204,7 @@
     <div class="signature-section">
         <div class="signature-left">
             <p style="font-size:9px; color:#555; margin-top:5px;">
-                Keterangan: H = Hadir &bull; T = Terlambat &bull; I = Izin &bull; S = Sakit &bull; A = Alpa
+                Keterangan: H = Hadir &bull; T = Terlambat &bull; I = Izin &bull; S = Sakit &bull; A = Alpa @if(!empty($includeCheckout)) &bull; P = Tap Pulang @endif
             </p>
         </div>
         <div class="signature-right">

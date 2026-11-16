@@ -63,7 +63,14 @@
             <!-- Filter Tanggal -->
             <div class="flex-1">
                 <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Presensi</label>
-                <input type="date" wire:model.live="inputDate" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm px-3 py-2 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all">
+                <x-portal-presensi.date-indo
+                    model="inputDate"
+                    :value="$inputDate"
+                    :live="true"
+                    :nullable="true"
+                    placeholder="Pilih tanggal presensi"
+                    buttonClass="w-full flex items-center justify-between gap-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-white text-slate-900 text-sm font-bold px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all text-left cursor-pointer"
+                />
             </div>
 
             <!-- Tombol Proses -->
@@ -93,9 +100,19 @@
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 </div>
                 <h3 class="text-lg font-bold text-rose-800 mb-1">Hari Libur Terdeteksi</h3>
-                <p class="text-sm text-rose-600 max-w-lg">Tanggal yang Anda pilih ({{ \Carbon\Carbon::parse($inputDate)->isoFormat('D MMMM Y') }}) adalah hari libur. Sistem tidak dapat menerima input presensi pada hari libur.</p>
+                <p class="text-sm text-rose-600 max-w-lg">Tanggal yang Anda pilih ({{ \Carbon\Carbon::parse($inputDate)->locale('id')->translatedFormat('l, d F Y') }}) adalah hari libur. Sistem tidak dapat menerima input presensi pada hari libur.</p>
             </div>
         @else
+            <div class="mb-4 px-4 py-3 rounded-xl bg-sky-50 border border-sky-200 flex flex-wrap items-center justify-between gap-2 text-xs text-sky-900">
+                <div class="flex items-center gap-2 font-semibold">
+                    <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>Aturan Jam Masuk Sekolah:</span>
+                    <span class="px-2 py-0.5 rounded-md bg-white border border-sky-200 font-extrabold">{{ $checkinHm }} WIB</span>
+                    <span>• Toleransi Telat:</span>
+                    <span class="px-2 py-0.5 rounded-md bg-white border border-sky-200 font-extrabold">{{ $lateThresholdMinutes }} mnt</span>
+                    <span>(Status Terlambat berlaku di atas jam <strong class="text-rose-700">{{ $lateCutoffHm }} WIB</strong>)</span>
+                </div>
+            </div>
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                 @if(count($inputStudents) > 0)
                     <div class="overflow-x-auto">
@@ -105,7 +122,7 @@
                                     <th class="px-6 py-4 font-bold uppercase tracking-wider">Nama Siswa</th>
                                     <th class="px-4 py-4 text-center font-bold">
                                         <div class="flex flex-col items-center gap-2">
-                                            <span class="uppercase tracking-wider">Jam Datang</span>
+                                            <span class="uppercase tracking-wider">Status Datang</span>
                                             <select wire:model.live="bulkStatusDatang" wire:change="applyBulkStatusDatang($event.target.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold focus:ring-2 focus:ring-brand-primary/20 outline-none w-32">
                                                 <option value="">-- Set Massal --</option>
                                                 <option value="hadir">Hadir Semua</option>
@@ -116,11 +133,11 @@
                                             </select>
                                         </div>
                                     </th>
-                                    <th class="px-4 py-4 text-center font-bold uppercase tracking-wider">Menit Telat</th>
+                                    <th class="px-4 py-4 text-center font-bold uppercase tracking-wider">Waktu Kehadiran</th>
                                     @if($enableCheckout)
                                     <th class="px-4 py-4 text-center font-bold">
                                         <div class="flex flex-col items-center gap-2">
-                                            <span class="uppercase tracking-wider">Jam Pulang</span>
+                                            <span class="uppercase tracking-wider">Status Pulang</span>
                                             <select wire:model.live="bulkStatusPulang" wire:change="applyBulkStatusPulang($event.target.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold focus:ring-2 focus:ring-brand-primary/20 outline-none w-32">
                                                 <option value="">-- Set Massal --</option>
                                                 <option value="pulang">Pulang Semua</option>
@@ -130,6 +147,7 @@
                                             </select>
                                         </div>
                                     </th>
+                                    <th class="px-4 py-4 text-center font-bold uppercase tracking-wider">Waktu Pulang</th>
                                     @endif
                                 </tr>
                             </thead>
@@ -139,15 +157,23 @@
                                         $curStatus = $sData['status'] ?? '';
                                         $curPulang = $sData['status_pulang'] ?? '';
                                         $isNonAttendance = in_array($curStatus, ['izin', 'sakit', 'alpa']);
+                                        $hasAlarm = !empty($sData['arrival_alarm']);
                                     @endphp
-                                    <tr class="hover:bg-slate-50 transition-colors" wire:key="student-{{ $sData['id'] }}">
+                                    <tr class="{{ $hasAlarm ? 'bg-rose-50/70' : 'hover:bg-slate-50' }} transition-colors" wire:key="student-{{ $sData['id'] }}">
                                         <td class="px-6 py-4">
-                                            <span class="font-bold text-slate-800">{{ $sData['name'] ?? 'Data tidak valid' }}</span>
-                                            @if(isset($sData['is_manual_input']) && $sData['is_manual_input'] === false)
-                                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                                    Scan Otomatis
-                                                </span>
-                                            @endif
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="font-bold text-slate-800">{{ $sData['name'] ?? 'Data tidak valid' }}</span>
+                                                @if(isset($sData['is_manual_input']) && $sData['is_manual_input'] === false)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                        Scan Otomatis
+                                                    </span>
+                                                @endif
+                                                @if(!empty($sData['manual_audit']['is_manual']))
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="{{ $sData['note'] ?? '' }}">
+                                                        {{ $sData['manual_audit']['summary'] }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-4 py-3 text-center">
                                             <select wire:model.live="inputStudents.{{ $index }}.status"
@@ -168,10 +194,26 @@
                                             </select>
                                         </td>
                                         <td class="px-4 py-3 text-center">
-                                            @if($curStatus === 'telat')
-                                                <div class="flex items-center justify-center gap-2">
-                                                    <input type="number" min="1" wire:model.lazy="inputStudents.{{ $index }}.late_minutes" placeholder="0" class="w-16 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 font-bold text-sm px-2 py-1.5 outline-none text-center">
-                                                    <span class="text-xs text-slate-500 font-semibold">mnt</span>
+                                            @if(in_array($curStatus, ['hadir', 'telat']))
+                                                <div class="flex flex-col items-center gap-1">
+                                                    <div class="w-40 {{ $hasAlarm ? 'ring-2 ring-rose-500 rounded-lg' : '' }}">
+                                                        <x-portal-presensi.time-24-wib
+                                                            :model="'inputStudents.' . $index . '.scan_time'"
+                                                            :value="$sData['scan_time'] ?: '07:00'"
+                                                            :compact="true"
+                                                            :live="true"
+                                                            :bgClass="$hasAlarm ? 'bg-rose-50 border-rose-300' : 'bg-slate-50'"
+                                                        />
+                                                    </div>
+                                                    @if($hasAlarm)
+                                                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 border border-rose-300 text-rose-800 text-[11px] font-extrabold animate-pulse whitespace-normal max-w-[240px] leading-tight">
+                                                            <span>🚨 {{ $sData['arrival_alarm'] }}</span>
+                                                        </div>
+                                                    @elseif($curStatus === 'telat')
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-100 border border-amber-200 text-amber-800 text-[11px] font-bold">
+                                                            Telat +{{ $sData['late_minutes'] ?? 0 }} mnt
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             @else
                                                 <span class="text-slate-300">-</span>
@@ -198,6 +240,19 @@
                                                     <option value="sakit">Sakit</option>
                                                     <option value="alpa">Alpa</option>
                                                 </select>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 text-center">
+                                            @if(!$isNonAttendance && $curPulang === 'pulang')
+                                                <div class="w-40 mx-auto">
+                                                    <x-portal-presensi.time-24-wib
+                                                        :model="'inputStudents.' . $index . '.scan_out_time'"
+                                                        :value="$sData['scan_out_time'] ?: '14:00'"
+                                                        :compact="true"
+                                                    />
+                                                </div>
+                                            @else
+                                                <span class="text-slate-300">-</span>
                                             @endif
                                         </td>
                                         @endif

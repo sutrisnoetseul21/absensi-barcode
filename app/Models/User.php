@@ -315,7 +315,7 @@ class User extends Authenticatable implements FilamentUser
             return 'Admin Akademik';
         }
 
-        if ($this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_presensi'))) {
+        if ($this->hasRole('admin_portal_presensi') || $this->roles->contains(fn($r) => str_starts_with($r->name, 'admin_presensi'))) {
             return 'Admin Presensi';
         }
 

@@ -5,98 +5,173 @@ namespace App\Livewire;
 use App\Exports\RekapPresensiHarianExport;
 use App\Models\EnrollmentSiswa;
 use App\Models\Kelas;
+use App\Models\KelasAjaran;
 use App\Models\PengaturanSekolah;
 use App\Models\Presensi;
-use App\Models\TahunAjaran;
 use App\Models\PresensiNotificationSetting;
+use App\Models\TahunAjaran;
 use App\Services\WhatsAppGatewayService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.portal')]
 class PortalPresensiDashboard extends Component
 {
+    use WithPagination;
+
     public $selectedDate;
-    public $academicYears = [];
     public $selectedAcademicYearId;
-    public $classes = [];
     public $selectedClassFilter = 'all';
     public $searchQuery = '';
     public $activeTab = 'per_kelas'; // 'per_kelas' | 'belum_presensi' | 'siswa_terlambat' | 'semua_siswa'
     public $filterStatus = 'all';
+    public int $perPage = 25;
+    public bool $includeCheckout = true;
 
-    public $stats = [];
-    public $classesSummary = [];
-    public $unattendedStudents = [];
-    public $lateStudents = [];
-    public $allStudents = [];
+    protected ?array $cachedDataset = null;
 
     public function mount(): void
     {
         $this->selectedDate = Carbon::today('Asia/Jakarta')->toDateString();
-        $this->academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
+        $this->includeCheckout = (bool) (PengaturanSekolah::current()?->enable_checkout ?? true);
 
-        $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();
+        $activeYear = TahunAjaran::where('status', 'aktif')->first()
+            ?? TahunAjaran::orderBy('start_year', 'desc')->first();
+
         if ($activeYear) {
             $this->selectedAcademicYearId = $activeYear->id;
         }
-
-        $this->loadData();
     }
 
     public function updatedSelectedDate(): void
     {
-        $this->loadData();
+        $this->cachedDataset = null;
+        $this->resetPage();
     }
 
     public function updatedSelectedAcademicYearId(): void
     {
-        $this->loadData();
+        $this->cachedDataset = null;
+        $this->resetPage();
+    }
+
+    public function updatedSelectedClassFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearchQuery(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedActiveTab(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage($value): void
+    {
+        $perPage = (int) $value;
+        $this->perPage = in_array($perPage, [25, 50, 100], true) ? $perPage : 25;
+        $this->resetPage();
     }
 
     public function loadData(): void
     {
-        if (! $this->selectedAcademicYearId) {
-            $this->stats = [];
-            $this->classesSummary = [];
-            $this->unattendedStudents = [];
-            $this->lateStudents = [];
-            $this->allStudents = [];
-            $this->classes = [];
-            return;
+        $this->cachedDataset = null;
+    }
+
+    /**
+     * Hitung seluruh ringkasan presensi dalam satu request tanpa N+1 query
+     * dan tanpa menyimpan array besar di snapshot Livewire.
+     */
+    protected function getDataset(): array
+    {
+        if ($this->cachedDataset !== null) {
+            return $this->cachedDataset;
         }
 
+        $academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
         $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
         $dateLabel = Carbon::parse($date)->locale('id')->translatedFormat('l, d F Y');
 
+        if (! $this->selectedAcademicYearId) {
+            return $this->cachedDataset = [
+                'academicYears'      => $academicYears,
+                'classes'            => collect(),
+                'dateLabel'          => $dateLabel,
+                'stats'              => [],
+                'classesSummary'     => [],
+                'unattendedStudents' => [],
+                'lateStudents'       => [],
+                'allStudents'        => [],
+            ];
+        }
+
         // 1. Ambil data kelas aktif pada tahun ajaran ini
-        $this->classes = Kelas::where(function ($q) {
+        $classes = Kelas::where(function ($q) {
             $q->whereHas('kelasAjarans', function ($sub) {
                 $sub->where('academic_year_id', $this->selectedAcademicYearId);
             })->orWhereHas('enrollments', function ($sub) {
                 $sub->where('academic_year_id', $this->selectedAcademicYearId)->where('status', 'aktif');
             });
-        })->orderBy('name', 'asc')->get();
+        })->orderBy('name', 'asc')->get(['id', 'name', 'grade_level']);
 
-        // 2. Ambil seluruh data enrollment siswa aktif di sekolah
-        $enrollments = EnrollmentSiswa::where('academic_year_id', $this->selectedAcademicYearId)
+        // 2. Eager-load semua Wali Kelas dalam 1 query untuk menghindari N+1
+        $waliKelasByClassId = KelasAjaran::where('academic_year_id', $this->selectedAcademicYearId)
+            ->whereIn('class_id', $classes->pluck('id'))
+            ->with('guru:id,name')
+            ->get()
+            ->mapWithKeys(fn ($ka) => [$ka->class_id => $ka->guru?->name ?? '-']);
+
+        // 3. Ambil seluruh data enrollment siswa aktif dikelompokkan per class_id
+        $enrollmentsByClass = EnrollmentSiswa::where('academic_year_id', $this->selectedAcademicYearId)
             ->where('status', 'aktif')
+            ->select('id', 'student_id', 'class_id')
             ->with([
                 'siswa' => fn ($q) => $q->select('id', 'name', 'nisn', 'gender', 'no_hp', 'no_hp_orang_tua'),
-                'kelas' => fn ($q) => $q->select('id', 'name', 'grade_level'),
             ])
-            ->get();
+            ->get()
+            ->groupBy('class_id');
 
-        // 3. Ambil presensi hari ini
-        $attendances = Presensi::where('date', $date)
+        // 4. Ambil presensi tanggal terpilih dalam 1 query
+        $attendances = Presensi::with(['inputManualOleh', 'manualInputUser'])
+            ->where('date', $date)
             ->where('academic_year_id', $this->selectedAcademicYearId)
+            ->select(
+                'id',
+                'student_id',
+                'status',
+                'scan_time',
+                'scan_out_time',
+                'status_pulang',
+                'note',
+                'late_minutes',
+                'is_manual_input',
+                'manual_input_by_id',
+                'manual_input_by_type',
+                'manual_input_at',
+                'manual_input_user_id',
+                'created_at',
+                'updated_at'
+            )
             ->get()
             ->keyBy('student_id');
 
-        // 4. Kalkulasi statistik per kelas dan sekolah
+        // 5. Kalkulasi statistik per kelas dan sekolah
         $classesSummary = [];
         $unattended = [];
         $late = [];
@@ -117,10 +192,14 @@ class PortalPresensiDashboard extends Component
         $schoolAlpa_L = 0;  $schoolAlpa_P = 0;
         $schoolBelum_L = 0; $schoolBelum_P = 0;
 
-        foreach ($this->classes as $cls) {
-            $cEnrollments = $enrollments->where('class_id', $cls->id);
+        foreach ($classes as $cls) {
+            $cEnrollments = $enrollmentsByClass->get($cls->id, collect());
             $cTotal = $cEnrollments->count();
-            if ($cTotal === 0) continue;
+            if ($cTotal === 0) {
+                continue;
+            }
+
+            $waliKelasName = $waliKelasByClassId->get($cls->id, '-');
 
             $cTotal_L = 0; $cTotal_P = 0;
             $cHadir_L = 0; $cHadir_P = 0;
@@ -138,14 +217,18 @@ class PortalPresensiDashboard extends Component
 
             foreach ($cEnrollments as $enr) {
                 $st = $enr->siswa;
-                if (! $st) continue;
+                if (! $st) {
+                    continue;
+                }
 
                 $att = $attendances->get($st->id);
                 $status = 'belum';
                 $scanTime = null;
                 $scanOut = null;
+                $statusPulang = null;
                 $note = null;
                 $lateMinutes = 0;
+                $manualAudit = null;
 
                 if ($st->gender === 'L') {
                     $cTotal_L++;
@@ -157,13 +240,19 @@ class PortalPresensiDashboard extends Component
                     $status = $att->status;
                     $scanTime = $att->scan_time ? Carbon::parse($att->scan_time)->format('H:i') : null;
                     $scanOut = $att->scan_out_time ? Carbon::parse($att->scan_out_time)->format('H:i') : null;
+                    $statusPulang = $att->status_pulang;
                     $note = $att->note;
                     $lateMinutes = (int) ($att->late_minutes ?? 0);
+                    $manualAudit = $att->getManualAuditInfo();
 
                     if ($status === 'hadir' || $status === 'telat') {
-                        if ($status === 'hadir') $cHadir++;
-                        if ($status === 'telat') $cTelat++;
-                        
+                        if ($status === 'hadir') {
+                            $cHadir++;
+                        }
+                        if ($status === 'telat') {
+                            $cTelat++;
+                        }
+
                         if ($st->gender === 'L') {
                             $cHadir_L++;
                         } else {
@@ -171,78 +260,64 @@ class PortalPresensiDashboard extends Component
                         }
                     } elseif ($status === 'izin') {
                         $cIzin++;
-                        if ($st->gender === 'L') $cIzin_L++; else $cIzin_P++;
+                        if ($st->gender === 'L') {
+                            $cIzin_L++;
+                        } else {
+                            $cIzin_P++;
+                        }
                     } elseif ($status === 'sakit') {
                         $cSakit++;
-                        if ($st->gender === 'L') $cSakit_L++; else $cSakit_P++;
+                        if ($st->gender === 'L') {
+                            $cSakit_L++;
+                        } else {
+                            $cSakit_P++;
+                        }
                     } elseif ($status === 'alpa') {
                         $cAlpa++;
-                        if ($st->gender === 'L') $cAlpa_L++; else $cAlpa_P++;
+                        if ($st->gender === 'L') {
+                            $cAlpa_L++;
+                        } else {
+                            $cAlpa_P++;
+                        }
                     } else {
                         $cBelum++;
-                        if ($st->gender === 'L') $cBelum_L++; else $cBelum_P++;
+                        if ($st->gender === 'L') {
+                            $cBelum_L++;
+                        } else {
+                            $cBelum_P++;
+                        }
                         $status = 'belum';
                     }
                 } else {
                     $cBelum++;
-                    if ($st->gender === 'L') $cBelum_L++; else $cBelum_P++;
+                    if ($st->gender === 'L') {
+                        $cBelum_L++;
+                    } else {
+                        $cBelum_P++;
+                    }
                     $status = 'belum';
                 }
 
-                // WhatsApp Phone Processing
                 $rawPhone = $st->no_hp_orang_tua ?: $st->no_hp;
-                $cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone ?? '');
-                if (! empty($cleanPhone)) {
-                    if (str_starts_with($cleanPhone, '0')) {
-                        $cleanPhone = '62' . substr($cleanPhone, 1);
-                    } elseif (str_starts_with($cleanPhone, '8')) {
-                        $cleanPhone = '62' . $cleanPhone;
-                    }
-                }
-
-                $waliKelasName = $cls->waliKelas($this->selectedAcademicYearId)?->name ?? '-';
-
-                $templateDataBelum = [
-                    'nama_siswa'       => $st->name,
-                    'kelas'            => $cls->name,
-                    'tanggal'          => $dateLabel,
-                    'status_kehadiran' => 'Belum Presensi',
-                    'nama_wali_kelas'  => $waliKelasName,
-                ];
-                $waTextRaw = PresensiNotificationSetting::renderTemplate('belum', $templateDataBelum);
-                $waText = urlencode($waTextRaw);
-                $waUrl = ! empty($cleanPhone) ? "https://wa.me/{$cleanPhone}?text={$waText}" : null;
-
-                $templateDataTelat = [
-                    'nama_siswa'       => $st->name,
-                    'kelas'            => $cls->name,
-                    'tanggal'          => $dateLabel,
-                    'jam'              => $scanTime ?: '-',
-                    'status_kehadiran' => 'Terlambat ' . ($lateMinutes ? "({$lateMinutes} menit)" : ''),
-                    'nama_wali_kelas'  => $waliKelasName,
-                ];
-                $waTextTelatRaw = PresensiNotificationSetting::renderTemplate('telat', $templateDataTelat);
-                $waTextTelat = urlencode($waTextTelatRaw);
-                $waUrlTelat = ! empty($cleanPhone) ? "https://wa.me/{$cleanPhone}?text={$waTextTelat}" : null;
+                $cleanPhone = $this->normalizeWaPhone($rawPhone);
 
                 $studentItem = [
-                    'id'                => $st->id,
-                    'name'              => $st->name,
-                    'nisn'              => $st->nisn,
-                    'gender'            => $st->gender ?? '-',
-                    'class_id'          => $cls->id,
-                    'class_name'        => $cls->name,
-                    'status'            => $status,
-                    'scan_time'         => $scanTime,
-                    'scan_out'          => $scanOut,
-                    'late_minutes'      => $lateMinutes,
-                    'note'              => $note,
-                    'phone'             => $rawPhone,
-                    'clean_phone'       => $cleanPhone,
-                    'wa_text_raw'       => $waTextRaw,
-                    'wa_text_telat_raw' => $waTextTelatRaw,
-                    'wa_link'           => $waUrl,
-                    'wa_link_telat'     => $waUrlTelat,
+                    'id'           => $st->id,
+                    'name'         => $st->name,
+                    'nisn'         => $st->nisn,
+                    'gender'       => $st->gender ?? '-',
+                    'class_id'     => $cls->id,
+                    'class_name'   => $cls->name,
+                    'wali_kelas'   => $waliKelasName,
+                    'status'       => $status,
+                    'scan_time'    => $scanTime,
+                    'scan_out'     => $scanOut,
+                    'status_pulang'=> $statusPulang,
+                    'late_minutes' => $lateMinutes,
+                    'note'         => $note,
+                    'manual_audit' => $manualAudit,
+                    'phone'        => $rawPhone,
+                    'clean_phone'  => $cleanPhone,
                 ];
 
                 $all[] = $studentItem;
@@ -264,7 +339,7 @@ class PortalPresensiDashboard extends Component
             $classesSummary[] = [
                 'id'          => $cls->id,
                 'name'        => $cls->name,
-                'wali_kelas'  => $cls->waliKelas($this->selectedAcademicYearId)?->name ?? '-',
+                'wali_kelas'  => $waliKelasName,
                 'total'       => $cTotal,
                 'total_l'     => $cTotal_L,
                 'total_p'     => $cTotal_P,
@@ -309,7 +384,7 @@ class PortalPresensiDashboard extends Component
         $schoolTotalHadir = $schoolHadir + $schoolTelat;
         $schoolPct = $schoolTotal > 0 ? round(($schoolTotalHadir / $schoolTotal) * 100, 1) : 0;
 
-        $this->stats = [
+        $stats = [
             'total_students'   => $schoolTotal,
             'total_l'          => $schoolTotal_L,
             'total_p'          => $schoolTotal_P,
@@ -336,43 +411,145 @@ class PortalPresensiDashboard extends Component
             'persen_p'         => $schoolTotal_P > 0 ? round(($schoolHadir_P / $schoolTotal_P) * 100, 1) : 0,
         ];
 
-        $this->classesSummary = $classesSummary;
-        $this->unattendedStudents = $unattended;
-        $this->lateStudents = $late;
-        $this->allStudents = $all;
+        return $this->cachedDataset = [
+            'academicYears'      => $academicYears,
+            'classes'            => $classes,
+            'dateLabel'          => $dateLabel,
+            'stats'              => $stats,
+            'classesSummary'     => $classesSummary,
+            'unattendedStudents' => $unattended,
+            'lateStudents'       => $late,
+            'allStudents'        => $all,
+        ];
+    }
+
+    protected function normalizeWaPhone(?string $rawPhone): string
+    {
+        $cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone ?? '');
+        if ($cleanPhone === '') {
+            return '';
+        }
+
+        if (str_starts_with($cleanPhone, '0')) {
+            return '62' . substr($cleanPhone, 1);
+        }
+
+        if (str_starts_with($cleanPhone, '8')) {
+            return '62' . $cleanPhone;
+        }
+
+        return $cleanPhone;
+    }
+
+    /**
+     * Filter daftar siswa sesuai dropdown kelas, status (opsional), dan kata kunci pencarian.
+     */
+    protected function filterStudents(array $students, bool $withStatusFilter = false): Collection
+    {
+        $search = strtolower(trim((string) $this->searchQuery));
+        $classFilter = $this->selectedClassFilter;
+        $statusFilter = $this->filterStatus;
+
+        return collect($students)->filter(function (array $st) use ($classFilter, $statusFilter, $search, $withStatusFilter) {
+            if ($classFilter !== 'all' && $st['class_id'] !== $classFilter) {
+                return false;
+            }
+            if ($withStatusFilter && $statusFilter !== 'all' && $st['status'] !== $statusFilter) {
+                return false;
+            }
+            if ($search !== '') {
+                return str_contains(strtolower($st['name']), $search)
+                    || str_contains(strtolower((string) ($st['nisn'] ?? '')), $search)
+                    || str_contains(strtolower($st['class_name']), $search);
+            }
+            return true;
+        })->values();
+    }
+
+    /**
+     * Paginasi collection siswa dan isi template WA hanya untuk baris yang tampil.
+     */
+    protected function paginateStudents(Collection $filtered, string $dateLabel, ?string $waType = null): LengthAwarePaginator
+    {
+        $perPage = in_array($this->perPage, [25, 50, 100], true) ? $this->perPage : 25;
+        $total = $filtered->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $page = min(max(1, (int) $this->getPage()), $lastPage);
+
+        $slice = $filtered->forPage($page, $perPage)->values();
+
+        if ($waType !== null && $slice->isNotEmpty()) {
+            $settingTemplate = PresensiNotificationSetting::where('status_presensi', $waType)->value('template_pesan');
+            $template = ! empty($settingTemplate)
+                ? $settingTemplate
+                : PresensiNotificationSetting::getDefaultTemplate($waType);
+            $namaSekolah = PengaturanSekolah::current()?->school_name ?: 'SMP Negeri 1 Sampang';
+
+            $slice = $slice->map(function (array $st) use ($waType, $template, $namaSekolah, $dateLabel) {
+                $statusKehadiran = $waType === 'telat'
+                    ? 'Terlambat ' . ($st['late_minutes'] ? "({$st['late_minutes']} menit)" : '')
+                    : 'Belum Presensi';
+
+                $text = strtr($template, [
+                    '{nama_siswa}'       => $st['name'] ?? '-',
+                    '{kelas}'            => $st['class_name'] ?? '-',
+                    '{tanggal}'          => $dateLabel,
+                    '{jam}'              => $st['scan_time'] ?: '-',
+                    '{status_kehadiran}' => $statusKehadiran,
+                    '{nama_wali_kelas}'  => $st['wali_kelas'] ?? '-',
+                    '{nama_sekolah}'     => $namaSekolah,
+                ]);
+
+                if ($waType === 'telat') {
+                    $st['wa_text_telat_raw'] = $text;
+                } else {
+                    $st['wa_text_raw'] = $text;
+                }
+
+                return $st;
+            });
+        }
+
+        return new LengthAwarePaginator(
+            $slice,
+            $total,
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
     }
 
     public function filterByClass(string $classId): void
     {
         $this->selectedClassFilter = $classId;
         $this->activeTab = 'belum_presensi';
+        $this->resetPage();
     }
 
     public function filterLateByClass(string $classId): void
     {
         $this->selectedClassFilter = $classId;
         $this->activeTab = 'siswa_terlambat';
+        $this->resetPage();
     }
 
     public function downloadRekapKelasPdf()
     {
-        if (empty($this->classesSummary)) {
-            $this->loadData();
-        }
-
+        $dataset = $this->getDataset();
         $ay = TahunAjaran::find($this->selectedAcademicYearId);
         $sekolah = PengaturanSekolah::current();
         $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
         $dateFormatted = Carbon::parse($date)->locale('id')->translatedFormat('l, d F Y');
 
         $pdf = Pdf::loadView('pdf.laporan-rekap-per-kelas', [
-            'stats'                 => $this->stats,
-            'classesSummary'        => $this->classesSummary,
+            'stats'                 => $dataset['stats'],
+            'classesSummary'        => $dataset['classesSummary'],
             'sekolah'               => $sekolah,
             'tahunAjaran'           => $ay,
             'selectedDateFormatted' => $dateFormatted,
-            'unattendedStudents'    => $this->unattendedStudents,
-            'allStudents'           => $this->allStudents,
+            'unattendedStudents'    => $dataset['unattendedStudents'],
+            'allStudents'           => $dataset['allStudents'],
+            'includeCheckout'       => $this->includeCheckout,
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
         ])->setPaper('a4', 'landscape');
 
@@ -387,10 +564,7 @@ class PortalPresensiDashboard extends Component
 
     public function exportExcel()
     {
-        if (empty($this->classesSummary)) {
-            $this->loadData();
-        }
-
+        $dataset = $this->getDataset();
         $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
         $safeDate = str_replace('-', '_', $date);
         $fileName = "Rekap_Kehadiran_Harian_{$safeDate}.xlsx";
@@ -399,10 +573,11 @@ class PortalPresensiDashboard extends Component
             new RekapPresensiHarianExport(
                 $date,
                 $this->selectedAcademicYearId,
-                $this->stats,
-                $this->classesSummary,
-                $this->unattendedStudents,
-                $this->allStudents
+                $dataset['stats'],
+                $dataset['classesSummary'],
+                $dataset['unattendedStudents'],
+                $dataset['allStudents'],
+                $this->includeCheckout
             ),
             $fileName
         );
@@ -410,23 +585,20 @@ class PortalPresensiDashboard extends Component
 
     public function downloadRekapHarianPdf()
     {
-        if (empty($this->classesSummary)) {
-            $this->loadData();
-        }
-
+        $dataset = $this->getDataset();
         $ay = TahunAjaran::find($this->selectedAcademicYearId);
         $sekolah = PengaturanSekolah::current();
         $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
         $dateFormatted = Carbon::parse($date)->locale('id')->translatedFormat('l, d F Y');
 
         $pdf = Pdf::loadView('pdf.laporan-presensi-harian-sekolah', [
-            'stats'                 => $this->stats,
-            'classesSummary'        => $this->classesSummary,
+            'stats'                 => $dataset['stats'],
+            'classesSummary'        => $dataset['classesSummary'],
             'sekolah'               => $sekolah,
             'tahunAjaran'           => $ay,
             'selectedDateFormatted' => $dateFormatted,
-            'unattendedStudents'    => $this->unattendedStudents,
-            'allStudents'           => $this->allStudents,
+            'unattendedStudents'    => $dataset['unattendedStudents'],
+            'allStudents'           => $dataset['allStudents'],
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
         ])->setPaper('a4', 'landscape');
 
@@ -441,16 +613,13 @@ class PortalPresensiDashboard extends Component
 
     public function downloadMbgPdf()
     {
-        if (empty($this->classesSummary)) {
-            $this->loadData();
-        }
-
+        $dataset = $this->getDataset();
         $ay = TahunAjaran::find($this->selectedAcademicYearId);
         $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
         $dateFormatted = Carbon::parse($date)->locale('id')->translatedFormat('l, d-m-Y');
 
         $pdf = Pdf::loadView('pdf.laporan-mbg-harian', [
-            'classesSummary' => $this->classesSummary,
+            'classesSummary' => $dataset['classesSummary'],
             'tahunAjaran'    => $ay,
             'dateFormatted'  => $dateFormatted,
         ])->setPaper('a4', 'portrait');
@@ -466,13 +635,10 @@ class PortalPresensiDashboard extends Component
 
     public function exportMbgExcel()
     {
-        if (empty($this->classesSummary)) {
-            $this->loadData();
-        }
-
+        $dataset = $this->getDataset();
         $ay = TahunAjaran::find($this->selectedAcademicYearId);
         $date = $this->selectedDate ?: Carbon::today('Asia/Jakarta')->toDateString();
-        
+
         $safeDate = str_replace('-', '_', $date);
         $fileName = "Laporan_MBG_Harian_{$safeDate}.xlsx";
 
@@ -480,7 +646,7 @@ class PortalPresensiDashboard extends Component
             new \App\Exports\LaporanMbgHarianExport(
                 $date,
                 $ay,
-                $this->classesSummary
+                $dataset['classesSummary']
             ),
             $fileName
         );
@@ -506,19 +672,13 @@ class PortalPresensiDashboard extends Component
             return;
         }
 
-        $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
+        $cleanPhone = $this->normalizeWaPhone($targetPhone);
         if (empty($cleanPhone)) {
             $this->dispatch('notify', [
                 'type'    => 'error',
                 'message' => 'Nomor WhatsApp orang tua tidak valid atau masih kosong.',
             ]);
             return;
-        }
-
-        if (str_starts_with($cleanPhone, '0')) {
-            $cleanPhone = '62' . substr($cleanPhone, 1);
-        } elseif (str_starts_with($cleanPhone, '8')) {
-            $cleanPhone = '62' . $cleanPhone;
         }
 
         $waService = app(WhatsAppGatewayService::class);
@@ -548,25 +708,50 @@ class PortalPresensiDashboard extends Component
 
     public function render()
     {
-        $isNotifBelumActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'belum')->value('is_active') ?? false);
-        $isNotifTelatActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'telat')->value('is_active') ?? false);
+        $dataset = $this->getDataset();
+        $notifSettings = PresensiNotificationSetting::whereIn('status_presensi', ['belum', 'telat'])
+            ->pluck('is_active', 'status_presensi');
+
+        $isNotifBelumActive = (bool) ($notifSettings->get('belum', false));
+        $isNotifTelatActive = (bool) ($notifSettings->get('telat', false));
+
+        $paginatedStudents = match ($this->activeTab) {
+            'belum_presensi'  => $this->paginateStudents(
+                $this->filterStudents($dataset['unattendedStudents']),
+                $dataset['dateLabel'],
+                'belum'
+            ),
+            'siswa_terlambat' => $this->paginateStudents(
+                $this->filterStudents($dataset['lateStudents']),
+                $dataset['dateLabel'],
+                'telat'
+            ),
+            'semua_siswa'     => $this->paginateStudents(
+                $this->filterStudents($dataset['allStudents'], withStatusFilter: true),
+                $dataset['dateLabel'],
+                null
+            ),
+            default           => null,
+        };
 
         return view('livewire.portal-presensi-dashboard', [
             'selectedDate'           => $this->selectedDate,
-            'academicYears'          => $this->academicYears,
+            'academicYears'          => $dataset['academicYears'],
             'selectedAcademicYearId' => $this->selectedAcademicYearId,
-            'classes'                => $this->classes,
+            'classes'                => $dataset['classes'],
             'selectedClassFilter'    => $this->selectedClassFilter,
             'searchQuery'            => $this->searchQuery,
             'activeTab'              => $this->activeTab,
             'filterStatus'           => $this->filterStatus,
-            'stats'                  => $this->stats,
-            'classesSummary'         => $this->classesSummary,
-            'unattendedStudents'     => $this->unattendedStudents,
-            'lateStudents'           => $this->lateStudents,
-            'allStudents'            => $this->allStudents,
+            'perPage'                => $this->perPage,
+            'stats'                  => $dataset['stats'],
+            'classesSummary'         => $dataset['classesSummary'],
+            'unattendedCount'        => count($dataset['unattendedStudents']),
+            'lateCount'              => count($dataset['lateStudents']),
+            'paginatedStudents'      => $paginatedStudents,
             'isNotifBelumActive'     => $isNotifBelumActive,
             'isNotifTelatActive'     => $isNotifTelatActive,
-        ])->title('Dashboard Rekapitulasi Presensi Harian');
+            'includeCheckout'        => $this->includeCheckout,
+        ])->title('Dashboard Presensi Kehadiran - Portal Presensi');
     }
 }

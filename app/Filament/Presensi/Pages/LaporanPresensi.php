@@ -172,12 +172,13 @@ class LaporanPresensi extends Page implements HasTable
                         default => 'gray',
                     }),
                 TextColumn::make('input_method')
-                    ->label('Metode Input')
+                    ->label('Metode & Audit Input')
                     ->getStateUsing(function (Presensi $record) {
-                        return $record->is_manual_input ? 'Manual' : 'Scan Otomatis';
+                        $audit = $record->getManualAuditInfo();
+                        return $audit['is_manual'] ? ($audit['summary'] ?? 'Manual') : 'Scan Otomatis';
                     })
                     ->badge()
-                    ->color(fn (string $state): string => $state === 'Manual' ? 'warning' : 'success'),
+                    ->color(fn (Presensi $record): string => $record->is_manual_input ? 'warning' : 'success'),
                 TextColumn::make('note')
                     ->label('Keterangan')
                     ->limit(40)

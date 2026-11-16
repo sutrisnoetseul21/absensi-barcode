@@ -1,48 +1,44 @@
-# 📊 Dashboard Monitoring Real-Time Portal Presensi
+# 📊 Dashboard Utama & Monitoring Presensi Portal Presensi
 
-Halaman utama Portal Presensi ([`App\Livewire\PortalPresensiDashboard`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalPresensiDashboard.php)) berfungsi sebagai pusat analitik pemantauan kehadiran siswa secara *live* sepanjang hari sekolah.
-
----
-
-## 1. Kartu Indikator Utama (Live Metrics)
-
-Pada bagian atas dashboard, sistem menyajikan rekap angka kehadiran hari yang dipilih:
-- **Total Siswa Aktif**: Jumlah seluruh siswa terdaftar pada tahun ajaran aktif.
-- **Hadir Tepat Waktu**: Jumlah siswa yang melakukan pemindaian barcode sebelum batas toleransi jam datang.
-- **Terlambat**: Jumlah siswa yang scan melebihi jam masuk (`batas_jam_datang`).
-- **Izin / Sakit**: Siswa yang memiliki pengajuan surat dokter / izin yang telah disetujui wali kelas.
-- **Belum Presensi / Alpa**: Siswa yang belum memiliki catatan scan hingga waktu saat ini.
-- **Persentase Kehadiran Harian**: Rasio kehadiran sekolah `((Hadir + Terlambat) / Total Siswa) * 100%`.
+Portal Presensi memisahkan **Dashboard Utama** (`/portal-presensi`) sebagai hub pintasan lintas layanan dengan **Dashboard per Submodul** agar tetap ringkas dan terukur seiring bertambahnya jenis presensi.
 
 ---
 
-## 2. Sistem 4 Tab Filtering Interaktif
+## 1. Dashboard Utama (`/portal-presensi`)
 
-Tampilan tabel dashboard dilengkapi tab navigasi reaktif Livewire tanpa reload halaman:
-
-| Tab Navigasi | Fungsi & Isi Tampilan |
-| :--- | :--- |
-| **`per_kelas`** | Rekapitulasi per rombel: Menampilkan daftar kelas (VII-A s/d IX-H) lengkap dengan jumlah siswa hadir, sakit, izin, alpa, dan persentase kehadiran per kelas. |
-| **`belum_presensi`** | Daftar siswa yang belum melakukan pemindaian hari ini. Dilengkapi tombol aksi kirim notifikasi WhatsApp ke orang tua secara individu atau massal. |
-| **`siswa_terlambat`** | Daftar siswa yang datang terlambat beserta catatan waktu scan masuk dan jumlah menit keterlambatan. |
-| **`semua_siswa`** | Master view seluruh siswa pada tanggal terpilih dengan filter status kehadiran lengkap. |
+Dikelola oleh [`App\Livewire\PortalPresensi\PortalPresensiHome`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalPresensi/PortalPresensiHome.php):
+- **Hero Welcome Banner**: menampilkan nama pengguna, Tahun Ajaran aktif, tanggal hari ini dalam format Indonesia (`Hari, Tanggal Bulan Tahun`), status hari libur (bila libur), serta pintasan cepat membuka **Kiosk Presensi Datang** dan **Kiosk Sholat Dhuhur**.
+- **Grid Kartu Modul + Rekapan Kecil Harian**:
+  1. **Presensi Kehadiran** *(fokus absen datang)*: ringkasan ringan **Sudah Presensi** (hadir tepat waktu + terlambat), **Terlambat**, dan **Belum Hadir** (+ ringkasan S/I/A), lengkap dengan tombol menuju **Dashboard Kehadiran**, **Input Manual**, dan **Rekap dan Cetak Laporan**.
+  2. **Presensi Sholat Dhuhur** *(tampil jika `enable_sholat_dhuhur` aktif)*: ringkasan **Hadir Sholat**, **Ijin / Haid**, dan **Belum Absen** dari total wajib sholat (siswa Muslim), beserta tombol **Buka Dashboard Dhuhur**, **Input Manual**, dan **Rekap dan Cetak Laporan**.
+  3. **Cetak Kartu Presensi** & **Pengaturan & Hari Libur**.
 
 ---
 
-## 3. Fitur Ekspor Laporan (PDF & Excel)
+## 2. Dashboard Presensi Kehadiran (`/portal-presensi/kehadiran`)
 
-Dari dashboard, administrator presensi dapat langsung mengunduh rekapitulasi data:
-1. **Unduh Rekap Spreadsheet (Excel)**:
-   - Menggunakan `Maatwebsite\Excel\Facades\Excel` dengan class [`App\Exports\RekapPresensiHarianExport`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Exports).
-   - Memuat data nama siswa, kelas, NISN, jam scan masuk, jam scan pulang, dan status.
-2. **Unduh Dokumen Laporan (PDF)**:
-   - Menggunakan `Barryvdh\DomPDF\Facade\Pdf` format siap cetak lengkap dengan kop surat sekolah dan tanda tangan kepala sekolah.
+Dikelola oleh [`App\Livewire\PortalPresensiDashboard`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalPresensiDashboard.php):
+
+### A. Kontrol Header & Opsi Absen Pulang
+- **Pemilih Tanggal Indonesia**: menggunakan komponen [`date-indo.blade.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/resources/views/components/portal-presensi/date-indo.blade.php) berformat `Hari, Tanggal Bulan Tahun`.
+- **Checkbox `Sertakan Absen Pulang`** (`$includeCheckout`): nilai awal mengikuti `PengaturanSekolah::current()->enable_checkout`. Bila dicentang, kolom **Jam / Status Pulang** tampil di tab *Semua Siswa* serta ikut diekspor pada Excel/PDF harian.
+
+### B. Sistem 4 Tab Filtering & Paginasi
+- **`per_kelas`**: rekap harian seluruh kelas lengkap dengan L/P, sakit, izin, alpa, belum absen, dan persentase hadir.
+- **`belum_presensi`**: daftar siswa belum scan masuk beserta filter kelas, pencarian, paginasi (`25`/`50`/`100` per halaman), dan tombol kirim WA.
+- **`siswa_terlambat`**: daftar siswa terlambat beserta waktu scan dan menit keterlambatan (berpaginasi).
+- **`semua_siswa`**: daftar seluruh siswa dengan filter kelas, filter status, pencarian, paginasi server-side agar snapshot Livewire tetap ringan pada data ribuan siswa, serta kolom opsional **Jam / Status Pulang**.
+
+### C. Ekspor Harian
+- **Export Excel**: [`App\Exports\RekapPresensiHarianExport`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Exports/RekapPresensiHarianExport.php) (3 sheet: Per Kelas, Belum Presensi, Detail Siswa — kolom Jam & Status Pulang ikut disertakan bila `$includeCheckout` aktif).
+- **Cetak PDF**: `Rekap Kelas (PDF)` (`pdf.laporan-rekap-per-kelas`), `Rekap Harian` (`pdf.laporan-presensi-harian-sekolah`), `MBG (PDF)` & `MBG (Excel)`.
 
 ---
 
-## 4. Quick Actions di Header Dashboard
+## 3. Dashboard Presensi Sholat Dhuhur (`/portal-presensi/sholat-dhuhur`)
 
-Dashboard menyediakan jalan pintas instan untuk operator:
-- 🚀 **Buka Kiosk Scan**: Tombol membuka mode fullscreen scanner gerbang (`/portal-presensi/scan`).
-- 🕌 **Buka Kiosk Sholat**: Tombol membuka scanner presensi sholat dhuhur (`/portal-presensi/scan-sholat-dhuhur`).
-- 📢 **Kirim Notifikasi Belum Hadir**: Menjalankan pengiriman broadcast WA otomatis ke orang tua siswa yang belum hadir tanpa menunggu jam cron sore.
+Dikelola oleh [`App\Livewire\PortalPresensi\SholatDhuhur\DashboardSholatDhuhur`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalPresensi/SholatDhuhur/DashboardSholatDhuhur.php):
+- Pemilih tanggal Indonesia + penanda hari libur/Jumat via `PresensiSholatDhuhurService`.
+- Kartu statistik harian (**Hadir Berjamaah**, **Ijin / Halangan**, **Tidak Hadir (Alpa)**, **Belum Absen Sholat** dari total siswa Muslim wajib sholat) + info jumlah Non-Muslim.
+- 3 tab interaktif berpaginasi: **Rekap Per Kelas** (dengan pintasan tombol *Input* langsung ke kelas tersebut), **Belum Absen**, dan **Semua Siswa**.
+- Tombol **Sinkron Pagi** (menyelaraskan Alpa/Izin/Sakit dari presensi gerbang pagi ke seluruh kelas), **Rekap Kelas (PDF)**, **Export Excel** (`RekapSholatDhuhurHarianExport`), dan **Rekap Harian (PDF)**.

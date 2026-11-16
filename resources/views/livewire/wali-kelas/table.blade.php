@@ -245,10 +245,17 @@
                     @endif
 
                     <!-- Detail Jam Scan Pulang jika ada -->
-                    @if(!empty($scanPulang))
+                    @if($enableCheckout && !empty($scanPulang))
                         <div class="mt-2 text-xs text-slate-500 flex items-center gap-1">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                             <span>Scan Pulang: <strong class="text-slate-700">{{ $scanPulang }} WIB</strong></span>
+                        </div>
+                    @endif
+                    @if(!empty($att['manual_audit']['is_manual']))
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                {{ $att['manual_audit']['summary'] }}
+                            </span>
                         </div>
                     @endif
 
@@ -331,9 +338,11 @@
                             <th class="py-4 px-6">Nama Siswa</th>
                             <th class="py-4 px-4 text-center">Status Datang</th>
                             <th class="py-4 px-4 text-center">Jam Datang</th>
-                            <th class="py-4 px-4 text-center">Status Pulang</th>
-                            <th class="py-4 px-4 text-center">Jam Pulang</th>
-                            <th class="py-4 px-4">Catatan</th>
+                            @if($enableCheckout)
+                                <th class="py-4 px-4 text-center">Status Pulang</th>
+                                <th class="py-4 px-4 text-center">Jam Pulang</th>
+                            @endif
+                            <th class="py-4 px-4">Catatan &amp; Audit</th>
                             <th class="py-4 px-6 text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -420,6 +429,7 @@
                                 <td class="py-3.5 px-4 text-center text-xs font-bold text-slate-600">
                                     {{ $scanDatang ? $scanDatang . ' WIB' : '-' }}
                                 </td>
+                                @if($enableCheckout)
                                 <td class="py-3.5 px-4 text-center">
                                     @if($statusPulang === 'pulang')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Pulang</span>
@@ -432,8 +442,14 @@
                                 <td class="py-3.5 px-4 text-center text-xs font-bold text-slate-600">
                                     {{ $scanPulang ? $scanPulang . ' WIB' : '-' }}
                                 </td>
-                                <td class="py-3.5 px-4 text-xs text-slate-500 max-w-xs truncate">
-                                    {{ $note ?: '-' }}
+                                @endif
+                                <td class="py-3.5 px-4 text-xs text-slate-500 max-w-xs">
+                                    @if(!empty($att['manual_audit']['is_manual']))
+                                        <div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-1">
+                                            {{ $att['manual_audit']['summary'] }}
+                                        </div>
+                                    @endif
+                                    <div class="truncate" title="{{ $note ?: '' }}">{{ $note ?: '-' }}</div>
                                 </td>
                                 <td class="py-3.5 px-6 text-center">
                                     <div class="flex items-center justify-center gap-2">
@@ -487,7 +503,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-12 text-center text-slate-500">
+                                <td colspan="{{ $enableCheckout ? 8 : 6 }}" class="py-12 text-center text-slate-500">
                                     <p class="font-semibold text-sm">Belum ada siswa terdaftar di kelas ini.</p>
                                 </td>
                             </tr>

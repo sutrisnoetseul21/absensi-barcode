@@ -116,7 +116,7 @@
                 $logoutRoute = route('portal-perpustakaan.logout');
                 $activeDashboard = route('portal-perpustakaan.dashboard');
             } elseif ($user && ($user->hasRole('admin_portal_presensi') || $user->hasRole('petugas_presensi'))) {
-                $userRole = 'Petugas Presensi';
+                $userRole = $user->hasRole('admin_portal_presensi') ? 'Admin Presensi' : 'Petugas Presensi';
                 $userName = $user?->name ?? 'Admin';
                 $logoutRoute = route('portal-presensi.logout') ?? '/';
                 $activeDashboard = route('portal-presensi.dashboard');
@@ -549,92 +549,151 @@
                 @elseif($isPresensiRoute)
                     @php
                         $isDashboard = request()->routeIs('portal-presensi.dashboard');
+                        $isKehadiranDashboard = request()->routeIs('portal-presensi.kehadiran.dashboard');
                         $isInputManual = request()->routeIs('portal-presensi.input-manual');
                         $isRekapKelas = request()->routeIs('portal-presensi.rekap-kelas');
                         $isRekapSekolah = request()->routeIs('portal-presensi.rekap-sekolah');
                         $isCetakLaporan = request()->routeIs('portal-presensi.cetak-laporan');
                         $isCetakKartu = request()->routeIs('portal-presensi.cetak-kartu');
                         $isSettingNotifikasi = request()->routeIs('portal-presensi.setting-notifikasi');
+                        $isPengaturanPresensi = request()->routeIs('portal-presensi.pengaturan');
+                        $isDhuhurDashboard = request()->routeIs('portal-presensi.sholat-dhuhur.dashboard');
+                        $isDhuhurInput = request()->routeIs('portal-presensi.sholat-dhuhur.input-manual');
+                        $isDhuhurLaporan = request()->routeIs('portal-presensi.sholat-dhuhur.laporan');
+                        $isPresensiKehadiranGroup = $isKehadiranDashboard || $isInputManual || $isCetakLaporan || $isRekapKelas || $isRekapSekolah;
+                        $isSholatDhuhurGroup = $isDhuhurDashboard || $isDhuhurInput || $isDhuhurLaporan;
+                        $enableSholatDhuhurMenu = (bool) (\App\Models\PengaturanSekolah::current()?->enable_sholat_dhuhur ?? true);
+                        $defaultPresensiGroup = $isSholatDhuhurGroup ? 'sholat_dhuhur' : ($isPresensiKehadiranGroup ? 'kehadiran' : '');
                     @endphp
 
-                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Presensi</p>
+                    <div x-data="{ activePresensiGroup: '{{ $defaultPresensiGroup }}' }" class="space-y-1.5">
+                        <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Presensi</p>
 
-                    <!-- Menu Dashboard -->
-                    <a href="{{ route('portal-presensi.dashboard') }}"
-                       :title="isCollapsed ? 'Dashboard Presensi' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboard ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isDashboard ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
-                    </a>
+                        <!-- Menu Dashboard Utama -->
+                        <a href="{{ route('portal-presensi.dashboard') }}"
+                           :title="isCollapsed ? 'Dashboard Utama' : ''"
+                           class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDashboard ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                           :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isDashboard ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
+                        </a>
 
-                    <!-- Menu Input Presensi Manual -->
-                    <a href="{{ route('portal-presensi.input-manual') }}"
-                       :title="isCollapsed ? 'Input Presensi Manual' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isInputManual ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isInputManual ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Input Manual</span>
-                    </a>
+                        <!-- Grup Accordion: Presensi Kehadiran (Single-open siap untuk modul Sholat Dhuhur, Ekskul, dll) -->
+                        <div class="space-y-1">
+                            <button type="button"
+                                    @click="if (isCollapsed) { sidebarCollapsed = false; activePresensiGroup = 'kehadiran'; } else { activePresensiGroup = (activePresensiGroup === 'kehadiran' ? '' : 'kehadiran'); }"
+                                    :title="isCollapsed ? 'Presensi Kehadiran' : ''"
+                                    class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group relative cursor-pointer {{ $isPresensiKehadiranGroup ? 'bg-brand-primary/10 text-brand-primary font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
+                                    :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <div class="p-1.5 rounded-lg {{ $isPresensiKehadiranGroup ? 'bg-brand-primary text-white shadow-sm' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                    </div>
+                                    <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi Kehadiran</span>
+                                </div>
+                                <svg x-show="!isCollapsed" x-transition.opacity :class="{ 'rotate-180': activePresensiGroup === 'kehadiran' }" class="w-4 h-4 shrink-0 transition-transform duration-200 {{ $isPresensiKehadiranGroup ? 'text-brand-primary' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
 
-                    <!-- Menu Rekap Presensi Kelas -->
-                    <a href="{{ route('portal-presensi.rekap-kelas') }}"
-                       :title="isCollapsed ? 'Rekap Presensi Kelas' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isRekapKelas ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isRekapKelas ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Rekap Kelas</span>
-                    </a>
+                            <div x-show="activePresensiGroup === 'kehadiran' && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                <!-- Submenu: Dashboard Presensi Kehadiran -->
+                                <a href="{{ route('portal-presensi.kehadiran.dashboard') }}"
+                                   class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isKehadiranDashboard ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $isKehadiranDashboard ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                    <span class="truncate">Dashboard</span>
+                                </a>
 
-                    <!-- Menu Rekap Presensi Sekolah -->
-                    <a href="{{ route('portal-presensi.rekap-sekolah') }}"
-                       :title="isCollapsed ? 'Rekap Presensi Sekolah' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isRekapSekolah ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isRekapSekolah ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 13v-1m4 1v-3m4 3V8M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Rekap Sekolah</span>
-                    </a>
+                                <!-- Submenu: Input Manual -->
+                                <a href="{{ route('portal-presensi.input-manual') }}"
+                                   class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isInputManual ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $isInputManual ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                    <span class="truncate">Input Manual</span>
+                                </a>
 
-                    <!-- Menu Cetak Laporan -->
-                    <a href="{{ route('portal-presensi.cetak-laporan') }}"
-                       :title="isCollapsed ? 'Cetak Laporan Presensi' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isCetakLaporan ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isCetakLaporan ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                <!-- Submenu: Rekap dan Cetak Laporan (Bulanan, Semester, Tahunan & Rekap Sekolah) -->
+                                <a href="{{ route('portal-presensi.cetak-laporan') }}"
+                                   class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ ($isCetakLaporan || $isRekapKelas || $isRekapSekolah) ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ ($isCetakLaporan || $isRekapKelas || $isRekapSekolah) ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                    <span class="truncate">Rekap dan Cetak Laporan</span>
+                                </a>
+                            </div>
                         </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Cetak Laporan</span>
-                    </a>
 
-                    <!-- Menu Cetak Kartu -->
-                    <a href="{{ route('portal-presensi.cetak-kartu') }}"
-                       :title="isCollapsed ? 'Cetak Kartu Siswa' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isCetakKartu ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isCetakKartu ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Cetak Kartu</span>
-                    </a>
+                        @if($enableSholatDhuhurMenu)
+                            <!-- Grup Accordion: Presensi Sholat Dhuhur -->
+                            <div class="space-y-1">
+                                <button type="button"
+                                        @click="if (isCollapsed) { sidebarCollapsed = false; activePresensiGroup = 'sholat_dhuhur'; } else { activePresensiGroup = (activePresensiGroup === 'sholat_dhuhur' ? '' : 'sholat_dhuhur'); }"
+                                        :title="isCollapsed ? 'Presensi Sholat Dhuhur' : ''"
+                                        class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group relative cursor-pointer {{ $isSholatDhuhurGroup ? 'bg-teal-50 text-teal-700 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
+                                        :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="p-1.5 rounded-lg {{ $isSholatDhuhurGroup ? 'bg-teal-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 group-hover:bg-teal-50 group-hover:text-teal-600' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                        </div>
+                                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi Sholat Dhuhur</span>
+                                    </div>
+                                    <svg x-show="!isCollapsed" x-transition.opacity :class="{ 'rotate-180': activePresensiGroup === 'sholat_dhuhur' }" class="w-4 h-4 shrink-0 transition-transform duration-200 {{ $isSholatDhuhurGroup ? 'text-teal-600' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
 
-                    <!-- Menu Setting Notifikasi -->
-                    <a href="{{ route('portal-presensi.setting-notifikasi') }}"
-                       :title="isCollapsed ? 'Setting Notifikasi WA' : ''"
-                       class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isSettingNotifikasi ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
-                       :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                        <div class="p-1.5 rounded-lg {{ $isSettingNotifikasi ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                        </div>
-                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Setting Notifikasi WA</span>
-                    </a>
+                                <div x-show="activePresensiGroup === 'sholat_dhuhur' && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                    <a href="{{ route('portal-presensi.sholat-dhuhur.dashboard') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isDhuhurDashboard ? 'bg-teal-600 text-white shadow-md shadow-teal-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isDhuhurDashboard ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Dashboard</span>
+                                    </a>
+
+                                    <a href="{{ route('portal-presensi.sholat-dhuhur.input-manual') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isDhuhurInput ? 'bg-teal-600 text-white shadow-md shadow-teal-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isDhuhurInput ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Input Manual</span>
+                                    </a>
+
+                                    <a href="{{ route('portal-presensi.sholat-dhuhur.laporan') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isDhuhurLaporan ? 'bg-teal-600 text-white shadow-md shadow-teal-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isDhuhurLaporan ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Rekap dan Cetak Laporan</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Menu Rekap Kelas & Rekap Sekolah sementara disembunyikan (digabung ke menu Rekap & Laporan)
+                        <a href="{{ route('portal-presensi.rekap-kelas') }}" ...>Rekap Kelas</a>
+                        <a href="{{ route('portal-presensi.rekap-sekolah') }}" ...>Rekap Sekolah</a>
+                        --}}
+
+                        <!-- Menu Cetak Kartu -->
+                        <a href="{{ route('portal-presensi.cetak-kartu') }}"
+                           :title="isCollapsed ? 'Cetak Kartu Siswa' : ''"
+                           class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isCetakKartu ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                           :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isCetakKartu ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Cetak Kartu</span>
+                        </a>
+
+                        <!-- Menu Pengaturan Presensi & Hari Libur -->
+                        <a href="{{ route('portal-presensi.pengaturan') }}"
+                           :title="isCollapsed ? 'Pengaturan Presensi' : ''"
+                           class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isPengaturanPresensi ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group"
+                           :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isPengaturanPresensi ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Pengaturan</span>
+                        </a>
+
+                        {{-- Menu Setting Notifikasi WA sementara disembunyikan (sudah dipusatkan di Portal Sistem)
+                        <a href="{{ route('portal-presensi.setting-notifikasi') }}" ...>Setting Notifikasi WA</a>
+                        --}}
+                    </div>
 
                     @include('components.portal-sidebar-shortcuts')
 

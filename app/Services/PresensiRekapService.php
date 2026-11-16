@@ -40,7 +40,8 @@ class PresensiRekapService
 
         // Stats hari ini
         $todayDate  = Carbon::now('Asia/Jakarta')->toDateString();
-        $todayAtts  = Presensi::where('academic_year_id', $academicYearId)
+        $todayAtts  = Presensi::with(['inputManualOleh', 'manualInputUser'])
+            ->where('academic_year_id', $academicYearId)
             ->where('class_id', $classId)
             ->where('date', $todayDate)
             ->get();
@@ -76,6 +77,7 @@ class PresensiRekapService
                 'late_minutes'  => $att->late_minutes,
                 'note'          => $att->note,
                 'is_manual'     => (bool)$att->is_manual_input,
+                'manual_audit'  => $att->getManualAuditInfo(),
             ];
         }
 
@@ -103,6 +105,9 @@ class PresensiRekapService
             $studentAtts = $attendances->where('student_id', $student->id);
 
             $daily = [];
+            $dailyPulang = [];
+            $dailyScanTime = [];
+            $dailyScanOutTime = [];
             for ($day = 1; $day <= $daysInMonth; $day++) {
                 if ($holidaysCache[$day]) {
                     $daily[$day] = 'L';
@@ -126,16 +131,34 @@ class PresensiRekapService
                 // Jika hari tersebut terlanjur ditandai L (libur tapi ada yang absen), kita timpa saja dengan aslinya (H, dll)
                 // Atau biarkan. Sebaiknya timpa karena fakta siswa hadir itu penting.
                 $daily[$day] = $status;
+
+                if (in_array($att->status, ['hadir', 'telat'], true)) {
+                    $dailyScanTime[$day] = $att->scan_time ? substr((string) $att->scan_time, 0, 5) : null;
+                    $dailyPulang[$day] = match ($att->status_pulang) {
+                        'pulang', 'tepat_waktu' => 'P',
+                        'izin'                  => 'I',
+                        'sakit'                 => 'S',
+                        'alpa'                  => 'A',
+                        default                 => !empty($att->scan_out_time) ? 'P' : '-',
+                    };
+                    if ($dailyPulang[$day] === 'P' && !empty($att->scan_out_time)) {
+                        $dailyScanOutTime[$day] = substr((string) $att->scan_out_time, 0, 5);
+                    }
+                }
             }
 
             $monthlyStats[$student->id] = [
-                'hadir'             => $studentAtts->where('status', 'hadir')->count(),
-                'telat'             => $studentAtts->where('status', 'telat')->count(),
-                'izin'              => $studentAtts->where('status', 'izin')->count(),
-                'sakit'             => $studentAtts->where('status', 'sakit')->count(),
-                'alpa'              => $studentAtts->where('status', 'alpa')->count(),
+                'hadir'              => $studentAtts->where('status', 'hadir')->count(),
+                'telat'              => $studentAtts->where('status', 'telat')->count(),
+                'izin'               => $studentAtts->where('status', 'izin')->count(),
+                'sakit'              => $studentAtts->where('status', 'sakit')->count(),
+                'alpa'               => $studentAtts->where('status', 'alpa')->count(),
+                'pulang'             => $studentAtts->filter(fn ($a) => in_array($a->status_pulang, ['pulang', 'tepat_waktu'], true) || (!in_array($a->status_pulang, ['izin', 'sakit', 'alpa'], true) && !empty($a->scan_out_time)))->count(),
                 'total_late_minutes' => $studentAtts->sum('late_minutes'),
-                'daily'             => $daily,
+                'daily'              => $daily,
+                'daily_pulang'       => $dailyPulang,
+                'daily_scan_time'    => $dailyScanTime,
+                'daily_scan_out_time'=> $dailyScanOutTime,
             ];
         }
 
@@ -394,7 +417,7 @@ class PresensiRekapService
         $attendances = Presensi::where('academic_year_id', $academicYearId)
             ->where('class_id', $classId)
             ->whereBetween('date', [$startDate, $endDate])
-            ->selectRaw('student_id, YEAR(date) as year, MONTH(date) as month, status, count(*) as count, sum(late_minutes) as late_minutes')
+            ->selectRaw('student_id, YEAR(date) as year, MONTH(date) as month, status, count(*) as count, sum(late_minutes) as late_minutes, sum(case when scan_out_time is not null or status_pulang is not null then 1 else 0 end) as pulang_count')
             ->groupBy('student_id', 'year', 'month', 'status')
             ->get();
 
@@ -410,7 +433,7 @@ class PresensiRekapService
                 'nisn'          => $siswa->nisn,
                 'name'          => $siswa->name,
                 'months'        => [],
-                'total'         => ['hadir' => 0, 'telat' => 0, 'sakit' => 0, 'izin' => 0, 'alpa' => 0, 'late_minutes' => 0]
+                'total'         => ['hadir' => 0, 'telat' => 0, 'sakit' => 0, 'izin' => 0, 'alpa' => 0, 'pulang' => 0, 'late_minutes' => 0]
             ];
 
             foreach ($monthsStructure as $m) {
@@ -435,6 +458,7 @@ class PresensiRekapService
                 $studentReport['total']['sakit'] += $studentReport['months'][$key]['sakit'];
                 $studentReport['total']['izin']  += $studentReport['months'][$key]['izin'];
                 $studentReport['total']['alpa']  += $studentReport['months'][$key]['alpa'];
+                $studentReport['total']['pulang'] += (int) $monthAtts->sum('pulang_count');
                 $studentReport['total']['late_minutes'] += $monthAtts->where('status', 'telat')->sum('late_minutes');
             }
             
@@ -475,5 +499,130 @@ class PresensiRekapService
             'daysInMonth'  => 31,
             'todayDate'    => date('Y-m-d'),
         ];
+    }
+
+    /**
+     * Format satu sel harian pada laporan matriks bulanan secara seragam untuk Preview Web, PDF, dan Excel.
+     *
+     * @return array{top: string, bottom: ?string, text: string, is_late: bool, is_pulang_ok: bool}
+     */
+    public static function formatMatrixCell(
+        string $code,
+        ?string $pulangCode,
+        ?string $scanTime,
+        ?string $scanOutTime,
+        bool $includeCheckout,
+        string $reportFormat = 'singkatan'
+    ): array {
+        $isPresence = in_array($code, ['H', 'T'], true);
+        $isLate = $code === 'T';
+        $isPulangOk = $pulangCode === 'P';
+
+        if ($reportFormat === 'waktu') {
+            if ($isPresence) {
+                $top = $scanTime ?: $code;
+                $bottom = null;
+                if ($includeCheckout) {
+                    $bottom = match ($pulangCode) {
+                        'P' => $scanOutTime ?: 'Pulang',
+                        'I' => 'Izin',
+                        'S' => 'Sakit',
+                        'A' => 'Alpa',
+                        default => '-',
+                    };
+                }
+
+                return [
+                    'top' => $top,
+                    'bottom' => $bottom,
+                    'text' => $bottom !== null ? "{$top}\n{$bottom}" : $top,
+                    'is_late' => $isLate,
+                    'is_pulang_ok' => $isPulangOk,
+                ];
+            }
+
+            $top = match ($code) {
+                'S' => 'Sakit',
+                'I' => 'Izin',
+                'A' => 'Alpa',
+                'L' => 'L',
+                default => '-',
+            };
+
+            return [
+                'top' => $top,
+                'bottom' => null,
+                'text' => $top,
+                'is_late' => false,
+                'is_pulang_ok' => false,
+            ];
+        }
+
+        if ($reportFormat === 'lengkap') {
+            $top = match ($code) {
+                'H' => $includeCheckout ? 'Datang' : 'Hadir',
+                'T' => 'Telat',
+                'I' => 'Izin',
+                'S' => 'Sakit',
+                'A' => 'Alpa',
+                'L' => 'Libur',
+                default => '-',
+            };
+
+            $bottom = null;
+            if ($includeCheckout && $isPresence) {
+                $bottom = match ($pulangCode) {
+                    'P' => 'Pulang',
+                    'I' => 'Izin',
+                    'S' => 'Sakit',
+                    'A' => 'Alpa',
+                    default => '-',
+                };
+            }
+
+            return [
+                'top' => $top,
+                'bottom' => $bottom,
+                'text' => $bottom !== null ? "{$top}\n{$bottom}" : $top,
+                'is_late' => $isLate,
+                'is_pulang_ok' => $isPulangOk,
+            ];
+        }
+
+        // Default: singkatan ('H', 'T', 'S', 'I', 'A', 'L', dan jika includeCheckout ON -> 2 baris atas H/T, bawah P/-)
+        $bottom = null;
+        if ($includeCheckout && $isPresence) {
+            $bottom = $pulangCode ?? '-';
+        }
+
+        return [
+            'top' => $code,
+            'bottom' => $bottom,
+            'text' => $bottom !== null ? "{$code}\n{$bottom}" : $code,
+            'is_late' => $isLate,
+            'is_pulang_ok' => $isPulangOk,
+        ];
+    }
+
+    /**
+     * Keterangan standar untuk footer laporan matriks bulanan sesuai format yang dipilih.
+     */
+    public static function getMatrixLegendText(bool $includeCheckout, string $reportFormat = 'singkatan'): string
+    {
+        if ($reportFormat === 'waktu') {
+            return $includeCheckout
+                ? 'Keterangan: Atas = Jam Datang (oranye = Terlambat) • Bawah = Jam Pulang (- = Belum Pulang) • Sakit / Izin / Alpa = Tidak Hadir • L = Libur'
+                : 'Keterangan: Jam WIB = Waktu Datang (oranye = Terlambat) • Sakit / Izin / Alpa = Tidak Hadir • L = Libur';
+        }
+
+        if ($reportFormat === 'lengkap') {
+            return $includeCheckout
+                ? 'Keterangan: Atas = Datang / Telat • Bawah = Pulang (- = Belum Pulang) • Sakit / Izin / Alpa / Libur'
+                : 'Keterangan: Hadir = Tepat Waktu • Telat = Terlambat • Sakit / Izin / Alpa / Libur';
+        }
+
+        return $includeCheckout
+            ? 'Keterangan: H = Hadir/Datang • T = Terlambat • P = Pulang (- = Belum Pulang) • I = Izin • S = Sakit • A = Alpa • L = Libur (Atas = Datang, Bawah = Pulang)'
+            : 'Keterangan: H = Hadir • T = Terlambat • I = Izin • S = Sakit • A = Alpa • L = Libur';
     }
 }

@@ -51,10 +51,20 @@ class WaliKelasDashboard extends Component
     public $cetakJenis = 'bulanan';
     public $cetakBulanYear = '';
     public $cetakSemester = 'ganjil';
+    public bool $cetakIncludeCheckout = false;
+    public string $cetakReportFormat = 'singkatan'; // singkatan | lengkap | waktu
+    public string $checkinHm = '07:00';
+    public int $lateThresholdMinutes = 15;
+    public string $lateCutoffHm = '07:15';
 
     public function mount()
     {
-        $this->enableCheckout = PengaturanSekolah::current()?->enable_checkout ?? true;
+        $settings = PengaturanSekolah::current();
+        $this->enableCheckout = $settings?->enable_checkout ?? true;
+        $eval = Presensi::evaluateArrivalTime(null, null, $settings);
+        $this->checkinHm = $eval['checkin_hm'];
+        $this->lateThresholdMinutes = $eval['threshold'];
+        $this->lateCutoffHm = $eval['cutoff_hm'];
         $user = Auth::user();
         if (!$user || !$user->isWaliKelasAktif()) {
             abort(403, 'Akses ditolak: Anda tidak memiliki penugasan kelas binaan aktif.');
@@ -184,14 +194,54 @@ class WaliKelasDashboard extends Component
         $this->loadDashboardData();
     }
 
+    private function syncArrivalEvaluation(int $index): void
+    {
+        if (!empty($this->inputStudents[$index]['is_locked'])) {
+            return;
+        }
+        $status = $this->inputStudents[$index]['status'] ?? '';
+        $scanTime = $this->inputStudents[$index]['scan_time'] ?? '';
+        $eval = Presensi::evaluateArrivalTime($status, $scanTime, null, $this->inputDate);
+
+        $this->inputStudents[$index]['late_minutes'] = $eval['late_minutes'];
+        $this->inputStudents[$index]['arrival_alarm'] = $eval['alarm'];
+        $this->inputStudents[$index]['alarm_type'] = $eval['alarm_type'];
+    }
+
     public function updated($property, $value)
     {
         if (str_starts_with($property, 'inputStudents.')) {
             $parts = explode('.', $property);
-            if (count($parts) === 3 && $parts[2] === 'status') {
-                $index = (int)$parts[1];
-                if (in_array($value, ['izin', 'sakit', 'alpa'])) {
-                    $this->inputStudents[$index]['status_pulang'] = $value;
+            if (count($parts) === 3) {
+                $index = (int) $parts[1];
+                $field = $parts[2];
+
+                if ($field === 'status') {
+                    if (in_array($value, ['hadir', 'telat'], true)) {
+                        if (empty($this->inputStudents[$index]['scan_time'])) {
+                            $this->inputStudents[$index]['scan_time'] = Presensi::defaultManualScanTime($value);
+                        }
+                        $this->syncArrivalEvaluation($index);
+                    } elseif (in_array($value, ['izin', 'sakit', 'alpa'], true)) {
+                        $this->inputStudents[$index]['status_pulang'] = $value;
+                        $this->inputStudents[$index]['scan_time'] = '';
+                        $this->inputStudents[$index]['scan_out_time'] = '';
+                        $this->syncArrivalEvaluation($index);
+                    } else {
+                        $this->inputStudents[$index]['scan_time'] = '';
+                        $this->inputStudents[$index]['scan_out_time'] = '';
+                        $this->syncArrivalEvaluation($index);
+                    }
+                } elseif ($field === 'scan_time') {
+                    $this->syncArrivalEvaluation($index);
+                } elseif ($field === 'status_pulang') {
+                    if ($value === 'pulang') {
+                        if (empty($this->inputStudents[$index]['scan_out_time'])) {
+                            $this->inputStudents[$index]['scan_out_time'] = Carbon::now('Asia/Jakarta')->format('H:i');
+                        }
+                    } else {
+                        $this->inputStudents[$index]['scan_out_time'] = '';
+                    }
                 }
             }
         }
@@ -256,25 +306,41 @@ class WaliKelasDashboard extends Component
         $kalenderService = app(\App\Services\KalenderSekolahService::class);
         $this->isInputDateHoliday = !$kalenderService->isHariSekolah(Carbon::parse($this->inputDate), $this->selectedClassId);
 
-        $attendances = Presensi::where('academic_year_id', $this->selectedAcademicYearId)
+        $attendances = Presensi::with(['inputManualOleh', 'manualInputUser'])
+            ->where('academic_year_id', $this->selectedAcademicYearId)
             ->where('class_id', $this->selectedClassId)
             ->where('date', $this->inputDate)
             ->get()->keyBy('student_id');
+
+        $settings = PengaturanSekolah::current();
+        $ruleInfo = Presensi::evaluateArrivalTime(null, null, $settings);
+        $this->checkinHm = $ruleInfo['checkin_hm'];
+        $this->lateThresholdMinutes = $ruleInfo['threshold'];
+        $this->lateCutoffHm = $ruleInfo['cutoff_hm'];
 
         $list = [];
         foreach ($this->students as $student) {
             $att            = $attendances->get($student->id);
             // Kunci HANYA jika siswa absen langsung lewat scan kiosk (status hadir/telat, ada scan_time, dan bukan input manual)
             $isLocked       = ($att && $att->is_manual_input === false && !empty($att->scan_time) && in_array($att->status, ['hadir', 'telat']));
+            $status         = $att ? $att->status : '';
+            $scanTime       = ($att && $att->scan_time) ? substr((string) $att->scan_time, 0, 5) : '';
+            $eval           = $isLocked ? null : Presensi::evaluateArrivalTime($status, $scanTime, $settings, $this->inputDate);
 
             $list[] = [
-                'id'          => $student->id,
-                'name'        => $student->name,
-                'status'      => $att ? $att->status : '',
-                'status_pulang' => $att ? $att->status_pulang : '',
-                'late_minutes' => $att ? $att->late_minutes : null,
+                'id'              => $student->id,
+                'name'            => $student->name,
+                'status'          => $status,
+                'status_pulang'   => $att ? $att->status_pulang : '',
+                'scan_time'       => $scanTime,
+                'scan_out_time'   => ($att && $att->scan_out_time) ? substr((string) $att->scan_out_time, 0, 5) : '',
+                'late_minutes'    => $isLocked ? ($att->late_minutes ?? 0) : ($status === 'telat' ? ($eval['late_minutes'] ?: ($att?->late_minutes ?? 0)) : 0),
+                'arrival_alarm'   => $eval['alarm'] ?? null,
+                'alarm_type'      => $eval['alarm_type'] ?? null,
                 'is_manual_input' => $att ? $att->is_manual_input : null,
-                'is_locked'   => $isLocked,
+                'manual_audit'    => $att ? $att->getManualAuditInfo() : null,
+                'note'            => $att ? $att->note : null,
+                'is_locked'       => $isLocked,
             ];
         }
         $this->bulkStatusDatang = '';
@@ -291,6 +357,11 @@ class WaliKelasDashboard extends Component
     {
         if (empty($status)) return;
 
+        $settings = PengaturanSekolah::current();
+        $defaultTime = in_array($status, ['hadir', 'telat'], true)
+            ? Presensi::defaultManualScanTime($status, $settings)
+            : '';
+
         foreach ($this->inputStudents as $index => $student) {
             // Lewati siswa yang terkunci (hanya yang sudah absen langsung lewat portal-presensi/scan)
             if (!empty($student['is_locked'])) {
@@ -300,7 +371,12 @@ class WaliKelasDashboard extends Component
             $this->inputStudents[$index]['status'] = $status;
             if (in_array($status, ['izin', 'sakit', 'alpa'])) {
                 $this->inputStudents[$index]['status_pulang'] = $status;
+                $this->inputStudents[$index]['scan_time'] = '';
+                $this->inputStudents[$index]['scan_out_time'] = '';
+            } elseif (in_array($status, ['hadir', 'telat'], true) && empty($this->inputStudents[$index]['scan_time'])) {
+                $this->inputStudents[$index]['scan_time'] = $defaultTime;
             }
+            $this->syncArrivalEvaluation($index);
         }
     }
 
@@ -313,6 +389,7 @@ class WaliKelasDashboard extends Component
     {
         if (empty($status)) return;
 
+        $nowWib = Carbon::now('Asia/Jakarta')->format('H:i');
         foreach ($this->inputStudents as $index => $student) {
             // Abaikan siswa yang status kedatangannya izin/sakit/alpa
             $currentStatus = $student['status'] ?? '';
@@ -321,6 +398,13 @@ class WaliKelasDashboard extends Component
             }
 
             $this->inputStudents[$index]['status_pulang'] = $status;
+            if ($status === 'pulang') {
+                if (empty($this->inputStudents[$index]['scan_out_time'])) {
+                    $this->inputStudents[$index]['scan_out_time'] = $nowWib;
+                }
+            } else {
+                $this->inputStudents[$index]['scan_out_time'] = '';
+            }
         }
     }
 
@@ -332,6 +416,29 @@ class WaliKelasDashboard extends Component
             $this->dispatch('notify', [
                 'type'    => 'error',
                 'message' => 'Tidak dapat menyimpan presensi pada hari libur!',
+            ]);
+            return;
+        }
+
+        $settings = PengaturanSekolah::current();
+        $alarmMessages = [];
+        foreach ($this->inputStudents as $index => $data) {
+            if (!empty($data['is_locked']) || !in_array($data['status'] ?? '', ['hadir', 'telat'], true)) {
+                continue;
+            }
+            $eval = Presensi::evaluateArrivalTime($data['status'], $data['scan_time'] ?? '', $settings, $this->inputDate);
+            $this->inputStudents[$index]['late_minutes'] = $eval['late_minutes'];
+            $this->inputStudents[$index]['arrival_alarm'] = $eval['alarm'];
+            $this->inputStudents[$index]['alarm_type'] = $eval['alarm_type'];
+            if ($eval['alarm']) {
+                $alarmMessages[] = ($data['name'] ?? 'Siswa') . ': ' . $eval['alarm'];
+            }
+        }
+
+        if (!empty($alarmMessages)) {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Penyimpanan dibatalkan: ' . implode(' | ', $alarmMessages),
             ]);
             return;
         }
@@ -355,34 +462,66 @@ class WaliKelasDashboard extends Component
             $isGuru = Auth::user()->hasRole('wali_kelas') && Auth::user()->teacher !== null;
             $newStatusPulang = empty($data['status_pulang']) ? null : $data['status_pulang'];
 
-            // Jika status datang adalah izin, sakit, atau alpa, maka status pulang mengikuti
+            // Jika status datang adalah izin, sakit, atau alpa, maka status pulang mengikuti & jam scan kosong
             if (in_array($data['status'], ['izin', 'sakit', 'alpa'])) {
                 $newStatusPulang = $data['status'];
             }
 
             // Cek apakah data ini adalah hasil scan langsung lewat portal-presensi/scan (kiosk)
             $isKioskScan = ($existing && $existing->is_manual_input === false && !empty($existing->scan_time) && in_array($existing->status, ['hadir', 'telat']));
+            $nowTime = Carbon::now('Asia/Jakarta')->format('H:i:00');
 
             if ($isKioskScan) {
-                // Pertahankan status datang & keterlambatan asli dari mesin scanner kiosk
+                // Pertahankan status datang, keterlambatan, & jam scan datang asli dari mesin scanner kiosk
                 $newLate = $existing->late_minutes;
                 $data['status'] = $existing->status;
+                $newScanTime = $existing->scan_time;
+                $newScanOutTime = ($newStatusPulang === 'pulang')
+                    ? (Presensi::normalizeTimeForStorage($data['scan_out_time'] ?? null)
+                        ?? ($existing->scan_out_time ?: $nowTime))
+                    : null;
 
-                // Jika status pulang juga tidak berubah, lewati langsung secara hening
-                if ($existing->status_pulang === $newStatusPulang) {
+                $oldOutHm = $existing->scan_out_time ? substr((string) $existing->scan_out_time, 0, 5) : null;
+                $newOutHm = $newScanOutTime ? substr($newScanOutTime, 0, 5) : null;
+
+                // Jika status pulang & jam pulang juga tidak berubah, lewati langsung secara hening
+                if ($existing->status_pulang === $newStatusPulang && $oldOutHm === $newOutHm) {
                     continue;
                 }
             } else {
                 $newLate = ($data['status'] === 'telat') ? ($data['late_minutes'] ?: 0) : 0;
+                if (in_array($data['status'], ['izin', 'sakit', 'alpa'])) {
+                    $newScanTime = null;
+                    $newScanOutTime = null;
+                } else {
+                    $newScanTime = Presensi::normalizeTimeForStorage($data['scan_time'] ?? null)
+                        ?? ($existing && $existing->scan_time ? $existing->scan_time : $nowTime);
+                    $newScanOutTime = ($newStatusPulang === 'pulang')
+                        ? (Presensi::normalizeTimeForStorage($data['scan_out_time'] ?? null)
+                            ?? ($existing && $existing->scan_out_time ? $existing->scan_out_time : $nowTime))
+                        : null;
+                }
             }
 
+            $oldScanHm = ($existing && $existing->scan_time) ? substr((string) $existing->scan_time, 0, 5) : null;
+            $newScanHm = $newScanTime ? substr($newScanTime, 0, 5) : null;
+            $oldOutHm = ($existing && $existing->scan_out_time) ? substr((string) $existing->scan_out_time, 0, 5) : null;
+            $newOutHm = $newScanOutTime ? substr($newScanOutTime, 0, 5) : null;
+
             // Jika data sudah ada dan tidak ada perubahan sama sekali, lewati penyimpanan agar tidak merusak data otomatis
-            if ($existing && $existing->status === $data['status'] && $existing->late_minutes == $newLate && $existing->status_pulang === $newStatusPulang) {
+            if (
+                $existing &&
+                $existing->status === $data['status'] &&
+                $existing->late_minutes == $newLate &&
+                $existing->status_pulang === $newStatusPulang &&
+                $oldScanHm === $newScanHm &&
+                $oldOutHm === $newOutHm
+            ) {
                 continue;
             }
 
             // Blokir Guru jika mengedit data kedatangan hasil scan langsung kiosk (hanya Admin yang boleh)
-            // Tapi Bolehkan guru mengisi/mengubah status pulang
+            // Tapi Bolehkan guru mengisi/mengubah status & jam pulang
             if ($isKioskScan && $isGuru) {
                 if ($existing->status !== $data['status'] || $existing->late_minutes != $newLate) {
                     $this->dispatch('notify', [
@@ -393,20 +532,20 @@ class WaliKelasDashboard extends Component
                 }
             }
 
-            $actor = $isGuru ? Auth::user()->teacher : Auth::user();
+            $loginUser = Auth::user();
+            $actor = $isGuru ? $loginUser->teacher : $loginUser;
             $actorType = $isGuru ? 'Guru' : 'Admin';
-            
-            $note = null;
-            if ($existing) {
-                $strLama = $existing->status === 'telat' ? "Telat ({$existing->late_minutes} mnt)" : ucfirst($existing->status);
-                $strBaru = $data['status'] === 'telat' ? "Telat ({$newLate} mnt)" : ucfirst($data['status']);
-                $strPulangLama = $existing->status_pulang ? ucfirst($existing->status_pulang) : 'Kosong';
-                $strPulangBaru = $newStatusPulang ? ucfirst($newStatusPulang) : 'Kosong';
-                $appendNote = "Diedit oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem') . " (Datang: {$strLama}->{$strBaru}, Pulang: {$strPulangLama}->{$strPulangBaru})";
-                $note = $existing->note ? $existing->note . ' | ' . $appendNote : $appendNote;
-            } else {
-                $note = "Diinput Manual oleh {$actorType}: " . ($actor ? $actor->name : 'Sistem');
-            }
+            $note = Presensi::buildManualAuditNote(
+                $existing,
+                $actorType,
+                $actor ? $actor->name : 'Sistem',
+                $loginUser?->email,
+                $data['status'],
+                (int) $newLate,
+                $newStatusPulang,
+                $newScanTime,
+                $newScanOutTime
+            );
 
             Presensi::updateOrCreate(
                 [
@@ -425,9 +564,11 @@ class WaliKelasDashboard extends Component
                     'is_manual_input' => $isKioskScan ? false : true,
                     'manual_input_by_id'   => $actor->id,
                     'manual_input_by_type' => $isGuru ? \App\Models\Guru::class : \App\Models\User::class,
+                    'manual_input_at'      => Carbon::now('Asia/Jakarta'),
+                    'manual_input_user_id' => $loginUser?->id,
                     'note'            => $note,
-                    'scan_time'       => $existing && $existing->scan_time ? $existing->scan_time : now()->toTimeString(),
-                    'scan_out_time'   => ($newStatusPulang && (!$existing || !$existing->scan_out_time)) ? now()->toTimeString() : ($existing ? $existing->scan_out_time : null),
+                    'scan_time'       => $newScanTime,
+                    'scan_out_time'   => $newScanOutTime,
                 ]
             );
         }
@@ -454,6 +595,7 @@ class WaliKelasDashboard extends Component
         $this->cetakBulanYear = $this->selectedMonthYear ?? date('m-Y');
         $this->cetakSemester = (int)date('m') >= 7 ? 'ganjil' : 'genap';
         $this->cetakJenis = 'bulanan';
+        $this->cetakIncludeCheckout = $this->enableCheckout;
 
         $this->showCetakModal = true;
     }
@@ -511,6 +653,8 @@ class WaliKelasDashboard extends Component
         $safeLabel = str_replace([' ', '/', '\\'], ['_', '-', '-'], $range['label']);
         $fileName = 'Laporan_Presensi_' . $safeClassName . '_' . $safeLabel . '.xlsx';
 
+        $includeCheckout = $this->enableCheckout && $this->cetakIncludeCheckout;
+
         if ($this->cetakJenis === 'bulanan') {
             $parts = explode('-', $this->cetakBulanYear);
             $month = $parts[0] ?? date('m');
@@ -522,7 +666,9 @@ class WaliKelasDashboard extends Component
                     $this->selectedAcademicYearId,
                     $month,
                     $year,
-                    $range['label']
+                    $range['label'],
+                    $includeCheckout,
+                    $this->cetakReportFormat
                 ),
                 $fileName
             );
@@ -534,7 +680,8 @@ class WaliKelasDashboard extends Component
                 $this->selectedAcademicYearId,
                 $range['start'],
                 $range['end'],
-                $range['label']
+                $range['label'],
+                $includeCheckout
             ),
             $fileName
         );
@@ -547,6 +694,7 @@ class WaliKelasDashboard extends Component
         $range   = $this->getCetakDateRange();
         $kelas   = Kelas::find($this->selectedClassId);
         $sekolah = PengaturanSekolah::current();
+        $includeCheckout = $this->enableCheckout && $this->cetakIncludeCheckout;
         
         $className = $kelas?->name ?? 'Kelas';
         $safeClassName = str_replace(['/', '\\'], '-', $className);
@@ -567,13 +715,15 @@ class WaliKelasDashboard extends Component
             );
             
             $pdf = Pdf::loadView('pdf.laporan-presensi-matrix', [
-                'students'      => $result['students'],
-                'monthlyStats'  => $result['monthlyStats'],
-                'daysInMonth'   => $result['daysInMonth'],
-                'periodeLabel'  => $range['label'],
-                'kelas'         => $kelas,
-                'sekolah'       => $sekolah,
-                'generatedAt'   => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+                'students'        => $result['students'],
+                'monthlyStats'    => $result['monthlyStats'],
+                'daysInMonth'     => $result['daysInMonth'],
+                'periodeLabel'    => $range['label'],
+                'kelas'           => $kelas,
+                'sekolah'         => $sekolah,
+                'includeCheckout' => $includeCheckout,
+                'reportFormat'    => $this->cetakReportFormat,
+                'generatedAt'     => now()->locale('id')->translatedFormat('l, d F Y H:i'),
             ])->setPaper('a4', 'landscape');
 
             return response()->streamDownload(
@@ -591,13 +741,14 @@ class WaliKelasDashboard extends Component
         );
 
         $pdf = Pdf::loadView('pdf.laporan-presensi-range', [
-            'studentsData'  => $result['studentsData'],
-            'monthsList'    => $result['monthsList'],
-            'jenisLaporan'  => $this->cetakJenis,
-            'periodeLabel'  => $range['label'],
-            'kelas'         => $kelas,
-            'sekolah'       => $sekolah,
-            'generatedAt'   => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+            'studentsData'    => $result['studentsData'],
+            'monthsList'      => $result['monthsList'],
+            'jenisLaporan'    => $this->cetakJenis,
+            'periodeLabel'    => $range['label'],
+            'kelas'           => $kelas,
+            'sekolah'         => $sekolah,
+            'includeCheckout' => $includeCheckout,
+            'generatedAt'     => now()->locale('id')->translatedFormat('l, d F Y H:i'),
         ])->setPaper('a4', 'landscape');
 
         return response()->streamDownload(

@@ -18,6 +18,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
+use App\Services\PresensiRekapService;
 
 class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithEvents
 {
@@ -26,18 +27,22 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
     protected string $month;
     protected string $year;
     protected string $periodeLabel;
+    protected bool $includeCheckout;
+    protected string $reportFormat;
     
     protected array $daysInMonth;
     protected array $holidays;
     protected array $rows = [];
 
-    public function __construct(string $classId, string $yearId, string $month, string $year, string $periodeLabel = '')
+    public function __construct(string $classId, string $yearId, string $month, string $year, string $periodeLabel = '', bool $includeCheckout = false, string $reportFormat = 'singkatan')
     {
         $this->classId = $classId;
         $this->yearId = $yearId;
         $this->month = $month;
         $this->year = $year;
         $this->periodeLabel = $periodeLabel ?: "BULAN $month-$year";
+        $this->includeCheckout = $includeCheckout;
+        $this->reportFormat = in_array($reportFormat, ['singkatan', 'lengkap', 'waktu'], true) ? $reportFormat : 'singkatan';
         
         $daysInMonthCount = Carbon::create($year, $month, 1)->daysInMonth;
         $this->daysInMonth = range(1, $daysInMonthCount);
@@ -50,8 +55,13 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
         foreach ($this->daysInMonth as $day) {
             $headings[] = (string) $day;
         }
+
+        $totalHeadings = ['Total H', 'Total T', 'Total S', 'Total I', 'Total A'];
+        if ($this->includeCheckout) {
+            $totalHeadings[] = 'Total P';
+        }
         
-        return array_merge($headings, ['Total H', 'Total T', 'Total S', 'Total I', 'Total A']);
+        return array_merge($headings, $totalHeadings);
     }
 
     public function array(): array
@@ -96,6 +106,7 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                 'Sakit' => 0,
                 'Izin' => 0,
                 'Alpa' => 0,
+                'Pulang' => 0,
             ];
 
             foreach ($this->daysInMonth as $day) {
@@ -109,22 +120,52 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                 }
 
                 if (isset($presensiData[$dateStr])) {
-                    $status = $presensiData[$dateStr]->status;
+                    $attItem = $presensiData[$dateStr];
+                    $status = $attItem->status;
                     $initial = match ($status) {
                         'hadir' => 'H',
                         'telat' => 'T',
                         'sakit' => 'S',
                         'izin' => 'I',
                         'alpa' => 'A',
-                        default => '?'
+                        default => '-'
                     };
-                    $row[] = $initial;
+
+                    $pulangCode = null;
+                    if (in_array($status, ['hadir', 'telat'], true)) {
+                        $pulangCode = match ($attItem->status_pulang) {
+                            'pulang', 'tepat_waktu' => 'P',
+                            'izin'                  => 'I',
+                            'sakit'                 => 'S',
+                            'alpa'                  => 'A',
+                            default                 => !empty($attItem->scan_out_time) ? 'P' : '-',
+                        };
+                    }
+
+                    $scanTime = $attItem->scan_time ? substr((string) $attItem->scan_time, 0, 5) : null;
+                    $scanOutTime = ($pulangCode === 'P' && !empty($attItem->scan_out_time))
+                        ? substr((string) $attItem->scan_out_time, 0, 5)
+                        : null;
+
+                    $formatted = PresensiRekapService::formatMatrixCell(
+                        $initial,
+                        $pulangCode,
+                        $scanTime,
+                        $scanOutTime,
+                        $this->includeCheckout,
+                        $this->reportFormat
+                    );
+                    $row[] = $formatted['text'];
                     
                     if ($status === 'hadir') $totals['Hadir']++;
                     elseif ($status === 'telat') $totals['Terlambat']++;
                     elseif ($status === 'sakit') $totals['Sakit']++;
                     elseif ($status === 'izin') $totals['Izin']++;
                     elseif ($status === 'alpa') $totals['Alpa']++;
+
+                    if (in_array($attItem->status_pulang, ['pulang', 'tepat_waktu'], true) || (!in_array($attItem->status_pulang, ['izin', 'sakit', 'alpa'], true) && !empty($attItem->scan_out_time))) {
+                        $totals['Pulang']++;
+                    }
                 } else {
                     $row[] = '-'; // Jika tidak ada record dan bukan libur, default '-'
                 }
@@ -136,6 +177,9 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
             $row[] = $totals['Sakit'];
             $row[] = $totals['Izin'];
             $row[] = $totals['Alpa'];
+            if ($this->includeCheckout) {
+                $row[] = $totals['Pulang'];
+            }
 
             $matrix[] = $row;
         }
@@ -159,8 +203,8 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                 $sekolah = \App\Models\PengaturanSekolah::current();
                 $now = now()->format('d/m/Y H:i');
 
-                // Determine last column (3 base cols + days count + 5 total cols)
-                $totalCols = 3 + count($this->daysInMonth) + 5;
+                // Determine last column (3 base cols + days count + 5 or 6 total cols)
+                $totalCols = 3 + count($this->daysInMonth) + ($this->includeCheckout ? 6 : 5);
                 $lastColLetter = Coordinate::stringFromColumnIndex($totalCols);
 
                 // ===== INSERT 4 ROWS AT TOP for kop surat =====
@@ -214,8 +258,10 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                 $sheet->getColumnDimension('C')->setWidth(30);
                 
                 // Days columns
+                $needsWideCol = $this->includeCheckout || $this->reportFormat !== 'singkatan';
+                $dayColWidth = $this->reportFormat === 'lengkap' ? 9.0 : ($this->reportFormat === 'waktu' ? 7.0 : ($this->includeCheckout ? 5.0 : 4.0));
                 for ($col = 4; $col <= 3 + count($this->daysInMonth); $col++) {
-                    $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth(4);
+                    $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth($dayColWidth);
                 }
 
                 // Total columns
@@ -239,8 +285,15 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
 
                         // Center days and totals columns
                         $sheet->getStyle("D{$rowIdx}:{$lastColLetter}{$rowIdx}")->applyFromArray([
-                            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                            'alignment' => [
+                                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                                'vertical' => Alignment::VERTICAL_CENTER,
+                                'wrapText' => $needsWideCol,
+                            ],
                         ]);
+                        if ($this->includeCheckout) {
+                            $sheet->getRowDimension($rowIdx)->setRowHeight(26);
+                        }
                     }
 
                     // Outer border
@@ -248,6 +301,14 @@ class PresensiMatrixExport implements FromArray, WithHeadings, WithStyles, WithE
                         'borders' => [
                             'outline' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['argb' => 'FF1E3A5F']],
                         ],
+                    ]);
+
+                    // Keterangan di bawah tabel
+                    $legendRow = $lastRow + 2;
+                    $sheet->mergeCells("A{$legendRow}:{$lastColLetter}{$legendRow}");
+                    $sheet->setCellValue("A{$legendRow}", PresensiRekapService::getMatrixLegendText($this->includeCheckout, $this->reportFormat));
+                    $sheet->getStyle("A{$legendRow}")->applyFromArray([
+                        'font' => ['italic' => true, 'size' => 9, 'color' => ['argb' => 'FF475569']],
                     ]);
                 }
 

@@ -43,8 +43,18 @@ class CetakLaporanPresensi extends Component
     public $semesterStudentsData = [];
     public $semesterMonthsList = [];
 
+    // Data Matrix Rekap Sekolah (Semua Kelas)
+    public $schoolClassesData = [];
+    public $schoolMonthsList = [];
+
+    public bool $enableCheckout = true;
+    public bool $includeCheckout = true;
+    public string $reportFormat = 'singkatan'; // singkatan | lengkap | waktu
+
     public function mount(): void
     {
+        $this->enableCheckout = (bool) (PengaturanSekolah::current()?->enable_checkout ?? true);
+        $this->includeCheckout = $this->enableCheckout;
         $this->academicYears = TahunAjaran::orderBy('start_year', 'desc')->get();
         $activeYear = TahunAjaran::where('status', 'aktif')->first() ?? $this->academicYears->first();
         if ($activeYear) {
@@ -61,6 +71,11 @@ class CetakLaporanPresensi extends Component
         // Default semester berdasarkan bulan sekarang
         $this->semester = (int)date('m') >= 7 ? 'ganjil' : 'genap';
 
+        $requestedJenis = request()->query('jenis');
+        if (in_array($requestedJenis, ['bulanan', 'semester', 'tahunan', 'sekolah'], true)) {
+            $this->jenisLaporan = $requestedJenis;
+        }
+
         $this->refreshData();
     }
 
@@ -75,6 +90,8 @@ class CetakLaporanPresensi extends Component
     {
         if ($this->jenisLaporan === 'bulanan') {
             $this->getMatrixData();
+        } elseif ($this->jenisLaporan === 'sekolah') {
+            $this->getSchoolData();
         } else {
             $this->getSemesterYearlyData();
         }
@@ -114,6 +131,10 @@ class CetakLaporanPresensi extends Component
                 $end   = Carbon::create($ay->end_year, 6, 30)->endOfMonth();
                 $label = 'Semester Genap TA ' . $ay->name;
             }
+        } elseif ($this->jenisLaporan === 'sekolah') {
+            $start = Carbon::create($ay->start_year, 7, 1)->startOfMonth();
+            $end   = Carbon::create($ay->end_year, 6, 30)->endOfMonth();
+            $label = 'Rekap Sekolah TA ' . $ay->name;
         } else {
             // Tahunan: Juli start_year - Juni end_year
             $start = Carbon::create($ay->start_year, 7, 1)->startOfMonth();
@@ -154,7 +175,7 @@ class CetakLaporanPresensi extends Component
 
     public function getSemesterYearlyData(): void
     {
-        if ($this->jenisLaporan === 'bulanan' || !$this->selectedClassId || !$this->selectedAcademicYearId) {
+        if (in_array($this->jenisLaporan, ['bulanan', 'sekolah'], true) || !$this->selectedClassId || !$this->selectedAcademicYearId) {
             $this->semesterStudentsData = [];
             $this->semesterMonthsList = [];
             return;
@@ -179,9 +200,49 @@ class CetakLaporanPresensi extends Component
         $this->semesterMonthsList = $result['monthsList'];
     }
 
+    public function getSchoolData(): void
+    {
+        $this->schoolClassesData = [];
+        $this->schoolMonthsList = [];
+
+        if ($this->jenisLaporan !== 'sekolah' || !$this->selectedAcademicYearId) {
+            return;
+        }
+
+        $result = app(PresensiRekapService::class)
+            ->getYearlySchoolData($this->selectedAcademicYearId);
+
+        $this->schoolClassesData = $result['classesData'];
+        $this->schoolMonthsList = $result['monthsList'];
+    }
+
     public function downloadExcel()
     {
-        if (!$this->selectedClassId || !$this->selectedAcademicYearId) {
+        if (!$this->selectedAcademicYearId) {
+            session()->flash('error', 'Pilih tahun ajaran terlebih dahulu.');
+            return;
+        }
+
+        if ($this->jenisLaporan === 'sekolah') {
+            if (empty($this->schoolClassesData)) {
+                $this->getSchoolData();
+            }
+
+            $ay = TahunAjaran::find($this->selectedAcademicYearId);
+            $ayName = $ay ? str_replace(['/', '\\'], '-', $ay->name) : 'TA';
+            $fileName = "Rekap_Presensi_Sekolah_{$ayName}.xlsx";
+
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\RekapAbsensiSekolahExport(
+                    $this->selectedAcademicYearId,
+                    $this->schoolClassesData,
+                    $this->schoolMonthsList
+                ),
+                $fileName
+            );
+        }
+
+        if (!$this->selectedClassId) {
             session()->flash('error', 'Pilih kelas dan tahun ajaran terlebih dahulu.');
             return;
         }
@@ -199,7 +260,9 @@ class CetakLaporanPresensi extends Component
                     $this->selectedAcademicYearId,
                     $this->bulan,
                     $this->tahunBulanan,
-                    $range['label']
+                    $range['label'],
+                    $this->includeCheckout,
+                    $this->reportFormat
                 ),
                 $fileName
             );
@@ -211,7 +274,8 @@ class CetakLaporanPresensi extends Component
                 $this->selectedAcademicYearId,
                 $range['start'],
                 $range['end'],
-                $range['label']
+                $range['label'],
+                $this->includeCheckout
             ),
             $fileName
         );
@@ -219,27 +283,43 @@ class CetakLaporanPresensi extends Component
 
     public function downloadPdf()
     {
-        if (!$this->selectedClassId || !$this->selectedAcademicYearId) {
+        if (!$this->selectedAcademicYearId) {
+            session()->flash('error', 'Pilih tahun ajaran terlebih dahulu.');
+            return;
+        }
+
+        $sekolah = PengaturanSekolah::current();
+
+        if ($this->jenisLaporan === 'sekolah') {
+            if (empty($this->schoolClassesData)) {
+                $this->getSchoolData();
+            }
+
+            $ay = TahunAjaran::find($this->selectedAcademicYearId);
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rekap-absensi-sekolah', [
+                'tahunAjaran' => $ay,
+                'sekolah'     => $sekolah,
+                'classesData' => $this->schoolClassesData,
+                'monthsList'  => $this->schoolMonthsList,
+                'generatedAt' => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+            ])->setPaper('a4', 'landscape');
+
+            $ayName = $ay ? str_replace(['/', '\\'], '-', $ay->name) : 'TA';
+            $fileName = "Rekap_Presensi_Sekolah_{$ayName}.pdf";
+
+            return response()->streamDownload(
+                fn() => print($pdf->output()),
+                $fileName
+            );
+        }
+
+        if (!$this->selectedClassId) {
             session()->flash('error', 'Pilih kelas dan tahun ajaran terlebih dahulu.');
             return;
         }
 
         $range      = $this->getDateRange();
         $kelas      = Kelas::find($this->selectedClassId);
-        $sekolah    = PengaturanSekolah::current();
-        
-        $this->getSemesterYearlyData();
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-presensi-range', [
-            'studentsData'  => $this->semesterStudentsData,
-            'monthsList'    => $this->semesterMonthsList,
-            'jenisLaporan'  => $this->jenisLaporan,
-            'periodeLabel'  => $range['label'],
-            'kelas'         => $kelas,
-            'sekolah'       => $sekolah,
-            'generatedAt'   => now()->locale('id')->translatedFormat('l, d F Y H:i'),
-        ])->setPaper('a4', 'landscape');
-
         $className = $kelas?->name ?? 'Kelas';
         $safeClassName = str_replace(['/', '\\'], '-', $className);
         $safeLabel = str_replace([' ', '/', '\\'], ['_', '-', '-'], $range['label']);
@@ -247,15 +327,17 @@ class CetakLaporanPresensi extends Component
 
         if ($this->jenisLaporan === 'bulanan') {
             $this->getMatrixData();
-            
+
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-presensi-matrix', [
-                'students'      => $this->students,
-                'monthlyStats'  => $this->monthlyStats,
-                'daysInMonth'   => $this->daysInMonth,
-                'periodeLabel'  => $range['label'],
-                'kelas'         => $kelas,
-                'sekolah'       => $sekolah,
-                'generatedAt'   => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+                'students'        => $this->students,
+                'monthlyStats'    => $this->monthlyStats,
+                'daysInMonth'     => $this->daysInMonth,
+                'periodeLabel'    => $range['label'],
+                'kelas'           => $kelas,
+                'sekolah'         => $sekolah,
+                'includeCheckout' => $this->includeCheckout,
+                'reportFormat'    => $this->reportFormat,
+                'generatedAt'     => now()->locale('id')->translatedFormat('l, d F Y H:i'),
             ])->setPaper('a4', 'landscape');
 
             return response()->streamDownload(
@@ -263,6 +345,19 @@ class CetakLaporanPresensi extends Component
                 $fileName
             );
         }
+
+        $this->getSemesterYearlyData();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-presensi-range', [
+            'studentsData'    => $this->semesterStudentsData,
+            'monthsList'      => $this->semesterMonthsList,
+            'jenisLaporan'    => $this->jenisLaporan,
+            'periodeLabel'    => $range['label'],
+            'kelas'           => $kelas,
+            'sekolah'         => $sekolah,
+            'includeCheckout' => $this->includeCheckout,
+            'generatedAt'     => now()->locale('id')->translatedFormat('l, d F Y H:i'),
+        ])->setPaper('a4', 'landscape');
 
         return response()->streamDownload(
             fn() => print($pdf->output()),
@@ -273,6 +368,6 @@ class CetakLaporanPresensi extends Component
     #[Layout('components.layouts.portal')]
     public function render()
     {
-        return view('livewire.portal-presensi.cetak-laporan-presensi')->title('Cetak Laporan Presensi - Portal Presensi');
+        return view('livewire.portal-presensi.cetak-laporan-presensi')->title('Rekap dan Cetak Laporan Presensi - Portal Presensi');
     }
 }

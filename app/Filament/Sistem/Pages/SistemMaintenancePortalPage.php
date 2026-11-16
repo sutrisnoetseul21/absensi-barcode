@@ -102,8 +102,8 @@ class SistemMaintenancePortalPage extends Page
                                         Toggle::make('maintenance_portal_siswa')
                                             ->label('Aktifkan Mode Pemeliharaan (Tutup Sementara Portal Siswa)')
                                             ->onColor('danger')
-                                            ->offColor('success')
-                                            ->helperText('Jika aktif (Merah), seluruh siswa tidak dapat mengakses Portal Siswa dan akan melihat pesan pemeliharaan di bawah ini.'),
+                                            ->offColor('gray')
+                                            ->helperText('Abu-abu = Portal terbuka normal. Merah (Aktif) = seluruh siswa tidak dapat mengakses Portal Siswa dan melihat layar 503 Pemeliharaan.'),
                                         Textarea::make('welcome_message_siswa')
                                             ->label('Pesan Layar Pemeliharaan / Sambutan Portal Siswa')
                                             ->placeholder('Contoh: Mohon maaf, Portal Siswa sedang dalam pemeliharaan rutin peningkatan server hingga pukul 15.00 WIB.')
@@ -117,8 +117,8 @@ class SistemMaintenancePortalPage extends Page
                                         Toggle::make('maintenance_portal_guru')
                                             ->label('Aktifkan Mode Pemeliharaan (Tutup Sementara Portal Guru)')
                                             ->onColor('danger')
-                                            ->offColor('success')
-                                            ->helperText('Jika aktif (Merah), guru dan wali kelas akan melihat layar 503 Pemeliharaan saat membuka Portal Guru.'),
+                                            ->offColor('gray')
+                                            ->helperText('Abu-abu = Portal terbuka normal. Merah (Aktif) = guru dan wali kelas melihat layar 503 Pemeliharaan saat membuka Portal Guru.'),
                                         Textarea::make('welcome_message_guru')
                                             ->label('Pesan Layar Pemeliharaan / Sambutan Portal Guru')
                                             ->placeholder('Contoh: Sistem Portal Guru sedang dalam proses sinkronisasi data semester baru. Silakan akses kembali beberapa saat lagi.')
@@ -132,8 +132,8 @@ class SistemMaintenancePortalPage extends Page
                                         Toggle::make('maintenance_portal_perpustakaan')
                                             ->label('Aktifkan Mode Pemeliharaan (Tutup Sementara Portal Perpustakaan)')
                                             ->onColor('danger')
-                                            ->offColor('success')
-                                            ->helperText('Jika aktif (Merah), layanan Portal Perpustakaan ditutup sementara untuk pemeliharaan.'),
+                                            ->offColor('gray')
+                                            ->helperText('Abu-abu = Portal terbuka normal. Merah (Aktif) = layanan Portal Perpustakaan ditutup sementara untuk pemeliharaan.'),
                                         Textarea::make('welcome_message_perpustakaan')
                                             ->label('Pesan Layar Pemeliharaan / Sambutan Portal Perpustakaan')
                                             ->placeholder('Contoh: Sistem sirkulasi perpustakaan sedang dalam proses opname inventaris buku.')

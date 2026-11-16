@@ -1,5 +1,7 @@
 # 💬 Pengaturan Notifikasi WhatsApp & Broadcast Presensi
 
+> **Catatan Navigasi:** Menu *Setting Notifikasi WA* pada sidebar **Portal Presensi** (`/portal-presensi`) disembunyikan sementara karena pengaturan koneksi gateway & template notifikasi WhatsApp sudah dipusatkan di **Portal Sistem (`/portal-sistem`)**. Rute lama `/portal-presensi/setting-notifikasi` masih dipertahankan untuk kompatibilitas.
+
 Dokumen ini menjelaskan modul pengaturan pesan WhatsApp di Portal Presensi ([`App\Livewire\PortalPresensi\SettingNotifikasi`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalPresensi/SettingNotifikasi.php)), otomatisasi pengiriman via background scheduler, dan sistem proteksi kuota kirim harian.
 
 ---

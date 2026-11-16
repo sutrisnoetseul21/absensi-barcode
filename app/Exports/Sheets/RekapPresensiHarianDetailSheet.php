@@ -17,7 +17,8 @@ class RekapPresensiHarianDetailSheet implements FromView, WithTitle, ShouldAutoS
     public function __construct(
         protected string $selectedDate,
         protected ?string $academicYearId,
-        protected array $allStudents
+        protected array $allStudents,
+        protected bool $includeCheckout = false
     ) {}
 
     public function view(): View
@@ -31,6 +32,7 @@ class RekapPresensiHarianDetailSheet implements FromView, WithTitle, ShouldAutoS
             'tahunAjaran'           => $ay,
             'sekolah'               => $sekolah,
             'allStudents'           => $this->allStudents,
+            'includeCheckout'       => $this->includeCheckout,
             'generatedAt'           => now()->locale('id')->translatedFormat('l, d F Y H:i') . ' WIB',
         ]);
     }

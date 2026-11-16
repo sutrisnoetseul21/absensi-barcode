@@ -105,18 +105,27 @@ Route::post('/logout', function () {
 
 // Kiosk Absensi Routes - Portal Presensi Kiosk
 Route::prefix('portal-presensi')->group(function () {
-    // Route dashboard Portal Presensi (sementara menggunakan tampilan kosong)
-    Route::get('/', \App\Livewire\PortalPresensiDashboard::class)->middleware('auth.presensi')->name('portal-presensi.dashboard');
+    // Route Dashboard Utama Portal Presensi (hub kartu ringkas)
+    Route::get('/', \App\Livewire\PortalPresensi\PortalPresensiHome::class)->middleware('auth.presensi')->name('portal-presensi.dashboard');
 
     Route::redirect('/login', '/login')->name('portal-presensi.login');
 
     Route::middleware('auth.presensi')->group(function () {
+        Route::get('/kehadiran', \App\Livewire\PortalPresensiDashboard::class)->name('portal-presensi.kehadiran.dashboard');
         Route::get('/input-manual', \App\Livewire\PortalPresensi\InputPresensiManual::class)->name('portal-presensi.input-manual');
         Route::get('/rekap-kelas', \App\Livewire\PortalPresensi\RekapAbsensiKelas::class)->name('portal-presensi.rekap-kelas');
         Route::get('/rekap-sekolah', \App\Livewire\PortalPresensi\RekapAbsensiSekolah::class)->name('portal-presensi.rekap-sekolah');
         Route::get('/cetak-laporan', \App\Livewire\PortalPresensi\CetakLaporanPresensi::class)->name('portal-presensi.cetak-laporan');
         Route::get('/cetak-kartu', \App\Livewire\PortalPresensi\CetakKartuSiswa::class)->name('portal-presensi.cetak-kartu');
         Route::get('/setting-notifikasi', \App\Livewire\PortalPresensi\SettingNotifikasi::class)->name('portal-presensi.setting-notifikasi');
+        Route::get('/pengaturan', \App\Livewire\PortalPresensi\PengaturanPresensi::class)->name('portal-presensi.pengaturan');
+
+        // Submodul Presensi Sholat Dhuhur
+        Route::prefix('sholat-dhuhur')->group(function () {
+            Route::get('/', \App\Livewire\PortalPresensi\SholatDhuhur\DashboardSholatDhuhur::class)->name('portal-presensi.sholat-dhuhur.dashboard');
+            Route::get('/input-manual', \App\Livewire\PortalPresensi\SholatDhuhur\InputManualSholatDhuhur::class)->name('portal-presensi.sholat-dhuhur.input-manual');
+            Route::get('/laporan', \App\Livewire\PortalPresensi\SholatDhuhur\LaporanSholatDhuhur::class)->name('portal-presensi.sholat-dhuhur.laporan');
+        });
 
         Route::post('/logout', function () {
             \Illuminate\Support\Facades\Auth::guard('web')->logout();

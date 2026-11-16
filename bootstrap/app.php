@@ -42,17 +42,38 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectUsersTo(function (Request $request) {
             $user = Auth::guard('web')->user();
-            if ($user && $user->hasRole('wali_kelas')) {
+            if (! $user) {
+                return '/login';
+            }
+            if ($user->isSuperAdmin()) {
+                return '/admin';
+            }
+            if ($user->hasRole('wali_kelas')) {
                 return '/portal-guru';
             }
-            if ($user && $user->hasRole('siswa')) {
+            if ($user->hasRole('siswa')) {
                 return '/portal-siswa';
             }
-            if ($user && ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan'))) {
+            if ($user->hasRole('admin_portal_presensi')) {
+                return '/portal-presensi';
+            }
+            if ($user->hasRole('petugas_presensi')) {
+                return '/portal-presensi/scan';
+            }
+            if ($user->hasRole('petugas_perpustakaan') || $user->hasRole('admin_perpustakaan')) {
                 return '/portal-perpustakaan';
             }
-            if ($user && $user->hasRole('petugas_presensi')) {
-                return '/portal-presensi/scan';
+            if ($user->hasRole('admin_portal_web')) {
+                return '/portal-web';
+            }
+            if ($user->hasRole('admin_portal_setup')) {
+                return '/portal-setup';
+            }
+            if ($user->hasRole('admin_portal_akademik') || $user->hasAnyRole(['admin_akademik_editor', 'admin_akademik_viewer'])) {
+                return '/portal-akademik';
+            }
+            if ($user->hasRole('admin_portal_sistem') || $user->hasAnyRole(['admin_akses_editor', 'admin_akses_viewer'])) {
+                return '/portal-sistem';
             }
             return '/admin';
         });

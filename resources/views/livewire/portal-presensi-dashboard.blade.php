@@ -47,7 +47,7 @@
         <div>
             <div class="flex items-center gap-2.5">
                 <span class="w-3 h-3 rounded-full bg-brand-primary animate-pulse"></span>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Presensi</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Presensi Kehadiran</h1>
                 <span class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
                     Live Data
                 </span>
@@ -61,8 +61,13 @@
         <div class="flex flex-wrap items-center gap-2.5">
             <!-- Date Picker -->
             <div class="relative">
-                <input type="date" wire:model.live="selectedDate" 
-                    class="pl-3 pr-2 py-2 text-xs sm:text-sm bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-xs focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-all cursor-pointer">
+                <x-portal-presensi.date-indo
+                    model="selectedDate"
+                    :value="$selectedDate"
+                    :live="true"
+                    placeholder="Pilih tanggal"
+                    buttonClass="min-w-[215px] flex items-center justify-between gap-2 px-3 py-2 text-xs sm:text-sm bg-white rounded-xl border border-slate-200 font-bold text-slate-700 shadow-xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-all text-left cursor-pointer"
+                />
             </div>
 
             <!-- Academic Year Select -->
@@ -117,6 +122,12 @@
                 <span class="hidden sm:inline">MBG (Excel)</span>
                 <span class="sm:hidden">MBG XL</span>
             </button>
+
+            <!-- Opsi Sertakan Absen Pulang -->
+            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-xs text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-50 transition-all select-none">
+                <input type="checkbox" wire:model.live="includeCheckout" class="rounded border-slate-300 text-brand-primary focus:ring-brand-primary cursor-pointer">
+                <span>Sertakan Absen Pulang</span>
+            </label>
         </div>
     </div>
 
@@ -480,39 +491,34 @@
             <div class="p-4 sm:p-5">
                 <!-- Filter Dropdown Bar -->
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <label class="text-xs font-bold text-slate-500">Filter Kelas:</label>
                         <select wire:model.live="selectedClassFilter" class="text-xs sm:text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30">
-                            <option value="all">Semua Kelas ({{ count($unattendedStudents) }} siswa)</option>
+                            <option value="all">Semua Kelas ({{ $unattendedCount }} siswa)</option>
                             @foreach($classes as $c)
                                 <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
                             @endforeach
                         </select>
+
+                        @if($selectedClassFilter !== 'all')
+                            <button type="button" wire:click="$set('selectedClassFilter', 'all')" class="text-xs font-bold text-brand-primary hover:underline">
+                                Reset ke Semua Kelas
+                            </button>
+                        @endif
                     </div>
 
-                    @if($selectedClassFilter !== 'all')
-                        <button type="button" wire:click="$set('selectedClassFilter', 'all')" class="text-xs font-bold text-brand-primary hover:underline">
-                            Reset ke Semua Kelas
-                        </button>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-500">Baris:</label>
+                        <select wire:model.live="perPage" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-700">
+                            <option value="25">25 / hal</option>
+                            <option value="50">50 / hal</option>
+                            <option value="100">100 / hal</option>
+                        </select>
+                    </div>
                 </div>
 
-                @php
-                    $filteredUnattended = collect($unattendedStudents)->filter(function($st) use ($selectedClassFilter, $searchQuery) {
-                        if ($selectedClassFilter !== 'all' && $st['class_id'] !== $selectedClassFilter) {
-                            return false;
-                        }
-                        if (!empty($searchQuery)) {
-                            return str_contains(strtolower($st['name']), strtolower($searchQuery)) ||
-                                   str_contains((string)$st['nisn'], $searchQuery) ||
-                                   str_contains(strtolower($st['class_name']), strtolower($searchQuery));
-                        }
-                        return true;
-                    });
-                @endphp
-
                 <!-- Celebration Banner if Belum is 0 -->
-                @if($filteredUnattended->isEmpty() && empty($searchQuery))
+                @if($paginatedStudents->isEmpty() && empty($searchQuery))
                     <div class="p-10 text-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-3xl border border-indigo-200/80 my-4 shadow-xs">
                         <div class="w-16 h-16 mx-auto mb-3 bg-brand-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-brand-primary/30">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -522,10 +528,14 @@
                             Tidak ada siswa yang belum presensi {{ $selectedClassFilter !== 'all' ? 'di kelas ini' : 'di seluruh sekolah' }}. Data kehadiran seluruh siswa telah lengkap tercatat.
                         </p>
                     </div>
+                @elseif($paginatedStudents->isEmpty() && !empty($searchQuery))
+                    <div class="p-8 text-center text-slate-500">
+                        <p class="font-bold text-sm">Tidak ditemukan siswa belum presensi dengan kata kunci "{{ $searchQuery }}".</p>
+                    </div>
                 @else
                     <!-- Mobile Card List -->
                     <div class="block md:hidden space-y-3">
-                        @foreach($filteredUnattended as $st)
+                        @foreach($paginatedStudents as $st)
                             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="flex items-center gap-3 min-w-0">
@@ -596,9 +606,9 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                @foreach($filteredUnattended as $index => $st)
+                                @foreach($paginatedStudents as $index => $st)
                                     <tr class="hover:bg-slate-50/80 transition-colors">
-                                        <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $loop->iteration }}</td>
+                                        <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $paginatedStudents->firstItem() + $loop->index }}</td>
                                         <td class="py-3 px-5">
                                             <div class="flex items-center gap-2.5">
                                                 <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-black text-xs shrink-0">
@@ -664,39 +674,34 @@
             <div class="p-4 sm:p-5">
                 <!-- Filter Dropdown Bar -->
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <label class="text-xs font-bold text-slate-500">Filter Kelas:</label>
                         <select wire:model.live="selectedClassFilter" class="text-xs sm:text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30">
-                            <option value="all">Semua Kelas ({{ count($lateStudents) }} siswa terlambat)</option>
+                            <option value="all">Semua Kelas ({{ $lateCount }} siswa terlambat)</option>
                             @foreach($classes as $c)
                                 <option value="{{ $c->id }}">Kelas {{ $c->name }}</option>
                             @endforeach
                         </select>
+
+                        @if($selectedClassFilter !== 'all')
+                            <button type="button" wire:click="$set('selectedClassFilter', 'all')" class="text-xs font-bold text-brand-primary hover:underline">
+                                Reset ke Semua Kelas
+                            </button>
+                        @endif
                     </div>
 
-                    @if($selectedClassFilter !== 'all')
-                        <button type="button" wire:click="$set('selectedClassFilter', 'all')" class="text-xs font-bold text-brand-primary hover:underline">
-                            Reset ke Semua Kelas
-                        </button>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-500">Baris:</label>
+                        <select wire:model.live="perPage" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-700">
+                            <option value="25">25 / hal</option>
+                            <option value="50">50 / hal</option>
+                            <option value="100">100 / hal</option>
+                        </select>
+                    </div>
                 </div>
 
-                @php
-                    $filteredLate = collect($lateStudents)->filter(function($st) use ($selectedClassFilter, $searchQuery) {
-                        if ($selectedClassFilter !== 'all' && $st['class_id'] !== $selectedClassFilter) {
-                            return false;
-                        }
-                        if (!empty($searchQuery)) {
-                            return str_contains(strtolower($st['name']), strtolower($searchQuery)) ||
-                                   str_contains((string)$st['nisn'], $searchQuery) ||
-                                   str_contains(strtolower($st['class_name']), strtolower($searchQuery));
-                        }
-                        return true;
-                    });
-                @endphp
-
                 <!-- Celebration / Empty State Banner if Late is 0 -->
-                @if($filteredLate->isEmpty() && empty($searchQuery))
+                @if($paginatedStudents->isEmpty() && empty($searchQuery))
                     <div class="p-10 text-center bg-gradient-to-br from-amber-50/50 via-white to-emerald-50/50 rounded-3xl border border-amber-200/60 my-4 shadow-xs">
                         <div class="w-16 h-16 mx-auto mb-3 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -706,14 +711,14 @@
                             {{ $selectedClassFilter !== 'all' ? 'Di kelas ini tidak ada siswa yang tercatat terlambat.' : 'Seluruh siswa yang hadir tercatat hadir tepat waktu tanpa keterlambatan.' }}
                         </p>
                     </div>
-                @elseif($filteredLate->isEmpty() && !empty($searchQuery))
+                @elseif($paginatedStudents->isEmpty() && !empty($searchQuery))
                     <div class="p-8 text-center text-slate-500">
                         <p class="font-bold text-sm">Tidak ditemukan siswa terlambat dengan kata kunci "{{ $searchQuery }}".</p>
                     </div>
                 @else
                     <!-- Mobile Card List -->
                     <div class="block md:hidden space-y-3">
-                        @foreach($filteredLate as $st)
+                        @foreach($paginatedStudents as $st)
                             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="flex items-center gap-3 min-w-0">
@@ -787,9 +792,9 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                @foreach($filteredLate as $index => $st)
+                                @foreach($paginatedStudents as $index => $st)
                                     <tr class="hover:bg-slate-50/80 transition-colors">
-                                        <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $loop->iteration }}</td>
+                                        <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $paginatedStudents->firstItem() + $loop->index }}</td>
                                         <td class="py-3 px-5">
                                             <div class="flex items-center gap-2.5">
                                                 <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-xs shrink-0">
@@ -814,6 +819,13 @@
                                             </span>
                                         </td>
                                         <td class="py-3 px-4 text-center text-slate-500 text-xs italic">
+                                            @if(!empty($st['manual_audit']['is_manual']))
+                                                <div class="mb-1">
+                                                    <span class="not-italic inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                        {{ $st['manual_audit']['summary'] }}
+                                                    </span>
+                                                </div>
+                                            @endif
                                             {{ $st['note'] ?: '-' }}
                                         </td>
                                         <td class="py-3 px-4 text-center text-slate-600 font-medium">
@@ -860,7 +872,7 @@
         @if($activeTab === 'semua_siswa')
             <div class="p-4 sm:p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
                         <select wire:model.live="selectedClassFilter" class="text-xs sm:text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700">
                             <option value="all">Semua Kelas</option>
                             @foreach($classes as $c)
@@ -879,27 +891,17 @@
                         </select>
                     </div>
 
-                    <span class="text-xs font-semibold text-slate-500">
-                        Menampilkan data presensi seluruh siswa sekolah
-                    </span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-semibold text-slate-500">
+                            Total {{ number_format($paginatedStudents->total()) }} siswa
+                        </span>
+                        <select wire:model.live="perPage" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-700">
+                            <option value="25">25 / hal</option>
+                            <option value="50">50 / hal</option>
+                            <option value="100">100 / hal</option>
+                        </select>
+                    </div>
                 </div>
-
-                @php
-                    $filteredAll = collect($allStudents)->filter(function($st) use ($selectedClassFilter, $filterStatus, $searchQuery) {
-                        if ($selectedClassFilter !== 'all' && $st['class_id'] !== $selectedClassFilter) {
-                            return false;
-                        }
-                        if ($filterStatus !== 'all' && $st['status'] !== $filterStatus) {
-                            return false;
-                        }
-                        if (!empty($searchQuery)) {
-                            return str_contains(strtolower($st['name']), strtolower($searchQuery)) ||
-                                   str_contains((string)$st['nisn'], $searchQuery) ||
-                                   str_contains(strtolower($st['class_name']), strtolower($searchQuery));
-                        }
-                        return true;
-                    });
-                @endphp
 
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse text-xs sm:text-sm">
@@ -911,14 +913,17 @@
                                 <th class="py-4 px-4 text-center">NISN</th>
                                 <th class="py-4 px-4 text-center">Status</th>
                                 <th class="py-4 px-4 text-center">Jam Datang</th>
+                                @if($includeCheckout)
+                                    <th class="py-4 px-4 text-center">Jam / Status Pulang</th>
+                                @endif
                                 <th class="py-4 px-4 text-center">Status Fisik</th>
                                 <th class="py-4 px-4">Catatan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @forelse($filteredAll as $index => $st)
+                            @forelse($paginatedStudents as $index => $st)
                                 <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $loop->iteration }}</td>
+                                    <td class="py-3 px-4 text-center font-bold text-slate-400 text-xs">{{ $paginatedStudents->firstItem() + $loop->index }}</td>
                                     <td class="py-3 px-5 font-bold text-slate-800">{{ $st['name'] }}</td>
                                     <td class="py-3 px-4 text-center font-bold text-brand-primary">Kelas {{ $st['class_name'] }}</td>
                                     <td class="py-3 px-4 text-center text-slate-500 font-medium">{{ $st['nisn'] ?? '-' }}</td>
@@ -940,6 +945,19 @@
                                     <td class="py-3 px-4 text-center font-bold text-slate-600">
                                         {{ $st['scan_time'] ? $st['scan_time'] . ' WIB' : '-' }}
                                     </td>
+                                    @if($includeCheckout)
+                                        <td class="py-3 px-4 text-center">
+                                            @if(!empty($st['scan_out']) || !empty($st['status_pulang']))
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                                                    {{ !empty($st['scan_out']) ? $st['scan_out'] . ' WIB' : ucwords(str_replace('_', ' ', (string) $st['status_pulang'])) }}
+                                                </span>
+                                            @elseif(in_array($st['status'], ['hadir', 'telat']))
+                                                <span class="text-xs font-semibold text-slate-400">Belum Pulang</span>
+                                            @else
+                                                <span class="text-xs text-slate-400">-</span>
+                                            @endif
+                                        </td>
+                                    @endif
                                     <td class="py-3 px-4 text-center">
                                         @if(in_array($st['status'], ['hadir', 'telat']))
                                             <span class="inline-flex items-center gap-1 text-xs font-bold text-brand-primary bg-indigo-50 px-2 py-0.5 rounded-md">
@@ -949,13 +967,20 @@
                                             <span class="text-xs text-slate-400 font-medium">-</span>
                                         @endif
                                     </td>
-                                    <td class="py-3 px-4 text-slate-500 text-xs truncate max-w-xs">
-                                        {{ $st['note'] ?: '-' }}
+                                    <td class="py-3 px-4 text-slate-500 text-xs max-w-xs">
+                                        @if(!empty($st['manual_audit']['is_manual']))
+                                            <div class="mb-1">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                    {{ $st['manual_audit']['summary'] }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                        <div class="truncate" title="{{ $st['note'] ?: '' }}">{{ $st['note'] ?: '-' }}</div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-12 text-center text-slate-400 font-bold">
+                                    <td colspan="{{ $includeCheckout ? 9 : 8 }}" class="py-12 text-center text-slate-400 font-bold">
                                         Tidak ada data siswa ditemukan.
                                     </td>
                                 </tr>
@@ -963,6 +988,57 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        @endif
+
+        @if($paginatedStudents && $paginatedStudents->total() > 0)
+            @php
+                $currentPage = $paginatedStudents->currentPage();
+                $lastPage = $paginatedStudents->lastPage();
+                $startPage = max(1, $currentPage - 2);
+                $endPage = min($lastPage, $currentPage + 2);
+            @endphp
+            <div class="px-4 sm:px-5 py-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <p class="text-xs font-semibold text-slate-500">
+                    Menampilkan <span class="font-bold text-slate-800">{{ $paginatedStudents->firstItem() }}</span>–<span class="font-bold text-slate-800">{{ $paginatedStudents->lastItem() }}</span> dari <span class="font-bold text-slate-800">{{ number_format($paginatedStudents->total()) }}</span> siswa
+                </p>
+
+                @if($lastPage > 1)
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button type="button" wire:click="previousPage" @disabled($currentPage <= 1)
+                            class="px-2.5 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer">
+                            &laquo; Prev
+                        </button>
+
+                        @if($startPage > 1)
+                            <button type="button" wire:click="gotoPage(1)"
+                                class="px-2.5 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition-all cursor-pointer">1</button>
+                            @if($startPage > 2)
+                                <span class="px-1 text-xs text-slate-400">...</span>
+                            @endif
+                        @endif
+
+                        @for($p = $startPage; $p <= $endPage; $p++)
+                            <button type="button" wire:click="gotoPage({{ $p }})"
+                                class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer {{ $p === $currentPage ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100' }}">
+                                {{ $p }}
+                            </button>
+                        @endfor
+
+                        @if($endPage < $lastPage)
+                            @if($endPage < $lastPage - 1)
+                                <span class="px-1 text-xs text-slate-400">...</span>
+                            @endif
+                            <button type="button" wire:click="gotoPage({{ $lastPage }})"
+                                class="px-2.5 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition-all cursor-pointer">{{ $lastPage }}</button>
+                        @endif
+
+                        <button type="button" wire:click="nextPage" @disabled($currentPage >= $lastPage)
+                            class="px-2.5 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer">
+                            Next &raquo;
+                        </button>
+                    </div>
+                @endif
             </div>
         @endif
     <!-- MODAL EDIT & KIRIM PESAN WHATSAPP VIA SISTEM -->

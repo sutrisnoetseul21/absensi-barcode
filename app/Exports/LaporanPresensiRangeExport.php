@@ -28,6 +28,7 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
     protected string $startDate;
     protected string $endDate;
     protected string $periodeLabel;
+    protected bool $includeCheckout;
 
     protected array $rows = [];
     protected array $monthsList = [];
@@ -38,13 +39,15 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
         string $yearId,
         string $startDate,
         string $endDate,
-        string $periodeLabel
+        string $periodeLabel,
+        bool $includeCheckout = false
     ) {
-        $this->classId      = $classId;
-        $this->yearId       = $yearId;
-        $this->startDate    = $startDate;
-        $this->endDate      = $endDate;
-        $this->periodeLabel = $periodeLabel;
+        $this->classId         = $classId;
+        $this->yearId          = $yearId;
+        $this->startDate       = $startDate;
+        $this->endDate         = $endDate;
+        $this->periodeLabel    = $periodeLabel;
+        $this->includeCheckout = $includeCheckout;
     }
 
     public function title(): string
@@ -96,6 +99,9 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
             $rowData[] = $row['total']['sakit'];
             $rowData[] = $row['total']['izin'];
             $rowData[] = $row['total']['alpa'];
+            if ($this->includeCheckout) {
+                $rowData[] = $row['total']['pulang'] ?? 0;
+            }
             $rowData[] = $row['total']['late_minutes'];
 
             $matrix[] = $rowData;
@@ -126,7 +132,8 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
         }
         
         // Total columns
-        for ($i = 0; $i < 6; $i++) {
+        $totalSummaryCols = $this->includeCheckout ? 7 : 6;
+        for ($i = 0; $i < $totalSummaryCols; $i++) {
             $colLetter = Coordinate::stringFromColumnIndex($colIdx++);
             $widths[$colLetter] = 8;
         }
@@ -150,7 +157,8 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
                 $now        = now()->format('d/m/Y H:i');
 
                 $totalMonthCols = count($this->monthsList) * 4;
-                $totalCols = 3 + $totalMonthCols + 6;
+                $totalSummaryCols = $this->includeCheckout ? 7 : 6;
+                $totalCols = 3 + $totalMonthCols + $totalSummaryCols;
                 $lastColLetter = Coordinate::stringFromColumnIndex($totalCols);
 
                 // ===== INSERT ROWS AT TOP for kop surat =====
@@ -216,16 +224,19 @@ class LaporanPresensiRangeExport implements FromArray, WithHeadings, WithStyles,
                 }
 
                 $startTotal = Coordinate::stringFromColumnIndex($colIdx);
-                $endTotal = Coordinate::stringFromColumnIndex($colIdx + 5);
+                $endTotal = Coordinate::stringFromColumnIndex($colIdx + ($this->includeCheckout ? 6 : 5));
                 $sheet->mergeCells("{$startTotal}5:{$endTotal}5");
                 $sheet->setCellValue("{$startTotal}5", 'TOTAL');
                 
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx) . "6", 'H');
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 1) . "6", 'T');
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 2) . "6", 'S');
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 3) . "6", 'I');
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 4) . "6", 'A');
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx + 5) . "6", 'Telat (m)');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'H');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'T');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'S');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'I');
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'A');
+                if ($this->includeCheckout) {
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'P');
+                }
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($colIdx++) . "6", 'Telat (m)');
 
                 $headingRowStyle = [
                     'font'      => ['bold' => true, 'size' => 10, 'color' => ['argb' => 'FFFFFFFF']],

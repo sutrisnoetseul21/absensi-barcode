@@ -350,7 +350,7 @@ class ManajemenAksesPortalResource extends Resource
                     ->badge()
                     ->state(fn (User $record): string => $record->isSuperAdmin()
                         ? 'Super Admin (Semua Akses)'
-                        : ($record->hasRole(['petugas_presensi']) ? 'Diizinkan' : 'Dilarang'))
+                        : (($record->hasRole('siswa') || $record->student()->exists()) ? 'Dilarang' : 'Diizinkan'))
                     ->color(fn (string $state): string => match (true) {
                         str_contains($state, 'Super Admin') => 'primary',
                         str_contains($state, 'Diizinkan') => 'success',

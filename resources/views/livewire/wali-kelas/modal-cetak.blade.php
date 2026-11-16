@@ -57,19 +57,44 @@
                     </div>
 
                     @if($cetakJenis === 'bulanan')
-                        <div class="animate-fade-in-up">
-                            <label class="block text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">Pilih Bulan Kehadiran</label>
-                            <div class="relative max-w-sm">
-                                <select wire:model="cetakBulanYear" class="block w-full pl-4 pr-10 py-3.5 text-slate-800 border-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 sm:text-sm rounded-xl font-bold cursor-pointer appearance-none shadow-sm transition-all bg-white hover:border-emerald-300">
-                                    @foreach($availableMonths as $val => $label)
-                                        <option value="{{ $val }}">{{ $label }}</option>
+                        <div class="animate-fade-in-up space-y-5">
+                            <div>
+                                <label class="block text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">Pilih Bulan Kehadiran</label>
+                                <div class="relative max-w-sm">
+                                    <select wire:model="cetakBulanYear" class="block w-full pl-4 pr-10 py-3.5 text-slate-800 border-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 sm:text-sm rounded-xl font-bold cursor-pointer appearance-none shadow-sm transition-all bg-white hover:border-emerald-300">
+                                        @foreach($availableMonths as $val => $label)
+                                            <option value="{{ $val }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-emerald-500">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-extrabold text-slate-500 mb-2 uppercase tracking-wider">Format Tampilan Sel Harian</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    @foreach([
+                                        'singkatan' => ($enableCheckout && $cetakIncludeCheckout) ? 'Singkatan (H / P)' : 'Singkatan (H)',
+                                        'lengkap'   => ($enableCheckout && $cetakIncludeCheckout) ? 'Datang / Pulang' : 'Kata (Hadir)',
+                                        'waktu'     => 'Waktu Kehadiran',
+                                    ] as $fmtVal => $fmtLabel)
+                                        <button type="button" wire:click="$set('cetakReportFormat', '{{ $fmtVal }}')"
+                                            class="px-3 py-2.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer {{ $cetakReportFormat === $fmtVal ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50' }}">
+                                            {{ $fmtLabel }}
+                                        </button>
                                     @endforeach
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-emerald-500">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
                             </div>
                         </div>
+                    @endif
+
+                    @if($enableCheckout)
+                        <label class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-700 cursor-pointer hover:bg-slate-100 transition-all select-none">
+                            <input type="checkbox" wire:model.live="cetakIncludeCheckout" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <span>Sertakan Absen Pulang di Laporan</span>
+                        </label>
                     @endif
 
                     @if($cetakJenis === 'semester')

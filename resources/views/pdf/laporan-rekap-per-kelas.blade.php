@@ -527,7 +527,10 @@
                 <th style="width: 50px;">L/P</th>
                 <th style="width: 80px;">Kelas</th>
                 <th style="width: 100px;">Status</th>
-                <th style="width: 80px;">Waktu Scan</th>
+                <th style="width: 80px;">{{ !empty($includeCheckout) ? 'Jam Datang' : 'Waktu Scan' }}</th>
+                @if(!empty($includeCheckout))
+                    <th style="width: 90px;">Jam Pulang</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -549,10 +552,23 @@
                     @endif
                 </td>
                 <td class="text-center">{{ $st['scan_time'] ?? '-' }}</td>
+                @if(!empty($includeCheckout))
+                    <td class="text-center">
+                        @if(!empty($st['scan_out']))
+                            {{ $st['scan_out'] }} WIB
+                        @elseif(!empty($st['status_pulang']))
+                            {{ ucwords(str_replace('_', ' ', (string) $st['status_pulang'])) }}
+                        @elseif(in_array($st['status'], ['hadir', 'telat']))
+                            Belum Pulang
+                        @else
+                            -
+                        @endif
+                    </td>
+                @endif
             </tr>
             @empty
             <tr>
-                <td colspan="7" class="text-center" style="padding: 15px; color: #94a3b8;">
+                <td colspan="{{ !empty($includeCheckout) ? 8 : 7 }}" class="text-center" style="padding: 15px; color: #94a3b8;">
                     Tidak ada data siswa.
                 </td>
             </tr>

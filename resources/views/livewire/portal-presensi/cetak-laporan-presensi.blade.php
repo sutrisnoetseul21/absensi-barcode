@@ -1,8 +1,8 @@
 <div>
     <div class="mb-6 lg:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Cetak Laporan Presensi</h1>
-            <p class="text-sm sm:text-base text-slate-500 mt-1">Hasilkan laporan rekapitulasi presensi siswa dalam berbagai format.</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Rekap dan Cetak Laporan Presensi</h1>
+            <p class="text-sm sm:text-base text-slate-500 mt-1">Lihat rekapitulasi bulanan, semester, tahunan per kelas maupun rekap seluruh sekolah, lalu ekspor ke Excel atau PDF.</p>
         </div>
     </div>
 
@@ -37,20 +37,26 @@
             <!-- Kelas -->
             <div class="flex flex-col gap-1">
                 <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Kelas</label>
-                <select wire:model.live="selectedClassId" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm px-3 py-2 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all">
-                    <option value="">-- Pilih Kelas --</option>
-                    @foreach($classes as $kelas)
-                        <option value="{{ $kelas->id }}">{{ $kelas->name }}</option>
-                    @endforeach
-                </select>
+                @if($jenisLaporan === 'sekolah')
+                    <div class="w-full rounded-xl border border-slate-200 bg-slate-100 text-slate-500 text-sm font-bold px-3 py-2 cursor-not-allowed">
+                        Semua Kelas (Tingkat Sekolah)
+                    </div>
+                @else
+                    <select wire:model.live="selectedClassId" class="w-full rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm px-3 py-2 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($classes as $kelas)
+                            <option value="{{ $kelas->id }}">{{ $kelas->name }}</option>
+                        @endforeach
+                    </select>
+                @endif
             </div>
 
             <!-- Jenis Laporan -->
             <div class="flex flex-col gap-1">
                 <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Jenis Laporan</label>
-                <div class="flex rounded-xl overflow-hidden border border-slate-300">
-                    @foreach(['bulanan' => 'Bulanan', 'semester' => 'Semester', 'tahunan' => 'Tahunan'] as $val => $lbl)
-                        <button wire:click="$set('jenisLaporan', '{{ $val }}')" class="flex-1 py-2 text-xs font-bold transition-all {{ $jenisLaporan === $val ? 'bg-brand-primary text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
+                <div class="grid grid-cols-2 sm:grid-cols-4 rounded-xl overflow-hidden border border-slate-300">
+                    @foreach(['bulanan' => 'Bulanan', 'semester' => 'Semester', 'tahunan' => 'Tahunan', 'sekolah' => 'Sekolah'] as $val => $lbl)
+                        <button type="button" wire:click="$set('jenisLaporan', '{{ $val }}')" class="py-2 px-2 text-xs font-bold transition-all cursor-pointer {{ $jenisLaporan === $val ? 'bg-brand-primary text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
                             {{ $lbl }}
                         </button>
                     @endforeach
@@ -89,7 +95,14 @@
                 <div class="flex flex-col justify-end">
                     <div class="rounded-xl bg-sky-50 border border-sky-200 px-3 py-2 text-xs text-sky-700 font-medium flex items-start gap-2">
                         <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Laporan mencakup rentang penuh (Juli – Juni).
+                        Laporan per siswa mencakup rentang penuh (Juli – Juni).
+                    </div>
+                </div>
+            @elseif($jenisLaporan === 'sekolah')
+                <div class="flex flex-col justify-end">
+                    <div class="rounded-xl bg-indigo-50 border border-indigo-200 px-3 py-2 text-xs text-indigo-700 font-medium flex items-start gap-2">
+                        <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Ringkasan rekap seluruh kelas per bulan dalam 1 Tahun Ajaran.
                     </div>
                 </div>
             @endif
@@ -106,12 +119,34 @@
                 <div></div>
             @endif
 
-            <div class="flex flex-wrap gap-2">
-                <button wire:click="downloadExcel" wire:loading.attr="disabled" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-sm">
+            <div class="flex flex-wrap items-center gap-2.5">
+                @if($jenisLaporan === 'bulanan')
+                    <div class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1 gap-1" role="group" aria-label="Format Sel Harian">
+                        @foreach([
+                            'singkatan' => $includeCheckout ? 'H / P' : 'Singkatan (H)',
+                            'lengkap'   => $includeCheckout ? 'Datang / Pulang' : 'Kata (Hadir)',
+                            'waktu'     => 'Waktu Kehadiran',
+                        ] as $fmtVal => $fmtLabel)
+                            <button type="button" wire:click="$set('reportFormat', '{{ $fmtVal }}')"
+                                class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer {{ $reportFormat === $fmtVal ? 'bg-brand-primary text-white shadow-xs' : 'text-slate-600 hover:bg-white' }}">
+                                {{ $fmtLabel }}
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if($jenisLaporan !== 'sekolah' && $enableCheckout)
+                    <label class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-100 transition-all select-none">
+                        <input type="checkbox" wire:model.live="includeCheckout" class="rounded border-slate-300 text-brand-primary focus:ring-brand-primary cursor-pointer">
+                        <span>Sertakan Absen Pulang</span>
+                    </label>
+                @endif
+
+                <button wire:click="downloadExcel" wire:loading.attr="disabled" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     Download Excel
                 </button>
-                <button wire:click="downloadPdf" wire:loading.attr="disabled" class="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-sm">
+                <button wire:click="downloadPdf" wire:loading.attr="disabled" class="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     Download PDF
                 </button>
@@ -128,10 +163,13 @@
             </h2>
             @php
                 $isBulanan = $jenisLaporan === 'bulanan';
-                $previewCount = $isBulanan ? count($students ?? []) : count($semesterStudentsData ?? []);
+                $isSekolah = $jenisLaporan === 'sekolah';
+                $previewCount = $isSekolah
+                    ? count($schoolClassesData ?? [])
+                    : ($isBulanan ? count($students ?? []) : count($semesterStudentsData ?? []));
             @endphp
             <span class="text-xs font-bold text-slate-500 bg-slate-200 px-3 py-1 rounded-full">
-                {{ $previewCount }} Siswa
+                {{ $previewCount }} {{ $isSekolah ? 'Kelas' : 'Siswa' }}
             </span>
         </div>
 
@@ -143,7 +181,7 @@
                         <tr class="bg-slate-100 border-b border-slate-200">
                             <th class="sticky left-0 z-10 bg-slate-100 px-4 py-3 text-left font-bold text-slate-600 uppercase tracking-wider w-48 border-r border-slate-200">Nama Siswa</th>
                             @for ($d = 1; $d <= $daysInMonth; $d++)
-                                @php $isToday = ($todayDate === date('Y') . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-' . str_pad($d, 2, '0', STR_PAD_LEFT)); @endphp
+                                @php $isToday = ($todayDate === $tahunBulanan . '-' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '-' . str_pad($d, 2, '0', STR_PAD_LEFT)); @endphp
                                 <th class="px-2 py-3 text-center text-xs font-bold {{ $isToday ? 'text-brand-primary bg-brand-primary/10' : 'text-slate-500' }} uppercase tracking-wider min-w-[36px]">{{ $d }}</th>
                             @endfor
                             <th class="px-3 py-3 text-center text-xs font-bold text-emerald-600 uppercase tracking-wider border-l border-slate-200">H</th>
@@ -151,6 +189,9 @@
                             <th class="px-3 py-3 text-center text-xs font-bold text-sky-600 uppercase tracking-wider">I</th>
                             <th class="px-3 py-3 text-center text-xs font-bold text-indigo-600 uppercase tracking-wider">S</th>
                             <th class="px-3 py-3 text-center text-xs font-bold text-rose-600 uppercase tracking-wider">A</th>
+                            @if($includeCheckout)
+                                <th class="px-3 py-3 text-center text-xs font-bold text-teal-600 uppercase tracking-wider" title="Tap Pulang">P</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -168,6 +209,17 @@
                                 @for ($d = 1; $d <= $daysInMonth; $d++)
                                     @php
                                         $code = $stat['daily'][$d] ?? '-';
+                                        $pulangCode = ($includeCheckout && isset($stat['daily_pulang'][$d])) ? $stat['daily_pulang'][$d] : null;
+                                        $scanTime = $stat['daily_scan_time'][$d] ?? null;
+                                        $scanOutTime = $stat['daily_scan_out_time'][$d] ?? null;
+                                        $cell = \App\Services\PresensiRekapService::formatMatrixCell(
+                                            $code,
+                                            $pulangCode,
+                                            $scanTime,
+                                            $scanOutTime,
+                                            $includeCheckout,
+                                            $reportFormat
+                                        );
                                         $cellClass = match($code) {
                                             'H' => 'text-emerald-600 font-bold',
                                             'T' => 'text-amber-600 font-bold',
@@ -178,19 +230,90 @@
                                             default => 'text-slate-300',
                                         };
                                     @endphp
-                                    <td class="px-2 py-3 text-center text-xs {{ $cellClass }}">{{ $code }}</td>
+                                    <td class="px-2 py-2 text-center text-xs {{ $cellClass }}">
+                                        @if($cell['bottom'] !== null)
+                                            <div class="leading-tight flex flex-col items-center">
+                                                <span class="text-[11px]">{{ $cell['top'] }}</span>
+                                                <span class="text-[10px] {{ $cell['is_pulang_ok'] ? 'text-teal-600' : 'text-slate-400' }}">{{ $cell['bottom'] }}</span>
+                                            </div>
+                                        @else
+                                            <span class="{{ $reportFormat === 'singkatan' ? '' : 'text-[11px]' }}">{{ $cell['top'] }}</span>
+                                        @endif
+                                    </td>
                                 @endfor
                                 <td class="px-3 py-3 text-center font-bold text-emerald-600 border-l border-slate-200 bg-slate-50/50">{{ $stat['hadir'] ?? 0 }}</td>
                                 <td class="px-3 py-3 text-center font-bold text-amber-600 bg-slate-50/50">{{ $stat['telat'] ?? 0 }}</td>
                                 <td class="px-3 py-3 text-center font-bold text-sky-600 bg-slate-50/50">{{ $stat['izin'] ?? 0 }}</td>
                                 <td class="px-3 py-3 text-center font-bold text-indigo-600 bg-slate-50/50">{{ $stat['sakit'] ?? 0 }}</td>
                                 <td class="px-3 py-3 text-center font-bold text-rose-600 bg-slate-50/50">{{ $stat['alpa'] ?? 0 }}</td>
+                                @if($includeCheckout)
+                                    <td class="px-3 py-3 text-center font-bold text-teal-600 bg-slate-50/50">{{ $stat['pulang'] ?? 0 }}</td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $daysInMonth + 6 }}" class="py-16 text-center text-slate-400">
+                                <td colspan="{{ $daysInMonth + ($includeCheckout ? 7 : 6) }}" class="py-16 text-center text-slate-400">
                                     <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     <p class="font-bold text-slate-500">Tidak ada data untuk periode ini.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 font-medium">
+                    {{ \App\Services\PresensiRekapService::getMatrixLegendText($includeCheckout, $reportFormat) }}
+                </div>
+            @elseif($isSekolah)
+                <!-- Matrix Rekap Sekolah (Semua Kelas x 12 Bulan) -->
+                <table class="min-w-full text-xs text-left">
+                    <thead class="bg-slate-50">
+                        <tr class="border-b-2 border-slate-300">
+                            <th rowspan="2" class="px-3 py-3 text-center font-bold text-slate-500 uppercase tracking-wider w-10 border-r border-slate-200">No</th>
+                            <th rowspan="2" class="px-4 py-3 text-left font-bold text-slate-500 uppercase tracking-wider border-r border-slate-200 min-w-[150px] sticky left-0 z-10 bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]">Kelas</th>
+                            <th rowspan="2" class="px-3 py-3 text-center font-bold text-slate-500 uppercase tracking-wider border-r-2 border-slate-300">Jml Siswa</th>
+                            @foreach($schoolMonthsList as $m)
+                                <th colspan="4" class="px-2 py-2 text-center text-slate-700 tracking-wider border-r-2 border-slate-300 bg-slate-100/50">
+                                    <div class="font-extrabold text-xs uppercase">{{ $m['label'] }}</div>
+                                    <div class="text-[10px] text-slate-500 font-medium mt-0.5">Hari Efektif: {{ $m['effective_days'] }} Hari</div>
+                                </th>
+                            @endforeach
+                        </tr>
+                        <tr class="border-b border-slate-200">
+                            @foreach($schoolMonthsList as $m)
+                                <th class="px-2 py-2.5 text-center text-[11px] font-black text-emerald-600 w-8 bg-slate-50/80">H</th>
+                                <th class="px-2 py-2.5 text-center text-[11px] font-black text-indigo-600 w-8 bg-slate-50/80">S</th>
+                                <th class="px-2 py-2.5 text-center text-[11px] font-black text-sky-600 w-8 bg-slate-50/80">I</th>
+                                <th class="px-2 py-2.5 text-center text-[11px] font-black text-rose-600 w-8 border-r-2 border-slate-300 bg-slate-50/80">A</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($schoolClassesData as $index => $row)
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+                                <td class="px-3 py-3 text-center text-slate-400 font-medium border-r border-slate-200">
+                                    {{ $index + 1 }}
+                                </td>
+                                <td class="px-4 py-3 font-bold text-slate-800 whitespace-nowrap border-r border-slate-200 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 shadow-[1px_0_0_0_#e2e8f0]">
+                                    {{ $row['name'] }}
+                                </td>
+                                <td class="px-3 py-3 text-center font-bold text-slate-600 border-r-2 border-slate-300">
+                                    {{ $row['student_count'] }}
+                                </td>
+                                @foreach($schoolMonthsList as $m)
+                                    @php
+                                        $key   = "{$m['year']}-{$m['month']}";
+                                        $stats = $row['months'][$key] ?? ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpa' => 0];
+                                    @endphp
+                                    <td class="px-2 py-3 text-center font-black text-emerald-600">{{ $stats['hadir'] ?: '-' }}</td>
+                                    <td class="px-2 py-3 text-center font-black text-indigo-600">{{ $stats['sakit'] ?: '-' }}</td>
+                                    <td class="px-2 py-3 text-center font-black text-sky-600">{{ $stats['izin'] ?: '-' }}</td>
+                                    <td class="px-2 py-3 text-center font-black text-rose-600 border-r-2 border-slate-300">{{ $stats['alpa'] ?: '-' }}</td>
+                                @endforeach
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ 3 + (count($schoolMonthsList) * 4) }}" class="py-12 text-center text-slate-500">
+                                    Belum ada data kelas yang terdaftar.
                                 </td>
                             </tr>
                         @endforelse
@@ -209,7 +332,7 @@
                                     <div class="text-[10px] text-slate-500 font-normal mt-0.5">{{ $m['effective_days'] }} Hari</div>
                                 </th>
                             @endforeach
-                            <th colspan="6" class="px-2 py-2 text-center text-slate-800 tracking-wider bg-slate-200 border-l border-slate-300">
+                            <th colspan="{{ $includeCheckout ? 7 : 6 }}" class="px-2 py-2 text-center text-slate-800 tracking-wider bg-slate-200 border-l border-slate-300">
                                 <div class="font-bold uppercase">TOTAL {{ strtoupper($this->jenisLaporan) }}</div>
                             </th>
                         </tr>
@@ -225,6 +348,9 @@
                             <th class="px-2 py-2 text-center font-bold text-indigo-600 bg-slate-100">S</th>
                             <th class="px-2 py-2 text-center font-bold text-sky-600 bg-slate-100">I</th>
                             <th class="px-2 py-2 text-center font-bold text-rose-600 bg-slate-100">A</th>
+                            @if($includeCheckout)
+                                <th class="px-2 py-2 text-center font-bold text-teal-600 bg-slate-100" title="Tap Pulang">P</th>
+                            @endif
                             <th class="px-2 py-2 text-center font-bold text-slate-500 bg-slate-100">Telat</th>
                         </tr>
                     </thead>
@@ -251,11 +377,14 @@
                                 <td class="px-2 py-2 text-center font-bold text-indigo-600 bg-slate-50">{{ $row['total']['sakit'] ?: '-' }}</td>
                                 <td class="px-2 py-2 text-center font-bold text-sky-600 bg-slate-50">{{ $row['total']['izin'] ?: '-' }}</td>
                                 <td class="px-2 py-2 text-center font-bold text-rose-600 bg-slate-50">{{ $row['total']['alpa'] ?: '-' }}</td>
+                                @if($includeCheckout)
+                                    <td class="px-2 py-2 text-center font-bold text-teal-600 bg-slate-50">{{ ($row['total']['pulang'] ?? 0) ?: '-' }}</td>
+                                @endif
                                 <td class="px-2 py-2 text-center font-bold text-slate-500 bg-slate-50 text-[10px]">{{ $row['total']['late_minutes'] ?: '-' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ 2 + (count($this->semesterMonthsList) * 4) + 6 }}" class="py-16 text-center text-slate-400">
+                                <td colspan="{{ 2 + (count($this->semesterMonthsList) * 4) + ($includeCheckout ? 7 : 6) }}" class="py-16 text-center text-slate-400">
                                     <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     <p class="font-bold text-slate-500">Tidak ada data untuk periode ini.</p>
                                 </td>
