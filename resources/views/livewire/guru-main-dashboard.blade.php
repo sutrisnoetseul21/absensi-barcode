@@ -220,6 +220,41 @@
             </div>
             @endif
 
+            @php
+                $canAccessEkskulCard = (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('super_admin'))
+                    || (auth()->user()?->teacher && (auth()->user()->teacher->canAccessAllClasses() || auth()->user()->teacher->ekstrakurikulers()->where('status_aktif', true)->exists()));
+            @endphp
+            @if($canAccessEkskulCard)
+            <!-- Shortcut: Ekstrakurikuler & Scanner -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                        </div>
+                        <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200">
+                            Ekskul &amp; Jurnal
+                        </span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        Ekstrakurikuler Binaan
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        Buka scanner barcode kehadiran ekskul, catat pertemuan &amp; jurnal latihan, serta pantau keaktifan anggota.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <a href="{{ route('portal-guru.ekstrakurikuler') }}"
+                       class="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5">
+                        <span>Kelola Ekstrakurikuler</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+            @endif
+
             <!-- Shortcut: Bimbingan & Konseling (Portal BK) -->
             @if($canAccessBk)
             <div class="bg-white rounded-2xl p-5 border {{ $pendingBkRujukanCount > 0 ? 'border-indigo-300 ring-2 ring-indigo-500/20 bg-indigo-50/10' : 'border-slate-200/80' }} shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group">

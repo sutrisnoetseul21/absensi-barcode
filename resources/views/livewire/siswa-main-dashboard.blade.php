@@ -352,6 +352,28 @@
                 </div>
                 @endif
 
+                <!-- Shortcut: Ekstrakurikuler -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-xl">
+                                Ekskul
+                            </span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Ekstrakurikuler</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">Lihat ekstrakurikuler yang diikuti, guru pembina, materi pertemuan, dan rekap kehadiranmu.</p>
+                    </div>
+                    <a href="{{ route('portal-siswa.ekstrakurikuler') }}" class="mt-4 inline-flex items-center justify-between w-full text-xs font-bold text-indigo-600 hover:text-indigo-700 pt-3 border-t border-slate-100">
+                        <span>Lihat Ekstrakurikuler</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+
                 <!-- Shortcut 2: Bimbingan Guru Wali (Permendikdasmen No. 11/2025) -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all flex flex-col justify-between group">
                     <div>

@@ -1,10 +1,10 @@
 # 🗂️ Direktori A-Z Tabel Database (Quick Lookup)
 
-Gunakan direktori ini untuk mencari letak dokumentasi detail dari **87 tabel** yang ada di dalam database. Klik nama file klaster untuk melihat definisi kolom, tipe data, dan relasinya.
+Gunakan direktori ini untuk mencari letak dokumentasi detail dari **92 tabel** yang ada di dalam database. Klik nama file klaster untuk melihat definisi kolom, tipe data, dan relasinya.
 
 ---
 
-## 📑 Indeks Alfabetis 87 Tabel
+## 📑 Indeks Alfabetis 92 Tabel
 
 | Nama Tabel | Klaster Dokumentasi | Deskripsi Singkat |
 | :--- | :--- | :--- |
@@ -19,6 +19,11 @@ Gunakan direktori ini untuk mencari letak dokumentasi detail dari **87 tabel** y
 | `class_academic_year` | [`01-akademik-dan-users.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/01-akademik-dan-users.md) | Pivot relasi kelas per tahun ajaran |
 | `classes` | [`01-akademik-dan-users.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/01-akademik-dan-users.md) | Master rombongan belajar / kelas |
 | `eksemplar_bukus` | [`05-perpustakaan.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/05-perpustakaan.md) | Salinan fisik buku dengan barcode unik |
+| `ekstrakurikuler_pembinas` | [`10-ekstrakurikuler.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/10-ekstrakurikuler.md) | Pivot multi-guru pembina ekstrakurikuler |
+| `ekstrakurikuler_pertemuans` | [`10-ekstrakurikuler.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/10-ekstrakurikuler.md) | Sesi pertemuan/latihan ekstrakurikuler & jurnal materi |
+| `ekstrakurikuler_presensis` | [`10-ekstrakurikuler.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/10-ekstrakurikuler.md) | Presensi anggota per pertemuan ekstrakurikuler |
+| `ekstrakurikuler_siswas` | [`10-ekstrakurikuler.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/10-ekstrakurikuler.md) | Daftar anggota siswa peserta ekstrakurikuler |
+| `ekstrakurikulers` | [`10-ekstrakurikuler.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/10-ekstrakurikuler.md) | Master ekstrakurikuler per tahun ajaran & slug kiosk |
 | `holidays` | [`02-presensi-dan-kiosk.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/02-presensi-dan-kiosk.md) | Kalender libur nasional & sekolah |
 | `inventaris_bukus` | [`05-perpustakaan.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/05-perpustakaan.md) | Sumber perolehan & pengadaan buku |
 | `jabatans` | [`01-akademik-dan-users.md`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/02-database/01-akademik-dan-users.md) | Master jabatan struktural guru/staf |

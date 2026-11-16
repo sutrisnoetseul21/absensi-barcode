@@ -290,6 +290,17 @@ class Siswa extends Authenticatable
         return $this->hasMany(\App\Models\KonsultasiGuruWali::class, 'student_id');
     }
 
+    public function ekstrakurikulerSiswas(): HasMany
+    {
+        return $this->hasMany(EkstrakurikulerSiswa::class, 'student_id');
+    }
+
+    public function ekstrakurikulerAktif(): HasMany
+    {
+        return $this->hasMany(EkstrakurikulerSiswa::class, 'student_id')
+            ->where('status_aktif', true);
+    }
+
 
 
     protected function noHp(): Attribute

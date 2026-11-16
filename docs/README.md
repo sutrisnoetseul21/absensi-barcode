@@ -27,7 +27,10 @@ docs/
 │   ├── 04-guru-wali-dan-bk.md          # Kelompok guru wali, jurnal, badge, spikap, konseling
 │   ├── 05-perpustakaan.md              # Bukus, eksemplar, peminjamans, ddc, inventaris
 │   ├── 06-cbt-dan-akademik.md          # Mata pelajaran, ujian, cbt profiles, nilai
-│   └── 07-portal-web-dan-pengaduan.md  # Web settings, sarpras, galeri, pengaduan, alumni
+│   ├── 07-portal-web-dan-pengaduan.md  # Web settings, sarpras, galeri, pengaduan, alumni
+│   ├── 08-jurnal-pembelajaran.md       # Jurnal KBM harian guru & snapshot presensi sesi
+│   ├── 09-autentikasi-api-dan-tokens.md # Personal access tokens Sanctum mobile
+│   └── 10-ekstrakurikuler.md           # Ekstrakurikuler, pembina, anggota, pertemuan, presensi
 ├── 03-fitur/                           # Spesifikasi modul fungsional per folder
 │   ├── 01-tampilan-web-awal/           # 🌟 Landing page, profil, 11 sections, & CMS
 │   ├── 02-portal-siswa/                # 🎒 Dashboard siswa, presensi, izin, spikap, & kartu
@@ -39,7 +42,8 @@ docs/
 │   ├── 08-master-data-siswa-dan-guru/  # 👥 Core ERP: Siswa, GTK, skema DB, import massal, & integrasi
 │   ├── 09-portal-setup/                # 🛠️ Portal Setup & Instalasi awal (Sekolah, Tahun Ajaran, Kelas)
 │   ├── 11-portal-sistem/               # ⚙️ Portal Sistem: Akses RBAC, Gateway WA, Notif Modular, Maintenance & Tema
-│   └── 12-portal-akademik/             # 🎓 Portal Akademik: GTK, Siswa, Rombel, Jurnal KBM & Guru Wali
+│   ├── 12-portal-akademik/             # 🎓 Portal Akademik: GTK, Siswa, Rombel, Jurnal KBM & Guru Wali
+│   └── 13-ekstrakurikuler/             # 🏅 Ekstrakurikuler: Master Akademik, Kiosk Barcode, Portal Guru & Siswa
 ├── 04-operasional/                     # DevOps, pemeliharaan server, & SOP
 │   ├── README.md                       # Peta navigasi operasional, topologi server, & SOP harian
 │   ├── 01-deployment-dan-lingkungan-server.md # Setup Nginx (50M), SSL, izin Linux, & deploy.sh

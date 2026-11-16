@@ -26,13 +26,13 @@ graph TD
     MW2 -- Valid Siswa Aktif --> PortalRouter[Prefix /portal-siswa]
     
     PortalRouter --> F1[Main Dashboard]
-    PortalRouter --> F2[Akademik & Kalender Presensi]
-    PortalRouter --> F3[Presensi Sholat]
-    PortalRouter --> F4[Profil & Cetak Kartu Barcode]
-    PortalRouter --> F5[Peminjaman Buku Perpus]
-    PortalRouter --> F6[Pengajuan Izin / Sakit Online]
-    PortalRouter --> F7[Aduan SPIKAP]
-    PortalRouter --> F8[Konsultasi Guru Wali & Nilai]
+    PortalRouter --> F2[Presensi Sekolah & Pengajuan Ijin]
+    PortalRouter --> F3[Presensi Sholat Dhuhur]
+    PortalRouter --> F4[Jurnal KBM]
+    PortalRouter --> F5[Ekstrakurikuler Submenu per Ekskul]
+    PortalRouter --> F6[Profil & Cetak Kartu Barcode]
+    PortalRouter --> F7[Peminjaman Buku Perpus]
+    PortalRouter --> F8[Aduan SPIKAP & Konsultasi Guru Wali]
 ```
 
 ### Aturan Otorisasi (`auth.siswa`):
@@ -54,6 +54,7 @@ graph TD
    - `App\Livewire\PortalSiswa\IjinKehadiranForm` & `IjinKehadiranList`
    - `App\Livewire\PortalSiswa\SpikapLaporanForm` & `SpikapLaporanList`
    - `App\Livewire\PortalSiswa\KonsultasiGuruWaliList`
-   - `App\Livewire\PortalSiswa\SiswaNilai`
+   - `App\Livewire\PortalSiswa\SiswaEkstrakurikuler` (Submenu per ekstrakurikuler diikuti)
+   - `App\Livewire\PortalSiswa\SiswaNilai` *(menu sidebar disembunyikan sementara via komentar Blade)*
 3. **Controller Khusus**:
    - [`App\Http\Controllers\SiswaCetakController`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/SiswaCetakController.php) (Cetak kartu mandiri format PDF)

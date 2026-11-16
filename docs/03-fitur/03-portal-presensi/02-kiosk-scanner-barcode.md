@@ -6,13 +6,14 @@ Kiosk Scanner adalah modul pemindaian layar penuh (*fullscreen interactive kiosk
 
 ## 1. Varian Mode Pemindaian Kiosk
 
-Sistem menyediakan 3 antarmuka kiosk terspesialisasi:
+Sistem menyediakan 4 antarmuka kiosk terspesialisasi:
 
 | Mode Kiosk | URL Rute | Komponen Livewire | Identifier Scan |
 | :--- | :--- | :--- | :--- |
 | **Kiosk Scan Standar** | `/portal-presensi/scan` | `AttendanceKiosk` | Berbasis **NISN** siswa |
 | **Kiosk Scan NIS** | `/portal-presensi/scan-nis` | `AttendanceKioskNis` | Berbasis **NIS** (Nomor Induk Sekolah) |
 | **Kiosk Sholat Dhuhur** | `/portal-presensi/scan-sholat-dhuhur` | `AttendanceKioskSholatDhuhur` | Scan ibadah sholat dhuhur/jumat |
+| **Kiosk Ekstrakurikuler Dinamis** | `/portal-presensi/scan-ekstrakurikuler/{slug}` | `AttendanceKioskEkstrakurikuler` | Scan kehadiran anggota aktif ekskul tertentu (auto-buat pertemuan tanggal berjalan) |
 
 ---
 

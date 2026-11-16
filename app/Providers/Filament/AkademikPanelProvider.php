@@ -5,8 +5,10 @@ namespace App\Providers\Filament;
 use App\Filament\Akademik\Pages\AkademikDashboard;
 use App\Filament\Akademik\Pages\AnalisaGuruWaliSiswaPage;
 use App\Filament\Akademik\Pages\AnalisaPresensiKbmSiswaPage;
+use App\Filament\Akademik\Pages\MonitoringEkstrakurikulerPage;
 use App\Filament\Akademik\Pages\MonitoringGuruKelasJurnalPage;
 use App\Filament\Akademik\Pages\MonitoringGuruWaliPage;
+use App\Filament\Akademik\Resources\Ekstrakurikuler\EkstrakurikulerResource;
 use App\Filament\Akademik\Resources\Enrollment\EnrollmentResource;
 use App\Filament\Akademik\Resources\Guru\GuruResource;
 use App\Filament\Akademik\Resources\GuruWali\JurnalGuruWaliResource;
@@ -107,6 +109,7 @@ class AkademikPanelProvider extends PanelProvider
                 'Akademik',
                 'Jurnal Mengajar',
                 'Guru Wali',
+                'Ekstrakurikuler',
                 'Akses Portal & Web',
             ])
             ->navigationItems([
@@ -150,6 +153,7 @@ class AkademikPanelProvider extends PanelProvider
                 SiswaMutasiResource::class,
                 KelompokGuruWaliResource::class,
                 JurnalGuruWaliResource::class,
+                EkstrakurikulerResource::class,
                 JurnalPembelajaranResource::class,
             ])
             ->pages([
@@ -158,6 +162,7 @@ class AkademikPanelProvider extends PanelProvider
                 AnalisaPresensiKbmSiswaPage::class,
                 MonitoringGuruWaliPage::class,
                 AnalisaGuruWaliSiswaPage::class,
+                MonitoringEkstrakurikulerPage::class,
             ])
             ->widgets([
                 AkademikStatsWidget::class,

@@ -58,3 +58,9 @@ Portal khusus pengelolaan operasional akademik, master data GTK & kesiswaan, rom
 4. **Log Guru Wali** (`/portal-akademik/guru-wali/jurnal` — [`JurnalGuruWaliResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/GuruWali/JurnalGuruWaliResource.php))
    - Supervisi seluruh catatan jurnal pendampingan Guru Wali (penuh termasuk catatan privat), detail integrasi konsultasi siswa/badge/rujukan BK, serta cetak PDF/Print resmi SI-WALI dan Export Excel (`.xlsx`).
 
+### 5. Grup `Ekstrakurikuler`
+1. **Data Ekstrakurikuler** (`/portal-akademik/ekstrakurikuler/data` — [`EkstrakurikulerResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/Ekstrakurikuler/EkstrakurikulerResource.php))
+   - Pengelolaan master ekstrakurikuler per Tahun Ajaran, plotting multi-guru pembina, generate `slug` kiosk otomatis, modal dual-panel **Kelola Anggota**, serta tombol salin/buka link **Kiosk Scanner Barcode** dinamis.
+2. **Monitoring Ekstrakurikuler** (`/portal-akademik/ekstrakurikuler/monitoring` — [`MonitoringEkstrakurikulerPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Pages/MonitoringEkstrakurikulerPage.php))
+   - Dashboard rekapitulasi kehadiran anggota lintas ekstrakurikuler lengkap dengan ekspor **Excel** (`.xlsx`) dan cetak laporan **PDF**. Rincian lengkap lihat [Fitur 13: Ekstrakurikuler](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/docs/03-fitur/13-ekstrakurikuler/README.md).
+

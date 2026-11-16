@@ -705,6 +705,20 @@
                         $isNilaiActive = request()->routeIs('portal-siswa.nilai');
                         $isSholatDhuhurActive = request()->routeIs('portal-siswa.sholat-dhuhur');
                         $isJurnalKbmActive = request()->routeIs('portal-siswa.jurnal-kbm');
+                        $isEkstrakurikulerSiswaActive = request()->routeIs('portal-siswa.ekstrakurikuler');
+                        $activeSiswaEkskulSlug = request()->route('slug');
+                        $siswaEkskulMenuItems = collect();
+                        if ($student) {
+                            $activeYearSidebarSiswaId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+                                ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+                            if ($activeYearSidebarSiswaId) {
+                                $siswaEkskulMenuItems = \App\Models\Ekstrakurikuler::where('academic_year_id', $activeYearSidebarSiswaId)
+                                    ->where('status_aktif', true)
+                                    ->whereHas('anggotaAktif', fn ($q) => $q->where('student_id', $student->id))
+                                    ->orderBy('nama_ekskul')
+                                    ->get(['id', 'nama_ekskul', 'slug']);
+                            }
+                        }
                         $isIjinKehadiranActive = request()->routeIs('portal-siswa.ijin') || request()->routeIs('portal-siswa.ijin.form');
                         $isGuruWaliActive = request()->routeIs('portal-siswa.guru-wali*');
                         $isPerpustakaanActive = request()->routeIs('portal-siswa.perpustakaan');
@@ -772,14 +786,24 @@
                             <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Dashboard Utama</span>
                         </a>
 
-                        <!-- Menu Presensi & Akademik -->
-                        <a href="{{ route('portal-siswa.akademik') }}" :title="isCollapsed ? 'Presensi & Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                        <!-- Menu Presensi Sekolah -->
+                        <a href="{{ route('portal-siswa.akademik') }}" :title="isCollapsed ? 'Presensi Sekolah' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isAkademikActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                             <div class="p-1.5 rounded-lg {{ $isAkademikActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi & Akademik</span>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi Sekolah</span>
                         </a>
 
+                        <!-- Menu Pengajuan Ijin -->
+                        <a href="{{ route('portal-siswa.ijin') }}" :title="isCollapsed ? 'Pengajuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                            <div class="p-1.5 rounded-lg {{ $isIjinKehadiranActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                            </div>
+                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Pengajuan Ijin</span>
+                        </a>
+
+                        {{-- [HIDDEN SEMENTARA] Menu Nilai Akademik disembunyikan sementara dari sidebar Portal Siswa.
+                             Untuk mengaktifkan kembali: hapus pembungkus komentar Blade di awal dan akhir blok ini.
                         <!-- Menu Nilai Ujian -->
                         <a href="{{ route('portal-siswa.nilai') }}" :title="isCollapsed ? 'Nilai Akademik' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isNilaiActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                             <div class="p-1.5 rounded-lg {{ $isNilaiActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
@@ -787,6 +811,7 @@
                             </div>
                             <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Nilai Akademik</span>
                         </a>
+                        --}}
 
                         <!-- Menu Presensi Sholat Dhuhur -->
                         @if(\App\Models\PengaturanSekolah::current()->enable_sholat_dhuhur ?? true)
@@ -794,7 +819,7 @@
                                 <div class="p-1.5 rounded-lg {{ $isSholatDhuhurActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                                 </div>
-                                <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Sholat Dhuhur</span>
+                                <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi Sholat Dhuhur</span>
                             </a>
                         @endif
 
@@ -808,13 +833,48 @@
                             </a>
                         @endif
 
-                        <!-- Menu Pengajuan Ijin -->
-                        <a href="{{ route('portal-siswa.ijin') }}" :title="isCollapsed ? 'Pengajuan Ijin' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isIjinKehadiranActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
-                            <div class="p-1.5 rounded-lg {{ $isIjinKehadiranActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        <!-- Menu Ekstrakurikuler Siswa (Accordion Submenu per Ekskul Diikuti) -->
+                        @if($siswaEkskulMenuItems->isNotEmpty())
+                            <div x-data="{ open: {{ $isEkstrakurikulerSiswaActive ? 'true' : 'false' }} }" class="space-y-1">
+                                <button @click="if(isCollapsed) { sidebarCollapsed = false; } open = !open"
+                                        :title="isCollapsed ? 'Ekstrakurikuler' : ''"
+                                        type="button"
+                                        class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group {{ $isEkstrakurikulerSiswaActive ? 'bg-brand-primary/10 text-brand-primary font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
+                                        :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="p-1.5 rounded-lg {{ $isEkstrakurikulerSiswaActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                        </div>
+                                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Ekstrakurikuler</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5" x-show="!isCollapsed" x-transition.opacity>
+                                        <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200 {{ $isEkstrakurikulerSiswaActive ? 'text-brand-primary' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </button>
+
+                                <div x-show="open && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                    @foreach($siswaEkskulMenuItems as $eksSiswaMenu)
+                                        @php
+                                            $isThisSiswaEkskulActive = $isEkstrakurikulerSiswaActive && ($activeSiswaEkskulSlug === $eksSiswaMenu->slug || (empty($activeSiswaEkskulSlug) && $loop->first));
+                                        @endphp
+                                        <a href="{{ route('portal-siswa.ekstrakurikuler', ['slug' => $eksSiswaMenu->slug]) }}"
+                                           class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isThisSiswaEkskulActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $isThisSiswaEkskulActive ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                            <span class="truncate">{{ $eksSiswaMenu->nama_ekskul }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
-                            <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Pengajuan Ijin</span>
-                        </a>
+                        @else
+                            <a href="{{ route('portal-siswa.ekstrakurikuler') }}" :title="isCollapsed ? 'Ekstrakurikuler' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isEkstrakurikulerSiswaActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                <div class="p-1.5 rounded-lg {{ $isEkstrakurikulerSiswaActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                </div>
+                                <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Ekstrakurikuler</span>
+                            </a>
+                        @endif
 
                         <!-- Menu Konsultasi Guru Wali (Permen 11/2025) -->
                         <a href="{{ route('portal-siswa.guru-wali') }}" :title="isCollapsed ? 'SI-WALI' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isGuruWaliActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
@@ -930,6 +990,25 @@
                         $isProfilGuruActive = request()->routeIs('portal-guru.profil');
                         $isDaftarNilaiActive = request()->routeIs('portal-guru.nilai');
                         $isJurnalMengajarActive = request()->routeIs('portal-guru.jurnal-mengajar*');
+                        $isEkstrakurikulerGuruActive = request()->routeIs('portal-guru.ekstrakurikuler');
+                        $activeEkskulSlug = request()->route('slug');
+                        $activeYearSidebarId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+                            ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+                        $guruEkskulMenuItems = collect();
+                        if ($activeYearSidebarId && $user) {
+                            $isAllEkskul = ($user->isSuperAdmin() || $user->hasRole('super_admin'))
+                                || ($user->teacher && $user->teacher->canAccessAllClasses());
+                            if ($isAllEkskul || $user->teacher) {
+                                $qEkskul = \App\Models\Ekstrakurikuler::where('academic_year_id', $activeYearSidebarId)
+                                    ->where('status_aktif', true)
+                                    ->orderBy('nama_ekskul');
+                                if (!$isAllEkskul && $user->teacher) {
+                                    $qEkskul->whereHas('pembinas', fn ($q) => $q->where('teachers.id', $user->teacher->id));
+                                }
+                                $guruEkskulMenuItems = $qEkskul->get(['id', 'nama_ekskul', 'slug']);
+                            }
+                        }
+                        $canAccessEkskulGuru = $guruEkskulMenuItems->isNotEmpty() || ($user?->isSuperAdmin() || $user?->hasRole('super_admin'));
                     @endphp
 
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Guru</p>
@@ -950,6 +1029,8 @@
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Jurnal Mengajar</span>
                     </a>
 
+                    {{-- [HIDDEN SEMENTARA] Menu Daftar Nilai disembunyikan sementara dari sidebar Portal Guru.
+                         Untuk mengaktifkan kembali: hapus pembungkus komentar Blade di awal dan akhir blok ini.
                     <!-- Menu Daftar Nilai -->
                     <a href="{{ route('portal-guru.nilai') }}" :title="isCollapsed ? 'Daftar Nilai' : ''" class="flex items-center gap-3.5 py-3 rounded-2xl {{ $isDaftarNilaiActive ? 'bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/30' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }} transition-all group" :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
                         <div class="p-1.5 rounded-lg {{ $isDaftarNilaiActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
@@ -957,6 +1038,49 @@
                         </div>
                         <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Daftar Nilai</span>
                     </a>
+                    --}}
+
+                    @if($canAccessEkskulGuru)
+                        <!-- Submenu: Ekstrakurikuler per Ekstra Binaan -->
+                        <div x-data="{ open: {{ $isEkstrakurikulerGuruActive ? 'true' : 'false' }} }" class="space-y-1">
+                            <button @click="if(isCollapsed) { sidebarCollapsed = false; } open = !open"
+                                    :title="isCollapsed ? 'Ekstrakurikuler' : ''"
+                                    type="button"
+                                    class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group {{ $isEkstrakurikulerGuruActive ? 'bg-brand-primary/10 text-brand-primary font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
+                                    :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <div class="p-1.5 rounded-lg {{ $isEkstrakurikulerGuruActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                    </div>
+                                    <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Ekstrakurikuler</span>
+                                </div>
+                                <div class="flex items-center gap-1.5" x-show="!isCollapsed" x-transition.opacity>
+                                    <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-200 {{ $isEkstrakurikulerGuruActive ? 'text-brand-primary' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </button>
+
+                            <div x-show="open && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                @forelse($guruEkskulMenuItems as $eksMenu)
+                                    @php
+                                        $isThisEkskulActive = $isEkstrakurikulerGuruActive && ($activeEkskulSlug === $eksMenu->slug || (empty($activeEkskulSlug) && $loop->first));
+                                    @endphp
+                                    <a href="{{ route('portal-guru.ekstrakurikuler', ['slug' => $eksMenu->slug]) }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isThisEkskulActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isThisEkskulActive ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">{{ $eksMenu->nama_ekskul }}</span>
+                                    </a>
+                                @empty
+                                    <a href="{{ route('portal-guru.ekstrakurikuler') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isEkstrakurikulerGuruActive ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isEkstrakurikulerGuruActive ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Daftar Ekskul</span>
+                                    </a>
+                                @endforelse
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Submenu: Akademik & Wali Kelas -->
                     @if($canAccessAkademikGroup)

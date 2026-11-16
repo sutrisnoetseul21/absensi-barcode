@@ -17,6 +17,7 @@ Dokumen ini mendokumentasikan tabel-tabel database yang berinteraksi langsung de
 | `konsultasi_guru_wali` | Permohonan bimbingan dengan guru wali | Create, Read |
 | `badge_karakter_siswa` | Penghargaan karakter yang diperoleh siswa | Read-Only |
 | `nilai_ujians` | Perolehan nilai ujian akademik (jika sudah dipublikasi) | Read-Only (`student_id` & `is_published = true`) |
+| `ekstrakurikulers`, `ekstrakurikuler_siswas`, `ekstrakurikuler_pertemuans`, `ekstrakurikuler_presensis` | Keanggotaan ekstrakurikuler aktif, materi pertemuan, & riwayat kehadiran ekskul | Read-Only (Filter `student_id` & `status_aktif`) |
 | `pengumuman` | Edaran resmi dan pengumuman sekolah | Read-Only (`aktifSekarang()`) |
 
 ---

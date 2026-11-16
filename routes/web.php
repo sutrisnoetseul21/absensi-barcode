@@ -173,6 +173,29 @@ Route::prefix('portal-presensi')->group(function () {
             return response()->json($action->execute((string) $barcode, (string) $session));
         })->middleware('throttle:60,1')->name('portal-presensi.scan.process');
     });
+
+    // Kiosk Scanner Barcode Dinamis per Ekstrakurikuler (Pembina, Admin Akademik, Admin Presensi, Super Admin)
+    Route::middleware('auth')->group(function () {
+        Route::get('/scan-ekstrakurikuler/{slug}', \App\Livewire\AttendanceKioskEkstrakurikuler::class)
+            ->name('kiosk.scan-ekstrakurikuler');
+        Route::post('/scan-ekstrakurikuler/{slug}', function (
+            string $slug,
+            \Illuminate\Http\Request $request,
+            \App\Actions\ProcessScanEkstrakurikulerAction $action
+        ) {
+            $ekskul = \App\Models\Ekstrakurikuler::where('slug', $slug)->firstOrFail();
+            abort_unless($ekskul->canUserOpenKiosk(\Illuminate\Support\Facades\Auth::user()), 403);
+
+            $barcode = trim((string) $request->input('barcode', ''));
+            if ($barcode === '') {
+                return response()->json(['status' => 'not_found', 'message' => 'Barcode kosong.']);
+            }
+
+            return response()->json(
+                $action->execute($ekskul, $barcode, $request->ip(), $request->input('judul_kegiatan'))
+            );
+        })->middleware('throttle:60,1')->name('kiosk.process-ekstrakurikuler');
+    });
 });
 
 Route::middleware('auth')->group(function () {
@@ -342,6 +365,7 @@ Route::prefix('portal-guru')->middleware('maintenance:guru')->group(function () 
         Route::get('/jurnal-mengajar/{id}/edit', \App\Livewire\PortalGuru\JurnalMengajar\JurnalMengajarForm::class)->name('portal-guru.jurnal-mengajar.edit');
         Route::get('/jurnal-mengajar/cetak-pdf', [\App\Http\Controllers\JurnalMengajarCetakController::class, 'cetak'])->name('portal-guru.jurnal-mengajar.cetak');
         Route::get('/jurnal-mengajar/download-excel', [\App\Http\Controllers\JurnalMengajarCetakController::class, 'excel'])->name('portal-guru.jurnal-mengajar.excel');
+        Route::get('/ekstrakurikuler/{slug?}', \App\Livewire\PortalGuru\Ekstrakurikuler\GuruEkstrakurikuler::class)->name('portal-guru.ekstrakurikuler');
     });
 
     Route::middleware('auth.wali')->group(function () {
@@ -418,6 +442,7 @@ Route::prefix('portal-siswa')->middleware('maintenance:siswa')->group(function (
         Route::get('/akademik', SiswaDashboard::class)->name('portal-siswa.akademik');
         Route::get('/sholat-dhuhur', \App\Livewire\PortalSiswa\SiswaSholatDhuhur::class)->name('portal-siswa.sholat-dhuhur');
         Route::get('/jurnal-kbm', \App\Livewire\PortalSiswa\SiswaJurnalKbm::class)->name('portal-siswa.jurnal-kbm');
+        Route::get('/ekstrakurikuler/{slug?}', \App\Livewire\PortalSiswa\SiswaEkstrakurikuler::class)->name('portal-siswa.ekstrakurikuler');
         Route::get('/profil', SiswaProfil::class)->name('portal-siswa.profil');
         Route::get('/perpustakaan', \App\Livewire\SiswaPerpustakaan::class)->name('portal-siswa.perpustakaan');
         Route::get('/cetak-kartu', [\App\Http\Controllers\SiswaCetakController::class, 'cetakKartuMandiri'])->name('portal-siswa.cetak-kartu');

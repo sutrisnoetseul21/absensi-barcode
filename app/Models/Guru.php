@@ -57,6 +57,13 @@ class Guru extends Authenticatable
         return $this->hasMany(KelasAjaran::class, 'teacher_id');
     }
 
+    // Ekstrakurikuler yang dibina oleh guru ini
+    public function ekstrakurikulers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Ekstrakurikuler::class, 'ekstrakurikuler_pembinas', 'teacher_id', 'ekstrakurikuler_id')
+            ->withTimestamps();
+    }
+
     // Kelas tambahan yang bisa dipantau (Akses Portal Pantau)
     public function kelasPantau(): HasMany
     {
