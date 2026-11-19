@@ -352,6 +352,7 @@
                 </div>
                 @endif
 
+                @if(\App\Models\PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true)
                 <!-- Shortcut: Ekstrakurikuler -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
                     <div>
@@ -373,6 +374,7 @@
                         <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </a>
                 </div>
+                @endif
 
                 <!-- Shortcut 2: Bimbingan Guru Wali (Permendikdasmen No. 11/2025) -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all flex flex-col justify-between group">

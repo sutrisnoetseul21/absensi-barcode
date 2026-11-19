@@ -136,6 +136,18 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
             $data['sholat_dhuhur_notif_template_pesan'] = \App\Models\PresensiNotificationSetting::getDefaultTemplate('sholat_dhuhur');
         }
 
+        // Load data Presensi Notification Settings (Ekstrakurikuler - Opsi A)
+        $ekskulSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'ekstrakurikuler')->first();
+        if ($ekskulSetting) {
+            $data['ekskul_notif_is_active']      = $ekskulSetting->is_active;
+            $data['ekskul_notif_recipients']     = $ekskulSetting->recipients ?? ['ortu'];
+            $data['ekskul_notif_template_pesan'] = $ekskulSetting->template_pesan;
+        } else {
+            $data['ekskul_notif_is_active']      = false;
+            $data['ekskul_notif_recipients']     = ['ortu'];
+            $data['ekskul_notif_template_pesan'] = \App\Models\PresensiNotificationSetting::getDefaultTemplate('ekstrakurikuler');
+        }
+
         // Load data Notification Settings (Pengajuan Ijin)
         $leaveRequestSetting = \App\Models\PresensiNotificationSetting::where('status_presensi', 'leave_request')->first();
         if ($leaveRequestSetting) {
@@ -420,6 +432,69 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                                             ->hiddenLabel()
                                             ->content(fn() => $this->buildSholatDhuhurManualStatusHtml())
                                             ->columnSpanFull(),
+                                    ]),
+                            ]),
+
+                        // ── Tab 3b: Notifikasi Ekstrakurikuler (Opsi A) ────────
+                        Tab::make('Notifikasi Ekstrakurikuler')
+                            ->icon('heroicon-o-sparkles')
+                            ->schema([
+                                Section::make('Aturan Notifikasi: Presensi Ekstrakurikuler (Per Sesi Pertemuan)')
+                                    ->description('Notifikasi dikirim secara manual per sesi pertemuan (dari Portal Presensi atau halaman ini) kepada orang tua anggota aktif ekstrakurikuler yang belum tercatat Hadir/Izin/Sakit.')
+                                    ->schema([
+                                        Toggle::make('ekskul_notif_is_active')
+                                            ->label('Aktifkan Fitur Notifikasi Ekstrakurikuler')
+                                            ->columnSpanFull(),
+                                        Select::make('ekskul_notif_recipients')
+                                            ->label('Kirim Ke (Penerima)')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Pilih penerima...')
+                                            ->options([
+                                                'ortu'       => 'Orang Tua Siswa',
+                                                'wali_kelas' => 'Wali Kelas',
+                                            ])
+                                            ->columnSpanFull(),
+                                        Textarea::make('ekskul_notif_template_pesan')
+                                            ->label('Template Pesan Ekstrakurikuler')
+                                            ->rows(8)
+                                            ->helperText('Placeholder: {nama_siswa}, {kelas}, {nama_ekskul}, {judul_kegiatan}, {tanggal}, {nama_pembina}, {nama_wali_kelas}, {nama_sekolah}')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Kirim Manual Notifikasi Ekstrakurikuler Hari Ini')
+                                    ->icon('heroicon-o-paper-airplane')
+                                    ->description('Pilih sesi pertemuan ekstrakurikuler tanggal hari ini lalu kirim pengingat WA ke anggota yang belum hadir/alpa.')
+                                    ->schema([
+                                        Select::make('ekskul_manual_pertemuan_id')
+                                            ->label('Pilih Sesi Pertemuan Ekstrakurikuler (Hari Ini)')
+                                            ->placeholder('Pilih pertemuan hari ini...')
+                                            ->options(function () {
+                                                $today = now('Asia/Jakarta')->toDateString();
+                                                return \App\Models\EkstrakurikulerPertemuan::with('ekstrakurikuler')
+                                                    ->whereDate('tanggal', $today)
+                                                    ->orderBy('created_at', 'desc')
+                                                    ->get()
+                                                    ->mapWithKeys(fn ($p) => [
+                                                        $p->id => ($p->ekstrakurikuler?->nama_ekskul ?? 'Ekskul')
+                                                            . " — Pertemuan ke-{$p->pertemuan_ke}"
+                                                            . ($p->judul_kegiatan ? " ({$p->judul_kegiatan})" : ''),
+                                                    ])
+                                                    ->toArray();
+                                            })
+                                            ->dehydrated(false)
+                                            ->columnSpanFull(),
+                                        \Filament\Schemas\Components\Actions::make([
+                                            \Filament\Actions\Action::make('send_ekskul_manual')
+                                                ->label('Kirim Notifikasi Ekstrakurikuler Sekarang')
+                                                ->icon('heroicon-o-paper-airplane')
+                                                ->color('primary')
+                                                ->requiresConfirmation()
+                                                ->modalHeading('Kirim WA Belum Hadir Ekstrakurikuler?')
+                                                ->modalDescription('Pesan WA akan dikirim ke orang tua anggota aktif yang belum hadir/alpa pada sesi pertemuan terpilih (dengan deduplikasi per pertemuan).')
+                                                ->action(fn () => $this->confirmSendEkstrakurikulerManual()),
+                                        ]),
                                     ]),
                             ]),
 
@@ -1304,6 +1379,46 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
         }
     }
 
+    public function confirmSendEkstrakurikulerManual(): void
+    {
+        $pertemuanId = $this->data['ekskul_manual_pertemuan_id'] ?? null;
+        if (!$pertemuanId) {
+            Notification::make()
+                ->title('Pertemuan belum dipilih')
+                ->body('Silakan pilih sesi pertemuan ekstrakurikuler terlebih dahulu.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $pertemuan = \App\Models\EkstrakurikulerPertemuan::with('ekstrakurikuler')->find($pertemuanId);
+        if (!$pertemuan) {
+            Notification::make()
+                ->title('Pertemuan tidak ditemukan')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $result = app(\App\Services\UnattendedEkstrakurikulerNotificationService::class)
+            ->dispatchForPertemuan($pertemuan, 'manual');
+
+        if (!$result['success']) {
+            Notification::make()
+                ->title('Gagal Mengirim Notifikasi')
+                ->body($result['message'])
+                ->warning()
+                ->send();
+            return;
+        }
+
+        Notification::make()
+            ->title($result['dispatched'] > 0 ? 'Notifikasi Ekstrakurikuler Dikirim' : 'Info Pengiriman')
+            ->body($result['message'])
+            ->{$result['dispatched'] > 0 ? 'success' : 'info'}()
+            ->send();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Save
     // ─────────────────────────────────────────────────────────────────────────
@@ -1357,6 +1472,16 @@ class ManajemenNotifikasiWaPage extends Page implements HasForms
                     'auto_send_time' => $data['sholat_dhuhur_notif_auto_send_time'] ?? '13:00:00',
                     'recipients'     => $data['sholat_dhuhur_notif_recipients'] ?? [],
                     'template_pesan' => $data['sholat_dhuhur_notif_template_pesan'] ?? '',
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Ekstrakurikuler - Opsi A)
+            \App\Models\PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'ekstrakurikuler'],
+                [
+                    'is_active'      => $data['ekskul_notif_is_active'] ?? false,
+                    'recipients'     => $data['ekskul_notif_recipients'] ?? ['ortu'],
+                    'template_pesan' => $data['ekskul_notif_template_pesan'] ?? '',
                 ]
             );
 

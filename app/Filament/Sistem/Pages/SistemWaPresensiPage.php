@@ -46,8 +46,8 @@ class SistemWaPresensiPage extends ManajemenNotifikasiWaPage
         foreach ($parentComponents as $component) {
             if ($component instanceof Tabs) {
                 $allTabs = $component->getDefaultChildComponents();
-                // Hanya ambil 6 Tab Presensi (tanpa SPIKAP, Guru Wali, dan Jurnal Mengajar)
-                $component->tabs(array_slice($allTabs, 0, 6));
+                // Ambil 7 Tab Presensi (termasuk Ekstrakurikuler, tanpa SPIKAP, Guru Wali, dan Jurnal Mengajar)
+                $component->tabs(array_slice($allTabs, 0, 7));
             }
         }
 
@@ -101,6 +101,15 @@ class SistemWaPresensiPage extends ManajemenNotifikasiWaPage
                     'auto_send_time' => $data['sholat_dhuhur_notif_auto_send_time'] ?? '13:00:00',
                     'recipients'     => $data['sholat_dhuhur_notif_recipients'] ?? [],
                     'template_pesan' => $data['sholat_dhuhur_notif_template_pesan'] ?? '',
+                ]
+            );
+
+            PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'ekstrakurikuler'],
+                [
+                    'is_active'      => $data['ekskul_notif_is_active'] ?? false,
+                    'recipients'     => $data['ekskul_notif_recipients'] ?? ['ortu'],
+                    'template_pesan' => $data['ekskul_notif_template_pesan'] ?? '',
                 ]
             );
 

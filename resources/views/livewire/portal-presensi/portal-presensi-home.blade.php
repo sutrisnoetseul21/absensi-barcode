@@ -43,6 +43,30 @@
                         <span>Kiosk Sholat Dhuhur</span>
                     </a>
                 @endif
+
+                @if($enableEkstrakurikuler && $activeEkskuls->isNotEmpty())
+                    <div x-data="{ openEkskulKiosk: false }" class="relative">
+                        <button type="button" @click="openEkskulKiosk = !openEkskulKiosk"
+                           class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white border border-white/25 rounded-2xl text-xs font-bold transition-all shadow-md cursor-pointer backdrop-blur-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                            <span>Kiosk Ekstrakurikuler</span>
+                            <svg class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': openEkskulKiosk }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="openEkskulKiosk" @click.away="openEkskulKiosk = false" x-transition
+                             class="absolute right-0 mt-2 w-60 rounded-2xl bg-white shadow-xl border border-slate-200 py-1.5 z-50 text-slate-800">
+                            <div class="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Pilih Scanner Ekskul</div>
+                            @foreach($activeEkskuls as $eksItem)
+                                @if($eksItem->slug)
+                                    <a href="{{ route('kiosk.scan-ekstrakurikuler', ['slug' => $eksItem->slug]) }}" target="_blank"
+                                       class="flex items-center justify-between px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-brand-primary/10 hover:text-brand-primary transition-colors">
+                                        <span class="truncate">{{ $eksItem->nama_ekskul }}</span>
+                                        <span class="text-[10px] text-slate-400">&nearr;</span>
+                                    </a>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -181,6 +205,70 @@
                             Input Manual
                         </a>
                         <a href="{{ route('portal-presensi.sholat-dhuhur.laporan') }}"
+                           class="inline-flex items-center justify-center px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+                            Rekap dan Cetak Laporan
+                        </a>
+                    </div>
+                </div>
+            @endif
+
+            <!-- KARTU EKSTRAKURIKULER (Mengikuti Tema Portal Sistem) -->
+            @if($enableEkstrakurikuler)
+                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Presensi Ekstrakurikuler</h3>
+                                    <p class="text-xs text-slate-500">Kiosk dinamis, input manual &amp; broadcast WA</p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
+                                {{ $ekskulStats['ekskul_aktif'] }} Ekskul
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2.5 mt-5">
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200/70 p-3">
+                                <div class="text-[11px] font-bold text-slate-600">Total Anggota</div>
+                                <div class="text-xl font-black text-slate-900 mt-0.5 tabular-nums">
+                                    {{ $ekskulStats['total_anggota'] }}
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Anggota aktif</div>
+                            </div>
+
+                            <div class="rounded-2xl bg-brand-primary/5 border border-brand-primary/20 p-3">
+                                <div class="text-[11px] font-bold text-brand-primary">Sesi Hari Ini</div>
+                                <div class="text-xl font-black text-brand-primary mt-0.5 tabular-nums">
+                                    {{ $ekskulStats['sesi_hari_ini'] }}
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Ekskul berjalan</div>
+                            </div>
+
+                            <div class="rounded-2xl bg-emerald-50/80 border border-emerald-200/70 p-3">
+                                <div class="text-[11px] font-bold text-emerald-700">Hadir Hari Ini</div>
+                                <div class="text-xl font-black text-emerald-900 mt-0.5 tabular-nums">
+                                    {{ $ekskulStats['hadir_hari_ini'] }}
+                                </div>
+                                <div class="text-[10px] text-emerald-700/80 mt-0.5">Tercatat hadir</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                        <a href="{{ route('portal-presensi.ekstrakurikuler.dashboard') }}"
+                           class="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold text-white bg-brand-primary hover:opacity-95 shadow-sm shadow-brand-primary/20 transition-all">
+                            <span>Buka Dashboard Ekskul</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="{{ route('portal-presensi.ekstrakurikuler.input-manual') }}"
+                           class="inline-flex items-center justify-center px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+                            Input Manual
+                        </a>
+                        <a href="{{ route('portal-presensi.ekstrakurikuler.laporan') }}"
                            class="inline-flex items-center justify-center px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
                             Rekap dan Cetak Laporan
                         </a>

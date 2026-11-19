@@ -24,6 +24,13 @@ class ProcessScanEkstrakurikulerAction
         $date = $now->toDateString();
         $scanTime = $now->format('H:i:s');
 
+        if (!(\App\Models\PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true)) {
+            return [
+                'status'  => 'inactive',
+                'message' => 'Fitur Ekstrakurikuler sedang dinonaktifkan di Pengaturan Presensi.',
+            ];
+        }
+
         if (!$ekskul->status_aktif) {
             return [
                 'status'  => 'inactive',

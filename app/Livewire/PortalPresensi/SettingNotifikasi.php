@@ -62,6 +62,11 @@ class SettingNotifikasi extends Component
     public array $sholat_dhuhur_notif_recipients = [];
     public string $sholat_dhuhur_notif_template_pesan = '';
 
+    // Form Data - Tab: Ekstrakurikuler (Opsi A)
+    public bool $ekskul_notif_is_active = false;
+    public array $ekskul_notif_recipients = [];
+    public string $ekskul_notif_template_pesan = '';
+
     // Form Data - Tab 1: Pengajuan Ijin (Oleh Siswa)
     public bool $leave_request_notif_is_active = false;
     public array $leave_request_notif_recipients = [];
@@ -162,6 +167,18 @@ class SettingNotifikasi extends Component
             $this->sholat_dhuhur_notif_is_active      = false;
             $this->sholat_dhuhur_notif_recipients     = ['ortu'];
             $this->sholat_dhuhur_notif_template_pesan = PresensiNotificationSetting::getDefaultTemplate('sholat_dhuhur');
+        }
+
+        // Load data Presensi Notification Settings (Ekstrakurikuler - Opsi A)
+        $ekskulSetting = PresensiNotificationSetting::where('status_presensi', 'ekstrakurikuler')->first();
+        if ($ekskulSetting) {
+            $this->ekskul_notif_is_active      = $ekskulSetting->is_active;
+            $this->ekskul_notif_recipients     = $ekskulSetting->recipients ?? ['ortu'];
+            $this->ekskul_notif_template_pesan = $ekskulSetting->template_pesan;
+        } else {
+            $this->ekskul_notif_is_active      = false;
+            $this->ekskul_notif_recipients     = ['ortu'];
+            $this->ekskul_notif_template_pesan = PresensiNotificationSetting::getDefaultTemplate('ekstrakurikuler');
         }
 
         // Load data Notification Settings (Pengajuan Ijin)
@@ -496,6 +513,16 @@ class SettingNotifikasi extends Component
                     'is_active'      => $this->sholat_dhuhur_notif_is_active,
                     'recipients'     => $this->sholat_dhuhur_notif_recipients,
                     'template_pesan' => $this->sholat_dhuhur_notif_template_pesan,
+                ]
+            );
+
+            // Simpan Aturan Notifikasi (Ekstrakurikuler - Opsi A)
+            PresensiNotificationSetting::updateOrCreate(
+                ['status_presensi' => 'ekstrakurikuler'],
+                [
+                    'is_active'      => $this->ekskul_notif_is_active,
+                    'recipients'     => $this->ekskul_notif_recipients,
+                    'template_pesan' => $this->ekskul_notif_template_pesan,
                 ]
             );
 

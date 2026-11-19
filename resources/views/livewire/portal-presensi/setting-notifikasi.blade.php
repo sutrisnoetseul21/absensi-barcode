@@ -98,6 +98,10 @@
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 Notifikasi Sholat Dhuhur
             </button>
+            <button wire:click="setActiveTab('ekskul')" class="{{ $activeTab === 'ekskul' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                Notifikasi Ekstrakurikuler
+            </button>
             <button wire:click="setActiveTab('ijin')" class="{{ $activeTab === 'ijin' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 Notifikasi Ijin Online
@@ -427,6 +431,68 @@
                         <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Sholat Dhuhur</label>
                         <textarea wire:model="sholat_dhuhur_notif_template_pesan" rows="7" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors font-mono"></textarea>
                         <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {tanggal}, {nama_wali_kelas}, {nama_sekolah}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- TAB: EKSTRAKURIKULER (OPSI A) --}}
+        <div class="{{ $activeTab === 'ekskul' ? 'block' : 'hidden' }} space-y-6">
+            <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900">Aturan Notifikasi: Presensi Ekstrakurikuler (Per Sesi Pertemuan)</h3>
+                    <p class="text-sm text-slate-500 mt-1">Format pesan WA yang dikirimkan secara manual per pertemuan kepada orang tua anggota aktif yang belum tercatat Hadir/Izin/Sakit.</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="ekskul_notif_is_active" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                            <span class="ml-3 text-sm font-bold text-slate-700">Aktifkan Notifikasi Ekstrakurikuler</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kirim Ke (Penerima)</label>
+                        <div x-data="{
+                                options: { 'ortu': 'Orang Tua Siswa', 'wali_kelas': 'Wali Kelas' },
+                                selected: @entangle('ekskul_notif_recipients'),
+                                open: false,
+                                toggle(key) {
+                                    if (this.selected.includes(key)) {
+                                        this.selected = this.selected.filter(i => i !== key);
+                                    } else {
+                                        this.selected.push(key);
+                                    }
+                                }
+                            }" class="relative">
+                            <div @click="open = !open" class="min-h-[42px] w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2 cursor-pointer flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary transition-colors">
+                                <template x-if="selected.length === 0">
+                                    <span class="text-slate-500">Pilih satu atau beberapa penerima...</span>
+                                </template>
+                                <template x-for="item in selected" :key="item">
+                                    <span class="inline-flex items-center gap-1 bg-brand-primary/10 text-brand-primary px-2.5 py-1 rounded-md text-xs font-bold">
+                                        <span x-text="options[item] || item"></span>
+                                        <svg @click.stop="toggle(item)" class="w-3 h-3 cursor-pointer hover:text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                            <div x-show="open" @click.away="open = false" x-transition.opacity.duration.200ms class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto p-1">
+                                <template x-for="[key, label] in Object.entries(options)" :key="key">
+                                    <div @click="toggle(key)" class="px-3 py-2 text-sm rounded-lg cursor-pointer flex items-center justify-between hover:bg-slate-50 transition-colors" :class="selected.includes(key) ? 'text-brand-primary font-bold bg-brand-primary/5' : 'text-slate-700'">
+                                        <span x-text="label"></span>
+                                        <svg x-show="selected.includes(key)" class="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Template Pesan Ekstrakurikuler</label>
+                        <textarea wire:model="ekskul_notif_template_pesan" rows="7" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-4 py-3 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-colors font-mono"></textarea>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">Placeholder: {nama_siswa}, {kelas}, {nama_ekskul}, {judul_kegiatan}, {tanggal}, {nama_pembina}, {nama_wali_kelas}, {nama_sekolah}</p>
                     </div>
                 </div>
             </div>

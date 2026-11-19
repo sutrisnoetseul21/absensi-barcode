@@ -149,6 +149,18 @@
                                     class="mt-1 h-5 w-5 rounded border-slate-300 text-brand-primary focus:ring-brand-primary cursor-pointer shrink-0">
                             </label>
                         </div>
+
+                        <!-- Toggle Fitur Ekstrakurikuler -->
+                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70">
+                            <label class="flex items-start justify-between gap-4 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800">Aktifkan Presensi Ekstrakurikuler</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Jika dinonaktifkan, menu dan halaman Ekstrakurikuler beserta Kiosk Scanner-nya akan disembunyikan dari Portal Presensi, Portal Guru, dan Portal Siswa.</span>
+                                </div>
+                                <input type="checkbox" wire:model="enable_ekstrakurikuler"
+                                    class="mt-1 h-5 w-5 rounded border-slate-300 text-brand-primary focus:ring-brand-primary cursor-pointer shrink-0">
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

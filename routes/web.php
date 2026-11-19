@@ -127,6 +127,13 @@ Route::prefix('portal-presensi')->group(function () {
             Route::get('/laporan', \App\Livewire\PortalPresensi\SholatDhuhur\LaporanSholatDhuhur::class)->name('portal-presensi.sholat-dhuhur.laporan');
         });
 
+        // Submodul Presensi Ekstrakurikuler
+        Route::prefix('ekstrakurikuler')->name('portal-presensi.ekstrakurikuler.')->group(function () {
+            Route::get('/', \App\Livewire\PortalPresensi\Ekstrakurikuler\DashboardEkstrakurikuler::class)->name('dashboard');
+            Route::get('/input-manual', \App\Livewire\PortalPresensi\Ekstrakurikuler\InputManualEkstrakurikuler::class)->name('input-manual');
+            Route::get('/laporan', \App\Livewire\PortalPresensi\Ekstrakurikuler\LaporanEkstrakurikuler::class)->name('laporan');
+        });
+
         Route::post('/logout', function () {
             \Illuminate\Support\Facades\Auth::guard('web')->logout();
             request()->session()->invalidate();

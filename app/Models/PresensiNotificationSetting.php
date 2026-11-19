@@ -78,6 +78,7 @@ class PresensiNotificationSetting extends Model
         return match ($status) {
             'belum' => "Assalamu'alaikum Wr. Wb.\nSelamat Pagi Bpk/Ibu Orang Tua/Wali,\n\nKami informasikan bahwa ananda :\nNama Siswa : *{nama_siswa}*\nKelas : {kelas}\npada tanggal {tanggal} belum tercatat hadir dalam presensi {nama_sekolah}.\n\nMohon konfirmasi keterangan kehadiran ananda. Terima kasih.\n\nWassalamu’alaikum Wr. Wb.\nSalam Spensa,\n*{nama_sekolah}*\n\n_Mohon balas pesan ini dan Simpan Nomor ini_\n🙏🙏🙏",
             'sholat_dhuhur' => "Assalamu'alaikum Wr. Wb.\nBpk/Ibu Orang Tua/Wali,\n\nKami informasikan bahwa ananda :\nNama Siswa : *{nama_siswa}*\nKelas : {kelas}\npada tanggal {tanggal} belum tercatat dalam presensi Sholat Dhuhur berjamaah {nama_sekolah}.\n\nMohon konfirmasi atau perhatiannya. Terima kasih.\n\nWassalamu’alaikum Wr. Wb.\nSalam Spensa,\n*{nama_sekolah}*\n\n_Mohon balas pesan ini dan Simpan Nomor ini_\n🙏🙏🙏",
+            'ekstrakurikuler' => "Assalamu'alaikum Wr. Wb.\nBpk/Ibu Orang Tua/Wali,\n\nKami informasikan bahwa ananda :\nNama Siswa : *{nama_siswa}*\nKelas : {kelas}\npada kegiatan Ekstrakurikuler *{nama_ekskul}* ({judul_kegiatan}) tanggal {tanggal} belum tercatat hadir (belum presensi / alpa).\nPembina : {nama_pembina}\n\nMohon konfirmasi atau perhatiannya. Terima kasih.\n\nWassalamu’alaikum Wr. Wb.\n*{nama_sekolah}*",
             'telat' => "Assalamu'alaikum Wr. Wb.\nSelamat Pagi Bpk/Ibu Orang Tua/Wali,\n\nKami informasikan bahwa ananda :\nNama Siswa : *{nama_siswa}*\nKelas : {kelas}\npada tanggal {tanggal} pukul {jam} tercatat berstatus *{status_kehadiran}*.\n\nWassalamu’alaikum Wr. Wb.\nSalam Spensa\n*{nama_sekolah}*\n\n_Mohon balas pesan ini dan Simpan Nomor ini_\n🙏🙏🙏",
             default => "Assalamu'alaikum Wr. Wb.\nSelamat Pagi Bpk/Ibu Orang Tua/Wali,\n\nKami informasikan bahwa ananda :\nNama Siswa : *{nama_siswa}*\nKelas : {kelas}\npada tanggal {tanggal} pukul {jam} tercatat berstatus *{status_kehadiran}*.\n\nWassalamu’alaikum Wr. Wb.\nSalam Spensa,\n*{nama_sekolah}*\n\n_Mohon balas pesan ini dan Simpan Nomor ini_\n🙏🙏🙏",
         };
@@ -103,6 +104,9 @@ class PresensiNotificationSetting extends Model
             '{jam}'              => $data['jam'] ?? '-',
             '{status_kehadiran}' => $data['status_kehadiran'] ?? ucfirst($status),
             '{nama_wali_kelas}'  => $data['nama_wali_kelas'] ?? '-',
+            '{nama_ekskul}'      => $data['nama_ekskul'] ?? '-',
+            '{judul_kegiatan}'   => $data['judul_kegiatan'] ?? '-',
+            '{nama_pembina}'     => $data['nama_pembina'] ?? '-',
             '{nama_sekolah}'     => $namaSekolah,
         ];
 

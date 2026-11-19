@@ -31,6 +31,7 @@ class PengaturanPresensi extends Component
     public bool $enable_sholat_dhuhur = true;
     public bool $enable_sholat_jumat = false;
     public bool $enable_presensi_kbm = true;
+    public bool $enable_ekstrakurikuler = true;
     public string $barcode_scan_mode = 'nisn';
     public bool $auto_alpa_active = false;
     public string $auto_alpa_time = '09:00';
@@ -80,6 +81,7 @@ class PengaturanPresensi extends Component
         $this->enable_sholat_dhuhur   = (bool) ($settings?->enable_sholat_dhuhur ?? true);
         $this->enable_sholat_jumat    = (bool) ($settings?->enable_sholat_jumat ?? false);
         $this->enable_presensi_kbm    = (bool) ($settings?->enable_presensi_kbm ?? true);
+        $this->enable_ekstrakurikuler = (bool) ($settings?->enable_ekstrakurikuler ?? true);
         $this->barcode_scan_mode      = $settings?->barcode_scan_mode ?: 'nisn';
         $this->auto_alpa_active       = (bool) ($settings?->auto_alpa_active ?? false);
         $this->auto_alpa_time         = $this->formatTimeForInput($settings?->auto_alpa_time, '09:00');
@@ -141,6 +143,7 @@ class PengaturanPresensi extends Component
             'enable_sholat_dhuhur'   => ['boolean'],
             'enable_sholat_jumat'    => ['boolean'],
             'enable_presensi_kbm'    => ['boolean'],
+            'enable_ekstrakurikuler' => ['boolean'],
             'barcode_scan_mode'      => ['required', 'in:nisn,nis'],
             'auto_alpa_active'       => ['boolean'],
         ];
@@ -172,6 +175,7 @@ class PengaturanPresensi extends Component
             'enable_sholat_dhuhur'   => $this->enable_sholat_dhuhur,
             'enable_sholat_jumat'    => $this->enable_sholat_dhuhur ? $this->enable_sholat_jumat : false,
             'enable_presensi_kbm'    => $this->enable_presensi_kbm,
+            'enable_ekstrakurikuler' => $this->enable_ekstrakurikuler,
             'barcode_scan_mode'      => $this->barcode_scan_mode,
             'auto_alpa_active'       => $this->auto_alpa_active,
             'auto_alpa_time'         => $this->formatTimeForDb($this->auto_alpa_time ?: '09:00'),

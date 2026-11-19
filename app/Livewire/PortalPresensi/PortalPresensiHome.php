@@ -2,6 +2,10 @@
 
 namespace App\Livewire\PortalPresensi;
 
+use App\Models\Ekstrakurikuler;
+use App\Models\EkstrakurikulerPertemuan;
+use App\Models\EkstrakurikulerPresensi;
+use App\Models\EkstrakurikulerSiswa;
 use App\Models\EnrollmentSiswa;
 use App\Models\HariLibur;
 use App\Models\Kelas;
@@ -53,6 +57,7 @@ class PortalPresensiHome extends Component
         ];
 
         $enableSholatDhuhur = (bool) ($settings?->enable_sholat_dhuhur ?? true);
+        $enableEkstrakurikuler = (bool) ($settings?->enable_ekstrakurikuler ?? true);
         $dhuhurStats = [
             'wajib'          => 0,
             'hadir'          => 0,
@@ -61,6 +66,13 @@ class PortalPresensiHome extends Component
             'belum'          => 0,
             'persentase'     => 0,
         ];
+        $ekskulStats = [
+            'ekskul_aktif'   => 0,
+            'total_anggota'  => 0,
+            'sesi_hari_ini'  => 0,
+            'hadir_hari_ini' => 0,
+        ];
+        $activeEkskuls = collect();
 
         if ($academicYearId) {
             $totalSiswa = EnrollmentSiswa::where('academic_year_id', $academicYearId)
@@ -123,6 +135,31 @@ class PortalPresensiHome extends Component
                     'persentase'    => $totalWajibSholat > 0 ? round(($dHadir / $totalWajibSholat) * 100) : 0,
                 ];
             }
+
+            if ($enableEkstrakurikuler) {
+                $activeEkskuls = Ekstrakurikuler::where('academic_year_id', $academicYearId)
+                    ->where('status_aktif', true)
+                    ->orderBy('nama_ekskul')
+                    ->get(['id', 'nama_ekskul', 'slug']);
+
+                $ekskulIds = $activeEkskuls->pluck('id');
+                $totalAnggotaEkskul = $ekskulIds->isNotEmpty()
+                    ? EkstrakurikulerSiswa::whereIn('ekstrakurikuler_id', $ekskulIds)->where('status_aktif', true)->count()
+                    : 0;
+                $todayPertemuanIds = $ekskulIds->isNotEmpty()
+                    ? EkstrakurikulerPertemuan::whereIn('ekstrakurikuler_id', $ekskulIds)->whereDate('tanggal', $todayStr)->pluck('id')
+                    : collect();
+                $hadirEkskulToday = $todayPertemuanIds->isNotEmpty()
+                    ? EkstrakurikulerPresensi::whereIn('pertemuan_id', $todayPertemuanIds)->where('status', 'hadir')->count()
+                    : 0;
+
+                $ekskulStats = [
+                    'ekskul_aktif'   => $activeEkskuls->count(),
+                    'total_anggota'  => $totalAnggotaEkskul,
+                    'sesi_hari_ini'  => $todayPertemuanIds->count(),
+                    'hadir_hari_ini' => $hadirEkskulToday,
+                ];
+            }
         }
 
         $totalKelas = Kelas::count();
@@ -131,19 +168,22 @@ class PortalPresensiHome extends Component
             : route('kiosk.scan');
 
         return view('livewire.portal-presensi.portal-presensi-home', [
-            'userName'           => $user?->name ?? 'Admin Presensi',
-            'todayFormatted'     => $todayFormatted,
-            'activeYearName'     => $activeYear?->name ?? '-',
-            'isHoliday'          => $isHoliday,
-            'holidayDesc'        => $holidayDesc,
-            'kehadiranStats'     => $kehadiranStats,
-            'dhuhurStats'        => $dhuhurStats,
-            'enableSholatDhuhur' => $enableSholatDhuhur,
-            'enableCheckout'     => (bool) ($settings?->enable_checkout ?? true),
-            'checkinTime'        => substr((string) ($settings?->checkin_time ?? '07:00'), 0, 5),
-            'workDaysLabel'      => ($settings?->work_days_type ?? '5_hari') === '6_hari' ? '6 Hari Kerja' : '5 Hari Kerja',
-            'totalKelas'         => $totalKelas,
-            'kioskKehadiranUrl'  => $kioskKehadiranUrl,
+            'userName'              => $user?->name ?? 'Admin Presensi',
+            'todayFormatted'        => $todayFormatted,
+            'activeYearName'        => $activeYear?->name ?? '-',
+            'isHoliday'             => $isHoliday,
+            'holidayDesc'           => $holidayDesc,
+            'kehadiranStats'        => $kehadiranStats,
+            'dhuhurStats'           => $dhuhurStats,
+            'enableSholatDhuhur'    => $enableSholatDhuhur,
+            'enableEkstrakurikuler' => $enableEkstrakurikuler,
+            'ekskulStats'           => $ekskulStats,
+            'activeEkskuls'         => $activeEkskuls,
+            'enableCheckout'        => (bool) ($settings?->enable_checkout ?? true),
+            'checkinTime'           => substr((string) ($settings?->checkin_time ?? '07:00'), 0, 5),
+            'workDaysLabel'         => ($settings?->work_days_type ?? '5_hari') === '6_hari' ? '6 Hari Kerja' : '5 Hari Kerja',
+            'totalKelas'            => $totalKelas,
+            'kioskKehadiranUrl'     => $kioskKehadiranUrl,
         ])->title('Dashboard Utama - Portal Presensi');
     }
 }

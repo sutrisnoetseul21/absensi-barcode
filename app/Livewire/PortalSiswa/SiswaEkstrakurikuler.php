@@ -24,6 +24,12 @@ class SiswaEkstrakurikuler extends Component
 
     public function mount(?string $slug = null): void
     {
+        abort_if(
+            !(PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true),
+            403,
+            'Fitur Ekstrakurikuler sedang dinonaktifkan.'
+        );
+
         $this->student = Auth::user()?->student;
         if (!$this->student) {
             abort(403, 'Akses ditolak: Data siswa tidak ditemukan.');

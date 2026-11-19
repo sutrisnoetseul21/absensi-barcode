@@ -18,6 +18,12 @@ class AttendanceKioskEkstrakurikuler extends Component
 
     public function mount(string $slug): void
     {
+        abort_if(
+            !(PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true),
+            403,
+            'Fitur Ekstrakurikuler sedang dinonaktifkan.'
+        );
+
         $this->ekskul = Ekstrakurikuler::with(['pembinas', 'tahunAjaran'])
             ->where('slug', $slug)
             ->firstOrFail();

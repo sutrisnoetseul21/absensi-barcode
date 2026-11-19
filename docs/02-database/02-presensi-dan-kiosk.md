@@ -64,6 +64,7 @@ Dokumen ini memuat skema tabel pencatatan kehadiran gerbang sekolah, log scan, p
 - `school_address` (text): Alamat lengkap sekolah.
 - `academic_year_id_active` (char(36), FK, nullable): Relasi ke `academic_years.id` yang sedang aktif.
 - `active_semester` (varchar(20)): Semester aktif (`ganjil` / `genap`).
+- `enable_checkout`, `enable_sholat_dhuhur`, `enable_sholat_jumat`, `enable_presensi_kbm`, `enable_ekstrakurikuler` (boolean): Sakelar aktivasi submodul presensi lintas Portal Presensi, Portal Guru, dan Portal Siswa.
 
 ---
 

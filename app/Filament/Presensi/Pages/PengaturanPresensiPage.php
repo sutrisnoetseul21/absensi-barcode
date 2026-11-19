@@ -58,6 +58,7 @@ class PengaturanPresensiPage extends Page implements HasForms
         $data['enable_sholat_dhuhur'] = $settings ? (bool)($settings->enable_sholat_dhuhur ?? true) : true;
         $data['enable_sholat_jumat'] = $settings ? (bool)($settings->enable_sholat_jumat ?? false) : false;
         $data['enable_presensi_kbm'] = $settings ? (bool)($settings->enable_presensi_kbm ?? true) : true;
+        $data['enable_ekstrakurikuler'] = $settings ? (bool)($settings->enable_ekstrakurikuler ?? true) : true;
 
         // Load data WhatsApp Settings (Koneksi API saja)
         $wa = \App\Models\WhatsAppSetting::current();
@@ -129,6 +130,12 @@ class PengaturanPresensiPage extends Page implements HasForms
                         Toggle::make('enable_presensi_kbm')
                             ->label('Aktifkan Rekapitulasi Presensi KBM di Portal Siswa')
                             ->helperText('Jika diaktifkan, siswa dapat melihat rekapitulasi kehadiran per mata pelajaran dari jurnal mengajar guru di aplikasi mobile. Jika dinonaktifkan, tab KBM disembunyikan.')
+                            ->default(true)
+                            ->columnSpanFull(),
+
+                        Toggle::make('enable_ekstrakurikuler')
+                            ->label('Aktifkan Presensi Ekstrakurikuler')
+                            ->helperText('Jika dinonaktifkan, menu dan halaman Ekstrakurikuler beserta Kiosk Scanner-nya disembunyikan dari Portal Presensi, Portal Guru, dan Portal Siswa.')
                             ->default(true)
                             ->columnSpanFull(),
 

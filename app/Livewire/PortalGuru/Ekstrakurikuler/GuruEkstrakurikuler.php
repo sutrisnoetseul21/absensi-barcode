@@ -55,6 +55,12 @@ class GuruEkstrakurikuler extends Component
 
     public function mount(?string $slug = null): void
     {
+        abort_if(
+            !(PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true),
+            403,
+            'Fitur Ekstrakurikuler sedang dinonaktifkan.'
+        );
+
         $user = Auth::user();
         if (!$user || (!$user->teacher && !$user->isSuperAdmin() && !$user->hasRole('super_admin'))) {
             abort(403, 'Akses ditolak: Halaman ini khusus Guru Pembina Ekstrakurikuler atau Administrator.');

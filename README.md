@@ -28,6 +28,11 @@ Sistem ERP (Enterprise Resource Planning) berbasis Laravel 12 & Filament untuk p
 - **Akses Portal Perpustakaan**:
   - Penugasan terpusat role `petugas_perpustakaan` untuk pengguna (Guru, Staf TU, atau Petugas Khusus).
 
+### 5. 🏅 Ekstrakurikuler & Kiosk Scanner Dinamis Lintas Portal
+- **Portal Akademik (`/portal-akademik/ekstrakurikuler/*`)**: Master ekstrakurikuler per Tahun Ajaran, plotting multi-guru pembina, dual-panel manajemen anggota, link kiosk otomatis (`/portal-presensi/scan-ekstrakurikuler/{slug}`), serta Monitoring & ekspor Excel/PDF.
+- **Portal Presensi (`/portal-presensi/ekstrakurikuler/*`)**: Dashboard & daftar Kiosk Ekskul, Input Manual, Rekap & Cetak Laporan, toggle on/off global `enable_ekstrakurikuler` di Pengaturan Presensi, serta tombol broadcast WhatsApp untuk anggota yang belum hadir / alpa per pertemuan.
+- **Portal Guru (`/portal-guru/ekstrakurikuler/{slug?}`) & Portal Siswa (`/portal-siswa/ekstrakurikuler/{slug?}`)**: Submenu accordion per ekstrakurikuler, manajemen pertemuan & jurnal kegiatan (Guru), serta pemantauan riwayat pertemuan & statistik kehadiran pribadi (Siswa).
+
 ---
 
 ## 🚀 Arsitektur Sistem
@@ -44,6 +49,8 @@ Sistem ERP (Enterprise Resource Planning) berbasis Laravel 12 & Filament untuk p
 Dokumentasi arsitektur, panduan seeder, dan log pengembangan dapat ditemukan di folder [`docs/`](docs/):
 
 - [`docs/README.md`](docs/README.md) - Panduan Utama Dokumentasi System
+- [`docs/03-fitur/13-ekstrakurikuler/README.md`](docs/03-fitur/13-ekstrakurikuler/README.md) - Panduan Fitur Ekstrakurikuler Lintas Portal & WA Broadcast
+- [`docs/02-database/10-ekstrakurikuler.md`](docs/02-database/10-ekstrakurikuler.md) - Skema Database Klaster Ekstrakurikuler
 - [`docs/notifikasi-wa-laporan-presensi.md`](docs/notifikasi-wa-laporan-presensi.md) - **Panduan Lengkap Notifikasi WA** (Setup Scheduler, Konfigurasi, Kirim Manual, Troubleshooting)
 - [`docs/deployment-crontab.md`](docs/deployment-crontab.md) - Panduan Setup Cron Job (HestiaCP & SSH)
 - [`docs/pengaturan-admin-seeder/panduan.md`](docs/pengaturan-admin-seeder/panduan.md) - Panduan Seeder & Manajemen Akses Portal

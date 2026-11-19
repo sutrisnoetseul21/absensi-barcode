@@ -221,8 +221,11 @@
             @endif
 
             @php
-                $canAccessEkskulCard = (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('super_admin'))
-                    || (auth()->user()?->teacher && (auth()->user()->teacher->canAccessAllClasses() || auth()->user()->teacher->ekstrakurikulers()->where('status_aktif', true)->exists()));
+                $enableEkskulGlobal = (bool) (\App\Models\PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true);
+                $canAccessEkskulCard = $enableEkskulGlobal && (
+                    (auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('super_admin'))
+                    || (auth()->user()?->teacher && (auth()->user()->teacher->canAccessAllClasses() || auth()->user()->teacher->ekstrakurikulers()->where('status_aktif', true)->exists()))
+                );
             @endphp
             @if($canAccessEkskulCard)
             <!-- Shortcut: Ekstrakurikuler & Scanner -->

@@ -560,10 +560,17 @@
                         $isDhuhurDashboard = request()->routeIs('portal-presensi.sholat-dhuhur.dashboard');
                         $isDhuhurInput = request()->routeIs('portal-presensi.sholat-dhuhur.input-manual');
                         $isDhuhurLaporan = request()->routeIs('portal-presensi.sholat-dhuhur.laporan');
+                        $isEkskulDashboard = request()->routeIs('portal-presensi.ekstrakurikuler.dashboard');
+                        $isEkskulInput = request()->routeIs('portal-presensi.ekstrakurikuler.input-manual');
+                        $isEkskulLaporan = request()->routeIs('portal-presensi.ekstrakurikuler.laporan');
                         $isPresensiKehadiranGroup = $isKehadiranDashboard || $isInputManual || $isCetakLaporan || $isRekapKelas || $isRekapSekolah;
                         $isSholatDhuhurGroup = $isDhuhurDashboard || $isDhuhurInput || $isDhuhurLaporan;
+                        $isEkskulGroup = $isEkskulDashboard || $isEkskulInput || $isEkskulLaporan;
                         $enableSholatDhuhurMenu = (bool) (\App\Models\PengaturanSekolah::current()?->enable_sholat_dhuhur ?? true);
-                        $defaultPresensiGroup = $isSholatDhuhurGroup ? 'sholat_dhuhur' : ($isPresensiKehadiranGroup ? 'kehadiran' : '');
+                        $enableEkskulMenu = (bool) (\App\Models\PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true);
+                        $defaultPresensiGroup = $isEkskulGroup
+                            ? 'ekstrakurikuler'
+                            : ($isSholatDhuhurGroup ? 'sholat_dhuhur' : ($isPresensiKehadiranGroup ? 'kehadiran' : ''));
                     @endphp
 
                     <div x-data="{ activePresensiGroup: '{{ $defaultPresensiGroup }}' }" class="space-y-1.5">
@@ -657,6 +664,47 @@
                                     <a href="{{ route('portal-presensi.sholat-dhuhur.laporan') }}"
                                        class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isDhuhurLaporan ? 'bg-teal-600 text-white shadow-md shadow-teal-600/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                                         <span class="w-1.5 h-1.5 rounded-full {{ $isDhuhurLaporan ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Rekap dan Cetak Laporan</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($enableEkskulMenu)
+                            <!-- Grup Accordion: Presensi Ekstrakurikuler (mengikuti tema Portal Sistem) -->
+                            <div class="space-y-1">
+                                <button type="button"
+                                        @click="if (isCollapsed) { sidebarCollapsed = false; activePresensiGroup = 'ekstrakurikuler'; } else { activePresensiGroup = (activePresensiGroup === 'ekstrakurikuler' ? '' : 'ekstrakurikuler'); }"
+                                        :title="isCollapsed ? 'Presensi Ekstrakurikuler' : ''"
+                                        class="w-full flex items-center justify-between gap-3.5 py-3 rounded-2xl transition-all group relative cursor-pointer {{ $isEkskulGroup ? 'bg-brand-primary/10 text-brand-primary font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium' }}"
+                                        :class="isCollapsed ? 'justify-center px-0' : 'px-3.5'">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="p-1.5 rounded-lg {{ $isEkskulGroup ? 'bg-brand-primary text-white shadow-sm' : 'bg-slate-100 text-slate-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary' }} group-hover:scale-105 transition-transform backdrop-blur-sm">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                        </div>
+                                        <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Presensi Ekstrakurikuler</span>
+                                    </div>
+                                    <svg x-show="!isCollapsed" x-transition.opacity :class="{ 'rotate-180': activePresensiGroup === 'ekstrakurikuler' }" class="w-4 h-4 shrink-0 transition-transform duration-200 {{ $isEkskulGroup ? 'text-brand-primary' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <div x-show="activePresensiGroup === 'ekstrakurikuler' && !isCollapsed" x-collapse class="pl-4 pr-1 py-1 space-y-1 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                    <a href="{{ route('portal-presensi.ekstrakurikuler.dashboard') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isEkskulDashboard ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isEkskulDashboard ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Dashboard &amp; Kiosk</span>
+                                    </a>
+
+                                    <a href="{{ route('portal-presensi.ekstrakurikuler.input-manual') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isEkskulInput ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isEkskulInput ? 'bg-white' : 'bg-slate-400' }}"></span>
+                                        <span class="truncate">Input Manual</span>
+                                    </a>
+
+                                    <a href="{{ route('portal-presensi.ekstrakurikuler.laporan') }}"
+                                       class="flex items-center gap-2.5 py-2.5 px-3 pl-6 rounded-xl text-xs font-semibold transition-all relative {{ $isEkskulLaporan ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $isEkskulLaporan ? 'bg-white' : 'bg-slate-400' }}"></span>
                                         <span class="truncate">Rekap dan Cetak Laporan</span>
                                     </a>
                                 </div>
@@ -834,6 +882,7 @@
                         @endif
 
                         <!-- Menu Ekstrakurikuler Siswa (Accordion Submenu per Ekskul Diikuti) -->
+                        @if(\App\Models\PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true)
                         @if($siswaEkskulMenuItems->isNotEmpty())
                             <div x-data="{ open: {{ $isEkstrakurikulerSiswaActive ? 'true' : 'false' }} }" class="space-y-1">
                                 <button @click="if(isCollapsed) { sidebarCollapsed = false; } open = !open"
@@ -874,6 +923,7 @@
                                 </div>
                                 <span class="text-sm truncate" x-show="!isCollapsed" x-transition.opacity>Ekstrakurikuler</span>
                             </a>
+                        @endif
                         @endif
 
                         <!-- Menu Konsultasi Guru Wali (Permen 11/2025) -->
@@ -1008,7 +1058,8 @@
                                 $guruEkskulMenuItems = $qEkskul->get(['id', 'nama_ekskul', 'slug']);
                             }
                         }
-                        $canAccessEkskulGuru = $guruEkskulMenuItems->isNotEmpty() || ($user?->isSuperAdmin() || $user?->hasRole('super_admin'));
+                        $canAccessEkskulGuru = (\App\Models\PengaturanSekolah::current()?->enable_ekstrakurikuler ?? true)
+                            && ($guruEkskulMenuItems->isNotEmpty() || ($user?->isSuperAdmin() || $user?->hasRole('super_admin')));
                     @endphp
 
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 truncate" x-show="!isCollapsed" x-transition.opacity>Modul Guru</p>
