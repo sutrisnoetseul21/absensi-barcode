@@ -35,6 +35,13 @@ class Prestasi extends Component
         ];
     }
 
+    public function mount(): void
+    {
+        if (request()->query('action') === 'create') {
+            $this->openCreate();
+        }
+    }
+
     public function updatedSearch(): void { $this->resetPage(); }
 
     public function openCreate(): void { $this->resetForm(); $this->showModal = true; }

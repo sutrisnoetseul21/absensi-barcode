@@ -20,6 +20,16 @@ Portal khusus Administrator Sistem & Keamanan ERP berbasis **Filament Panel** (`
 
 ---
 
+## 🎨 Dashboard Utama (`/portal-sistem`)
+
+Halaman beranda Portal Sistem dikelola oleh [`SistemDashboard`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemDashboard.php) dengan custom view [`dashboard.blade.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/resources/views/filament/sistem/pages/dashboard.blade.php):
+- **Hero Banner Tema Dinamis**: Mengikuti palet warna `theme_primary` & `theme_secondary` yang diatur di `SistemThemeSettingsPage` (juga diterapkan ke primary color [`SistemPanelProvider`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Providers/Filament/SistemPanelProvider.php)).
+- **4 Kartu Statistik Utama**: Total Pengguna Non-Siswa, Super Admin, Admin Modul, dan Role Sistem.
+- **Ringkasan Status Sistem Real-Time**: Indikator status aktif Gateway WA & nama instance, detak *Scheduler* (`schedule-heartbeat`), jumlah portal yang sedang dalam Mode Maintenance, serta status formulir **Pengaduan Publik** dan **Tracer Alumni**.
+- **Grid Akses Cepat 4 Kotak per Baris**: Dikelompokkan berdasarkan *Manajemen Akses & Keamanan*, *Gateway, Pengaturan Modul & Maintenance*, serta *Notifikasi WhatsApp Modular*, dilengkapi pop-up **Manajemen User & Akses** (`quickModal === 'users'`).
+
+---
+
 ## 📋 Peta Menu Portal Sistem
 
 ### 1. Grup `Manajemen Akses`
@@ -44,13 +54,18 @@ Portal khusus Administrator Sistem & Keamanan ERP berbasis **Filament Panel** (`
    - Konfigurasi provider gateway WhatsApp (Evolution API / gateway kustom), API Key, Instance Name, URL endpoint, uji koneksi, dan sinkronisasi template dasar.
 2. **Pengaturan SPIKAP** (`/portal-sistem/pengaturan-spikap` — [`SistemPengaturanSpikapPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemPengaturanSpikapPage.php))
    - Penetapan daftar guru/staf yang berhak memantau & menindaklanjuti laporan SPIKAP beserta hak akses per fitur (lihat, balas/tindak lanjut, ubah status, hapus).
-3. **Pesan Massal Android** (`/portal-sistem/pesan-massal-android` — [`SistemPesanMassalPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemPesanMassalPage.php))
+3. **Pengaturan Layanan Publik** (`/portal-sistem/pengaturan-layanan-publik` — [`SistemPengaturanPelayananPublikPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemPengaturanPelayananPublikPage.php))
+   - Konfigurasi identitas modul aspirasi & pengaduan (`/pengaduan`), judul & teks banner, dokumen/gambar maklumat pelayanan, serta tautan kanal pengawasan publik (`/layanan-publik`). Dipindahkan dari `/portal-web/pelayanan/pengaturan` (rute lama diarahkan otomatis via redirect).
+4. **Pengaturan Tracer Alumni** (`/portal-sistem/pengaturan-tracer-alumni` — [`SistemPengaturanTracerAlumniPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemPengaturanTracerAlumniPage.php))
+   - Konfigurasi judul banner, deskripsi pengantar, dan teks tombol formulir pendaftaran Tracer Study Alumni (`/alumni`). Dipindahkan dari `/portal-web/alumni/pengaturan` (rute lama diarahkan otomatis via redirect).
+5. **Pesan Massal Android** (`/portal-sistem/pesan-massal-android` — [`SistemPesanMassalPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemPesanMassalPage.php))
    - Manajemen pengiriman pesan/siaran massal melalui aplikasi Android.
-4. **Mode Maintenance & Pengumuman** (`/portal-sistem/maintenance-portal` — [`SistemMaintenancePortalPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemMaintenancePortalPage.php))
+6. **Mode Maintenance & Pengumuman** (`/portal-sistem/maintenance-portal` — [`SistemMaintenancePortalPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemMaintenancePortalPage.php))
    - **Mode Pemeliharaan (503) per Portal**: Penguncian sementara akses Portal Siswa (`/portal-siswa`), Portal Guru (`/portal-guru`), dan Portal Perpustakaan (`/portal-perpustakaan`) lengkap dengan pesan layar pemeliharaan serta bypass otomatis untuk `super_admin` di [`CheckPortalMaintenance`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Middleware/CheckPortalMaintenance.php).
-   - **Buka/Tutup Formulir Pengaduan Publik (`/pengaduan`)**: Kontrol status aktif/nonaktif formulir aspirasi & pengaduan masyarakat (`PengaduanSetting.is_active`), diproteksi pula di [`BerandaController::pengaduanStore()`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/BerandaController.php). *(Pengaturan teks banner, gambar visi-misi/maklumat, dan tautan SP4N-LAPOR tetap dikelola di Portal Web).*
+   - **Buka/Tutup Formulir Pengaduan Publik (`/pengaduan`)**: Kontrol status aktif/nonaktif formulir aspirasi & pengaduan masyarakat (`PengaduanSetting.is_active`), diproteksi pula di [`BerandaController::pengaduanStore()`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Http/Controllers/BerandaController.php).
+   - **Buka/Tutup Tracer Study & Direktori Alumni (`/alumni`)**: Kontrol terpusat status formulir pendaftaran tracer alumni (`AlumniSetting.is_active`) dan visibilitas tabel direktori alumni publik (`AlumniSetting.show_table`).
    - **Siaran Pengumuman Sistem Global**: Banner pengumuman jadwal pemeliharaan/informasi penting lintas portal (`global_announcement_active` & `global_announcement`).
-5. **Pengaturan Tema** (`/portal-sistem/theme-settings-page` — [`SistemThemeSettingsPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemThemeSettingsPage.php))
+7. **Pengaturan Tema** (`/portal-sistem/theme-settings-page` — [`SistemThemeSettingsPage`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Sistem/Pages/SistemThemeSettingsPage.php))
    - Pemilihan preset tema siap pakai dan palet warna kustom (`theme_primary`, `theme_secondary`, `theme_accent`, `theme_warning`, `theme_danger`, `theme_info`) beserta reset tema bawaan.
 
 ### 3. Grup `Notifikasi WhatsApp`

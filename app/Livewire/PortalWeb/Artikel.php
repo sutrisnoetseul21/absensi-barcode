@@ -40,6 +40,17 @@ class Artikel extends Component
         ];
     }
 
+    public function mount(): void
+    {
+        if (request()->query('action') === 'create') {
+            $this->openCreate();
+            $tipe = request()->query('tipe');
+            if (in_array($tipe, ['berita', 'pengumuman'], true)) {
+                $this->tipe = $tipe;
+            }
+        }
+    }
+
     public function updatedSearch(): void { $this->resetPage(); }
     public function updatedFilterTipe(): void { $this->resetPage(); }
 

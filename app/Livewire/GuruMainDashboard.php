@@ -48,6 +48,11 @@ class GuruMainDashboard extends Component
     public $jurnalHariIniCount = 0;
     public $totalJurnalCount = 0;
 
+    // Ekstrakurikuler & SI-WALI Analitik
+    public $ekskulItems = [];
+    public $canAccessEkskulCard = false;
+    public $canAccessAnalitik = false;
+
     public function mount()
     {
         $user = Auth::user();
@@ -178,6 +183,35 @@ class GuruMainDashboard extends Component
             $this->totalJurnalCount = \App\Models\JurnalPembelajaran::where('teacher_id', $this->teacher->id)
                 ->count();
         }
+
+        // Ekstrakurikuler Binaan
+        $schoolSetting = \App\Models\PengaturanSekolah::current();
+        $enableEkskulGlobal = (bool) ($schoolSetting?->enable_ekstrakurikuler ?? true);
+        $activeYearId = $schoolSetting?->academic_year_id_active ?? $activeYear?->id;
+        $ekskulCollection = collect();
+
+        if ($enableEkskulGlobal && $activeYearId) {
+            $isAllEkskul = $this->isSuperAdmin || ($this->teacher && $this->teacher->canAccessAllClasses());
+            if ($isAllEkskul || $this->teacher) {
+                $qEkskul = \App\Models\Ekstrakurikuler::where('academic_year_id', $activeYearId)
+                    ->where('status_aktif', true)
+                    ->orderBy('nama_ekskul');
+                if (!$isAllEkskul && $this->teacher) {
+                    $qEkskul->whereHas('pembinas', fn ($q) => $q->where('teachers.id', $this->teacher->id));
+                }
+                $ekskulCollection = $qEkskul->get(['id', 'nama_ekskul', 'slug']);
+            }
+        }
+
+        $this->ekskulItems = $ekskulCollection->map(fn ($item) => [
+            'id'          => $item->id,
+            'nama_ekskul' => $item->nama_ekskul,
+            'slug'        => $item->slug,
+        ])->values()->toArray();
+
+        $this->canAccessEkskulCard = $enableEkskulGlobal && ($ekskulCollection->isNotEmpty() || $this->isSuperAdmin);
+        $this->canAccessAnalitik = $user->hasRole(['guru_bk', 'Guru BK'])
+            || ($this->teacher !== null && $this->teacher->hasJabatan(['Kepala Sekolah', 'Waka Kesiswaan', 'Wakil Kepala Sekolah Bidang Kesiswaan']));
     }
 
     #[Layout('components.layouts.portal')]

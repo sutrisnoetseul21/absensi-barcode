@@ -18,7 +18,7 @@ class SistemPesanMassalPage extends KirimPesanMassalPage
 
     protected static string|\UnitEnum|null $navigationGroup = 'Gateway & Pengaturan Modul';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function canAccess(): bool
     {

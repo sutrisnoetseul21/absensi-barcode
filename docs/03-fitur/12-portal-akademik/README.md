@@ -20,6 +20,17 @@ Portal khusus pengelolaan operasional akademik, master data GTK & kesiswaan, rom
 
 ---
 
+## 🎨 Dashboard Utama (`/portal-akademik`)
+
+Halaman beranda Portal Akademik dikelola oleh [`AkademikDashboard`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Pages/AkademikDashboard.php) dengan custom view [`dashboard.blade.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/resources/views/filament/akademik/pages/dashboard.blade.php):
+- **Hero Banner Tema Dinamis**: Menggunakan warna `theme_primary` & `theme_secondary`, menampilkan Tahun Ajaran aktif, semester, status hari efektif/libur sekolah (`KalenderSekolahService` & `HariLibur`), serta tombol cepat **Tambah Siswa** dan **Tambah Guru** (menyesuaikan hak akses `Editor`/`Viewer`).
+- **4 Kartu Statistik Utama**: **Siswa Aktif**, **Guru Terdaftar**, **Kelas / Rombel**, dan **Jurnal KBM Hari Ini**.
+- **Grid Akses Cepat 4 Kotak per Baris**: Dilengkapi deskripsi poin ringkas dalam 2 blok utama:
+  1. **Data Master & Operasional Kesiswaan**: Data Guru *(pop-up)*, Data Siswa *(pop-up)*, Data Kelas *(pop-up)*, Penempatan & Naik Kelas, Pindah Kelas, Siswa Lulus, Siswa Mutasi, dan pintasan Portal Setup Awal.
+  2. **Supervisi Pembelajaran, Guru Wali & Ekstrakurikuler**: Jurnal Mengajar *(pop-up 3 menu)*, Guru Wali / SI-WALI *(pop-up 4 menu)*, dan Ekstrakurikuler *(pop-up 3 menu)*.
+
+---
+
 ## 📋 Peta Menu Portal Akademik
 
 ### 1. Grup `Data Master`

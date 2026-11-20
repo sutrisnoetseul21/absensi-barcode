@@ -4,7 +4,17 @@ Seluruh konten visual, teks, dan media di halaman beranda dapat dikelola langsun
 
 ---
 
-## 1. Peta Menu Admin Portal Web
+## 1. Dashboard & Reorganisasi Menu Portal Web (`/portal-web`)
+
+Halaman beranda Portal Web dikelola oleh [`App\Livewire\PortalWeb\Dashboard`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalWeb/Dashboard.php) dan view [`dashboard.blade.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/resources/views/livewire/portal-web/dashboard.blade.php), dengan sidebar terstruktur di [`portal.blade.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/resources/views/components/layouts/portal.blade.php):
+- **Pengelompokan Menu 4 Kotak per Baris**:
+  1. **Upload & Publikasi (Operasional Harian)**: Artikel & Pengumuman *(pop-up Lihat Daftar / Tambah)*, Prestasi Sekolah *(pop-up)*, dan Galeri Foto *(pop-up)* — mendukung parameter `?action=create` untuk membuka modal tambah langsung pada komponen [`Artikel`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalWeb/Artikel.php), [`Prestasi`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalWeb/Prestasi.php), dan [`Galeri`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/PortalWeb/Galeri.php).
+  2. **Pelayanan Publik & Data Alumni**: Pengaduan & Aspirasi, Kategori Pengaduan, Halaman Layanan, FAQ Sekolah, Data Alumni, dan Jenjang Lanjutan. *(Pengaturan modul Pelayanan Publik & Tracer Alumni telah dipusatkan di Portal Sistem `/portal-sistem`, dengan redirect otomatis di [`routes/web.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/routes/web.php))*.
+  3. **Setup Beranda & Profil Sekolah**: Pengaturan Web, Akses Cepat, Sarana & Prasarana, Pilar Keunggulan, Statistik Web, Halaman Akademik, dan Microsite.
+
+---
+
+## 2. Peta Menu Admin Portal Web
 
 | Menu Portal Web | Komponen Livewire Pengelola | Konten Beranda yang Terpengaruh |
 | :--- | :--- | :--- |
@@ -18,7 +28,7 @@ Seluruh konten visual, teks, dan media di halaman beranda dapat dikelola langsun
 
 ---
 
-## 2. Prosedur Pembaruan Konten Kritis
+## 3. Prosedur Pembaruan Konten Kritis
 
 ### A. Mengubah Banner Hero & Running Text
 1. Login ke `/portal-web` menggunakan akun admin web atau superadmin.
@@ -45,7 +55,7 @@ Seluruh konten visual, teks, dan media di halaman beranda dapat dikelola langsun
 
 ---
 
-## 3. Catatan Penyimpanan Media (*Storage*)
+## 4. Catatan Penyimpanan Media (*Storage*)
 - Seluruh upload gambar (hero, foto kepsek, foto fasilitas, foto galeri) disimpan di disk `public`:
   - `storage/app/public/web-setting/`
   - `storage/app/public/sarpras/`

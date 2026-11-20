@@ -2,6 +2,7 @@
 
 namespace App\Filament\Sistem\Pages;
 
+use App\Models\AlumniSetting;
 use App\Models\PengaduanSetting;
 use App\Models\PengaturanSekolah;
 use BackedEnum;
@@ -32,7 +33,7 @@ class SistemMaintenancePortalPage extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Gateway & Pengaturan Modul';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     protected string $view = 'filament.pages.school-settings';
 
@@ -63,6 +64,7 @@ class SistemMaintenancePortalPage extends Page
         }
 
         $pengaduanSetting = PengaduanSetting::instance();
+        $alumniSetting = AlumniSetting::instance();
 
         $this->form->fill([
             'maintenance_portal_siswa' => (bool) $settings->maintenance_portal_siswa,
@@ -72,6 +74,8 @@ class SistemMaintenancePortalPage extends Page
             'maintenance_portal_perpustakaan' => (bool) $settings->maintenance_portal_perpustakaan,
             'welcome_message_perpustakaan' => $settings->welcome_message_perpustakaan,
             'pengaduan_is_active' => (bool) $pengaduanSetting->is_active,
+            'alumni_is_active' => (bool) $alumniSetting->is_active,
+            'alumni_show_table' => (bool) $alumniSetting->show_table,
             'global_announcement_active' => (bool) $settings->global_announcement_active,
             'global_announcement' => $settings->global_announcement,
         ]);
@@ -141,7 +145,7 @@ class SistemMaintenancePortalPage extends Page
                                     ]),
 
                                 Section::make('Formulir Layanan Pengaduan Publik (/pengaduan)')
-                                    ->description('Kontrol buka/tutup akses pengiriman aspirasi & pengaduan masyarakat pada halaman publik sekolah. (Pengaturan teks banner dan gambar maklumat dikelola di Portal Web).')
+                                    ->description('Kontrol buka/tutup akses pengiriman aspirasi & pengaduan masyarakat pada halaman publik sekolah. (Pengaturan teks banner dan gambar maklumat dikelola di menu Pengaturan Layanan Publik).')
                                     ->compact()
                                     ->schema([
                                         Toggle::make('pengaduan_is_active')
@@ -149,6 +153,23 @@ class SistemMaintenancePortalPage extends Page
                                             ->onColor('success')
                                             ->offColor('danger')
                                             ->helperText('Jika aktif (Hijau), formulir pengaduan publik dapat diisi masyarakat. Jika dimatikan (Merah), halaman /pengaduan menampilkan status layanan sedang ditutup sementara.'),
+                                    ]),
+
+                                Section::make('Layanan Tracer Study & Direktori Alumni Publik (/alumni)')
+                                    ->description('Kontrol buka/tutup formulir pengisian data Tracer Study Alumni serta visibilitas tabel direktori alumni pada halaman publik sekolah.')
+                                    ->compact()
+                                    ->columns(2)
+                                    ->schema([
+                                        Toggle::make('alumni_is_active')
+                                            ->label('Buka Formulir Pendaftaran Tracer Alumni (/alumni)')
+                                            ->onColor('success')
+                                            ->offColor('danger')
+                                            ->helperText('Jika aktif (Hijau), alumni dapat mendaftarkan data tracer study. Jika dimatikan (Merah), pengisian data alumni ditutup sementara.'),
+                                        Toggle::make('alumni_show_table')
+                                            ->label('Tampilkan Direktori Alumni Publik (/alumni)')
+                                            ->onColor('success')
+                                            ->offColor('gray')
+                                            ->helperText('Jika aktif (Hijau), kartu dan daftar direktori alumni ditampilkan secara publik di halaman /alumni.'),
                                     ]),
                             ]),
                     ]),
@@ -208,6 +229,11 @@ class SistemMaintenancePortalPage extends Page
 
         PengaduanSetting::instance()->update([
             'is_active' => (bool) ($data['pengaduan_is_active'] ?? true),
+        ]);
+
+        AlumniSetting::instance()->update([
+            'is_active'  => (bool) ($data['alumni_is_active'] ?? true),
+            'show_table' => (bool) ($data['alumni_show_table'] ?? true),
         ]);
 
         Notification::make()

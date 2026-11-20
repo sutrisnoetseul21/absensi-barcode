@@ -22,7 +22,7 @@ class SistemThemeSettingsPage extends BaseThemeSettingsPage
 
     protected static string|UnitEnum|null $navigationGroup = 'Gateway & Pengaturan Modul';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 7;
 
     public static function canAccess(): bool
     {

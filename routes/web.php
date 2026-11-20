@@ -500,7 +500,7 @@ Route::prefix('portal-web')->group(function () {
         Route::get('/galeri', \App\Livewire\PortalWeb\Galeri::class)->name('portal-web.galeri');
         Route::get('/alumni', \App\Livewire\PortalWeb\Alumni::class)->name('portal-web.alumni');
         Route::get('/alumni/jenjang', \App\Livewire\PortalWeb\AlumniJenjang::class)->name('portal-web.alumni.jenjang');
-        Route::get('/alumni/pengaturan', \App\Livewire\PortalWeb\AlumniSetting::class)->name('portal-web.alumni.pengaturan');
+        Route::redirect('/alumni/pengaturan', '/portal-sistem/pengaturan-tracer-alumni')->name('portal-web.alumni.pengaturan');
         Route::get('/akses-cepat', \App\Livewire\PortalWeb\AksesCepat::class)->name('portal-web.akses-cepat');
         Route::get('/sarpras', \App\Livewire\PortalWeb\Sarpras::class)->name('portal-web.sarpras');
         Route::get('/pilar-keunggulan', \App\Livewire\PortalWeb\PilarKeunggulan::class)->name('portal-web.pilar-keunggulan');
@@ -512,7 +512,7 @@ Route::prefix('portal-web')->group(function () {
             Route::get('/kategori', \App\Livewire\PortalWeb\PengaduanKategori::class)->name('kategori');
             Route::get('/halaman', \App\Livewire\PortalWeb\HalamanLayanan::class)->name('halaman');
             Route::get('/faq', \App\Livewire\PortalWeb\FaqSetting::class)->name('faq');
-            Route::get('/pengaturan', \App\Livewire\PortalWeb\PengaduanSetting::class)->name('pengaturan');
+            Route::redirect('/pengaturan', '/portal-sistem/pengaturan-layanan-publik')->name('pengaturan');
         });
 
         Route::post('/logout', function () {

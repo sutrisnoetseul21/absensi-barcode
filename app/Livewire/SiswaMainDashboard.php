@@ -34,6 +34,10 @@ class SiswaMainDashboard extends Component
     public $pendingKonsultasiCount = 0;
     public $dijadwalkanKonsultasiCount = 0;
 
+    // Ekstrakurikuler Siswa
+    public $ekskulItems = [];
+    public $enableEkskul = true;
+
     // Form Properties untuk Alumni (Tracer Study)
     public $status_melanjutkan = false;
     public $jenjang_lanjutan_id = null;
@@ -117,6 +121,28 @@ class SiswaMainDashboard extends Component
                     $this->dijadwalkanKonsultasiCount = \App\Models\KonsultasiGuruWali::where('student_id', $this->student->id)
                         ->where('status_pengajuan', 'Dijadwalkan')
                         ->count();
+                }
+
+                // Ekstrakurikuler yang diikuti siswa
+                $schoolSetting = \App\Models\PengaturanSekolah::current();
+                $this->enableEkskul = (bool) ($schoolSetting?->enable_ekstrakurikuler ?? true);
+                if ($this->enableEkskul) {
+                    $activeYearId = $schoolSetting?->academic_year_id_active
+                        ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+                    if ($activeYearId) {
+                        $this->ekskulItems = \App\Models\Ekstrakurikuler::where('academic_year_id', $activeYearId)
+                            ->where('status_aktif', true)
+                            ->whereHas('anggotaAktif', fn ($q) => $q->where('student_id', $this->student->id))
+                            ->orderBy('nama_ekskul')
+                            ->get(['id', 'nama_ekskul', 'slug'])
+                            ->map(fn ($e) => [
+                                'id'          => $e->id,
+                                'nama_ekskul' => $e->nama_ekskul,
+                                'slug'        => $e->slug,
+                            ])
+                            ->values()
+                            ->toArray();
+                    }
                 }
             }
         }

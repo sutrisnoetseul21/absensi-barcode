@@ -32,6 +32,11 @@ Portal Siswa menyediakan antarmuka terpadu bagi siswa untuk memantau kehadiran, 
   - Jumlah buku perpustakaan yang masih dipinjam.
   - Status permohonan izin (Pending / Disetujui / Ditolak).
   - Status tiket aduan SPIKAP aktif.
+- **Grid Menu 4 Kotak per Baris & Pop-up Pilihan Menu** ([`siswa-main-dashboard.blade.php`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/resources/views/livewire/siswa-main-dashboard.blade.php)):
+  - Setiap kartu menu dilengkapi deskripsi poin ringkas dan aksen tema dinamis.
+  - **Pop-up `Pengajuan Ijin`** (`quickModal === 'ijin'`): Pilihan langsung antara **Ajukan Ijin / Sakit Baru** atau **Lihat Riwayat & Status Ijin**.
+  - **Pop-up `SPIKAP`** (`quickModal === 'spikap'`): Pilihan langsung antara **Buat Laporan Pengaduan** atau **Pantau Daftar Tiket Saya**.
+  - **Pop-up `Ekstrakurikuler`** (`quickModal === 'ekskul'`): Daftar ekstrakurikuler aktif yang diikuti siswa (`$ekskulItems` di [`SiswaMainDashboard`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Livewire/SiswaMainDashboard.php)) untuk membuka jadwal, statistik, dan riwayat presensi ekskul secara langsung.
 - **Profil Guru Wali**: Menampilkan foto dan nama guru wali asuh siswa bersangkutan beserta tombol cepat konsultasi.
 - **Pengumuman Sekolah**: Menampilkan edaran resmi dari pihak sekolah (`Pengumuman::aktifSekarang()`).
 

@@ -54,6 +54,14 @@ class Galeri extends Component
     public string $batchNaming = 'numbered'; // 'numbered', 'original', 'same'
     public int $batchUrutanAwal = 0;
 
+    public function mount(): void
+    {
+        if (request()->query('action') === 'create') {
+            $mode = request()->query('mode', 'batch');
+            $this->openCreate(in_array($mode, ['batch', 'single'], true) ? $mode : 'batch');
+        }
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();

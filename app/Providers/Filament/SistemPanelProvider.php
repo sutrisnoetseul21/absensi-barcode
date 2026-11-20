@@ -7,7 +7,9 @@ use App\Filament\Resources\UserResource;
 use App\Filament\Sistem\Pages\SistemDashboard;
 use App\Filament\Sistem\Pages\SistemKoneksiWaPage;
 use App\Filament\Sistem\Pages\SistemMaintenancePortalPage;
+use App\Filament\Sistem\Pages\SistemPengaturanPelayananPublikPage;
 use App\Filament\Sistem\Pages\SistemPengaturanSpikapPage;
+use App\Filament\Sistem\Pages\SistemPengaturanTracerAlumniPage;
 use App\Filament\Sistem\Pages\SistemPesanMassalPage;
 use App\Filament\Sistem\Pages\SistemThemeSettingsPage;
 use App\Filament\Sistem\Pages\SistemWaGuruWaliPage;
@@ -145,6 +147,8 @@ class SistemPanelProvider extends PanelProvider
                 SistemDashboard::class,
                 SistemKoneksiWaPage::class,
                 SistemPengaturanSpikapPage::class,
+                SistemPengaturanPelayananPublikPage::class,
+                SistemPengaturanTracerAlumniPage::class,
                 SistemPesanMassalPage::class,
                 SistemMaintenancePortalPage::class,
                 SistemThemeSettingsPage::class,
