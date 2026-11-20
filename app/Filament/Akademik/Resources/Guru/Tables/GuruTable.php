@@ -355,6 +355,15 @@ class GuruTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('mataPelajarans.nama_mapel')
+                    ->label('Mata Pelajaran')
+                    ->badge()
+                    ->color('info')
+                    ->listWithLineBreaks()
+                    ->limitList(3)
+                    ->expandableLimitedList()
+                    ->placeholder('Belum diatur'),
+
                 TextColumn::make('nip')
                     ->label('NIP')
                     ->searchable()
@@ -363,18 +372,21 @@ class GuruTable
                 TextColumn::make('no_hp')
                     ->label('No. HP')
                     ->searchable()
-                    ->copyable(),
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('presensiProfile.barcode_code')
                     ->label('Barcode')
                     ->searchable()
-                    ->default('—'),
+                    ->default('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('user.email')
                     ->label('Email Login')
                     ->searchable()
                     ->copyable()
-                    ->copyMessage('Email disalin'),
+                    ->copyMessage('Email disalin')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('microsite_url')
                     ->label('Microsite')
@@ -399,15 +411,93 @@ class GuruTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                \Filament\Tables\Filters\SelectFilter::make('mata_pelajaran_id')
+                    ->label('Filter Mata Pelajaran')
+                    ->relationship('mataPelajarans', 'nama_mapel')
+                    ->searchable()
+                    ->preload(),
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make(),
+                Action::make('assign_pembelajaran_guru')
+                    ->label('Kelas Mengajar')
+                    ->icon('heroicon-o-book-open')
+                    ->color('primary')
+                    ->iconButton()
+                    ->tooltip('Kelas Mengajar')
+                    ->modalHeading(fn (Guru $record): string => "Atur Kelas Mengajar — {$record->name}")
+                    ->modalDescription('Pilih mata pelajaran dan centang kelas yang diajar pada Tahun Ajaran aktif (langsung mengisi Pembelajaran kelas).')
+                    ->modalWidth('lg')
+                    ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
+                    ->form(function (Guru $record): array {
+                        $mapelData = \App\Models\Pengajaran::mapelOptionsForTeacher($record);
+                        $activeYearId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+                            ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+
+                        return [
+                            \Filament\Forms\Components\Select::make('mata_pelajaran_id')
+                                ->label('Mata Pelajaran')
+                                ->options($mapelData['options'])
+                                ->default($mapelData['defaultId'])
+                                ->searchable()
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) use ($record, $activeYearId) {
+                                    if (!$state || !$activeYearId) {
+                                        $set('class_ids', []);
+                                        return;
+                                    }
+                                    $set('class_ids', \App\Models\Pengajaran::assignedClassIdsForTeacherMapel($record->id, (int) $state, $activeYearId));
+                                }),
+
+                            \Filament\Forms\Components\CheckboxList::make('class_ids')
+                                ->label('Kelas yang Diajar')
+                                ->options(\App\Models\Kelas::orderBy('grade_level')->orderBy('name')->pluck('name', 'id')->toArray())
+                                ->default(function () use ($record, $mapelData, $activeYearId) {
+                                    if (!$mapelData['defaultId'] || !$activeYearId) {
+                                        return [];
+                                    }
+                                    return \App\Models\Pengajaran::assignedClassIdsForTeacherMapel($record->id, (int) $mapelData['defaultId'], $activeYearId);
+                                })
+                                ->columns(3)
+                                ->bulkToggleable(),
+                        ];
+                    })
+                    ->action(function (Guru $record, array $data): void {
+                        $activeYearId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+                            ?? \App\Models\TahunAjaran::where('status', 'aktif')->value('id');
+
+                        if (!$activeYearId) {
+                            Notification::make()->title('Gagal')->body('Tidak ada tahun ajaran aktif.')->danger()->send();
+                            return;
+                        }
+
+                        \App\Models\Pengajaran::syncClassesForTeacher(
+                            $record->id,
+                            (int) $data['mata_pelajaran_id'],
+                            $data['class_ids'] ?? [],
+                            $activeYearId
+                        );
+
+                        Notification::make()
+                            ->title('Pembelajaran guru tersimpan')
+                            ->body("Kelas mengajar untuk {$record->name} berhasil diperbarui.")
+                            ->success()
+                            ->send();
+                    }),
+
+                ViewAction::make()
+                    ->iconButton()
+                    ->tooltip('Lihat Detail'),
                 EditAction::make()
+                    ->iconButton()
+                    ->tooltip('Edit Guru')
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
                 // Blokir hapus jika guru masih menjadi wali kelas
                 DeleteAction::make()
+                    ->iconButton()
+                    ->tooltip('Hapus Guru')
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->before(function (Guru $record, DeleteAction $action) {
                         if ($record->kelasAjarans()->exists()) {
@@ -424,6 +514,8 @@ class GuruTable
                     ->label('Reset Password')
                     ->icon('heroicon-o-key')
                     ->color('warning')
+                    ->iconButton()
+                    ->tooltip('Reset Password')
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Reset Password Guru')
@@ -467,6 +559,8 @@ class GuruTable
                     ->label(fn (Guru $record) => $record->presensiProfile && $record->presensiProfile->barcode_code ? 'Regenerate Barcode' : 'Generate Barcode')
                     ->icon('heroicon-o-qr-code')
                     ->color('info')
+                    ->iconButton()
+                    ->tooltip(fn (Guru $record) => $record->presensiProfile && $record->presensiProfile->barcode_code ? 'Regenerate Barcode' : 'Generate Barcode')
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
                     ->requiresConfirmation()
                     ->modalHeading('Generate Barcode Guru')
@@ -493,6 +587,8 @@ class GuruTable
                     }),
 
                 RestoreAction::make()
+                    ->iconButton()
+                    ->tooltip('Pulihkan Guru')
                     ->visible(fn () => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor')),
 
                 // ─── CBT: Reset Password ke Default ───────────────────────
@@ -500,6 +596,8 @@ class GuruTable
                     ->label('Reset Password CBT')
                     ->icon('heroicon-o-key')
                     ->color('warning')
+                    ->iconButton()
+                    ->tooltip('Reset Password CBT')
                     ->requiresConfirmation()
                     ->modalHeading('Reset Password CBT Guru')
                     ->modalDescription(fn (Guru $record): string => implode(PHP_EOL, [
@@ -528,6 +626,8 @@ class GuruTable
                     ->label('Set Password CBT')
                     ->icon('heroicon-o-pencil-square')
                     ->color('info')
+                    ->iconButton()
+                    ->tooltip('Set Password CBT')
                     ->fillForm(fn (Guru $record) => ['email_info' => $record->user?->email ?? '-'])
                     ->form([
                         TextInput::make('email_info')

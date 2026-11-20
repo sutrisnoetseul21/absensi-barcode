@@ -113,6 +113,12 @@ class Guru extends Authenticatable
         return $this->hasMany(Pengajaran::class, 'teacher_id');
     }
 
+    public function mataPelajarans(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(MataPelajaran::class, 'teacher_mata_pelajaran', 'teacher_id', 'mata_pelajaran_id')
+            ->withTimestamps();
+    }
+
     public function getSemuaJabatanAttribute()
     {
         // 1. Ambil jabatan dari tabel teacher_jabatan (yang belum selesai / tanggal_selesai null atau > now)

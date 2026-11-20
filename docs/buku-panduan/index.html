@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buku Panduan Pengguna — Smart School ERP &amp; Presensi Barcode</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface-alt: #f1f5f9;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #475569;
+            --text-soft: #64748b;
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
+            --primary-soft: #eef2ff;
+            --emerald: #059669;
+            --emerald-soft: #ecfdf5;
+            --amber: #d97706;
+            --amber-soft: #fffbeb;
+            --shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.1);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+        }
+
+        /* Top Bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 6px 14px rgba(79, 70, 229, 0.25);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .brand p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-switch {
+            display: inline-flex;
+            background: var(--surface-alt);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            gap: 4px;
+        }
+
+        .mode-btn {
+            border: 0;
+            background: transparent;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25);
+        }
+
+        .print-btn {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            padding: 7px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .print-btn:hover { background: var(--surface-alt); }
+
+        /* Layout */
+        .layout {
+            max-width: 1360px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 24px;
+            padding: 24px 20px 64px;
+        }
+
+        @media (max-width: 960px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { position: static !important; }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 84px;
+            align-self: start;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-soft);
+            margin: 0 0 10px 8px;
+        }
+
+        .nav-group { margin-bottom: 14px; }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 11px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .nav-link:hover { background: var(--surface-alt); color: var(--text); }
+        .nav-link.active { background: var(--primary-soft); color: var(--primary-dark); font-weight: 700; }
+        .nav-link.sub { padding-left: 22px; font-size: 12px; font-weight: 500; }
+
+        .pill-ok {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: var(--emerald-soft);
+            color: var(--emerald);
+        }
+        .pill-plan {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: var(--surface-alt);
+            color: var(--text-soft);
+        }
+
+        /* Main Content */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #4f46e5, #6d28d9);
+            color: #fff;
+            border-radius: 24px;
+            padding: 28px 30px;
+            box-shadow: 0 16px 35px -15px rgba(79, 70, 229, 0.5);
+        }
+        .hero .eyebrow {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(255, 255, 255, 0.18);
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-bottom: 10px;
+        }
+        .hero h2 { margin: 0 0 8px; font-size: 26px; font-weight: 800; line-height: 1.25; }
+        .hero p { margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.9); max-width: 760px; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 26px;
+            box-shadow: var(--shadow);
+        }
+
+        .chapter-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+        }
+        .chapter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+        .url-chip {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: var(--surface-alt);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .section-block {
+            padding-top: 22px;
+            margin-top: 22px;
+            border-top: 1px dashed var(--border);
+        }
+        .section-block:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
+
+        h3 { margin: 0 0 10px; font-size: 18px; font-weight: 800; color: var(--text); }
+        h4 { margin: 14px 0 8px; font-size: 15px; font-weight: 700; color: var(--text); }
+        p { margin: 0 0 10px; font-size: 14px; color: var(--text-muted); }
+        ol, ul { margin: 6px 0 14px; padding-left: 20px; font-size: 14px; color: var(--text-muted); }
+        li { margin-bottom: 6px; }
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12.5px;
+            background: var(--surface-alt);
+            padding: 2px 6px;
+            border-radius: 6px;
+            color: #1e293b;
+        }
+
+        .callout {
+            border-radius: 14px;
+            padding: 13px 16px;
+            margin: 14px 0;
+            font-size: 13.5px;
+            border: 1px solid;
+        }
+        .callout.tip { background: var(--emerald-soft); border-color: #a7f3d0; color: #065f46; }
+        .callout.warn { background: var(--amber-soft); border-color: #fde68a; color: #92400e; }
+
+        /* Screenshot Showcase */
+        .shot-grid {
+            display: grid;
+            gap: 16px;
+            margin-top: 14px;
+        }
+        body[data-mode="both"] .shot-grid {
+            grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.75fr);
+            align-items: start;
+        }
+        body[data-mode="web"] .shot-grid { grid-template-columns: 1fr; }
+        body[data-mode="hp"] .shot-grid { grid-template-columns: minmax(260px, 380px); }
+
+        @media (max-width: 800px) {
+            body[data-mode="both"] .shot-grid { grid-template-columns: 1fr; }
+        }
+
+        body[data-mode="web"] .shot-card[data-device="hp"] { display: none; }
+        body[data-mode="hp"] .shot-card[data-device="web"] { display: none; }
+
+        .shot-card {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .shot-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .shot-head .tag {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+        .shot-body {
+            position: relative;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 170px;
+        }
+        .shot-body img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            cursor: zoom-in;
+            display: block;
+            background: #fff;
+        }
+        .shot-card[data-device="hp"] .shot-body img {
+            max-width: 280px;
+            border-radius: 18px;
+            border-width: 4px;
+            border-color: #1e293b;
+        }
+        .shot-fallback {
+            display: none;
+            width: 100%;
+            padding: 20px 14px;
+            text-align: center;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text-soft);
+            font-size: 12px;
+        }
+        .shot-fallback strong { display: block; color: var(--text); margin-bottom: 4px; font-size: 13px; }
+        .shot-fallback.visible { display: block; }
+
+        /* Roadmap table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-soft);
+            background: var(--surface-alt);
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox img {
+            max-width: 95vw;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .lightbox-close {
+            position: fixed;
+            top: 18px;
+            right: 22px;
+            background: #fff;
+            color: #0f172a;
+            border: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        @media print {
+            .topbar, .sidebar, .lightbox { display: none !important; }
+            .layout { display: block; padding: 0; }
+            .card { box-shadow: none; break-inside: avoid; margin-bottom: 16px; }
+        }
+    </style>
+</head>
+<body data-mode="both">
+
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-badge">📘</div>
+        <div>
+            <h1>Buku Panduan Pengguna Web</h1>
+            <p>Smart School ERP &amp; Presensi Barcode &bull; Mode Web &amp; Mode HP</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="mode-switch" role="group" aria-label="Pilih mode tampilan screenshot">
+            <button type="button" class="mode-btn active" data-set-mode="both">↔️ Web &amp; HP</button>
+            <button type="button" class="mode-btn" data-set-mode="web">🖥️ Mode Web</button>
+            <button type="button" class="mode-btn" data-set-mode="hp">📱 Mode HP</button>
+        </div>
+        <button type="button" class="print-btn" onclick="window.print()">🖨️ Cetak / PDF</button>
+    </div>
+</header>
+
+<div class="layout">
+    <aside class="sidebar">
+        <p class="sidebar-title">Daftar Isi Panduan</p>
+        <div class="nav-group">
+            <a href="#bab-00" class="nav-link active">
+                <span>Bab 00: Login &amp; Pilih Portal</span>
+                <span class="pill-ok">Siap</span>
+            </a>
+            <a href="#bab-00-login" class="nav-link sub">• Halaman Login (/login)</a>
+            <a href="#bab-00-pilih" class="nav-link sub">• Layar Pilih Portal</a>
+        </div>
+
+        <div class="nav-group">
+            <a href="#bab-01" class="nav-link">
+                <span>Bab 01: Portal Setup</span>
+                <span class="pill-ok">Siap</span>
+            </a>
+            <a href="#bab-01-dashboard" class="nav-link sub">• Checklist Dashboard</a>
+            <a href="#bab-01-sekolah" class="nav-link sub">• Tab 1 Identitas &amp; Jenjang</a>
+            <a href="#bab-01-tahun" class="nav-link sub">• Tab 2 Tahun Ajaran</a>
+            <a href="#bab-01-kelas" class="nav-link sub">• Tab 3 Master Kelas</a>
+            <a href="#bab-01-jabatan" class="nav-link sub">• Master Jabatan</a>
+            <a href="#bab-01-mapel" class="nav-link sub">• Master Mata Pelajaran</a>
+            <a href="#bab-01-gembok" class="nav-link sub">• Keamanan Gembok Edit</a>
+        </div>
+
+        <div class="nav-group">
+            <a href="#roadmap" class="nav-link">
+                <span>Bab 02–09: Rencana Lanjutan</span>
+                <span class="pill-plan">Plan</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="content">
+        <section class="hero">
+            <span class="eyebrow">Panduan Operasional Sekolah • Versi Interaktif HTML</span>
+            <h2>Panduan Penggunaan Mulai dari Setup Awal hingga Operasional Harian</h2>
+            <p>
+                Gunakan pengalih tampilan di kanan atas untuk melihat tangkapan layar <strong>Mode Web (Laptop/PC)</strong>, <strong>Mode HP (Smartphone)</strong>, atau <strong>keduanya sekaligus</strong>. Klik gambar mana saja untuk memperbesar.
+            </p>
+        </section>
+
+        <!-- ==================== BAB 00 ==================== -->
+        <article id="bab-00" class="card">
+            <div class="chapter-header">
+                <div>
+                    <span class="chapter-badge">Bab 00 • Pendahuluan</span>
+                    <h2 style="margin:6px 0 0;font-size:22px;">Login Terpadu &amp; Layar Pilih Portal</h2>
+                </div>
+                <span class="url-chip">/login &rarr; /pilih-portal</span>
+            </div>
+
+            <section id="bab-00-login" class="section-block">
+                <h3>1. Masuk ke Sistem melalui Halaman Login</h3>
+                <p>Semua pengguna (Super Admin, Admin Modul, Guru, Petugas Presensi, Pustakawan, dan Siswa) masuk melalui satu pintu yang sama di <code>/login</code>.</p>
+                <ol>
+                    <li>Buka alamat sistem sekolah (contoh: <code>http://10.66.66.14:8001/login</code>).</li>
+                    <li>Isi kolom <strong>Username / NISN / Email</strong> dengan Email akun, NIP (Guru), atau NISN (Siswa).</li>
+                    <li>Masukkan <strong>Password</strong> Anda, centang <strong>Ingat sesi ini</strong> bila perlu, lalu selesaikan verifikasi keamanan (widget Turnstile / hitungan).</li>
+                    <li>Klik tombol <strong>Masuk ke Sistem</strong>.</li>
+                </ol>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Halaman Login — Tampilan Web</span><span class="tag">Desktop 1440×900</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-00-pendahuluan/web-01-login.png" alt="Login Mode Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-00-pendahuluan/web-01-login.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Halaman Login — Tampilan HP</span><span class="tag">Mobile 390×844</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-00-pendahuluan/hp-01-login.png" alt="Login Mode HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-00-pendahuluan/hp-01-login.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-00-pilih" class="section-block">
+                <h3>2. Memilih Portal Kerja di Layar Pilih Portal</h3>
+                <p>Jika akun memiliki lebih dari satu hak akses (misalnya Super Admin atau Guru yang juga mengelola portal lain), sistem menampilkan layar <strong>Pilih Portal</strong> di <code>/pilih-portal</code>.</p>
+                <ul>
+                    <li><strong>Beranda (/)</strong> selalu berada di kartu pertama untuk membuka website publik sekolah.</li>
+                    <li><strong>Portal Setup &amp; Instalasi (/portal-setup)</strong> dipakai saat awal instalasi atau pergantian tahun ajaran.</li>
+                    <li><strong>Keluar</strong> mengakhiri sesi login pengguna.</li>
+                </ul>
+
+                <div class="callout warn">
+                    <strong>Status Terkunci Sebelum Setup:</strong> Sebelum <em>Nama Sekolah</em> dan <em>Alamat Sekolah</em> disimpan di <strong>Portal Setup</strong>, kartu portal operasional (Akademik, Presensi, Guru, Perpustakaan, Web) tampil berlabel <strong>Terkunci</strong>.
+                </div>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Layar Pilih Portal — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-00-pendahuluan/web-02-pilih-portal.png" alt="Pilih Portal Mode Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-00-pendahuluan/web-02-pilih-portal.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Layar Pilih Portal — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-00-pendahuluan/hp-02-pilih-portal.png" alt="Pilih Portal Mode HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-00-pendahuluan/hp-02-pilih-portal.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+        </article>
+
+        <!-- ==================== BAB 01 ==================== -->
+        <article id="bab-01" class="card">
+            <div class="chapter-header">
+                <div>
+                    <span class="chapter-badge">Bab 01 • Langkah Pertama</span>
+                    <h2 style="margin:6px 0 0;font-size:22px;">Portal Setup &amp; Instalasi Awal</h2>
+                </div>
+                <span class="url-chip">/portal-setup</span>
+            </div>
+
+            <section id="bab-01-dashboard" class="section-block">
+                <h3>1. Dashboard Checklist Kesiapan Awal</h3>
+                <p>Halaman awal <code>/portal-setup</code> memandu operator memastikan 5 fondasi sistem berstatus <strong>OK (100%)</strong> sebelum menginput Data Guru dan Siswa.</p>
+                <ol>
+                    <li>Bila muncul kotak peringatan kuning <em>Role &amp; Pengaturan Inti Sistem Belum Terpasang</em>, klik tombol <strong>Inisialisasi Sistem Sekarang</strong> satu kali.</li>
+                    <li>Pantau 5 kartu checklist: <strong>Identitas &amp; Jenjang</strong>, <strong>Tahun Ajaran Aktif</strong>, <strong>Master Kelas</strong>, <strong>Master Jabatan</strong>, dan <strong>Master Mata Pelajaran</strong>.</li>
+                    <li>Klik tombol <strong>Mulai Setup Sekarang</strong> (atau <strong>Kelola Pengaturan Dasar</strong>).</li>
+                </ol>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Dashboard Setup — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/web-01-dashboard.png" alt="Dashboard Portal Setup Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/web-01-dashboard.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Dashboard Setup — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/hp-01-dashboard.png" alt="Dashboard Portal Setup HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/hp-01-dashboard.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-01-sekolah" class="section-block">
+                <h3>2. Setup Dasar — Tab 1: Identitas, Jenjang &amp; Status Sekolah</h3>
+                <p>Di halaman <code>/portal-setup/dasar</code>, lengkapi identitas sekolah pada Tab 1 terlebih dahulu agar Tab 2 dan Tab 3 terbuka:</p>
+                <ol>
+                    <li>Pilih <strong>Jenjang Sekolah</strong>: <code>SD / MI</code>, <code>SMP / MTs</code>, <code>SMA / MA</code>, atau <code>SMK / MAK</code>.</li>
+                    <li>Pilih <strong>Status Sekolah</strong>: <code>Sekolah Negeri</code> (menggunakan NIP) atau <code>Sekolah Swasta / Yayasan</code> (menggunakan NIY / NUPTK).</li>
+                    <li>Isi kolom wajib <strong>Nama Sekolah</strong> dan <strong>Alamat Lengkap Sekolah</strong>, serta Kota/Kabupaten, Email, Telepon, Nama Kepala Sekolah, dan NIP/NIY.</li>
+                    <li>Unggah Logo Sekolah, Logo Kabupaten/Yayasan, dan Tanda Tangan Kepala Sekolah (PNG transparan) bila tersedia.</li>
+                    <li>Klik <strong>Simpan Identitas Sekolah</strong>.</li>
+                </ol>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Tab 1 Identitas Sekolah — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/web-02-setup-dasar-sekolah.png" alt="Setup Dasar Sekolah Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/web-02-setup-dasar-sekolah.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Tab 1 Identitas Sekolah — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/hp-02-setup-dasar-sekolah.png" alt="Setup Dasar Sekolah HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/hp-02-setup-dasar-sekolah.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-01-tahun" class="section-block">
+                <h3>3. Setup Dasar — Tab 2: Tahun Ajaran Aktif</h3>
+                <ol>
+                    <li>Klik tab <strong>2. Tahun Ajaran</strong> (<code>/portal-setup/dasar?tab=tahun-ajaran</code>).</li>
+                    <li>Isi <strong>Tahun Mulai</strong> (contoh <code>2026</code>) dan <strong>Tahun Selesai</strong> (<code>2027</code>), cek <strong>Preview Label</strong> (<code>2026/2027</code>).</li>
+                    <li>Centang <strong>Langsung jadikan Tahun Ajaran Aktif</strong>, lalu klik <strong>+ Simpan Tahun Ajaran</strong>.</li>
+                    <li>Pastikan hanya ada 1 tahun ajaran berstatus <strong>Aktif</strong> di daftar sebelah kanan, lalu klik <strong>Lanjut: Master Kelas &rarr;</strong>.</li>
+                </ol>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Tab 2 Tahun Ajaran — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/web-03-setup-dasar-tahun-ajaran.png" alt="Setup Tahun Ajaran Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/web-03-setup-dasar-tahun-ajaran.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Tab 2 Tahun Ajaran — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/hp-03-setup-dasar-tahun-ajaran.png" alt="Setup Tahun Ajaran HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/hp-03-setup-dasar-tahun-ajaran.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-01-kelas" class="section-block">
+                <h3>4. Setup Dasar — Tab 3: Master Kelas</h3>
+                <ol>
+                    <li>Pada tab <strong>3. Master Kelas</strong> (<code>/portal-setup/dasar?tab=kelas</code>), gunakan form <strong>Generate Massal Kelas</strong> untuk membuat rombel per tingkat dengan cepat.</li>
+                    <li>Pilih <strong>Tingkat</strong>, <strong>Format Tingkat</strong> (<code>Angka</code> atau <code>Romawi</code>), <strong>Pola Akhiran</strong> (<code>Huruf</code> atau <code>Angka</code>), dan <strong>Jumlah Rombel</strong> (1–15). Untuk SMA/SMK bisa mengisi kolom <strong>Jurusan</strong>.</li>
+                    <li>Periksa <strong>Preview Nama Kelas</strong> (misal <code>7A</code>, <code>7B</code>, <code>7C</code>), lalu klik tombol <strong>Generate Kelas Sekaligus</strong>.</li>
+                    <li>Gunakan panel <strong>Tambah Kelas Satuan</strong> bila perlu menambah kelas berformat khusus.</li>
+                </ol>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Tab 3 Master Kelas — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/web-04-setup-dasar-kelas.png" alt="Setup Master Kelas Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/web-04-setup-dasar-kelas.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Tab 3 Master Kelas — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/hp-04-setup-dasar-kelas.png" alt="Setup Master Kelas HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/hp-04-setup-dasar-kelas.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-01-jabatan" class="section-block">
+                <h3>5. Master Jabatan Sekolah (`/portal-setup/jabatan`)</h3>
+                <ol>
+                    <li>Setelah 3 langkah dasar selesai, buka menu <strong>Master Jabatan</strong> di sidebar Setup.</li>
+                    <li>Klik <strong>Sinkronkan Jabatan Standar</strong> untuk memasang jabatan baku (Kepala Sekolah, Waka Kurikulum, Waka Kesiswaan, Guru BK, Operator, Tata Usaha, Pustakawan, dll.) tanpa duplikasi.</li>
+                    <li>Tambahkan jabatan ekstra sekolah (misal <em>Bendahara BOS</em>) pada form <strong>Tambah Jabatan Tambahan</strong> jika diperlukan.</li>
+                </ol>
+                <div class="callout tip">
+                    <strong>Catatan Wali Kelas:</strong> Penugasan <em>Wali Kelas</em> tidak dibuat di Master Jabatan, melainkan diatur langsung per kelas pada Portal Akademik (<code>/portal-akademik/kelas</code>) setelah data guru diinput.
+                </div>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Master Jabatan — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/web-05-master-jabatan.png" alt="Master Jabatan Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/web-05-master-jabatan.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Master Jabatan — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/hp-05-master-jabatan.png" alt="Master Jabatan HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/hp-05-master-jabatan.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-01-mapel" class="section-block">
+                <h3>6. Master Mata Pelajaran (`/portal-setup/mapel`)</h3>
+                <ol>
+                    <li>Buka menu <strong>Master Mata Pelajaran</strong>.</li>
+                    <li>Klik <strong>Sinkronkan Mapel Standar</strong> untuk mengisi daftar mata pelajaran resmi sesuai jenjang sekolah secara otomatis.</li>
+                    <li>Gunakan form <strong>Tambah Mapel Tambahan / Jurusan</strong> untuk menambah muatan lokal atau mata pelajaran produktif SMK beserta <strong>Kode Mapel</strong> dan <strong>Kategori</strong> (<code>Umum</code>, <code>Pilihan</code>, <code>Kejuruan</code>, <code>Muatan Lokal</code>).</li>
+                </ol>
+
+                <div class="shot-grid">
+                    <figure class="shot-card" data-device="web">
+                        <div class="shot-head"><span>Master Mata Pelajaran — Tampilan Web</span><span class="tag">Desktop</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/web-06-master-mapel.png" alt="Master Mata Pelajaran Web" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/web-06-master-mapel.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                    <figure class="shot-card" data-device="hp">
+                        <div class="shot-head"><span>Master Mata Pelajaran — Tampilan HP</span><span class="tag">Mobile</span></div>
+                        <div class="shot-body">
+                            <img src="assets/bab-01-portal-setup/hp-06-master-mapel.png" alt="Master Mata Pelajaran HP" onclick="openLightbox(this)" onerror="showFallback(this, 'assets/bab-01-portal-setup/hp-06-master-mapel.png')">
+                            <div class="shot-fallback"></div>
+                        </div>
+                    </figure>
+                </div>
+            </section>
+
+            <section id="bab-01-gembok" class="section-block">
+                <h3>7. Keamanan Gembok Edit (Proteksi Setup)</h3>
+                <p>Begitu status setup dasar dan jabatan sudah berstatus <strong>OK</strong>, seluruh form dikunci otomatis untuk mencegah ketidaksengajaan mengubah data fondasi.</p>
+                <ul>
+                    <li>Untuk mengubah data kembali, klik tombol <strong>Buka Kunci Edit</strong> / <strong>Buka Gembok Edit</strong> pada banner kuning.</li>
+                    <li>Masukkan password akun <strong>Super Admin</strong> pada modal <em>Verifikasi Super Admin</em>, lalu klik <strong>Verifikasi &amp; Buka Kunci</strong>.</li>
+                    <li>Setelah selesai mengedit, klik tombol <strong>Kunci Kembali</strong> agar form kembali aman.</li>
+                </ul>
+            </section>
+        </article>
+
+        <!-- ==================== ROADMAP LANJUTAN ==================== -->
+        <article id="roadmap" class="card">
+            <div class="chapter-header">
+                <div>
+                    <span class="chapter-badge">Rencana Penulisan Bab Selanjutnya</span>
+                    <h2 style="margin:6px 0 0;font-size:22px;">Daftar Bab Lanjutan (Bab 02 – Bab 09)</h2>
+                </div>
+                <span class="url-chip">docs/buku-panduan/README.md</span>
+            </div>
+            <p>Setelah Bab 00 dan Bab 01 selesai, penulisan buku panduan dapat dilanjutkan bertahap sesuai urutan operasional sekolah:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bab</th>
+                        <th>Materi &amp; Portal</th>
+                        <th>Folder Aset Screenshot</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Bab 02</strong></td><td>Portal Sistem (<code>/portal-sistem</code>) — Akses Portal, WA Gateway, Notif Modular, Tema</td><td><code>assets/bab-02-portal-sistem/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 03</strong></td><td>Portal Akademik (<code>/portal-akademik</code>) — Guru, Mapel Guru, Siswa, Kelas, Jurnal, SI-WALI, Ekskul</td><td><code>assets/bab-03-portal-akademik/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 04</strong></td><td>Portal Presensi &amp; Kiosk (<code>/portal-presensi</code>) — Barcode, Sholat Dhuhur, Ekskul, Rekap</td><td><code>assets/bab-04-portal-presensi/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 05</strong></td><td>Portal Guru (<code>/portal-guru</code>) — Presensi Kelas, Jurnal Mengajar, SI-WALI, BK, SPIKAP</td><td><code>assets/bab-05-portal-guru/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 06</strong></td><td>Portal Siswa (<code>/portal-siswa</code>) — Kartu Digital, Presensi, Ijin, Konsultasi, SPIKAP</td><td><code>assets/bab-06-portal-siswa/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 07</strong></td><td>Portal Perpustakaan (<code>/portal-perpustakaan</code>) — Katalog DDC, Kiosk &amp; Sirkulasi</td><td><code>assets/bab-07-portal-perpustakaan/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 08</strong></td><td>Portal Web &amp; Publik (<code>/portal-web</code>) — Berita, Prestasi, Galeri, Layanan Publik, Alumni</td><td><code>assets/bab-08-portal-web-dan-publik/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                    <tr><td><strong>Bab 09</strong></td><td>Lampiran — Checklist Peluncuran &amp; Troubleshooting FAQ</td><td><code>assets/bab-09-lampiran/</code></td><td><span class="pill-plan">Rencana</span></td></tr>
+                </tbody>
+            </table>
+        </article>
+    </main>
+</div>
+
+<div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    <button type="button" class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+    <img id="lightbox-img" src="" alt="Preview Screenshot">
+</div>
+
+<script>
+    // Mode Web / HP Switcher
+    const modeButtons = document.querySelectorAll('[data-set-mode]');
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.getAttribute('data-set-mode');
+            document.body.setAttribute('data-mode', mode);
+            modeButtons.forEach(b => b.classList.toggle('active', b === btn));
+        });
+    });
+
+    // Active sidebar highlight on click
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+
+    // Fallback card if a screenshot PNG has not been placed yet
+    function showFallback(imgEl, expectedPath) {
+        imgEl.style.display = 'none';
+        const fb = imgEl.nextElementSibling;
+        if (fb) {
+            fb.innerHTML = '<strong>Screenshot belum tersedia di folder aset</strong>Simpan tangkapan layar ke:<br><code>' + expectedPath + '</code>';
+            fb.classList.add('visible');
+        }
+    }
+
+    // Lightbox zoom
+    function openLightbox(imgEl) {
+        const lb = document.getElementById('lightbox');
+        const target = document.getElementById('lightbox-img');
+        target.src = imgEl.src;
+        target.alt = imgEl.alt;
+        lb.classList.add('open');
+    }
+
+    function closeLightbox(e) {
+        if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) {
+            document.getElementById('lightbox').classList.remove('open');
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.getElementById('lightbox').classList.remove('open');
+        }
+    });
+</script>
+</body>
+</html>

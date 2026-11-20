@@ -92,7 +92,92 @@ class KelasTable
                             })
                     ),
             ])
-            ->headerActions([])
+            ->headerActions([
+                Action::make('plotting_dari_guru')
+                    ->label('Plotting Pembelajaran dari Guru')
+                    ->icon('heroicon-o-academic-cap')
+                    ->color('primary')
+                    ->modalHeading('Plotting Pembelajaran per Guru')
+                    ->modalDescription('Pilih guru dan mata pelajaran yang diampu, lalu centang semua kelas yang diajar sekaligus.')
+                    ->modalWidth('lg')
+                    ->visible(fn (): bool => auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('admin_akademik_editor') || auth()->user()?->hasRole('admin_master_editor'))
+                    ->form(function (): array {
+                        $activeYearId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+                            ?? \App\Models\TahunAjaran::aktif()->first()?->id;
+
+                        return [
+                            \Filament\Forms\Components\Select::make('teacher_id')
+                                ->label('Pilih Guru')
+                                ->options(\App\Models\Guru::orderBy('name')->pluck('name', 'id')->toArray())
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) use ($activeYearId) {
+                                    if (!$state) {
+                                        $set('mata_pelajaran_id', null);
+                                        $set('class_ids', []);
+                                        return;
+                                    }
+                                    $guru = \App\Models\Guru::find($state);
+                                    $defaultMapelId = $guru?->mataPelajarans()->pluck('mata_pelajarans.id')->first();
+                                    $set('mata_pelajaran_id', $defaultMapelId);
+                                    if ($defaultMapelId && $activeYearId) {
+                                        $set('class_ids', \App\Models\Pengajaran::assignedClassIdsForTeacherMapel($state, (int) $defaultMapelId, $activeYearId));
+                                    } else {
+                                        $set('class_ids', []);
+                                    }
+                                }),
+
+                            \Filament\Forms\Components\Select::make('mata_pelajaran_id')
+                                ->label('Mata Pelajaran')
+                                ->options(function (\Filament\Schemas\Components\Utilities\Get $get): array {
+                                    $guruId = $get('teacher_id');
+                                    $guru = $guruId ? \App\Models\Guru::find($guruId) : null;
+                                    return \App\Models\Pengajaran::mapelOptionsForTeacher($guru)['options'];
+                                })
+                                ->searchable()
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Get $get, \Filament\Schemas\Components\Utilities\Set $set) use ($activeYearId) {
+                                    $teacherId = $get('teacher_id');
+                                    if (!$teacherId || !$state || !$activeYearId) {
+                                        $set('class_ids', []);
+                                        return;
+                                    }
+                                    $set('class_ids', \App\Models\Pengajaran::assignedClassIdsForTeacherMapel($teacherId, (int) $state, $activeYearId));
+                                }),
+
+                            \Filament\Forms\Components\CheckboxList::make('class_ids')
+                                ->label('Centang Kelas yang Diajar')
+                                ->options(\App\Models\Kelas::orderBy('grade_level')->orderBy('name')->pluck('name', 'id')->toArray())
+                                ->columns(3)
+                                ->bulkToggleable(),
+                        ];
+                    })
+                    ->action(function (array $data): void {
+                        $activeYearId = \App\Models\PengaturanSekolah::current()?->academic_year_id_active
+                            ?? \App\Models\TahunAjaran::aktif()->first()?->id;
+
+                        if (!$activeYearId) {
+                            \Filament\Notifications\Notification::make()->title('Gagal')->body('Tidak ada tahun ajaran aktif.')->danger()->send();
+                            return;
+                        }
+
+                        \App\Models\Pengajaran::syncClassesForTeacher(
+                            (string) $data['teacher_id'],
+                            (int) $data['mata_pelajaran_id'],
+                            $data['class_ids'] ?? [],
+                            $activeYearId
+                        );
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Plotting pembelajaran tersimpan')
+                            ->body('Penugasan mengajar guru di kelas terpilih berhasil diperbarui.')
+                            ->success()
+                            ->send();
+                    }),
+            ])
             ->filters([
                 \Filament\Tables\Filters\SelectFilter::make('grade_level')
                     ->label('Filter Tingkat')
@@ -154,19 +239,38 @@ class KelasTable
                     ->modalDescription('Tentukan guru pengajar untuk setiap mata pelajaran pada kelas ini untuk tahun ajaran aktif.')
                     ->modalWidth('2xl')
                     ->form(function (\App\Models\Kelas $record): array {
-                        $mapels = \App\Models\MataPelajaran::orderBy('nama_mapel')->get();
-                        $gurus = \App\Models\Guru::pluck('name', 'id')->toArray();
-                        
+                        $mapels = \App\Models\MataPelajaran::with(['gurus' => fn ($q) => $q->orderBy('name')])
+                            ->orderBy('nama_mapel')
+                            ->get();
+                        $allGurus = \App\Models\Guru::orderBy('name')->pluck('name', 'id')->toArray();
+
                         $fields = [];
                         foreach ($mapels as $mapel) {
-                            $fields[] = \Filament\Forms\Components\Select::make("assignments.{$mapel->id}")
+                            $preferredGurus = $mapel->gurus->pluck('name', 'id')->toArray();
+                            $otherGurus = array_diff_key($allGurus, $preferredGurus);
+
+                            $selectOptions = [];
+                            if (!empty($preferredGurus)) {
+                                $selectOptions["Guru Mapel {$mapel->nama_mapel}"] = $preferredGurus;
+                            }
+                            if (!empty($otherGurus)) {
+                                $selectOptions[!empty($preferredGurus) ? 'Guru Lainnya' : 'Daftar Guru'] = $otherGurus;
+                            }
+
+                            $select = \Filament\Forms\Components\Select::make("assignments.{$mapel->id}")
                                 ->label($mapel->nama_mapel)
-                                ->options($gurus)
+                                ->options($selectOptions)
                                 ->searchable()
                                 ->preload()
                                 ->placeholder('— Belum Ditentukan —');
+
+                            if (!empty($preferredGurus)) {
+                                $select->helperText('Pengampu mapel: ' . implode(', ', array_values($preferredGurus)));
+                            }
+
+                            $fields[] = $select;
                         }
-                        
+
                         return [
                             \Filament\Schemas\Components\Grid::make(2)
                                 ->schema($fields),

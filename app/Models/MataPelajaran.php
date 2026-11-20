@@ -33,6 +33,12 @@ class MataPelajaran extends Model
         return $this->hasMany(Pengajaran::class, 'mata_pelajaran_id');
     }
 
+    public function gurus(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Guru::class, 'teacher_mata_pelajaran', 'mata_pelajaran_id', 'teacher_id')
+            ->withTimestamps();
+    }
+
     public function ujianAkademiks(): HasMany
     {
         return $this->hasMany(UjianAkademik::class, 'mata_pelajaran_id');

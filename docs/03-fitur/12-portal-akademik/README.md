@@ -35,11 +35,11 @@ Halaman beranda Portal Akademik dikelola oleh [`AkademikDashboard`](file:///home
 
 ### 1. Grup `Data Master`
 1. **Data Guru & GTK** (`/portal-akademik/guru` — [`GuruResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/Guru/GuruResource.php))
-   - Pengelolaan biodata guru & tenaga kependidikan, NIP/NIY, foto, tautan akun user, dan penugasan mengajar.
+   - Pengelolaan biodata guru & tenaga kependidikan, NIP/NIY, foto, tautan akun user, bidang **Mata Pelajaran yang Diampu** (`teacher_mata_pelajaran`), serta aksi **Kelas Mengajar** untuk memplot kelas mengajar langsung ke tabel `pengajarans`.
 2. **Data Siswa** (`/portal-akademik/siswa` — [`SiswaResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/Siswa/SiswaResource.php))
    - Pengelolaan data pokok siswa, import siswa baru massal, update data & nomor HP orang tua, serta import foto massal.
 3. **Master Kelas & Pembelajaran** (`/portal-akademik/kelas` — [`KelasResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/Kelas/KelasResource.php))
-   - Pengelolaan kelas/rombel beserta relation manager `KelasAjaranRelationManager` (penugasan wali kelas per tahun ajaran) dan `PengajaranRelationManager` (plotting guru & mata pelajaran per kelas).
+   - Pengelolaan kelas/rombel beserta modal **Pembelajaran** per kelas (yang memprioritaskan guru pengampu mata pelajaran terkait) dan tombol **Plotting Pembelajaran dari Guru** untuk menugaskan 1 guru & mata pelajaran ke banyak kelas sekaligus, serta `KelasAjaranRelationManager` & `PengajaranRelationManager`.
 
 ### 2. Grup `Akademik`
 1. **Enrollment / Rombongan Belajar** (`/portal-akademik/enrollment/enrollments` — [`EnrollmentResource`](file:///home/sutris-remote/Documents/projek-laravel/projek-absensi-barcode/app/Filament/Akademik/Resources/Enrollment/EnrollmentResource.php))

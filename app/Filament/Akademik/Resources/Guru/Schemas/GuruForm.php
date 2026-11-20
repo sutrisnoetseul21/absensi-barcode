@@ -110,12 +110,20 @@ class GuruForm
                     ->dehydrated(fn ($state) => filled($state))
                     ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password.' : 'Kosongkan untuk meng-generate random password (akan ditampilkan setelah disimpan).'),
                 
+                Select::make('mataPelajarans')
+                    ->label('Bidang / Mata Pelajaran yang Diampu')
+                    ->relationship('mataPelajarans', 'nama_mapel')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Tandai mata pelajaran yang diampu guru ini agar muncul sebagai prioritas saat mengisi Pembelajaran di menu Kelas.'),
+
                 Placeholder::make('mapel_aktif')
-                    ->label('Mata Pelajaran yang Diampu (Tahun Ajaran Aktif)')
+                    ->label('Penugasan Kelas Mengajar (Tahun Ajaran Aktif)')
                     ->content(function (?Model $record) {
                         if (!$record) return '-';
                         $mapel = $record->mapel_aktif;
-                        return empty($mapel) ? 'Belum ada mata pelajaran' : implode(', ', $mapel);
+                        return empty($mapel) ? 'Belum diplot di Pembelajaran Kelas' : implode(', ', $mapel);
                     }),
 
                 Repeater::make('teacherJabatans')
