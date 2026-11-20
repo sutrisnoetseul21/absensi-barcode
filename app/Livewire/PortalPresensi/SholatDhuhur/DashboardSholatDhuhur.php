@@ -8,8 +8,11 @@ use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Pengajaran;
 use App\Models\PengaturanSekolah;
+use App\Models\PresensiNotificationSetting;
 use App\Models\TahunAjaran;
 use App\Services\PresensiSholatDhuhurService;
+use App\Services\UnattendedSholatDhuhurNotificationService;
+use App\Services\WhatsAppGatewayService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -248,6 +251,65 @@ class DashboardSholatDhuhur extends Component
         );
     }
 
+    public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'sholat_dhuhur'): void
+    {
+        $notifSetting = PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->first();
+        if (!$notifSetting || !$notifSetting->is_active) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'message' => 'Fitur notifikasi WA Gateway Sholat Dhuhur sedang dinonaktifkan di Portal Sistem. Gunakan "Buka di WA (Web / HP)".',
+            ]);
+            return;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $targetPhone);
+        if (empty($cleanPhone)) {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Nomor WhatsApp orang tua tidak valid atau masih kosong.',
+            ]);
+            return;
+        }
+
+        if (str_starts_with($cleanPhone, '0')) {
+            $cleanPhone = '62' . substr($cleanPhone, 1);
+        } elseif (str_starts_with($cleanPhone, '8')) {
+            $cleanPhone = '62' . $cleanPhone;
+        }
+
+        $sent = app(WhatsAppGatewayService::class)->sendMessage(
+            toNumber: $cleanPhone,
+            message: $messageText,
+            relatedType: 'presensi_' . $type,
+            relatedId: $studentId,
+            recipientType: 'ortu',
+            logId: null,
+            ignoreDelay: true
+        );
+
+        if ($sent) {
+            $this->dispatch('notify', [
+                'type'    => 'success',
+                'message' => "Pesan WhatsApp berhasil dikirim ke nomor {$cleanPhone}!",
+            ]);
+            $this->dispatch('wa-modal-close');
+        } else {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'message' => 'Gagal mengirim via sistem gateway WhatsApp. Anda dapat menggunakan tombol "Buka di WA (Web / HP)" sebagai alternatif.',
+            ]);
+        }
+    }
+
+    public function kirimWaBelumSholatMassal(): void
+    {
+        $result = app(UnattendedSholatDhuhurNotificationService::class)->dispatch(source: 'manual');
+        $this->dispatch('notify', [
+            'type'    => empty($result['success']) ? 'warning' : (($result['dispatched'] ?? 0) > 0 ? 'success' : 'info'),
+            'message' => $result['message'] ?? 'Proses pengiriman selesai.',
+        ]);
+    }
+
     public function render()
     {
         $summary = $this->getSummary();
@@ -258,16 +320,34 @@ class DashboardSholatDhuhur extends Component
             default        => null,
         };
 
+        $dateLabel = $summary['date_formatted'];
+        $senderName = auth()->user()?->teacher?->name ?? auth()->user()?->name ?? '-';
+        if ($paginatedStudents) {
+            $paginatedStudents->getCollection()->transform(function ($st) use ($dateLabel, $senderName) {
+                $st['wa_text_raw'] = PresensiNotificationSetting::renderTemplate('sholat_dhuhur', [
+                    'nama_siswa'       => $st['name'],
+                    'kelas'            => $st['class_name'] ?? '-',
+                    'tanggal'          => $dateLabel,
+                    'status_kehadiran' => ($st['status'] === 'tidak_hadir' ? 'Tidak Hadir Sholat' : 'Belum Presensi Sholat'),
+                    'nama_wali_kelas'  => $senderName,
+                ]);
+                return $st;
+            });
+        }
+
+        $isNotifSholatActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'sholat_dhuhur')->value('is_active') ?? false);
+
         return view('livewire.portal-presensi.sholat-dhuhur.dashboard-sholat-dhuhur', [
-            'academicYears'     => $summary['academicYears'],
-            'classes'           => $summary['classes'],
-            'dateFormatted'     => $summary['date_formatted'],
-            'isHoliday'         => $summary['is_holiday'],
-            'holidayDesc'       => $summary['holiday_desc'],
-            'stats'             => $summary['stats'],
-            'classesSummary'    => $summary['classesSummary'],
-            'unattendedCount'   => count($summary['unattendedStudents']),
-            'paginatedStudents' => $paginatedStudents,
+            'academicYears'       => $summary['academicYears'],
+            'classes'             => $summary['classes'],
+            'dateFormatted'       => $summary['date_formatted'],
+            'isHoliday'           => $summary['is_holiday'],
+            'holidayDesc'         => $summary['holiday_desc'],
+            'stats'               => $summary['stats'],
+            'classesSummary'      => $summary['classesSummary'],
+            'unattendedCount'     => count($summary['unattendedStudents']),
+            'paginatedStudents'   => $paginatedStudents,
+            'isNotifSholatActive' => $isNotifSholatActive,
         ])->title('Dashboard Presensi Sholat Dhuhur - Portal Presensi');
     }
 }

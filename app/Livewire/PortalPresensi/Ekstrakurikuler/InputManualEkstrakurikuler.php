@@ -7,7 +7,9 @@ use App\Models\EkstrakurikulerPertemuan;
 use App\Models\EkstrakurikulerPresensi;
 use App\Models\EkstrakurikulerSiswa;
 use App\Models\PengaturanSekolah;
+use App\Models\PresensiNotificationSetting;
 use App\Models\TahunAjaran;
+use App\Services\UnattendedEkstrakurikulerNotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -147,21 +149,32 @@ class InputManualEkstrakurikuler extends Component
             ? EkstrakurikulerPresensi::where('pertemuan_id', $pertemuan->id)->get()->keyBy('student_id')
             : collect();
 
+        $ekskul->loadMissing('pembinas');
+        $waNotifService = app(UnattendedEkstrakurikulerNotificationService::class);
+
         $rows = [];
         foreach ($members as $m) {
             $st = $m->siswa;
             if (!$st) continue;
 
             $att = $existing->get($st->id);
+            $kelasName = $st->enrollments->first()?->kelas?->name ?? '-';
+            $statusVal = $att?->status ?? '';
+            $statusLabel = $statusVal === 'alpa' ? 'Alpa Ekskul' : 'Belum Hadir Ekskul';
+            $waPayload = $waNotifService->buildPersonalWaPayload($st, $ekskul, $pertemuan, $kelasName, null, $statusLabel, $this->inputDate);
+
             $rows[] = [
                 'student_id'      => $st->id,
                 'name'            => $st->name,
                 'nisn'            => $st->nisn ?? '-',
-                'kelas'           => $st->enrollments->first()?->kelas?->name ?? '-',
-                'status'          => $att?->status ?? '',
+                'kelas'           => $kelasName,
+                'status'          => $statusVal,
                 'scan_time'       => ($att && $att->scan_time) ? substr((string) $att->scan_time, 0, 5) : null,
                 'is_manual_input' => $att ? (bool) $att->is_manual_input : false,
                 'keterangan'      => $att?->keterangan ?? '',
+                'raw_phone'       => $waPayload['raw_phone'],
+                'clean_phone'     => $waPayload['clean_phone'],
+                'wa_text_raw'     => $waPayload['wa_text_raw'],
             ];
         }
 
@@ -256,12 +269,29 @@ class InputManualEkstrakurikuler extends Component
         ]);
     }
 
+    public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'ekstrakurikuler'): void
+    {
+        $res = app(UnattendedEkstrakurikulerNotificationService::class)
+            ->sendDirectMessage($studentId, $targetPhone, $messageText);
+
+        $this->dispatch('notify', [
+            'type'    => $res['type'],
+            'message' => $res['message'],
+        ]);
+
+        if ($res['success']) {
+            $this->dispatch('wa-modal-close');
+        }
+    }
+
     public function render()
     {
         $selectedEkskul = collect($this->ekskuls)->firstWhere('id', $this->selectedEkskulId);
+        $isNotifEkskulActive = (bool) (PresensiNotificationSetting::where('status_presensi', 'ekstrakurikuler')->value('is_active') ?? false);
 
         return view('livewire.portal-presensi.ekstrakurikuler.input-manual-ekstrakurikuler', [
-            'selectedEkskul' => $selectedEkskul,
+            'selectedEkskul'      => $selectedEkskul,
+            'isNotifEkskulActive' => $isNotifEkskulActive,
         ])->title('Input Manual Presensi Ekstrakurikuler');
     }
 }

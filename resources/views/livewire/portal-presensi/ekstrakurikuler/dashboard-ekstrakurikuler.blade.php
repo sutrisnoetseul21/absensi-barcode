@@ -1,4 +1,48 @@
-<div class="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto pb-16 font-jakarta">
+<div class="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto pb-16 font-jakarta" x-data="{
+    showWaModal: false,
+    waStudentId: '',
+    waStudentName: '',
+    waStudentClass: '',
+    waStudentNisn: '',
+    waRecipientPhone: '',
+    waOriginalMessage: '',
+    waMessage: '',
+    waStatusType: 'ekstrakurikuler',
+    waStatusLabel: '',
+    isSending: false,
+    openWaModal(data) {
+        this.waStudentId = data.id;
+        this.waStudentName = data.name;
+        this.waStudentClass = data.className;
+        this.waStudentNisn = data.nisn || '-';
+        this.waRecipientPhone = data.cleanPhone || data.phone || '';
+        this.waOriginalMessage = data.rawText || '';
+        this.waMessage = data.rawText || '';
+        this.waStatusType = data.type || 'ekstrakurikuler';
+        this.waStatusLabel = data.statusLabel || 'Belum Absen Ekskul';
+        this.isSending = false;
+        this.showWaModal = true;
+    },
+    resetTemplate() {
+        this.waMessage = this.waOriginalMessage;
+    },
+    submitSend() {
+        if (!this.waRecipientPhone.trim()) { alert('Silakan masukkan nomor WhatsApp tujuan!'); return; }
+        if (!this.waMessage.trim()) { alert('Isi pesan tidak boleh kosong!'); return; }
+        this.isSending = true;
+        this.$wire.sendWaDirect(this.waStudentId, this.waRecipientPhone, this.waMessage, this.waStatusType)
+            .catch(err => alert('Terjadi kesalahan: ' + (err?.message || err)))
+            .finally(() => { this.isSending = false; });
+    },
+    openWhatsAppWeb() {
+        if (!this.waRecipientPhone.trim()) { alert('Silakan masukkan nomor WhatsApp tujuan!'); return; }
+        if (!this.waMessage.trim()) { alert('Isi pesan tidak boleh kosong!'); return; }
+        let cleanPhone = this.waRecipientPhone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.substring(1);
+        else if (cleanPhone.startsWith('8')) cleanPhone = '62' + cleanPhone;
+        window.open('https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(this.waMessage), '_blank');
+    }
+}" @wa-modal-close.window="showWaModal = false">
     <!-- Header Section -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -186,12 +230,10 @@
 
                         @if($p && ($c['belum'] + $c['alpa']) > 0)
                             <button type="button"
-                                    wire:click="kirimWaBelumHadir('{{ $p->id }}')"
-                                    wire:confirm="Kirim notifikasi WA ke orang tua dari anggota {{ $c['nama_ekskul'] }} yang belum hadir/alpa pada Pertemuan ke-{{ $p->pertemuan_ke }}?"
+                                    wire:click="openWaPertemuanModal('{{ $p->id }}')"
                                     wire:loading.attr="disabled"
-                                    @disabled(!$waEkskulActive || !$canSendManualToday)
-                                    title="{{ !$waEkskulActive ? 'Aktifkan dulu Notifikasi WA Ekstrakurikuler di Portal Sistem' : 'Kirim WA ke anggota yang belum absen / alpa pada sesi ini' }}"
-                                    class="ml-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 disabled:opacity-45 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                                    title="Lihat daftar anggota belum hadir &amp; kirim WA Orang Tua (WA Web / Gateway)"
+                                    class="ml-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer">
                                 <span>Kirim WA Belum Hadir ({{ $c['belum'] + $c['alpa'] }})</span>
                             </button>
                         @endif
@@ -249,5 +291,126 @@
             </div>
         @endif
     </div>
+
+    <!-- Pop-Up Modal Daftar Belum Hadir & Kirim WA Pertemuan Ekskul -->
+    @if($showWaPertemuanModal && $waPertemuanInfo)
+        <div class="fixed inset-0 z-40 overflow-y-auto" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" wire:click="closeWaPertemuanModal"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="relative z-10 inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full border border-slate-200">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 py-4 flex items-center justify-between text-white">
+                        <div>
+                            <h3 class="text-base font-black leading-tight">
+                                Daftar Belum Hadir &amp; Kirim WA — {{ $waPertemuanInfo['ekskul_name'] }}
+                            </h3>
+                            <p class="text-xs text-emerald-100 font-medium mt-0.5">
+                                Pertemuan ke-{{ $waPertemuanInfo['pertemuan_ke'] }} &bull; {{ $waPertemuanInfo['tanggal_label'] }}
+                            </p>
+                        </div>
+                        <button type="button" wire:click="closeWaPertemuanModal"
+                                class="text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Body: Daftar Siswa Belum Hadir / Alpa -->
+                    <div class="p-5 sm:p-6 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
+                            <div>
+                                <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] block">Materi Pertemuan</span>
+                                <span class="text-slate-800 font-bold">{{ $waPertemuanInfo['judul_kegiatan'] }}</span>
+                            </div>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
+                                {{ count($waPertemuanStudents) }} Siswa Belum Hadir / Alpa
+                            </span>
+                        </div>
+
+                        @if(count($waPertemuanStudents) === 0)
+                            <div class="p-6 text-center text-xs font-bold text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                Semua anggota aktif sudah tercatat hadir / izin / sakit pada pertemuan ini.
+                            </div>
+                        @else
+                            <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-2xl">
+                                @foreach($waPertemuanStudents as $st)
+                                    <div class="p-3.5 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="font-extrabold text-sm text-slate-900">{{ $st['name'] }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold {{ $st['status_key'] === 'alpa' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700' }}">
+                                                    {{ $st['status_key'] === 'alpa' ? 'Alpa' : 'Belum Absen' }}
+                                                </span>
+                                            </div>
+                                            <div class="text-xs text-slate-500 mt-0.5">
+                                                Kelas <strong class="text-slate-700">{{ $st['kelas'] }}</strong> &bull;
+                                                NISN: {{ $st['nisn'] }} &bull;
+                                                WA Ortu: <span class="font-mono font-semibold text-slate-700">{{ $st['clean_phone'] ?: ($st['phone'] ?: 'Belum ada nomor') }}</span>
+                                            </div>
+                                        </div>
+
+                                        @php
+                                            $waRowData = [
+                                                'id'          => $st['id'],
+                                                'name'        => $st['name'],
+                                                'className'   => $st['kelas'],
+                                                'nisn'        => $st['nisn'],
+                                                'phone'       => $st['phone'],
+                                                'cleanPhone'  => $st['clean_phone'],
+                                                'rawText'     => $st['wa_text_raw'],
+                                                'type'        => 'ekstrakurikuler',
+                                                'statusLabel' => $st['status_label'],
+                                            ];
+                                        @endphp
+                                        <button type="button"
+                                                x-on:click="openWaModal({{ \Illuminate\Support\Js::from($waRowData) }})"
+                                                class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shrink-0">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                            <span>WA Ortu</span>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @if(!$waEkskulActive)
+                            <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">
+                                Notifikasi WhatsApp Ekstrakurikuler di <strong>Portal Sistem</strong> sedang nonaktif. Gunakan tombol <strong>WA Ortu &rarr; Buka di WA (Web / HP)</strong> untuk mengirim manual tanpa gateway, atau aktifkan toggle di Portal Sistem untuk Broadcast Semua.
+                            </div>
+                        @elseif(!$canSendManualToday)
+                            <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold">
+                                Batas kirim broadcast massal harian ({{ $manualSentCount }}/5) telah tercapai. Anda masih dapat mengirim manual per siswa via <strong>WA Ortu</strong>.
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
+                        <button type="button" wire:click="closeWaPertemuanModal"
+                                class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200/70 transition-colors cursor-pointer">
+                            Tutup
+                        </button>
+
+                        <button type="button"
+                                wire:click="kirimWaBelumHadir('{{ $waPertemuanInfo['pertemuan_id'] }}')"
+                                wire:loading.attr="disabled"
+                                @disabled(!$waEkskulActive || !$canSendManualToday || count($waPertemuanStudents) === 0)
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-45 disabled:cursor-not-allowed shadow-sm transition-colors cursor-pointer">
+                            <span>Kirim Broadcast Semua via Gateway ({{ count($waPertemuanStudents) }})</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <x-portal.wa-ortu-modal
+        title="Kirim Pesan WhatsApp Ekstrakurikuler"
+        subtitle="Kirim via WhatsApp Web/HP atau langsung lewat gateway aplikasi"
+        statusHeading="Status Kehadiran"
+        templateNote="Pesan di atas diambil otomatis dari template notifikasi WA Ekstrakurikuler sekolah."
+        :canSendGateway="$waEkskulActive"
+    />
 </div>
 

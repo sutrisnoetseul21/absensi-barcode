@@ -22,6 +22,11 @@ class DashboardEkstrakurikuler extends Component
     public string $selectedDate = '';
     public string $search = '';
 
+    // Pop-up modal daftar siswa belum hadir / alpa pada sesi pertemuan + kirim WA Ortu
+    public bool $showWaPertemuanModal = false;
+    public ?array $waPertemuanInfo = null;
+    public array $waPertemuanStudents = [];
+
     public function mount(): void
     {
         abort_if(
@@ -42,6 +47,108 @@ class DashboardEkstrakurikuler extends Component
         $this->selectedAcademicYearId = $activeYear?->id;
     }
 
+    public function openWaPertemuanModal(string $pertemuanId): void
+    {
+        $pertemuan = EkstrakurikulerPertemuan::with('ekstrakurikuler.pembinas')->find($pertemuanId);
+        if (!$pertemuan || !$pertemuan->ekstrakurikuler) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Sesi pertemuan tidak ditemukan.']);
+            return;
+        }
+
+        $ekskul = $pertemuan->ekstrakurikuler;
+        $members = EkstrakurikulerSiswa::with([
+                'siswa' => fn ($q) => $q->with([
+                    'enrollments' => fn ($eq) => $eq->where('academic_year_id', $ekskul->academic_year_id)
+                        ->where('status', 'aktif')
+                        ->with('kelas'),
+                ]),
+            ])
+            ->where('ekstrakurikuler_id', $ekskul->id)
+            ->where('status_aktif', true)
+            ->get()
+            ->sortBy(fn ($m) => strtolower($m->siswa?->name ?? ''));
+
+        $presensisByStudent = EkstrakurikulerPresensi::where('pertemuan_id', $pertemuan->id)
+            ->get()
+            ->keyBy('student_id');
+
+        $waService = app(UnattendedEkstrakurikulerNotificationService::class);
+        $studentsList = [];
+
+        foreach ($members as $m) {
+            $student = $m->siswa;
+            if (!$student) {
+                continue;
+            }
+
+            $pres = $presensisByStudent->get($student->id);
+            $status = $pres?->status ?? 'belum';
+
+            if (!in_array($status, ['belum', 'alpa'], true)) {
+                continue;
+            }
+
+            $statusLabel = $status === 'alpa' ? 'Alpa (Ekstrakurikuler)' : 'Belum Absen Ekskul';
+            $kelasModel = $student->enrollments->first()?->kelas
+                ?? $student->resolveKelasModel($ekskul->academic_year_id);
+            $kelasName = $kelasModel?->name ?? '-';
+            $waliKelas = $kelasModel?->waliKelas($ekskul->academic_year_id);
+
+            $waPayload = $waService->buildPersonalWaPayload(
+                student: $student,
+                ekskul: $ekskul,
+                pertemuan: $pertemuan,
+                kelasName: $kelasName,
+                waliKelas: $waliKelas,
+                statusKehadiran: $statusLabel
+            );
+
+            $studentsList[] = [
+                'id'           => $student->id,
+                'name'         => $student->name,
+                'nisn'         => $student->nisn ?? '-',
+                'kelas'        => $kelasName,
+                'status_key'   => $status,
+                'status_label' => $statusLabel,
+                'phone'        => $waPayload['raw_phone'],
+                'clean_phone'  => $waPayload['clean_phone'],
+                'wa_text_raw'  => $waPayload['wa_text_raw'],
+            ];
+        }
+
+        $this->waPertemuanInfo = [
+            'pertemuan_id'   => $pertemuan->id,
+            'ekskul_name'    => $ekskul->nama_ekskul,
+            'pertemuan_ke'   => $pertemuan->pertemuan_ke,
+            'judul_kegiatan' => $pertemuan->judul_kegiatan ?: 'Belum diisi pembina',
+            'tanggal_label'  => $pertemuan->tanggal
+                ? $pertemuan->tanggal->locale('id')->translatedFormat('l, d F Y')
+                : '-',
+        ];
+        $this->waPertemuanStudents = $studentsList;
+        $this->showWaPertemuanModal = true;
+    }
+
+    public function closeWaPertemuanModal(): void
+    {
+        $this->showWaPertemuanModal = false;
+    }
+
+    public function sendWaDirect(string $studentId, string $targetPhone, string $messageText, string $type = 'ekstrakurikuler'): void
+    {
+        $res = app(UnattendedEkstrakurikulerNotificationService::class)
+            ->sendDirectMessage($studentId, $targetPhone, $messageText);
+
+        $this->dispatch('notify', [
+            'type'    => $res['type'],
+            'message' => $res['message'],
+        ]);
+
+        if ($res['success']) {
+            $this->dispatch('wa-modal-close');
+        }
+    }
+
     public function kirimWaBelumHadir(string $pertemuanId): void
     {
         $pertemuan = EkstrakurikulerPertemuan::with('ekstrakurikuler')->find($pertemuanId);
@@ -57,6 +164,10 @@ class DashboardEkstrakurikuler extends Component
             'type'    => !$result['success'] ? 'warning' : ($result['dispatched'] > 0 ? 'success' : 'info'),
             'message' => $result['message'],
         ]);
+
+        if (!empty($result['success'])) {
+            $this->showWaPertemuanModal = false;
+        }
     }
 
     public function render()

@@ -1,4 +1,48 @@
-<div class="space-y-6 pb-10">
+<div class="space-y-6 pb-10" x-data="{
+    showWaModal: false,
+    waStudentId: '',
+    waStudentName: '',
+    waStudentClass: '',
+    waStudentNisn: '',
+    waRecipientPhone: '',
+    waOriginalMessage: '',
+    waMessage: '',
+    waStatusType: 'ekstrakurikuler',
+    waStatusLabel: '',
+    isSending: false,
+    openWaModal(data) {
+        this.waStudentId = data.id;
+        this.waStudentName = data.name;
+        this.waStudentClass = data.className;
+        this.waStudentNisn = data.nisn || '-';
+        this.waRecipientPhone = data.cleanPhone || data.phone || '';
+        this.waOriginalMessage = data.rawText || '';
+        this.waMessage = data.rawText || '';
+        this.waStatusType = data.type || 'ekstrakurikuler';
+        this.waStatusLabel = data.statusLabel || 'Belum Absen Ekskul';
+        this.isSending = false;
+        this.showWaModal = true;
+    },
+    resetTemplate() {
+        this.waMessage = this.waOriginalMessage;
+    },
+    submitSend() {
+        if (!this.waRecipientPhone.trim()) { alert('Silakan masukkan nomor WhatsApp tujuan!'); return; }
+        if (!this.waMessage.trim()) { alert('Isi pesan tidak boleh kosong!'); return; }
+        this.isSending = true;
+        this.$wire.sendWaDirect(this.waStudentId, this.waRecipientPhone, this.waMessage, this.waStatusType)
+            .catch(err => alert('Terjadi kesalahan: ' + (err?.message || err)))
+            .finally(() => { this.isSending = false; });
+    },
+    openWhatsAppWeb() {
+        if (!this.waRecipientPhone.trim()) { alert('Silakan masukkan nomor WhatsApp tujuan!'); return; }
+        if (!this.waMessage.trim()) { alert('Isi pesan tidak boleh kosong!'); return; }
+        let cleanPhone = this.waRecipientPhone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.substring(1);
+        else if (cleanPhone.startsWith('8')) cleanPhone = '62' + cleanPhone;
+        window.open('https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(this.waMessage), '_blank');
+    }
+}" @wa-modal-close.window="showWaModal = false">
     @if(count($ekskuls) === 0 || !$selectedEkskul)
         <!-- Header & Empty State -->
         <div class="bg-gradient-to-br from-brand-primary via-indigo-700 to-violet-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
@@ -198,6 +242,7 @@
                                         <th class="px-3 py-3 text-center">Sumber / Jam</th>
                                         <th class="px-3 py-3 text-center">Status Kehadiran</th>
                                         <th class="px-5 py-3">Keterangan</th>
+                                        <th class="px-4 py-3 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -238,6 +283,29 @@
                                             </td>
                                             <td class="px-5 py-3">
                                                 <input type="text" wire:model="presensiRows.{{ $idx }}.keterangan" placeholder="Keterangan izin/sakit/catatan..." class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs focus:border-brand-primary outline-none">
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                @if(empty($row['status']) || $row['status'] === 'alpa')
+                                                    <button type="button"
+                                                        @click="openWaModal({
+                                                            id: '{{ $row['student_id'] }}',
+                                                            name: '{{ addslashes($row['name']) }}',
+                                                            className: '{{ addslashes($row['kelas']) }}',
+                                                            nisn: '{{ $row['nisn'] }}',
+                                                            cleanPhone: '{{ $row['clean_phone'] ?? '' }}',
+                                                            phone: '{{ $row['raw_phone'] ?? '' }}',
+                                                            type: 'ekstrakurikuler',
+                                                            statusLabel: '{{ ($row['status'] ?? '') === 'alpa' ? 'Alpa Ekskul' : 'Belum Absen Ekskul' }}',
+                                                            rawText: {{ json_encode($row['wa_text_raw'] ?? '') }}
+                                                        })"
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                                        title="Kirim Pesan WhatsApp ke Orang Tua">
+                                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                                        <span>WA Ortu</span>
+                                                    </button>
+                                                @else
+                                                    <span class="text-xs text-slate-300">-</span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
@@ -462,4 +530,12 @@
             </div>
         </div>
     @endif
+
+    <x-portal.wa-ortu-modal
+        title="Kirim Pesan WhatsApp Ekstrakurikuler"
+        subtitle="Kirim via WhatsApp Web/HP atau langsung lewat gateway aplikasi"
+        statusHeading="Status Ekskul"
+        :canSendGateway="$isNotifEkskulActive ?? false"
+        :templateNote="'Pesan di atas diambil otomatis dari template notifikasi ekstrakurikuler ' . (\App\Models\PengaturanSekolah::current()?->school_name ?? 'Sekolah') . '.'"
+    />
 </div>

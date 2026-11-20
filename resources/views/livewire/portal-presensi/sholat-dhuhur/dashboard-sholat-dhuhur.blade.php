@@ -1,4 +1,48 @@
-<div class="min-h-full pb-16 font-jakarta">
+<div class="min-h-full pb-16 font-jakarta" x-data="{
+    showWaModal: false,
+    waStudentId: '',
+    waStudentName: '',
+    waStudentClass: '',
+    waStudentNisn: '',
+    waRecipientPhone: '',
+    waOriginalMessage: '',
+    waMessage: '',
+    waStatusType: 'sholat_dhuhur',
+    waStatusLabel: '',
+    isSending: false,
+    openWaModal(data) {
+        this.waStudentId = data.id;
+        this.waStudentName = data.name;
+        this.waStudentClass = data.className;
+        this.waStudentNisn = data.nisn || '-';
+        this.waRecipientPhone = data.cleanPhone || data.phone || '';
+        this.waOriginalMessage = data.rawText || '';
+        this.waMessage = data.rawText || '';
+        this.waStatusType = data.type || 'sholat_dhuhur';
+        this.waStatusLabel = data.statusLabel || 'Belum Absen Sholat';
+        this.isSending = false;
+        this.showWaModal = true;
+    },
+    resetTemplate() {
+        this.waMessage = this.waOriginalMessage;
+    },
+    submitSend() {
+        if (!this.waRecipientPhone.trim()) { alert('Silakan masukkan nomor WhatsApp tujuan!'); return; }
+        if (!this.waMessage.trim()) { alert('Isi pesan tidak boleh kosong!'); return; }
+        this.isSending = true;
+        this.$wire.sendWaDirect(this.waStudentId, this.waRecipientPhone, this.waMessage, this.waStatusType)
+            .catch(err => alert('Terjadi kesalahan: ' + (err?.message || err)))
+            .finally(() => { this.isSending = false; });
+    },
+    openWhatsAppWeb() {
+        if (!this.waRecipientPhone.trim()) { alert('Silakan masukkan nomor WhatsApp tujuan!'); return; }
+        if (!this.waMessage.trim()) { alert('Isi pesan tidak boleh kosong!'); return; }
+        let cleanPhone = this.waRecipientPhone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.substring(1);
+        else if (cleanPhone.startsWith('8')) cleanPhone = '62' + cleanPhone;
+        window.open('https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(this.waMessage), '_blank');
+    }
+}" @wa-modal-close.window="showWaModal = false">
     <!-- Header Section -->
     <div class="mb-6 lg:mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -42,6 +86,17 @@
                 <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Sinkron Pagi</span>
             </button>
+
+            @if($unattendedCount > 0 && !$isHoliday)
+                <button type="button" wire:click="kirimWaBelumSholatMassal"
+                    wire:confirm="Kirim broadcast WA ke orang tua dari semua siswa yang belum presensi Sholat Dhuhur hari ini?"
+                    wire:loading.attr="disabled"
+                    @disabled(!$isNotifSholatActive)
+                    title="{{ !$isNotifSholatActive ? 'Aktifkan dulu Notifikasi Sholat Dhuhur di Portal Sistem -> Notifikasi WA Presensi' : 'Broadcast WA ke semua siswa Muslim yang belum absen sholat hari ini' }}"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 shadow-xs disabled:opacity-45 disabled:cursor-not-allowed transition-all cursor-pointer">
+                    <span>Kirim WA Belum Sholat ({{ $unattendedCount }})</span>
+                </button>
+            @endif
 
             <!-- PDF Per Kelas -->
             <button type="button" wire:click="downloadRekapKelasPdf" wire:loading.attr="disabled"
@@ -230,6 +285,7 @@
                                 <th class="py-3.5 px-4 text-center">NISN</th>
                                 <th class="py-3.5 px-4 text-center">Status Sholat</th>
                                 <th class="py-3.5 px-4">Keterangan</th>
+                                <th class="py-3.5 px-4 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -253,10 +309,41 @@
                                         @endif
                                     </td>
                                     <td class="py-3 px-4 text-slate-500 text-xs">{{ $st['keterangan'] ?: '-' }}</td>
+                                    <td class="py-3 px-4 text-center">
+                                        @if($st['status'] === 'non_muslim')
+                                            <span class="text-xs text-slate-400 italic">Non-Muslim</span>
+                                        @else
+                                            <div class="flex items-center justify-center gap-1.5">
+                                                @if($st['status'] === 'belum' || $st['status'] === 'tidak_hadir')
+                                                    <button type="button"
+                                                        @click="openWaModal({
+                                                            id: '{{ $st['id'] }}',
+                                                            name: '{{ addslashes($st['name']) }}',
+                                                            className: '{{ addslashes($st['class_name']) }}',
+                                                            nisn: '{{ $st['nisn'] ?? '-' }}',
+                                                            cleanPhone: '{{ $st['clean_phone'] ?? '' }}',
+                                                            phone: '{{ $st['phone'] ?? '' }}',
+                                                            type: 'sholat_dhuhur',
+                                                            statusLabel: '{{ $st['status'] === 'tidak_hadir' ? 'Tidak Hadir Sholat' : 'Belum Absen Sholat' }}',
+                                                            rawText: {{ json_encode($st['wa_text_raw'] ?? '') }}
+                                                        })"
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                                        title="Kirim Pesan WhatsApp ke Orang Tua">
+                                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                                        <span>WA Ortu</span>
+                                                    </button>
+                                                @endif
+                                                <a href="{{ route('portal-presensi.sholat-dhuhur.input-manual', ['class_id' => $st['class_id']]) }}"
+                                                   class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all">
+                                                    Input
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="py-10 text-center text-slate-400 font-bold">Tidak ada data siswa ditemukan.</td>
+                                    <td colspan="7" class="py-10 text-center text-slate-400 font-bold">Tidak ada data siswa ditemukan.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -277,5 +364,13 @@
             </div>
         @endif
     </div>
+
+    <x-portal.wa-ortu-modal
+        title="Kirim Pesan WhatsApp Sholat Dhuhur"
+        subtitle="Kirim via WhatsApp Web/HP atau langsung lewat gateway aplikasi"
+        statusHeading="Status Sholat"
+        :canSendGateway="$isNotifSholatActive ?? false"
+        :templateNote="'Pesan di atas diambil otomatis dari template presensi sholat dhuhur ' . (\App\Models\PengaturanSekolah::current()?->school_name ?? 'Sekolah') . '.'"
+    />
 </div>
 

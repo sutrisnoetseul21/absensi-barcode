@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Jobs\SendWhatsAppNotificationJob;
+use App\Models\Ekstrakurikuler;
 use App\Models\EkstrakurikulerPertemuan;
 use App\Models\EkstrakurikulerPresensi;
 use App\Models\EkstrakurikulerSiswa;
+use App\Models\Guru;
 use App\Models\PengaturanSekolah;
 use App\Models\PresensiNotificationSetting;
+use App\Models\Siswa;
 use App\Models\WhatsAppNotificationLog;
 use Illuminate\Support\Facades\Log;
 
@@ -207,7 +210,99 @@ class UnattendedEkstrakurikulerNotificationService
         ];
     }
 
-    protected function normalizePhone(?string $rawPhone): ?string
+    /**
+     * Siapkan payload WA per baris siswa (nomor HP + pesan ter-render) untuk tombol WA Ortu.
+     */
+    public function buildPersonalWaPayload(
+        Siswa $student,
+        Ekstrakurikuler $ekskul,
+        ?EkstrakurikulerPertemuan $pertemuan,
+        string $kelasName,
+        ?Guru $waliKelas = null,
+        string $statusKehadiran = 'Belum Hadir Ekstrakurikuler',
+        ?string $fallbackDate = null
+    ): array {
+        $rawPhone = (string) ($student->no_hp_orang_tua ?: $student->no_hp ?: '');
+        $cleanPhone = $this->normalizePhone($rawPhone) ?? '';
+
+        $dateLabel = $pertemuan?->tanggal
+            ? $pertemuan->tanggal->locale('id')->translatedFormat('l, d F Y')
+            : ($fallbackDate
+                ? \Carbon\Carbon::parse($fallbackDate)->locale('id')->translatedFormat('l, d F Y')
+                : now('Asia/Jakarta')->locale('id')->translatedFormat('l, d F Y'));
+
+        $pembinaNames = $ekskul->pembinas->pluck('name')->implode(', ') ?: '-';
+        $judulKegiatan = $pertemuan?->judul_kegiatan
+            ?: ($pertemuan ? "Pertemuan ke-{$pertemuan->pertemuan_ke}" : 'Latihan Ekstrakurikuler');
+
+        $waTextRaw = PresensiNotificationSetting::renderTemplate('ekstrakurikuler', [
+            'nama_siswa'       => $student->name,
+            'kelas'            => $kelasName,
+            'tanggal'          => $dateLabel,
+            'status_kehadiran' => $statusKehadiran,
+            'nama_wali_kelas'  => $waliKelas?->name ?? '-',
+            'nama_ekskul'      => $ekskul->nama_ekskul,
+            'judul_kegiatan'   => $judulKegiatan,
+            'nama_pembina'     => $pembinaNames,
+        ]);
+
+        return [
+            'raw_phone'   => $rawPhone,
+            'clean_phone' => $cleanPhone,
+            'wa_text_raw' => $waTextRaw,
+        ];
+    }
+
+    /**
+     * Kirim pesan WA langsung via Gateway dari modal WA Ortu per siswa.
+     */
+    public function sendDirectMessage(string $studentId, string $targetPhone, string $messageText): array
+    {
+        $notifSetting = PresensiNotificationSetting::where('status_presensi', 'ekstrakurikuler')->first();
+        if (!$notifSetting || !$notifSetting->is_active) {
+            return [
+                'success' => false,
+                'type'    => 'warning',
+                'message' => 'Fitur notifikasi WhatsApp Ekstrakurikuler sedang dinonaktifkan di Portal Sistem. Silakan pakai tombol "Buka di WA (Web / HP)".',
+            ];
+        }
+
+        $cleanPhone = $this->normalizePhone($targetPhone);
+        if (!$cleanPhone) {
+            return [
+                'success' => false,
+                'type'    => 'error',
+                'message' => 'Nomor WhatsApp orang tua tidak valid atau masih kosong.',
+            ];
+        }
+
+        $waService = app(WhatsAppGatewayService::class);
+        $sent = $waService->sendMessage(
+            toNumber: $cleanPhone,
+            message: $messageText,
+            relatedType: 'presensi_ekstrakurikuler',
+            relatedId: $studentId,
+            recipientType: 'ortu',
+            logId: null,
+            ignoreDelay: true
+        );
+
+        if ($sent) {
+            return [
+                'success' => true,
+                'type'    => 'success',
+                'message' => "Pesan WhatsApp berhasil dikirim ke nomor {$cleanPhone}!",
+            ];
+        }
+
+        return [
+            'success' => false,
+            'type'    => 'error',
+            'message' => 'Gagal mengirim via sistem gateway WhatsApp. Anda dapat menggunakan tombol "Buka di WA (Web / HP)" sebagai alternatif.',
+        ];
+    }
+
+    public function normalizePhone(?string $rawPhone): ?string
     {
         $clean = preg_replace('/[^0-9]/', '', $rawPhone ?? '');
         if (empty($clean)) {
